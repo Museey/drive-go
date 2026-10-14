@@ -1,0 +1,18 @@
+{
+  "DB.emp[EMP008].dgbPass": [
+    null,
+    "8888"
+  ],
+  "DB.emp[EMP008].dgbActive": [
+    null,
+    true
+  ],
+  "DB.curEmp": [
+    "",
+    "@DB.emp[EMP008]"
+  ],
+  "DGB.session.who": [
+    "owner",
+    "@DB.emp[EMP008]"
+  ]
+}

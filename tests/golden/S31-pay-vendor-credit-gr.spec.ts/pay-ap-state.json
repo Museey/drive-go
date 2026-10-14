@@ -1,0 +1,92 @@
+{
+  "DB.purchases[MA-RC261000002].paid": [
+    false,
+    true
+  ],
+  "DB.purchases[MA-RC261000002].payDate": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.purchases[MA-RC261000002].payments": [
+    null,
+    [
+      {
+        "id": "@DB.purchases[MA-RC261000002].payments[#0]",
+        "amt": 9309,
+        "date": "2026-10-13",
+        "method": "trans",
+        "by": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "note": "",
+        "bank": "ธนาคารกสิกรไทย 123-4-56789-0 (หจก.เอกหม้อน้ำ)",
+        "ref": "KB2610130001",
+        "card4": "",
+        "chkDate": "",
+        "payId": "ST<uid>",
+        "payTotal": 9309,
+        "payBills": 1,
+        "methods": [
+          {
+            "k": "trans",
+            "amt": 9309,
+            "lines": 1
+          }
+        ],
+        "transLines": [
+          {
+            "no": 1,
+            "bank": "ธนาคารกสิกรไทย 123-4-56789-0 (หจก.เอกหม้อน้ำ)",
+            "amt": 9309,
+            "when": "13/10/2569 09:00",
+            "ref": "KB2610130001",
+            "slip": false
+          }
+        ],
+        "slipCount": 0,
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  ],
+  "DB.purchases[MA-RC261000002].payMethod": [
+    null,
+    "trans"
+  ],
+  "DB.purchases[MA-RC261000002].payBank": [
+    null,
+    "ธนาคารกสิกรไทย 123-4-56789-0 (หจก.เอกหม้อน้ำ)"
+  ],
+  "DB.purchases[MA-RC261000002].payRef": [
+    null,
+    "KB2610130001"
+  ],
+  "DB.purchases[MA-RC261000002].payCard4": [
+    null,
+    ""
+  ],
+  "DB.purchases[MA-RC261000002].chkDate": [
+    null,
+    ""
+  ],
+  "DB.purchases[MA-RC261000002].payBy": [
+    null,
+    "เจ้าของกิจการ / ผู้ดูแลระบบ"
+  ],
+  "DB.purchases[MA-RC261000002].payNote": [
+    null,
+    ""
+  ],
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-RC261000002#53]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "gr",
+        "docId": "@DB.purchases[MA-RC261000002]",
+        "no": "MA-RC261000002",
+        "act": "pay",
+        "note": "จ่ายเจ้าหนี้ 9,309.00 บาท (เงินโอน) · ชำระครบแล้ว"
+      }
+    ]
+  }
+}

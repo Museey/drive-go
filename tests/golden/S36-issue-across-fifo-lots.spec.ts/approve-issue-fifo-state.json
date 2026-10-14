@@ -1,0 +1,140 @@
+{
+  "DB.stock[BR-001].qty": [
+    29,
+    8
+  ],
+  "DB.moves": {
+    "added": [
+      {
+        "id": "@DB.moves[#45]",
+        "stockId": "@DB.stock[BR-001]",
+        "type": "out",
+        "qty": 21,
+        "date": "2026-10-13",
+        "ref": "เบิกใช้ภายใน — งานซ่อมรถของกิจการ · เปลี่ยนผ้าเบรกรถกระบะทั้งกองของอู่",
+        "refNo": "MA-WD261000001",
+        "vendorId": "",
+        "cost": 0,
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-WD261000001]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "issue",
+        "docId": "@DB.issues[MA-WD261000001]",
+        "no": "MA-WD261000001",
+        "act": "save",
+        "note": "1 รายการ · จำนวนรวม 21 ชิ้น"
+      },
+      {
+        "id": "@DB.audit[MA-WD261000001#54]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "issue",
+        "docId": "@DB.issues[MA-WD261000001]",
+        "no": "MA-WD261000001",
+        "act": "approve",
+        "note": "อนุมัติโดย เจ้าของกิจการ / ผู้ดูแลระบบ"
+      },
+      {
+        "id": "@DB.audit[MA-WD261000001#55]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "issue",
+        "docId": "@DB.issues[MA-WD261000001]",
+        "no": "MA-WD261000001",
+        "act": "deduct3",
+        "note": "ตัดสต๊อกเบิกใช้ภายใน 1 รายการ"
+      }
+    ]
+  },
+  "DB.seq.MA-WD2610": [
+    null,
+    1
+  ],
+  "DB.issues": {
+    "added": [
+      {
+        "id": "@DB.issues[MA-WD261000001]",
+        "no": "MA-WD261000001",
+        "date": "2026-10-13",
+        "by": "ศักดิ์ชัย มั่นคง (หัวหน้าช่าง)",
+        "byId": "@DB.emp[EMP001]",
+        "dept": "งานซ่อมรถของกิจการ",
+        "items": [
+          {
+            "stockId": "@DB.stock[BR-001]",
+            "code": "BR-001",
+            "name": "ผ้าเบรกหน้า Toyota Revo",
+            "qty": 21,
+            "reason": "เปลี่ยนผ้าเบรกรถกระบะทั้งกองของอู่"
+          }
+        ],
+        "note": "",
+        "deducted": true,
+        "apv": {
+          "status": "approved",
+          "by": "",
+          "byName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+          "date": "2026-10-13",
+          "note": ""
+        },
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.fifo.lots[#18].left": [
+    19,
+    0
+  ],
+  "DB.fifo.lots[#25].left": [
+    10,
+    8
+  ],
+  "DB.fifo.allocs": {
+    "added": [
+      {
+        "id": "@DB.fifo.allocs[#17]",
+        "seq": 1791856800000001,
+        "br": "@DB.branches[MA]",
+        "stockId": "@DB.stock[BR-001]",
+        "lotId": "@DB.fifo.lots[#18]",
+        "qty": 19,
+        "back": 0,
+        "cost": 850,
+        "date": "2026-10-13",
+        "ref": "เบิกใช้ภายใน — งานซ่อมรถของกิจการ · เปลี่ยนผ้าเบรกรถกระบะทั้งกองของอู่",
+        "refNo": "MA-WD261000001",
+        "pending": false
+      },
+      {
+        "id": "@DB.fifo.allocs[#18]",
+        "seq": 1791856800000002,
+        "br": "@DB.branches[MA]",
+        "stockId": "@DB.stock[BR-001]",
+        "lotId": "@DB.fifo.lots[#25]",
+        "qty": 2,
+        "back": 0,
+        "cost": 870,
+        "date": "2026-10-13",
+        "ref": "เบิกใช้ภายใน — งานซ่อมรถของกิจการ · เปลี่ยนผ้าเบรกรถกระบะทั้งกองของอู่",
+        "refNo": "MA-WD261000001",
+        "pending": false
+      }
+    ]
+  }
+}

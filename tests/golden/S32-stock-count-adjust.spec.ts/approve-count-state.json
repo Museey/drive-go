@@ -1,0 +1,180 @@
+{
+  "DB.stock[AC-215].qty": [
+    19,
+    17
+  ],
+  "DB.stock[AC-230].qty": [
+    19,
+    20
+  ],
+  "DB.moves": {
+    "added": [
+      {
+        "id": "@DB.moves[#44]",
+        "stockId": "@DB.stock[AC-215]",
+        "type": "adj",
+        "qty": -2,
+        "date": "2026-10-13",
+        "ref": "ปรับยอดจากตรวจนับสินค้า",
+        "refNo": "MA-CT261000001",
+        "vendorId": "",
+        "cost": 0,
+        "br": "@DB.branches[MA]"
+      },
+      {
+        "id": "@DB.moves[#45]",
+        "stockId": "@DB.stock[AC-230]",
+        "type": "adj",
+        "qty": 1,
+        "date": "2026-10-13",
+        "ref": "ปรับยอดจากตรวจนับสินค้า",
+        "refNo": "MA-CT261000001",
+        "vendorId": "",
+        "cost": 0,
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-CT261000001]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "count",
+        "docId": "@DB.stockCounts[MA-CT261000001]",
+        "no": "MA-CT261000001",
+        "act": "save",
+        "note": "4 รายการ"
+      },
+      {
+        "id": "@DB.audit[MA-CT261000001#51]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "count",
+        "docId": "@DB.stockCounts[MA-CT261000001]",
+        "no": "MA-CT261000001",
+        "act": "approve",
+        "note": "อนุมัติโดย เจ้าของกิจการ / ผู้ดูแลระบบ"
+      },
+      {
+        "id": "@DB.audit[MA-CT261000001#52]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "count",
+        "docId": "@DB.stockCounts[MA-CT261000001]",
+        "no": "MA-CT261000001",
+        "act": "adjust",
+        "note": "ปรับยอด 2 รายการ"
+      }
+    ]
+  },
+  "DB.seq.MA-CT2610": [
+    null,
+    1
+  ],
+  "DB.stockCounts": {
+    "added": [
+      {
+        "id": "@DB.stockCounts[MA-CT261000001]",
+        "no": "MA-CT261000001",
+        "date": "2026-10-13",
+        "by": "มานะ บริหารเก่ง",
+        "catFilter": "อะไหล่แอร์",
+        "items": [
+          {
+            "stockId": "@DB.stock[AC-204]",
+            "code": "AC-204",
+            "name": "คอมเพรสเซอร์แอร์ D-Max",
+            "sysQty": 19,
+            "countedQty": 19
+          },
+          {
+            "stockId": "@DB.stock[AC-215]",
+            "code": "AC-215",
+            "name": "กรองแอร์ในห้องโดยสาร",
+            "sysQty": 19,
+            "countedQty": 17
+          },
+          {
+            "stockId": "@DB.stock[AC-222]",
+            "code": "AC-222",
+            "name": "แผงคอยล์ร้อน Revo",
+            "sysQty": 18,
+            "countedQty": 18
+          },
+          {
+            "stockId": "@DB.stock[AC-230]",
+            "code": "AC-230",
+            "name": "น้ำยาแอร์ R134a (ถัง 13.6 กก.)",
+            "sysQty": 19,
+            "countedQty": 20
+          }
+        ],
+        "note": "ตรวจนับประจำเดือน",
+        "applied": true,
+        "apv": {
+          "status": "approved",
+          "by": "",
+          "byName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+          "date": "2026-10-13",
+          "note": ""
+        },
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.fifo.lots[#10].left": [
+    19,
+    17
+  ],
+  "DB.fifo.lots": {
+    "added": [
+      {
+        "id": "@DB.fifo.lots[#25]",
+        "seq": 1791856800000001,
+        "br": "@DB.branches[MA]",
+        "stockId": "@DB.stock[AC-230]",
+        "date": "2026-10-13",
+        "ref": "ปรับยอดจากตรวจนับสินค้า",
+        "refNo": "MA-CT261000001",
+        "vendorId": "",
+        "src": "count",
+        "cost": 1600,
+        "qty": 1,
+        "left": 1,
+        "exp": "",
+        "mfg": "",
+        "expSrc": "",
+        "lotNo": ""
+      }
+    ]
+  },
+  "DB.fifo.allocs": {
+    "added": [
+      {
+        "id": "@DB.fifo.allocs[#17]",
+        "seq": 1791856800000000,
+        "br": "@DB.branches[MA]",
+        "stockId": "@DB.stock[AC-215]",
+        "lotId": "@DB.fifo.lots[#10]",
+        "qty": 2,
+        "back": 0,
+        "cost": 120,
+        "date": "2026-10-13",
+        "ref": "ปรับยอดจากตรวจนับสินค้า",
+        "refNo": "MA-CT261000001",
+        "pending": false
+      }
+    ]
+  }
+}

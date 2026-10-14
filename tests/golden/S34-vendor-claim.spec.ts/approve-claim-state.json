@@ -1,0 +1,129 @@
+{
+  "DB.stock[EL-101].qty": [
+    20,
+    19
+  ],
+  "DB.moves": {
+    "added": [
+      {
+        "id": "@DB.moves[#44]",
+        "stockId": "@DB.stock[EL-101]",
+        "type": "out",
+        "qty": 1,
+        "date": "2026-10-13",
+        "ref": "ส่งเคลมสินค้า — ชาร์จไฟไม่เข้าตั้งแต่แกะกล่อง",
+        "refNo": "MA-CL261000001",
+        "vendorId": "@DB.vendors[V00001]",
+        "cost": 4200,
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.claims": {
+    "added": [
+      {
+        "id": "@DB.claims[MA-CL261000001]",
+        "no": "MA-CL261000001",
+        "date": "2026-10-13",
+        "vendorId": "@DB.vendors[V00001]",
+        "ref": "MA-RC261000001 / INV-OPEN-MA",
+        "grId": "@DB.purchases[MA-RC261000001]",
+        "status": "sent",
+        "receiptId": "",
+        "plate": "",
+        "items": [
+          {
+            "stockId": "@DB.stock[EL-101]",
+            "code": "EL-101",
+            "name": "ไดชาร์จ Toyota Revo",
+            "qty": 1,
+            "reason": "ชาร์จไฟไม่เข้าตั้งแต่แกะกล่อง"
+          }
+        ],
+        "recv": "คุณสมพงษ์",
+        "by": "ศักดิ์ชัย มั่นคง",
+        "ap": "",
+        "note": "ผู้ขายรับเคลมและจะส่งของใหม่ภายใน 7 วัน",
+        "deduct": true,
+        "deducted": true,
+        "apv": {
+          "status": "approved",
+          "by": "",
+          "byName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+          "date": "2026-10-13",
+          "note": ""
+        },
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-CL261000001]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "claim",
+        "docId": "@DB.claims[MA-CL261000001]",
+        "no": "MA-CL261000001",
+        "act": "save",
+        "note": "1 รายการ · จำนวนรวม 1 ชิ้น"
+      },
+      {
+        "id": "@DB.audit[MA-CL261000001#51]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "claim",
+        "docId": "@DB.claims[MA-CL261000001]",
+        "no": "MA-CL261000001",
+        "act": "approve",
+        "note": "อนุมัติโดย เจ้าของกิจการ / ผู้ดูแลระบบ"
+      },
+      {
+        "id": "@DB.audit[MA-CL261000001#52]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "claim",
+        "docId": "@DB.claims[MA-CL261000001]",
+        "no": "MA-CL261000001",
+        "act": "deduct2",
+        "note": "ตัดสต๊อกส่งเคลม 1 รายการ"
+      }
+    ]
+  },
+  "DB.seq.MA-CL2610": [
+    null,
+    1
+  ],
+  "DB.fifo.lots[#0].left": [
+    20,
+    19
+  ],
+  "DB.fifo.allocs": {
+    "added": [
+      {
+        "id": "@DB.fifo.allocs[#17]",
+        "seq": 1791856800000000,
+        "br": "@DB.branches[MA]",
+        "stockId": "@DB.stock[EL-101]",
+        "lotId": "@DB.fifo.lots[#0]",
+        "qty": 1,
+        "back": 0,
+        "cost": 4200,
+        "date": "2026-10-13",
+        "ref": "ส่งเคลมสินค้า — ชาร์จไฟไม่เข้าตั้งแต่แกะกล่อง",
+        "refNo": "MA-CL261000001",
+        "pending": false
+      }
+    ]
+  }
+}

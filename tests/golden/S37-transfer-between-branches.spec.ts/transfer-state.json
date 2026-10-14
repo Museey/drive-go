@@ -1,0 +1,134 @@
+{
+  "DB.stock[BR-001].qty": [
+    19,
+    14
+  ],
+  "DB.stock[BR-001].bq.mv619vk044tj2.qty": [
+    0,
+    5
+  ],
+  "DB.stock[BR-001].bq.mv619vk044tj2.lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.moves": {
+    "added": [
+      {
+        "id": "@DB.moves[#44]",
+        "stockId": "@DB.stock[BR-001]",
+        "type": "out",
+        "qty": -5,
+        "date": "2026-10-13",
+        "ref": "โอนออกไปสาขา BN · ใบโอน MA-MV261000001",
+        "refNo": "MA-MV261000001",
+        "vendorId": "",
+        "cost": 0,
+        "br": "@DB.branches[MA]"
+      },
+      {
+        "id": "@DB.moves[#45]",
+        "stockId": "@DB.stock[BR-001]",
+        "type": "in",
+        "qty": 5,
+        "date": "2026-10-13",
+        "ref": "รับโอนจากสาขา MA · ใบโอน MA-MV261000001",
+        "refNo": "MA-MV261000001",
+        "vendorId": "",
+        "cost": 850,
+        "br": "@DB.branches[BN]"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-MV261000001]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "transfer",
+        "docId": "@DB.transfers[MA-MV261000001]",
+        "no": "MA-MV261000001",
+        "act": "transfer",
+        "note": "โอน 1 รายการ ไป BN · สาขาบางนา"
+      }
+    ]
+  },
+  "DB.seq.MA-MV2610": [
+    null,
+    1
+  ],
+  "DB.fifo.lots[#18].left": [
+    19,
+    14
+  ],
+  "DB.fifo.lots": {
+    "added": [
+      {
+        "id": "@DB.fifo.lots[#25]",
+        "seq": 1791856800000001,
+        "br": "@DB.branches[BN]",
+        "stockId": "@DB.stock[BR-001]",
+        "date": "2026-10-13",
+        "ref": "รับโอนจากสาขา MA · ใบโอน MA-MV261000001",
+        "refNo": "MA-MV261000001",
+        "vendorId": "",
+        "src": "in",
+        "cost": 850,
+        "qty": 5,
+        "left": 5,
+        "exp": "",
+        "mfg": "",
+        "expSrc": "",
+        "lotNo": ""
+      }
+    ]
+  },
+  "DB.fifo.allocs": {
+    "added": [
+      {
+        "id": "@DB.fifo.allocs[#17]",
+        "seq": 1791856800000000,
+        "br": "@DB.branches[MA]",
+        "stockId": "@DB.stock[BR-001]",
+        "lotId": "@DB.fifo.lots[#18]",
+        "qty": 5,
+        "back": 0,
+        "cost": 850,
+        "date": "2026-10-13",
+        "ref": "โอนออกไปสาขา BN · ใบโอน MA-MV261000001",
+        "refNo": "MA-MV261000001",
+        "pending": false
+      }
+    ]
+  },
+  "DB.transfers": {
+    "added": [
+      {
+        "id": "@DB.transfers[MA-MV261000001]",
+        "no": "MA-MV261000001",
+        "date": "2026-10-13",
+        "to": "@DB.branches[BN]",
+        "note": "เติมสต๊อกสาขา",
+        "lines": [
+          {
+            "stockId": "@DB.stock[BR-001]",
+            "code": "BR-001",
+            "name": "ผ้าเบรกหน้า Toyota Revo",
+            "unit": "ชิ้น",
+            "qty": 5,
+            "cost": 850
+          }
+        ],
+        "cancelled": false,
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  }
+}

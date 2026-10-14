@@ -1,0 +1,96 @@
+{
+  "DB.stock": {
+    "added": [
+      {
+        "id": "@DB.stock[BR-030]",
+        "code": "BR-030",
+        "oem": "04465-0K290",
+        "name": "ผ้าเบรกหน้า Isuzu D-Max",
+        "cat": "ระบบเบรก",
+        "brand": "",
+        "unit": "ชิ้น",
+        "cost": 900,
+        "pa": 1575,
+        "pb": 1440,
+        "pc": 1350,
+        "qty": 6,
+        "min": 2,
+        "max": 10,
+        "stale": 0,
+        "lastMove": "2026-10-13",
+        "warr": "",
+        "warrNote": "",
+        "zone": "",
+        "shelf": "",
+        "loc": "",
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]",
+        "expTrack": false,
+        "expMonths": "",
+        "expWarn": 90
+      }
+    ]
+  },
+  "DB.moves": {
+    "added": [
+      {
+        "id": "@DB.moves[#44]",
+        "stockId": "@DB.stock[BR-030]",
+        "type": "in",
+        "qty": 6,
+        "date": "2026-10-13",
+        "ref": "ยอดยกมา",
+        "refNo": "",
+        "vendorId": "",
+        "cost": 0,
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[BR-030]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "stock",
+        "docId": "@DB.stock[BR-030]",
+        "no": "BR-030",
+        "act": "save",
+        "note": "เพิ่มสินค้าใหม่ ผ้าเบรกหน้า Isuzu D-Max · ยอดยกมา 6 ชิ้น"
+      }
+    ]
+  },
+  "DB.fifo.lots": {
+    "added": [
+      {
+        "id": "@DB.fifo.lots[#25]",
+        "seq": 1791856800000000,
+        "br": "@DB.branches[MA]",
+        "stockId": "@DB.stock[BR-030]",
+        "date": "0000-00-00",
+        "ref": "ยอดยกมา (ก่อนเริ่มระบบ FIFO)",
+        "refNo": "",
+        "vendorId": "",
+        "src": "open",
+        "cost": 900,
+        "qty": 6,
+        "left": 6,
+        "exp": "",
+        "mfg": "",
+        "expSrc": "",
+        "lotNo": ""
+      }
+    ]
+  },
+  "DB.partBrands": [
+    null,
+    []
+  ]
+}

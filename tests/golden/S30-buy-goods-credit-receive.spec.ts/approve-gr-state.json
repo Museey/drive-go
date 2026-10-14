@@ -1,0 +1,180 @@
+{
+  "DB.stock[SU-350].qty": [
+    19,
+    23
+  ],
+  "DB.stock[BR-001].cost": [
+    850,
+    870
+  ],
+  "DB.stock[BR-001].qty": [
+    19,
+    29
+  ],
+  "DB.purchases": {
+    "added": [
+      {
+        "id": "@DB.purchases[MA-RC261000002]",
+        "no": "MA-RC261000002",
+        "date": "2026-10-13",
+        "vendorId": "@DB.vendors[V00002]",
+        "inv": "TP-2610-0451",
+        "invDate": "2026-10-13",
+        "term": "credit",
+        "days": 15,
+        "due": "2026-10-28",
+        "paid": false,
+        "payDate": "",
+        "by": "",
+        "check": "",
+        "note": "",
+        "items": [
+          {
+            "stockId": "@DB.stock[BR-001]",
+            "code": "BR-001",
+            "oem": "04465-0K260",
+            "name": "ผ้าเบรกหน้า Toyota Revo",
+            "cat": "ระบบเบรก",
+            "qty": 10,
+            "cost": 870
+          },
+          {
+            "stockId": "@DB.stock[SU-350]",
+            "code": "SU-350",
+            "oem": "43330-09510",
+            "name": "ลูกหมากปีกนกล่าง",
+            "cat": "อะไหล่ช่วงล่าง",
+            "qty": 4,
+            "cost": 650
+          }
+        ],
+        "disc": 0,
+        "vat": 7,
+        "posted": true,
+        "apv": {
+          "status": "approved",
+          "by": "",
+          "byName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+          "date": "2026-10-13",
+          "note": ""
+        },
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.moves": {
+    "added": [
+      {
+        "id": "@DB.moves[#44]",
+        "stockId": "@DB.stock[BR-001]",
+        "type": "in",
+        "qty": 10,
+        "date": "2026-10-13",
+        "ref": "รับเข้าจากใบรับสินค้า",
+        "refNo": "MA-RC261000002",
+        "vendorId": "@DB.vendors[V00002]",
+        "cost": 870,
+        "br": "@DB.branches[MA]"
+      },
+      {
+        "id": "@DB.moves[#45]",
+        "stockId": "@DB.stock[SU-350]",
+        "type": "in",
+        "qty": 4,
+        "date": "2026-10-13",
+        "ref": "รับเข้าจากใบรับสินค้า",
+        "refNo": "MA-RC261000002",
+        "vendorId": "@DB.vendors[V00002]",
+        "cost": 650,
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-RC261000002]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "gr",
+        "docId": "@DB.purchases[MA-RC261000002]",
+        "no": "MA-RC261000002",
+        "act": "save",
+        "note": "ยอดสุทธิ 12,091.00 บาท"
+      },
+      {
+        "id": "@DB.audit[MA-RC261000002#51]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "gr",
+        "docId": "@DB.purchases[MA-RC261000002]",
+        "no": "MA-RC261000002",
+        "act": "approve",
+        "note": "อนุมัติโดย เจ้าของกิจการ / ผู้ดูแลระบบ"
+      },
+      {
+        "id": "@DB.audit[MA-RC261000002#52]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "gr",
+        "docId": "@DB.purchases[MA-RC261000002]",
+        "no": "MA-RC261000002",
+        "act": "post",
+        "note": "รับเข้าสต๊อก 2 รายการ"
+      }
+    ]
+  },
+  "DB.seq.MA-RC2610": [
+    1,
+    2
+  ],
+  "DB.fifo.lots": {
+    "added": [
+      {
+        "id": "@DB.fifo.lots[#25]",
+        "seq": 1791856800000000,
+        "br": "@DB.branches[MA]",
+        "stockId": "@DB.stock[BR-001]",
+        "date": "2026-10-13",
+        "ref": "รับเข้าจากใบรับสินค้า",
+        "refNo": "MA-RC261000002",
+        "vendorId": "@DB.vendors[V00002]",
+        "src": "gr",
+        "cost": 870,
+        "qty": 10,
+        "left": 10,
+        "exp": "",
+        "mfg": "",
+        "expSrc": "",
+        "lotNo": ""
+      },
+      {
+        "id": "@DB.fifo.lots[#26]",
+        "seq": 1791856800000001,
+        "br": "@DB.branches[MA]",
+        "stockId": "@DB.stock[SU-350]",
+        "date": "2026-10-13",
+        "ref": "รับเข้าจากใบรับสินค้า",
+        "refNo": "MA-RC261000002",
+        "vendorId": "@DB.vendors[V00002]",
+        "src": "gr",
+        "cost": 650,
+        "qty": 4,
+        "left": 4,
+        "exp": "",
+        "mfg": "",
+        "expSrc": "",
+        "lotNo": ""
+      }
+    ]
+  }
+}
