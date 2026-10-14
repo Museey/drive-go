@@ -2,13 +2,13 @@
 // seeded Math.random, Google Fonts served from tests/support/fonts, and no
 // other outside network.
 import { readFileSync } from 'node:fs';
-import { FIXED_NOW, seedRandomInitScript } from './config.mjs';
+import { LEGACY_ORIGIN, seedRandomInitScript } from './config.mjs';
 
 const fontsDir = new URL('./fonts/', import.meta.url);
 const fonts = JSON.parse(readFileSync(new URL('manifest.json', fontsDir), 'utf8'));
 
-export async function prepareContext(context, seed) {
-  await context.clock.setFixedTime(new Date(FIXED_NOW));
+export async function prepareContext(context, { seed, now }) {
+  await context.clock.setFixedTime(new Date(now));
   await context.addInitScript(seedRandomInitScript, seed);
   await context.route(/^https?:\/\/(?!127\.0\.0\.1[:/])/, route => {
     const hit = fonts[route.request().url()];
@@ -19,6 +19,44 @@ export async function prepareContext(context, seed) {
       headers: { 'access-control-allow-origin': '*' },
     });
   });
+}
+
+// Puts a saved dataset (tests/fixtures/<name>.json, the storageState format)
+// into the browser before the app starts: a blank page on the app's origin
+// writes IndexedDB and localStorage and waits until the writes are committed.
+// Done by hand instead of Playwright's storageState so the app can never read
+// IndexedDB before the data is there.
+export async function restoreDataset(page, dataset) {
+  const state = JSON.parse(readFileSync(new URL(`../fixtures/${dataset}.json`, import.meta.url), 'utf8'));
+  const origin = state.origins.find(o => o.origin === LEGACY_ORIGIN);
+  await page.route(`${LEGACY_ORIGIN}/__blank`, r => r.fulfill({ contentType: 'text/html', body: '<!doctype html><title>restore</title>' }));
+  await page.goto(`${LEGACY_ORIGIN}/__blank`);
+  await page.evaluate(async origin => {
+    localStorage.clear();
+    for (const { name, value } of origin.localStorage || []) localStorage.setItem(name, value);
+    for (const db of origin.indexedDB || []) {
+      await new Promise((res, rej) => { const r = indexedDB.deleteDatabase(db.name); r.onsuccess = res; r.onerror = () => rej(r.error); });
+      const conn = await new Promise((res, rej) => {
+        const r = indexedDB.open(db.name, db.version);
+        r.onupgradeneeded = () => {
+          for (const st of db.stores) {
+            const os = r.result.createObjectStore(st.name, { keyPath: st.keyPath, autoIncrement: st.autoIncrement });
+            for (const ix of st.indexes || []) os.createIndex(ix.name, ix.keyPath, { unique: ix.unique, multiEntry: ix.multiEntry });
+          }
+        };
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => rej(r.error);
+      });
+      for (const st of db.stores) {
+        const tx = conn.transaction(st.name, 'readwrite');
+        const os = tx.objectStore(st.name);
+        for (const rec of st.records) st.keyPath ? os.put(rec.value) : os.put(rec.value, rec.key);
+        await new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = () => rej(tx.error); });
+      }
+      conn.close();
+    }
+  }, origin);
+  await page.unroute(`${LEGACY_ORIGIN}/__blank`);
 }
 
 // The legacy app is ready when its sign-in button is enabled (boot finished)

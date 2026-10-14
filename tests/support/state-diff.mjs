@@ -12,10 +12,12 @@
 //
 // Generated ids also appear in other fields (payId "SPmv619vk062x4o"…). The
 // legacy uid() is Date.now() in base 36 plus 5 random characters, and the clock
-// is frozen, so any such value is shown as "<uid>" ("SP<uid>").
-import { FIXED_NOW } from './config.mjs';
+// is frozen (fixture and tests each at their own time), so any such value is
+// shown as "<uid>" ("SP<uid>"). Ids used as object keys (stock per branch:
+// bq.<branch id>) are replaced by their alias too.
+import { FIXED_NOW, FIXTURE_NOW } from './config.mjs';
 
-const UID = new RegExp(Date.parse(FIXED_NOW).toString(36) + '[0-9a-z]{5}', 'g');
+const UID = new RegExp(`(${Date.parse(FIXED_NOW).toString(36)}|${Date.parse(FIXTURE_NOW).toString(36)})[0-9a-z]{5}`, 'g');
 
 const LABEL_FIELDS = ['no', 'code', 'docNo', 'name', 'title'];
 
@@ -53,7 +55,7 @@ function replaceIds(value, aliases) {
   if (Array.isArray(value)) return value.map(v => replaceIds(v, aliases));
   if (isObj(value)) {
     const out = {};
-    for (const k of Object.keys(value)) out[k] = replaceIds(value[k], aliases);
+    for (const k of Object.keys(value)) out[aliases.has(k) ? '@' + aliases.get(k) : k] = replaceIds(value[k], aliases);
     return out;
   }
   return value;
@@ -93,7 +95,8 @@ function diffInto(a, b, path, out, aliases) {
     return;
   }
   if (isObj(a) && isObj(b)) {
-    for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) diffInto(a[k], b[k], `${path}.${k}`, out, aliases);
+    for (const k of new Set([...Object.keys(a), ...Object.keys(b)]))
+      diffInto(a[k], b[k], `${path}.${aliases.has(k) ? '@' + aliases.get(k) : k}`, out, aliases);
     return;
   }
   out[path] = [a === undefined ? null : a, b === undefined ? null : b];

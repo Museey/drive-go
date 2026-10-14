@@ -18,7 +18,7 @@
 import { chromium } from '@playwright/test';
 import { spawn } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { CONTEXT_OPTIONS, FIXTURE_SEED, LEGACY_URL, OWNER } from '../tests/support/config.mjs';
+import { CONTEXT_OPTIONS, FIXTURE_NOW, FIXTURE_SEED, LEGACY_URL, OWNER } from '../tests/support/config.mjs';
 import { prepareContext, waitForLegacyBoot, waitForStableState, readState } from '../tests/support/browser.mjs';
 
 const plan = process.argv[2] || 'biz';
@@ -28,7 +28,7 @@ await new Promise(r => setTimeout(r, 500));
 try {
   const browser = await chromium.launch();
   const context = await browser.newContext(CONTEXT_OPTIONS);
-  await prepareContext(context, FIXTURE_SEED);
+  await prepareContext(context, { seed: FIXTURE_SEED, now: FIXTURE_NOW });
   const page = await context.newPage();
   await page.goto(`${LEGACY_URL}?package=${plan}&login=account`);
   await waitForLegacyBoot(page);

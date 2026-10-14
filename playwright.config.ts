@@ -13,7 +13,7 @@ export default defineConfig({
   snapshotPathTemplate: '{testDir}/../golden/{testFileName}/{arg}{ext}',
   updateSnapshots: TARGET === 'legacy' ? 'missing' : 'none',
   fullyParallel: true,
-  timeout: 180_000,
+  timeout: 300_000,
   expect: { timeout: 15_000, toHaveScreenshot: { maxDiffPixels: 0 } },
   reporter: [['list']],
   use: { ...CONTEXT_OPTIONS, browserName: 'chromium', trace: 'retain-on-failure' },

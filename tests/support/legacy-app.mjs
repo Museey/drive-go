@@ -1,7 +1,7 @@
 // How the tests drive the legacy HTML. A future target (the new system) gets
 // its own file with the same functions, so the scenarios stay unchanged.
 import { LEGACY_URL, OWNER } from './config.mjs';
-import { waitForLegacyBoot, waitForStableState, readState } from './browser.mjs';
+import { restoreDataset, waitForLegacyBoot, waitForStableState, readState } from './browser.mjs';
 
 // Records every message the user sees: the centred toast (#toast) and the
 // "saved" card (#saveFx). Messages the app mutes on purpose never reach #toast.
@@ -21,9 +21,13 @@ export function messageRecorderInitScript() {
   }).observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'], attributeOldValue: true });
 }
 
-export function legacyApp(page) {
+// dataset: starting data (tests/fixtures/<dataset>.json) put into the browser
+// before the first open().
+export function legacyApp(page, { dataset = 'biz-trial' } = {}) {
+  let restored = false;
   return {
     async open(params = '') {
+      if (!restored) { await restoreDataset(page, dataset); restored = true; }
       await page.goto(`${LEGACY_URL}?login=account${params ? '&' + params : ''}`);
       await waitForLegacyBoot(page);
     },
@@ -64,20 +68,26 @@ export function legacyApp(page) {
           return parts.join(' ').replace(/\s+/g, ' ').trim();
         };
         const visible = el => !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
-        const nav = [...document.querySelectorAll('[data-v].on')].filter(visible).map(text);
+        // Menu page: the open top-level menu and its open sub-menu item. On the
+        // sign-in screen the menu stays in the DOM behind it, so say so instead.
+        const signedIn = document.documentElement.classList.contains('pkg-open');
+        const nav = signedIn
+          ? [...new Set([...document.querySelectorAll('.navparent.on, .navchildren button.on')].filter(visible))].map(text)
+          : ['(หน้าเข้าสู่ระบบ)'];
         // Pop-ups have ids starting with "m" (mAsk, mSale…) and get class "on"
         // when open; side panels such as the payment panel (aside#mSalePay)
-        // are shown without it, so visible asides count too.
+        // are shown without it; cards such as "ตรวจก่อนบันทึก" have role=dialog.
         const title = m => {
           const h = m.querySelector('#askTitle, header h2, h2, h3') || m.querySelector('header, [class*="-head"]');
           if (!h) return m.getAttribute('aria-label') || m.id;
           const c = h.cloneNode(true);
           c.querySelectorAll('button').forEach(b => b.remove());
-          return text(c) || m.id;
+          return text(c) || m.getAttribute('aria-label') || m.id;
         };
-        const modals = [...document.querySelectorAll('[id^="m"].on, aside[id^="m"]')]
-          .filter(m => /^m[A-Z]/.test(m.id) && visible(m)).map(title);
-        const messages = window.__seenMessages.splice(0);
+        const modals = [...new Set([...document.querySelectorAll('[id^="m"].on, aside[id^="m"], [role="dialog"]')]
+          .filter(m => (m.getAttribute('role') === 'dialog' || /^m[A-Z]/.test(m.id)) && visible(m)))].map(title);
+        // A message shown several times in a row reads as one to the user.
+        const messages = window.__seenMessages.splice(0).filter((m, i, a) => m !== a[i - 1]);
         return { page: nav, popups: modals, messages };
       });
     },

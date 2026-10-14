@@ -5,6 +5,11 @@
 // (MA-SA2610…) and debt ages are all computed from "today", so it must not move.
 export const FIXED_NOW = '2026-10-13T09:00:00+07:00';
 
+// The fixture is built one hour earlier on the same day, so records a test
+// creates are always newer than the fixture's (the app orders FIFO lots and
+// builds ids from Date.now()).
+export const FIXTURE_NOW = '2026-10-13T08:00:00+07:00';
+
 // Math.random is replaced by a seeded generator so record ids (uid()) and
 // generated codes come out the same on every run. The fixture tool and the
 // tests use different seeds, and every page load in a tab continues with a new
@@ -13,7 +18,8 @@ export const FIXTURE_SEED = 20261013;
 export const TEST_SEED = 1013;
 
 export const PORT = Number(process.env.LEGACY_PORT || 4173);
-export const LEGACY_URL = `http://127.0.0.1:${PORT}/DRIVEGO_TRIAL_v23.html`;
+export const LEGACY_ORIGIN = `http://127.0.0.1:${PORT}`;
+export const LEGACY_URL = `${LEGACY_ORIGIN}/DRIVEGO_TRIAL_v23.html`;
 
 // Browser context settings shared by tests and fixtures. Timezone matters: the
 // app turns "now" into local dates, so the fixture and the tests must agree.

@@ -12,7 +12,7 @@
 import { chromium } from '@playwright/test';
 import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
-import { CONTEXT_OPTIONS, TEST_SEED } from '../tests/support/config.mjs';
+import { CONTEXT_OPTIONS, FIXED_NOW, TEST_SEED } from '../tests/support/config.mjs';
 import { prepareContext } from '../tests/support/browser.mjs';
 import { legacyApp, messageRecorderInitScript } from '../tests/support/legacy-app.mjs';
 
@@ -21,14 +21,11 @@ const server = spawn(process.execPath, [new URL('serve.mjs', import.meta.url).pa
 await new Promise(r => setTimeout(r, 400));
 const browser = await chromium.launch();
 try {
-  const context = await browser.newContext({
-    ...CONTEXT_OPTIONS,
-    storageState: new URL(`../tests/fixtures/${dataset}.json`, import.meta.url).pathname,
-  });
-  await prepareContext(context, TEST_SEED);
+  const context = await browser.newContext(CONTEXT_OPTIONS);
+  await prepareContext(context, { seed: TEST_SEED, now: FIXED_NOW });
   await context.addInitScript(messageRecorderInitScript);
   const page = await context.newPage();
-  const app = legacyApp(page);
+  const app = legacyApp(page, { dataset });
   await app.loginAsOwner();
   const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
   await new AsyncFunction('page', 'app', actions)(page, app);
@@ -39,8 +36,11 @@ try {
   const info = await page.evaluate(() => {
     const vis = el => !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
     const t = el => el.textContent.replace(/\s+/g, ' ').trim();
-    const tops = [...document.querySelectorAll('[id^="m"].on, aside[id^="m"]')].filter(m => /^m[A-Z]/.test(m.id) && vis(m));
-    const scope = tops.pop() || document.querySelector('.view.on') || document.body;
+    // The pop-up actually on top: the one under the middle of the screen.
+    const POP = '[id^="m"].on, aside[id^="m"], [role="dialog"]';
+    const hit = document.elementFromPoint(innerWidth / 2, innerHeight / 2);
+    const tops = [...document.querySelectorAll(POP)].filter(m => (m.getAttribute('role') === 'dialog' || /^m[A-Z]/.test(m.id)) && vis(m));
+    const scope = (hit && hit.closest(POP)) || tops.pop() || document.querySelector('.view.on') || document.body;
     const buttons = [...scope.querySelectorAll('button, a.btn, [onclick]')].filter(vis)
       .map(b => `${t(b).slice(0, 60)}${b.getAttribute('onclick') ? '   {' + b.getAttribute('onclick').slice(0, 70) + '}' : ''}`);
     const inputs = [...scope.querySelectorAll('input, select, textarea')].filter(vis).map(i => {

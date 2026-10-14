@@ -3,11 +3,11 @@
     19,
     14
   ],
-  "DB.stock[BR-001].bq.mv619vk044tj2.qty": [
+  "DB.stock[BR-001].bq.@DB.branches[BN].qty": [
     0,
     5
   ],
-  "DB.stock[BR-001].bq.mv619vk044tj2.lastMove": [
+  "DB.stock[BR-001].bq.@DB.branches[BN].lastMove": [
     "",
     "2026-10-13"
   ],

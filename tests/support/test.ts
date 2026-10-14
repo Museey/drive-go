@@ -11,7 +11,7 @@
 import { test as base, expect } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { prepareContext } from './browser.mjs';
-import { TEST_SEED } from './config.mjs';
+import { FIXED_NOW, TEST_SEED } from './config.mjs';
 import { legacyApp, messageRecorderInitScript } from './legacy-app.mjs';
 import { stateDiff, formatDiff } from './state-diff.mjs';
 import { executedFunctions } from './coverage.mjs';
@@ -27,15 +27,11 @@ type Golden = {
 };
 
 export const test = base.extend<{ dataset: string; app: App; golden: Golden }>({
-  // Starting data restored into the browser before the test (tests/fixtures/<dataset>.json).
+  // Starting data put into the browser before the app first opens (tests/fixtures/<dataset>.json).
   dataset: ['biz-trial', { option: true }],
 
-  storageState: async ({ dataset }, use) => {
-    await use(new URL(`../fixtures/${dataset}.json`, import.meta.url).pathname);
-  },
-
   context: async ({ context }, use) => {
-    await prepareContext(context, TEST_SEED);
+    await prepareContext(context, { seed: TEST_SEED, now: FIXED_NOW });
     await context.addInitScript(messageRecorderInitScript);
     if (process.env.SABOTAGE) await context.addInitScript(SABOTAGE[process.env.SABOTAGE]);
     await use(context);
@@ -52,9 +48,9 @@ export const test = base.extend<{ dataset: string; app: App; golden: Golden }>({
     }
   },
 
-  app: async ({ page }, use) => {
+  app: async ({ page, dataset }, use) => {
     if (TARGET !== 'legacy') throw new Error(`No app adapter for TARGET=${TARGET} yet (added in Phase 2).`);
-    await use(legacyApp(page));
+    await use(legacyApp(page, { dataset }));
   },
 
   golden: async ({ page, app }, use, testInfo) => {
@@ -66,6 +62,8 @@ export const test = base.extend<{ dataset: string; app: App; golden: Golden }>({
       },
       async screen(name) {
         await app.settle();
+        // Park the pointer so hover effects never depend on the last click.
+        await page.mouse.move(0, 0);
         await expect(page).toHaveScreenshot(`${name}.png`, { style: app.screenshotStyle });
       },
       async stateChange(name, before) {

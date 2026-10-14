@@ -3,6 +3,10 @@
     "pending",
     "approved"
   ],
+  "DB.quotes[MA-QT261000002].updatedAt": [
+    "2026-10-13T01:00:00.000Z",
+    "2026-10-13T02:00:00.000Z"
+  ],
   "DB.audit": {
     "added": [
       {
