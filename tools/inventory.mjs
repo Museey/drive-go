@@ -165,7 +165,8 @@ for (const m of html.matchAll(/\son(click|change|input|submit|keyup|keydown|keyp
   const tag = (html.slice(tagStart + 1, tagStart + 20).match(/^[a-zA-Z0-9-]+/) || ['?'])[0];
   const close = html.indexOf('>', m.index + m[0].length);
   let label = close > 0 ? html.slice(close + 1, close + 300).split('<')[0] : '';
-  label = label.replace(/\$\{[^}]*\}/g, '…').replace(/'\s*\+[^+]*\+\s*'/g, '…').replace(/\s+/g, ' ').trim().slice(0, 60);
+  label = label.replace(/\$\{[^}]*\}/g, '…').replace(/'\s*\+[^+]*\+\s*'/g, '…').replace(/\$\{.*$/, '…')
+    .replace(/\s+/g, ' ').trim().slice(0, 60);
   handlers.push({ line: lineAt(m.index), event: m[1], tag, label, code, calls });
 }
 
@@ -321,7 +322,18 @@ ${live.size ? `| ฟังก์ชันที่ตอนทำงานจร
 ${F.filter(r => r.replaced_at).sort((a, b) => b.replaced_at.split(' ').length - a.replaced_at.split(' ').length).slice(0, 15)
   .map(r => `| \`${r.name}\` | ${r.declared_lines} | ${r.replaced_at} | ${r.saves === 'direct' ? 'ตรง' : r.saves === 'indirect' ? 'ผ่านฟังก์ชันอื่น' : '-'} |`).join('\n')}
 
-## คอลัมน์ใน behaviors.csv
+${haveCoverage ? `## ฟังก์ชันที่บันทึกข้อมูลแต่ยังไม่มีสถานการณ์ไหนเรียก (${saveF.filter(r => !r.tested_by).length} ตัว)
+
+ใช้วางแผนสถานการณ์ชุดถัดไป: คอลัมน์ปุ่มคือข้อความบนปุ่มในหน้าจอที่เรียกฟังก์ชันนั้นโดยตรง
+
+| ฟังก์ชัน | บรรทัด | ปุ่มที่เรียก |
+|---|---|---|
+${saveF.filter(r => !r.tested_by).map(r => {
+  const labels = [...new Set(H.filter(h => h.calls.split(' ').includes(r.name)).map(h => h.label.replace(/^<[^>]*>\s*/, '').trim()).filter(Boolean))].slice(0, 4);
+  return `| \`${r.name}\` | ${r.line} | ${labels.join(' · ').replace(/\|/g, '/') || '-'} |`;
+}).join('\n')}
+
+` : ''}## คอลัมน์ใน behaviors.csv
 
 | คอลัมน์ | ความหมาย |
 |---|---|
