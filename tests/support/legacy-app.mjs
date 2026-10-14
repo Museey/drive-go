@@ -1,0 +1,72 @@
+// How the tests drive the legacy HTML. A future target (the new system) gets
+// its own file with the same functions, so the scenarios stay unchanged.
+import { LEGACY_URL, OWNER } from './config.mjs';
+import { waitForLegacyBoot, waitForStableState, readState } from './browser.mjs';
+
+// Records every message the user sees: the centred toast (#toast) and the
+// "saved" card (#saveFx). Messages the app mutes on purpose never reach #toast.
+export function messageRecorderInitScript() {
+  window.__seenMessages = [];
+  const push = text => { text = (text || '').replace(/\s+/g, ' ').trim(); if (text) window.__seenMessages.push(text); };
+  new MutationObserver(records => {
+    for (const r of records) {
+      const el = r.type === 'attributes' ? r.target : r.target.nodeType === 1 ? r.target : r.target.parentElement;
+      if (!el) continue;
+      if (el.id === 'toast' && r.type === 'childList') push(el.textContent);
+      if (el.id === 'saveFx' && r.type === 'attributes' && el.classList.contains('on') && !(r.oldValue || '').split(' ').includes('on')) {
+        const t1 = el.querySelector('#saveFxT1'), t2 = el.querySelector('#saveFxT2');
+        push('✓ ' + [t1 && t1.textContent, t2 && t2.textContent].filter(Boolean).join(' · '));
+      }
+    }
+  }).observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'], attributeOldValue: true });
+}
+
+export function legacyApp(page) {
+  return {
+    async open(params = '') {
+      await page.goto(`${LEGACY_URL}?login=account${params ? '&' + params : ''}`);
+      await waitForLegacyBoot(page);
+    },
+
+    async loginAsOwner() {
+      await this.open();
+      await this.login(OWNER.user, OWNER.pass);
+    },
+
+    async login(user, pass) {
+      const studio = page.locator('#drivego-studio');
+      await studio.getByPlaceholder('ชื่อผู้ใช้ อีเมล หรือเบอร์โทร').fill(user);
+      await studio.getByPlaceholder('กรอกรหัสผ่าน').fill(pass);
+      await studio.locator('[type="submit"]:visible').click();
+      await page.waitForFunction(() => document.documentElement.classList.contains('pkg-open'));
+      await this.settle();
+    },
+
+    // Lets deferred renders and saves finish before the next step.
+    settle() {
+      return waitForStableState(page, { quietMs: 800 });
+    },
+
+    state() {
+      return readState(page);
+    },
+
+    // What the user is looking at: the open menu page, any open pop-ups, and
+    // the messages that appeared since the previous call.
+    async signature() {
+      return page.evaluate(() => {
+        const text = el => (el ? el.textContent.replace(/\s+/g, ' ').trim() : '');
+        const visible = el => !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+        const nav = [...document.querySelectorAll('[data-v].on')].filter(visible).map(text);
+        const modals = [...document.querySelectorAll('.modal.on')].filter(visible).map(m =>
+          text(m.querySelector('#askTitle, header h2, h2, h3')) || m.id);
+        const messages = window.__seenMessages.splice(0);
+        return { page: nav, popups: modals, messages };
+      });
+    },
+
+    // Hidden in screenshots because they come and go on a timer; their text
+    // is checked by the flow referee instead.
+    screenshotStyle: '#toast, #saveFx, #pkg-loading { visibility: hidden !important; }',
+  };
+}

@@ -1,0 +1,162 @@
+{
+ "https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap": {
+  "file": "ec0a2c0922ef70f4.css",
+  "type": "text/css"
+ },
+ "https://fonts.gstatic.com/s/ibmplexsansthai/v11/m8JPje1VVIzcq1HzJq2AEdo2Tj_qvLqMBNYgVcM.woff2": {
+  "file": "d1db83929d584b8e.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/ibmplexsansthai/v11/m8JPje1VVIzcq1HzJq2AEdo2Tj_qvLqMHdYgVcM.woff2": {
+  "file": "9ebf9164275b90f4.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/ibmplexsansthai/v11/m8JPje1VVIzcq1HzJq2AEdo2Tj_qvLqMB9YgVcM.woff2": {
+  "file": "cac9f6e2c61b9f65.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/ibmplexsansthai/v11/m8JPje1VVIzcq1HzJq2AEdo2Tj_qvLqMCdYg.woff2": {
+  "file": "cbed8985507ebb11.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/ibmplexsansthai/v11/m8JMje1VVIzcq1HzJq2AEdo2Tj_qvLqE-vU1Z-JHa74.woff2": {
+  "file": "048cf98b80d76823.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/ibmplexsansthai/v11/m8JMje1VVIzcq1HzJq2AEdo2Tj_qvLqE-vU1fuJHa74.woff2": {
+  "file": "39e6d21dc8bdd83d.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/ibmplexsansthai/v11/m8JMje1VVIzcq1HzJq2AEdo2Tj_qvLqE-vU1ZOJHa74.woff2": {
+  "file": "4fa51a6ccd336160.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/ibmplexsansthai/v11/m8JMje1VVIzcq1HzJq2AEdo2Tj_qvLqE-vU1auJH.woff2": {
+  "file": "56255fb6b3e44bc8.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/ibmplexsansthai/v11/m8JMje1VVIzcq1HzJq2AEdo2Tj_qvLqE1vI1Z-JHa74.woff2": {
+  "file": "05f60e1f8413cccc.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/ibmplexsansthai/v11/m8JMje1VVIzcq1HzJq2AEdo2Tj_qvLqE1vI1fuJHa74.woff2": {
+  "file": "097b86078ad16f97.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/ibmplexsansthai/v11/m8JMje1VVIzcq1HzJq2AEdo2Tj_qvLqE1vI1ZOJHa74.woff2": {
+  "file": "bb54b6909d422d2e.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/ibmplexsansthai/v11/m8JMje1VVIzcq1HzJq2AEdo2Tj_qvLqE1vI1auJH.woff2": {
+  "file": "6769529bd0a766f9.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/ibmplexsansthai/v11/m8JMje1VVIzcq1HzJq2AEdo2Tj_qvLqEsvM1Z-JHa74.woff2": {
+  "file": "256acb72328e2702.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/ibmplexsansthai/v11/m8JMje1VVIzcq1HzJq2AEdo2Tj_qvLqEsvM1fuJHa74.woff2": {
+  "file": "9b6e537c04a09be5.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/ibmplexsansthai/v11/m8JMje1VVIzcq1HzJq2AEdo2Tj_qvLqEsvM1ZOJHa74.woff2": {
+  "file": "5829e02fcb38b1c4.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/ibmplexsansthai/v11/m8JMje1VVIzcq1HzJq2AEdo2Tj_qvLqEsvM1auJH.woff2": {
+  "file": "641245baf8592ca7.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/sarabun/v17/DtVmJx26TKEr37c9YL5rik8s6zDX.woff2": {
+  "file": "31c836fd30ad093c.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/sarabun/v17/DtVmJx26TKEr37c9YL5rilQs6zDX.woff2": {
+  "file": "b701a8b1a0a17f8e.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/sarabun/v17/DtVmJx26TKEr37c9YL5rilUs6zDX.woff2": {
+  "file": "b8783abd6e3f7cca.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/sarabun/v17/DtVmJx26TKEr37c9YL5rilss6w.woff2": {
+  "file": "6586f9cb6302f137.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/sarabun/v17/DtVjJx26TKEr37c9aAFJn2QN.woff2": {
+  "file": "18323f2018d9536a.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/sarabun/v17/DtVjJx26TKEr37c9aBpJn2QN.woff2": {
+  "file": "706262e0e5e5b4d5.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/sarabun/v17/DtVjJx26TKEr37c9aBtJn2QN.woff2": {
+  "file": "3e4f1f37a59cfd37.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/sarabun/v17/DtVjJx26TKEr37c9aBVJnw.woff2": {
+  "file": "e4d9ba15ff1f8025.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/sarabun/v17/DtVmJx26TKEr37c9YOZqik8s6zDX.woff2": {
+  "file": "d33c10b69d3a77b6.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/sarabun/v17/DtVmJx26TKEr37c9YOZqilQs6zDX.woff2": {
+  "file": "dd78fe9edbde000f.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/sarabun/v17/DtVmJx26TKEr37c9YOZqilUs6zDX.woff2": {
+  "file": "6a04e31327b37e0b.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/sarabun/v17/DtVmJx26TKEr37c9YOZqilss6w.woff2": {
+  "file": "f606627533369359.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/sarabun/v17/DtVmJx26TKEr37c9YMptik8s6zDX.woff2": {
+  "file": "b1a5cc64f4df4ce6.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/sarabun/v17/DtVmJx26TKEr37c9YMptilQs6zDX.woff2": {
+  "file": "c8a0a1829e61c823.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/sarabun/v17/DtVmJx26TKEr37c9YMptilUs6zDX.woff2": {
+  "file": "749ba90f538dedc9.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/sarabun/v17/DtVmJx26TKEr37c9YMptilss6w.woff2": {
+  "file": "a87538b91038016a.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&family=Manrope:wght@500;600;700;800&display=swap": {
+  "file": "49edc04001384862.css",
+  "type": "text/css"
+ },
+ "https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggqxSuXd.woff2": {
+  "file": "19d45c9a405c5084.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggOxSuXd.woff2": {
+  "file": "d0354d66ecf6e590.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggSxSuXd.woff2": {
+  "file": "22ce76595c81d3a2.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggixSuXd.woff2": {
+  "file": "ca6830bddfa90645.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggmxSuXd.woff2": {
+  "file": "7965cb05a013b48b.woff2",
+  "type": "font/woff2"
+ },
+ "https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggexSg.woff2": {
+  "file": "bcbadccca384ee4d.woff2",
+  "type": "font/woff2"
+ }
+}
