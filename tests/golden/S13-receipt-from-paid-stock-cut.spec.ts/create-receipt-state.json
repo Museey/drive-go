@@ -1,0 +1,29 @@
+{
+  "DB.receipts[MA-SA261000002].payments[#0].reNo": [
+    "",
+    "MA-RE261000004"
+  ],
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-SA261000002#50]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "stockcut",
+        "docId": "@DB.stockCuts[MA-SA261000002]",
+        "no": "MA-SA261000002",
+        "act": "save",
+        "note": "สร้างใบเสร็จรับเงิน MA-RE261000004 · รับเงิน 663.40 บาท · วันที่รับเงิน 04/10/2569"
+      }
+    ]
+  },
+  "DB.seq.MA-RE2610": [
+    3,
+    4
+  ],
+  "DB.pkgSaleFlow.used": [
+    53,
+    54
+  ]
+}

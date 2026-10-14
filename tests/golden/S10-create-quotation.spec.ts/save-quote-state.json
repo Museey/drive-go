@@ -1,0 +1,147 @@
+{
+  "DB.quotes": {
+    "added": [
+      {
+        "id": "@DB.quotes[MA-QT261000005]",
+        "no": "MA-QT261000005",
+        "date": "2026-10-13",
+        "jobIn": "2026-10-13",
+        "custId": "@DB.cust[C00016]",
+        "vehIdx": 0,
+        "mile": "55004",
+        "probs": [
+          "แบตเตอรี่หมด สตาร์ทไม่ติด",
+          "",
+          ""
+        ],
+        "finds": [
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          }
+        ],
+        "tier": "B",
+        "items": [
+          {
+            "type": "part",
+            "code": "EL-118",
+            "oem": "GS-75D26L",
+            "name": "แบตเตอรี่ 75Ah",
+            "qty": 1,
+            "price": 3810,
+            "stockId": "@DB.stock[EL-118]",
+            "warr": 12
+          },
+          {
+            "type": "labor",
+            "code": "",
+            "oem": "",
+            "name": "ค่าแรงเปลี่ยนแบตเตอรี่",
+            "qty": 1,
+            "price": 350,
+            "stockId": "",
+            "warr": ""
+          }
+        ],
+        "disc": 0,
+        "vat": 7,
+        "byPos": "",
+        "byName": "",
+        "apPos": "",
+        "apName": "",
+        "tech": "",
+        "techName": "",
+        "status": "ร่าง",
+        "deducted": false,
+        "apv": {
+          "status": "draft",
+          "byName": "",
+          "date": "",
+          "note": ""
+        },
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-QT261000005]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "quote",
+        "docId": "@DB.quotes[MA-QT261000005]",
+        "no": "MA-QT261000005",
+        "act": "save",
+        "note": "ยอดรวม 4,451.20 บาท"
+      }
+    ]
+  },
+  "DB.seq.MA-QT2610": [
+    4,
+    5
+  ]
+}

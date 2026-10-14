@@ -1,0 +1,32 @@
+{
+  "DB.quotes[MA-QT261000002].apv.status": [
+    "pending",
+    "approved"
+  ],
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-QT261000002#51]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "quote",
+        "docId": "@DB.quotes[MA-QT261000002]",
+        "no": "MA-QT261000002",
+        "act": "save",
+        "note": "ยอดรวม 12,476.20 บาท"
+      },
+      {
+        "id": "@DB.audit[MA-QT261000002#52]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "quote",
+        "docId": "@DB.quotes[MA-QT261000002]",
+        "no": "MA-QT261000002",
+        "act": "approve",
+        "note": "อนุมัติโดย เจ้าของกิจการ / ผู้ดูแลระบบ"
+      }
+    ]
+  }
+}

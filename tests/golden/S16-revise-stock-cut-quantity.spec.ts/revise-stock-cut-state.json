@@ -1,0 +1,228 @@
+{
+  "DB.stock[AC-215].qty": [
+    19,
+    18
+  ],
+  "DB.receipts[MA-SA261000003].items": {
+    "added": [
+      {
+        "type": "part",
+        "stockId": "@DB.stock[AC-215]",
+        "code": "AC-215",
+        "oem": "87139-0K030",
+        "name": "กรองแอร์ในห้องโดยสาร",
+        "qty": 2,
+        "price": 195,
+        "warr": ""
+      }
+    ],
+    "removed": [
+      {
+        "type": "part",
+        "stockId": "@DB.stock[AC-215]",
+        "code": "AC-215",
+        "oem": "87139-0K030",
+        "name": "กรองแอร์ในห้องโดยสาร",
+        "qty": 1,
+        "price": 195,
+        "warr": ""
+      }
+    ]
+  },
+  "DB.receipts[MA-SA261000003].saleId": [
+    "@DB.stockCuts[MA-SA261000003]",
+    "@DB.stockCuts[MA-SA261000003-R1]"
+  ],
+  "DB.moves": {
+    "added": [
+      {
+        "id": "@DB.moves[#44]",
+        "stockId": "@DB.stock[AC-215]",
+        "type": "out",
+        "qty": -1,
+        "date": "2026-10-13",
+        "ref": "ตัดสต็อกเพิ่ม · ฉบับแก้ไข MA-SA261000003-R1",
+        "refNo": "MA-SA261000003",
+        "vendorId": "",
+        "cost": 0,
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-SA261000003#51]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "stockcut",
+        "docId": "@DB.stockCuts[MA-SA261000003]",
+        "no": "MA-SA261000003",
+        "act": "revise",
+        "note": "ถูกแก้ไขเป็น MA-SA261000003-R1"
+      },
+      {
+        "id": "@DB.audit[MA-SA261000003-R1]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "stockcut",
+        "docId": "@DB.stockCuts[MA-SA261000003-R1]",
+        "no": "MA-SA261000003-R1",
+        "act": "revise",
+        "note": "ฉบับแก้ไขของ MA-SA261000003 · ยอดขาย 9,913.55 → 10,122.20 บาท · สต๊อก AC-215 ตัดเพิ่ม 1"
+      }
+    ]
+  },
+  "DB.stockCuts[MA-SA261000003].superseded": [
+    null,
+    true
+  ],
+  "DB.stockCuts[MA-SA261000003].revisedTo": [
+    null,
+    "MA-SA261000003-R1"
+  ],
+  "DB.stockCuts[MA-SA261000003].supersededAt": [
+    null,
+    "2026-10-13T02:00:00.000Z"
+  ],
+  "DB.stockCuts": {
+    "added": [
+      {
+        "id": "@DB.stockCuts[MA-SA261000003-R1]",
+        "no": "MA-SA261000003-R1",
+        "date": "2026-10-10",
+        "src": "walkin",
+        "channel": "retail",
+        "wh": "สาขาหลัก",
+        "quoteId": "",
+        "quoteNo": "",
+        "custId": "@DB.cust[C00016]",
+        "vehIdx": -1,
+        "seller": "",
+        "sellerName": "",
+        "tier": "B",
+        "items": [
+          {
+            "type": "part",
+            "stockId": "@DB.stock[AC-204]",
+            "code": "AC-204",
+            "oem": "88320-0K330",
+            "name": "คอมเพรสเซอร์แอร์ D-Max",
+            "qty": 1,
+            "price": 9070,
+            "warr": ""
+          },
+          {
+            "type": "part",
+            "stockId": "@DB.stock[AC-215]",
+            "code": "AC-215",
+            "oem": "87139-0K030",
+            "name": "กรองแอร์ในห้องโดยสาร",
+            "qty": 2,
+            "price": 195,
+            "warr": ""
+          }
+        ],
+        "disc": 0,
+        "vat": 7,
+        "note": "",
+        "remark": "",
+        "ref": "",
+        "lines": [
+          {
+            "stockId": "@DB.stock[AC-204]",
+            "code": "AC-204",
+            "name": "คอมเพรสเซอร์แอร์ D-Max",
+            "unit": "",
+            "qty": 1,
+            "kit": "",
+            "cost": 5600
+          },
+          {
+            "stockId": "@DB.stock[AC-215]",
+            "code": "AC-215",
+            "name": "กรองแอร์ในห้องโดยสาร",
+            "unit": "",
+            "qty": 2,
+            "kit": "",
+            "cost": 120
+          }
+        ],
+        "cancelled": false,
+        "printed": false,
+        "moveRef": "MA-SA261000003",
+        "br": "@DB.branches[MA]",
+        "total": 10122.2,
+        "pay": null,
+        "paid": false,
+        "cost": 5840,
+        "wht": {
+          "rate": 0,
+          "base": "labor",
+          "auto": true
+        },
+        "credit": null,
+        "ledId": "@DB.receipts[MA-SA261000003]",
+        "baseNo": "MA-SA261000003",
+        "revN": 1,
+        "revOf": "@DB.stockCuts[MA-SA261000003]",
+        "revRoot": "@DB.stockCuts[MA-SA261000003]",
+        "revDate": "2026-10-13",
+        "revMoves": [
+          {
+            "stockId": "@DB.stock[AC-215]",
+            "code": "AC-215",
+            "name": "กรองแอร์ในห้องโดยสาร",
+            "unit": "ชิ้น",
+            "d": 1
+          }
+        ],
+        "superseded": false,
+        "revisedTo": "",
+        "supersededAt": "",
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "st": {
+          "k": "wait",
+          "got": 0,
+          "wht": 0,
+          "rem": 10122.2,
+          "n": 0,
+          "last": ""
+        }
+      }
+    ]
+  },
+  "DB.fifo.lots[#10].left": [
+    19,
+    18
+  ],
+  "DB.fifo.allocs": {
+    "added": [
+      {
+        "id": "@DB.fifo.allocs[#17]",
+        "seq": 1791856800000000,
+        "br": "@DB.branches[MA]",
+        "stockId": "@DB.stock[AC-215]",
+        "lotId": "@DB.fifo.lots[#10]",
+        "qty": 1,
+        "back": 0,
+        "cost": 120,
+        "date": "2026-10-13",
+        "ref": "ตัดสต็อกเพิ่ม · ฉบับแก้ไข MA-SA261000003-R1",
+        "refNo": "MA-SA261000003",
+        "pending": false
+      }
+    ]
+  },
+  "DB.pkgSaleFlow.used": [
+    53,
+    55
+  ]
+}

@@ -1,0 +1,218 @@
+{
+  "DB.stock[BR-001].qty": [
+    19,
+    17
+  ],
+  "DB.receipts": {
+    "added": [
+      {
+        "id": "@DB.receipts[MA-SA261000015]",
+        "no": "MA-SA261000015",
+        "taxNo": "",
+        "taxDocs": [],
+        "issueTax": false,
+        "date": "2026-10-13",
+        "quoteId": "",
+        "ref": "",
+        "custId": "@DB.cust[C00017]",
+        "vehIdx": 0,
+        "items": [
+          {
+            "type": "part",
+            "stockId": "@DB.stock[BR-001]",
+            "code": "BR-001",
+            "oem": "04465-0K260",
+            "name": "ผ้าเบรกหน้า Toyota Revo",
+            "unit": "ชิ้น",
+            "qty": 2,
+            "price": 1380,
+            "warr": 3
+          }
+        ],
+        "disc": 0,
+        "vat": 7,
+        "wht": 0,
+        "whtBase": "labor",
+        "warr": "รับประกันงานซ่อมและอะไหล่ที่เปลี่ยน 3 เดือน หรือ 5,000 กิโลเมตร แล้วแต่อย่างใดถึงก่อน ไม่รวมความเสียหายจากอุบัติเหตุ การใช้งานผิดประเภท หรือการดัดแปลงสภาพรถ",
+        "deducted": true,
+        "pay": {
+          "credit": false,
+          "days": 0,
+          "due": "2026-10-13",
+          "cash": false,
+          "trans": false,
+          "card": false,
+          "chk": false
+        },
+        "tech1": "",
+        "tech1Name": "",
+        "tech2": "",
+        "tech2Name": "",
+        "paid": false,
+        "paidDate": "",
+        "by": "เจ้าของกิจการ",
+        "note": "",
+        "taxCancelled": false,
+        "taxCancelReason": "",
+        "taxCancelDate": "",
+        "apv": {
+          "status": "approved",
+          "by": "",
+          "byName": "ระบบ (ใบตัดสต็อก)",
+          "date": "2026-10-13",
+          "note": ""
+        },
+        "pkgSale": 1,
+        "payments": [],
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "saleId": "@DB.stockCuts[MA-SA261000015]",
+        "chain": "MA-SA261000015",
+        "salesChannel": "retail",
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.moves": {
+    "added": [
+      {
+        "id": "@DB.moves[#44]",
+        "stockId": "@DB.stock[BR-001]",
+        "type": "out",
+        "qty": -2,
+        "date": "2026-10-13",
+        "ref": "ตัดสต็อก MA-SA261000015 · ขายหน้าร้าน",
+        "refNo": "MA-SA261000015",
+        "vendorId": "",
+        "cost": 0,
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-SA261000015]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "stockcut",
+        "docId": "@DB.stockCuts[MA-SA261000015]",
+        "no": "MA-SA261000015",
+        "act": "cut",
+        "note": "ตัดสต็อก 1 รายการ · ขายหน้าร้าน"
+      }
+    ]
+  },
+  "DB.seq.MA-SA2610": [
+    14,
+    15
+  ],
+  "DB.stockCuts": {
+    "added": [
+      {
+        "id": "@DB.stockCuts[MA-SA261000015]",
+        "no": "MA-SA261000015",
+        "date": "2026-10-13",
+        "src": "walkin",
+        "channel": "retail",
+        "wh": "สาขาหลัก",
+        "quoteId": "",
+        "quoteNo": "",
+        "custId": "@DB.cust[C00017]",
+        "vehIdx": -1,
+        "seller": "",
+        "sellerName": "",
+        "tier": "B",
+        "items": [
+          {
+            "type": "part",
+            "stockId": "@DB.stock[BR-001]",
+            "code": "BR-001",
+            "oem": "04465-0K260",
+            "name": "ผ้าเบรกหน้า Toyota Revo",
+            "unit": "ชิ้น",
+            "qty": 2,
+            "price": 1380,
+            "warr": 3
+          }
+        ],
+        "disc": 0,
+        "vat": 7,
+        "note": "",
+        "remark": "",
+        "ref": "",
+        "lines": [
+          {
+            "stockId": "@DB.stock[BR-001]",
+            "code": "BR-001",
+            "name": "ผ้าเบรกหน้า Toyota Revo",
+            "unit": "ชิ้น",
+            "qty": 2,
+            "kit": "",
+            "cost": 850
+          }
+        ],
+        "cancelled": false,
+        "printed": false,
+        "moveRef": "MA-SA261000015",
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]",
+        "total": 2953.2,
+        "pay": null,
+        "paid": false,
+        "cost": 1700,
+        "wht": {
+          "rate": 0,
+          "base": "labor",
+          "auto": true
+        },
+        "credit": null,
+        "st": {
+          "k": "wait",
+          "got": 0,
+          "wht": 0,
+          "rem": 2953.2,
+          "n": 0,
+          "last": ""
+        },
+        "ledId": "@DB.receipts[MA-SA261000015]"
+      }
+    ]
+  },
+  "DB.fifo.lots[#18].left": [
+    19,
+    17
+  ],
+  "DB.fifo.allocs": {
+    "added": [
+      {
+        "id": "@DB.fifo.allocs[#17]",
+        "seq": 1791856800000000,
+        "br": "@DB.branches[MA]",
+        "stockId": "@DB.stock[BR-001]",
+        "lotId": "@DB.fifo.lots[#18]",
+        "qty": 2,
+        "back": 0,
+        "cost": 850,
+        "date": "2026-10-13",
+        "ref": "ตัดสต็อก MA-SA261000015 · ขายหน้าร้าน",
+        "refNo": "MA-SA261000015",
+        "pending": false
+      }
+    ]
+  },
+  "DB.pkgSaleFlow.used": [
+    53,
+    55
+  ]
+}
