@@ -7,7 +7,7 @@
 //   node tools/explore.mjs pay "await page.getByRole('button', { name: 'ดูใบตัดสต็อกที่รอชำระ' }).click();"
 //
 // <actions> is the body of an async function with `page` and `app` in scope.
-// Screenshot: test-results/explore/<name>.png. Needs the legacy server
+// Screenshot: .explore/<name>.png (not cleared by test runs). Needs the legacy server
 // (node tools/serve.mjs) running, or starts one.
 import { chromium } from '@playwright/test';
 import { spawn } from 'node:child_process';
@@ -33,8 +33,8 @@ try {
   const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
   await new AsyncFunction('page', 'app', actions)(page, app);
   await app.settle();
-  mkdirSync('test-results/explore', { recursive: true });
-  await page.screenshot({ path: `test-results/explore/${name}.png` });
+  mkdirSync('.explore', { recursive: true });
+  await page.screenshot({ path: `.explore/${name}.png` });
   console.log('signature', JSON.stringify(await app.signature()));
   const info = await page.evaluate(() => {
     const vis = el => !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);

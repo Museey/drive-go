@@ -1,0 +1,64 @@
+{
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-BL261000002]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "billing",
+        "docId": "@DB.billings[MA-BL261000002]",
+        "no": "MA-BL261000002",
+        "act": "save",
+        "note": "2 ใบ"
+      },
+      {
+        "id": "@DB.audit[MA-BL261000002#51]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "billing",
+        "docId": "@DB.billings[MA-BL261000002]",
+        "no": "MA-BL261000002",
+        "act": "approve",
+        "note": "อนุมัติโดย เจ้าของกิจการ / ผู้ดูแลระบบ"
+      }
+    ]
+  },
+  "DB.seq.MA-BL2610": [
+    1,
+    2
+  ],
+  "DB.billings": {
+    "added": [
+      {
+        "id": "@DB.billings[MA-BL261000002]",
+        "no": "MA-BL261000002",
+        "date": "2026-10-13",
+        "custId": "@DB.cust[C00017]",
+        "due": "2026-11-12",
+        "receiptIds": [
+          "@DB.receipts[MA-SA261000004]",
+          "@DB.receipts[MA-SA261000014]"
+        ],
+        "note": "วางบิลงวดเดือนตุลาคม",
+        "settled": false,
+        "settledDate": "",
+        "apv": {
+          "status": "approved",
+          "by": "",
+          "byName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+          "date": "2026-10-13",
+          "note": ""
+        },
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  }
+}

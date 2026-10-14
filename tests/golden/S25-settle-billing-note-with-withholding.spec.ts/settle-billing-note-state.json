@@ -1,0 +1,285 @@
+{
+  "DB.receipts[MA-SA261000007].paid": [
+    false,
+    true
+  ],
+  "DB.receipts[MA-SA261000007].paidDate": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.receipts[MA-SA261000007].payments": {
+    "added": [
+      {
+        "id": "@DB.receipts[MA-SA261000007].payments[#0]",
+        "amt": 620.6,
+        "date": "2026-10-13",
+        "method": "cash",
+        "by": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "note": "",
+        "bank": "",
+        "ref": "",
+        "card4": "",
+        "chkDate": "",
+        "payId": "ST<uid>",
+        "payTotal": 3304.1,
+        "payBills": 2,
+        "methods": [
+          {
+            "k": "cash",
+            "amt": 3304.1
+          }
+        ],
+        "transLines": [],
+        "slipCount": 0,
+        "br": "@DB.branches[MA]",
+        "src": "settle",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "time": "09:00",
+        "reNo": "MA-RE261000004"
+      }
+    ]
+  },
+  "DB.receipts[MA-SA261000008].paid": [
+    false,
+    true
+  ],
+  "DB.receipts[MA-SA261000008].paidDate": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.receipts[MA-SA261000008].payments": {
+    "added": [
+      {
+        "id": "@DB.receipts[MA-SA261000008].payments[#0]",
+        "amt": 2683.5,
+        "date": "2026-10-13",
+        "method": "cash",
+        "by": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "note": "",
+        "bank": "",
+        "ref": "",
+        "card4": "",
+        "chkDate": "",
+        "payId": "ST<uid>",
+        "payTotal": 3304.1,
+        "payBills": 2,
+        "methods": [
+          {
+            "k": "cash",
+            "amt": 3304.1
+          }
+        ],
+        "transLines": [],
+        "slipCount": 0,
+        "br": "@DB.branches[MA]",
+        "wht": {
+          "rate": 3,
+          "base": "labor",
+          "baseAmt": 1500,
+          "amt": 45,
+          "got": false,
+          "gotDate": "",
+          "img": false
+        },
+        "src": "settle",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "time": "09:00",
+        "reNo": "MA-RE261000005"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-SA261000007#50]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "stockcut",
+        "docId": "@DB.stockCuts[MA-SA261000007]",
+        "no": "MA-SA261000007",
+        "act": "pay",
+        "note": "รับชำระ 620.60 บาท (เงินสด) · ชำระครบแล้ว"
+      },
+      {
+        "id": "@DB.audit[MA-SA261000008#51]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "stockcut",
+        "docId": "@DB.stockCuts[MA-SA261000008]",
+        "no": "MA-SA261000008",
+        "act": "pay",
+        "note": "รับชำระ 2,683.50 บาท (เงินสด) · ชำระครบแล้ว"
+      },
+      {
+        "id": "@DB.audit[MA-BL261000001#52]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "billing",
+        "docId": "@DB.billings[MA-BL261000001]",
+        "no": "MA-BL261000001",
+        "act": "pay",
+        "note": "ปิดใบวางบิล — ทุกใบในใบวางบิลตัดชำระครบแล้ว (ไม่มีการรับเงินที่ใบวางบิล)"
+      }
+    ]
+  },
+  "DB.seq.MA-RE2610": [
+    3,
+    5
+  ],
+  "DB.billings[MA-BL261000001].settled": [
+    false,
+    true
+  ],
+  "DB.billings[MA-BL261000001].settledDate": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.billings[MA-BL261000001].pay": [
+    null,
+    {
+      "method": "",
+      "label": "ตัดชำระที่หน้าลูกหนี้ครบทุกใบ",
+      "date": "2026-10-13",
+      "bank": "",
+      "ref": "",
+      "note": "",
+      "byName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+      "auto": true
+    }
+  ],
+  "DB.stockCuts[MA-SA261000007].pay.method": [
+    "credit",
+    "cash"
+  ],
+  "DB.stockCuts[MA-SA261000007].pay.methods": {
+    "added": [
+      "cash"
+    ],
+    "removed": [
+      "credit"
+    ]
+  },
+  "DB.stockCuts[MA-SA261000007].pay.amount": [
+    0,
+    620.6
+  ],
+  "DB.stockCuts[MA-SA261000007].pay.credit": [
+    true,
+    null
+  ],
+  "DB.stockCuts[MA-SA261000007].pay.days": [
+    30,
+    null
+  ],
+  "DB.stockCuts[MA-SA261000007].pay.due": [
+    "2026-11-05",
+    null
+  ],
+  "DB.stockCuts[MA-SA261000007].pay.received": [
+    null,
+    3304.1
+  ],
+  "DB.stockCuts[MA-SA261000007].pay.change": [
+    null,
+    0
+  ],
+  "DB.stockCuts[MA-SA261000007].paid": [
+    false,
+    true
+  ],
+  "DB.stockCuts[MA-SA261000007].st.k": [
+    "credit",
+    "paid"
+  ],
+  "DB.stockCuts[MA-SA261000007].st.got": [
+    0,
+    620.6
+  ],
+  "DB.stockCuts[MA-SA261000007].st.rem": [
+    620.6,
+    0
+  ],
+  "DB.stockCuts[MA-SA261000007].st.n": [
+    0,
+    1
+  ],
+  "DB.stockCuts[MA-SA261000007].st.last": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stockCuts[MA-SA261000008].pay.method": [
+    "credit",
+    "cash"
+  ],
+  "DB.stockCuts[MA-SA261000008].pay.methods": {
+    "added": [
+      "cash"
+    ],
+    "removed": [
+      "credit"
+    ]
+  },
+  "DB.stockCuts[MA-SA261000008].pay.amount": [
+    0,
+    2683.5
+  ],
+  "DB.stockCuts[MA-SA261000008].pay.credit": [
+    true,
+    null
+  ],
+  "DB.stockCuts[MA-SA261000008].pay.days": [
+    30,
+    null
+  ],
+  "DB.stockCuts[MA-SA261000008].pay.due": [
+    "2026-11-07",
+    null
+  ],
+  "DB.stockCuts[MA-SA261000008].pay.received": [
+    null,
+    3304.1
+  ],
+  "DB.stockCuts[MA-SA261000008].pay.change": [
+    null,
+    0
+  ],
+  "DB.stockCuts[MA-SA261000008].paid": [
+    false,
+    true
+  ],
+  "DB.stockCuts[MA-SA261000008].st.k": [
+    "credit",
+    "paid"
+  ],
+  "DB.stockCuts[MA-SA261000008].st.got": [
+    0,
+    2683.5
+  ],
+  "DB.stockCuts[MA-SA261000008].st.wht": [
+    0,
+    45
+  ],
+  "DB.stockCuts[MA-SA261000008].st.rem": [
+    2728.5,
+    0
+  ],
+  "DB.stockCuts[MA-SA261000008].st.n": [
+    0,
+    1
+  ],
+  "DB.stockCuts[MA-SA261000008].st.last": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.pkgSaleFlow.used": [
+    53,
+    55
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "DB.receipts[MA-SA261000013].paid": [
+    false,
+    true
+  ],
+  "DB.receipts[MA-SA261000013].paidDate": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.receipts[MA-SA261000013].payments": {
+    "added": [
+      {
+        "id": "@DB.receipts[MA-SA261000013].payments[#0]",
+        "date": "2026-10-13",
+        "time": "09:00",
+        "amt": 7276,
+        "method": "card",
+        "bank": "เคทีซี (KTC)",
+        "ref": "APV-889120",
+        "card4": "4321",
+        "chkDate": "",
+        "by": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "note": "",
+        "methods": [
+          {
+            "k": "card",
+            "amt": 7276,
+            "bank": "เคทีซี (KTC)",
+            "card4": "4321",
+            "ref": "APV-889120",
+            "type": "credit",
+            "pct": 3,
+            "fee": 218.28
+          }
+        ],
+        "transLines": [],
+        "payId": "SP<uid>",
+        "payTotal": 7276,
+        "payBills": 1,
+        "slipCount": 0,
+        "br": "@DB.branches[MA]",
+        "reNo": "",
+        "src": "sale",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-SA261000013#51]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "stockcut",
+        "docId": "@DB.stockCuts[MA-SA261000013]",
+        "no": "MA-SA261000013",
+        "act": "pay",
+        "note": "รับชำระ 7,276.00 บาท (บัตรเครดิต/เดบิต) · ยังไม่ออกใบเสร็จ · ชำระครบแล้ว"
+      }
+    ]
+  },
+  "DB.stockCuts[MA-SA261000013].pay": [
+    null,
+    {
+      "method": "card",
+      "methods": [
+        "card"
+      ],
+      "amount": 7276,
+      "cardFee": 218.28
+    }
+  ],
+  "DB.stockCuts[MA-SA261000013].paid": [
+    false,
+    true
+  ],
+  "DB.stockCuts[MA-SA261000013].st.k": [
+    "wait",
+    "paid"
+  ],
+  "DB.stockCuts[MA-SA261000013].st.got": [
+    0,
+    7276
+  ],
+  "DB.stockCuts[MA-SA261000013].st.rem": [
+    7276,
+    0
+  ],
+  "DB.stockCuts[MA-SA261000013].st.n": [
+    0,
+    1
+  ],
+  "DB.stockCuts[MA-SA261000013].st.last": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.pkgSaleFlow.used": [
+    53,
+    55
+  ]
+}

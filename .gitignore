@@ -3,3 +3,4 @@ test-results/
 playwright-report/
 coverage/
 tests/fixtures/*-full.json
+.explore/

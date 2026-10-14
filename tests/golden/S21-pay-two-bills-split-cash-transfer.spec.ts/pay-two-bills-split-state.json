@@ -1,0 +1,224 @@
+{
+  "DB.receipts[MA-SA261000004].paid": [
+    false,
+    true
+  ],
+  "DB.receipts[MA-SA261000004].paidDate": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.receipts[MA-SA261000004].payments": {
+    "added": [
+      {
+        "id": "@DB.receipts[MA-SA261000004].payments[#0]",
+        "amt": 10058,
+        "date": "2026-10-13",
+        "method": "trans",
+        "by": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "note": "",
+        "bank": "ธนาคารกรุงเทพ 789-0-12345-6 (หจก.เอกหม้อน้ำ)",
+        "ref": "BBL-240913",
+        "card4": "",
+        "chkDate": "",
+        "payId": "ST<uid>",
+        "payTotal": 10368.3,
+        "payBills": 2,
+        "methods": [
+          {
+            "k": "cash",
+            "amt": 5000
+          },
+          {
+            "k": "trans",
+            "amt": 5368.3,
+            "lines": 1
+          }
+        ],
+        "transLines": [
+          {
+            "no": 1,
+            "bank": "ธนาคารกรุงเทพ 789-0-12345-6 (หจก.เอกหม้อน้ำ)",
+            "amt": 5368.3,
+            "when": "13/10/2569 09:00",
+            "ref": "BBL-240913",
+            "slip": false
+          }
+        ],
+        "slipCount": 0,
+        "br": "@DB.branches[MA]",
+        "reShare": true,
+        "src": "settle",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "time": "09:00",
+        "reNo": "MA-RE261000004"
+      }
+    ]
+  },
+  "DB.receipts[MA-SA261000014].paid": [
+    false,
+    true
+  ],
+  "DB.receipts[MA-SA261000014].paidDate": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.receipts[MA-SA261000014].payments": {
+    "added": [
+      {
+        "id": "@DB.receipts[MA-SA261000014].payments[#0]",
+        "amt": 310.3,
+        "date": "2026-10-13",
+        "method": "trans",
+        "by": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "note": "",
+        "bank": "ธนาคารกรุงเทพ 789-0-12345-6 (หจก.เอกหม้อน้ำ)",
+        "ref": "BBL-240913",
+        "card4": "",
+        "chkDate": "",
+        "payId": "ST<uid>",
+        "payTotal": 10368.3,
+        "payBills": 2,
+        "methods": [
+          {
+            "k": "cash",
+            "amt": 5000
+          },
+          {
+            "k": "trans",
+            "amt": 5368.3,
+            "lines": 1
+          }
+        ],
+        "transLines": [
+          {
+            "no": 1,
+            "bank": "ธนาคารกรุงเทพ 789-0-12345-6 (หจก.เอกหม้อน้ำ)",
+            "amt": 5368.3,
+            "when": "13/10/2569 09:00",
+            "ref": "BBL-240913",
+            "slip": false
+          }
+        ],
+        "slipCount": 0,
+        "br": "@DB.branches[MA]",
+        "reShare": true,
+        "src": "settle",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "time": "09:00",
+        "reNo": "MA-RE261000004"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-SA261000014-R1#50]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "stockcut",
+        "docId": "@DB.stockCuts[MA-SA261000014-R1]",
+        "no": "MA-SA261000014-R1",
+        "act": "pay",
+        "note": "รับชำระ 310.30 บาท (เงินสด + เงินโอน) · ชำระครบแล้ว"
+      },
+      {
+        "id": "@DB.audit[MA-SA261000004#51]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "stockcut",
+        "docId": "@DB.stockCuts[MA-SA261000004]",
+        "no": "MA-SA261000004",
+        "act": "pay",
+        "note": "รับชำระ 10,058.00 บาท (เงินสด + เงินโอน) · ชำระครบแล้ว"
+      }
+    ]
+  },
+  "DB.seq.MA-RE2610": [
+    3,
+    4
+  ],
+  "DB.stockCuts[MA-SA261000004].pay": [
+    null,
+    {
+      "method": "trans",
+      "methods": [
+        "trans",
+        "cash"
+      ],
+      "amount": 10058,
+      "received": 5000,
+      "change": 0
+    }
+  ],
+  "DB.stockCuts[MA-SA261000004].paid": [
+    false,
+    true
+  ],
+  "DB.stockCuts[MA-SA261000004].st.k": [
+    "wait",
+    "paid"
+  ],
+  "DB.stockCuts[MA-SA261000004].st.got": [
+    0,
+    10058
+  ],
+  "DB.stockCuts[MA-SA261000004].st.rem": [
+    10058,
+    0
+  ],
+  "DB.stockCuts[MA-SA261000004].st.n": [
+    0,
+    1
+  ],
+  "DB.stockCuts[MA-SA261000004].st.last": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stockCuts[MA-SA261000014-R1].pay": [
+    null,
+    {
+      "method": "trans",
+      "methods": [
+        "trans",
+        "cash"
+      ],
+      "amount": 310.3,
+      "received": 5000,
+      "change": 0
+    }
+  ],
+  "DB.stockCuts[MA-SA261000014-R1].paid": [
+    false,
+    true
+  ],
+  "DB.stockCuts[MA-SA261000014-R1].st.k": [
+    "wait",
+    "paid"
+  ],
+  "DB.stockCuts[MA-SA261000014-R1].st.got": [
+    0,
+    310.3
+  ],
+  "DB.stockCuts[MA-SA261000014-R1].st.rem": [
+    310.3,
+    0
+  ],
+  "DB.stockCuts[MA-SA261000014-R1].st.n": [
+    0,
+    1
+  ],
+  "DB.stockCuts[MA-SA261000014-R1].st.last": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.pkgSaleFlow.used": [
+    53,
+    55
+  ]
+}
