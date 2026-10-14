@@ -1,0 +1,99 @@
+{
+  "DB.receipts[MA-SA261000003].paid": [
+    false,
+    true
+  ],
+  "DB.receipts[MA-SA261000003].paidDate": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.receipts[MA-SA261000003].payments": {
+    "added": [
+      {
+        "id": "@DB.receipts[MA-SA261000003].payments[#0]",
+        "date": "2026-10-13",
+        "time": "09:00",
+        "amt": 9913.55,
+        "method": "cash",
+        "bank": "",
+        "ref": "",
+        "card4": "",
+        "chkDate": "",
+        "by": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "note": "",
+        "methods": [
+          {
+            "k": "cash",
+            "amt": 9913.55
+          }
+        ],
+        "transLines": [],
+        "payId": "SP<uid>",
+        "payTotal": 9913.55,
+        "payBills": 1,
+        "slipCount": 0,
+        "br": "@DB.branches[MA]",
+        "reNo": "",
+        "src": "sale",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-SA261000003#51]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "stockcut",
+        "docId": "@DB.stockCuts[MA-SA261000003]",
+        "no": "MA-SA261000003",
+        "act": "pay",
+        "note": "รับชำระ 9,913.55 บาท (เงินสด) · ยังไม่ออกใบเสร็จ · ชำระครบแล้ว"
+      }
+    ]
+  },
+  "DB.stockCuts[MA-SA261000003].pay": [
+    null,
+    {
+      "method": "cash",
+      "methods": [
+        "cash"
+      ],
+      "amount": 9913.55,
+      "received": 9913.55,
+      "change": 0
+    }
+  ],
+  "DB.stockCuts[MA-SA261000003].paid": [
+    false,
+    true
+  ],
+  "DB.stockCuts[MA-SA261000003].st.k": [
+    "wait",
+    "paid"
+  ],
+  "DB.stockCuts[MA-SA261000003].st.got": [
+    0,
+    9913.55
+  ],
+  "DB.stockCuts[MA-SA261000003].st.rem": [
+    9913.55,
+    0
+  ],
+  "DB.stockCuts[MA-SA261000003].st.n": [
+    0,
+    1
+  ],
+  "DB.stockCuts[MA-SA261000003].st.last": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.pkgSaleFlow.used": [
+    53,
+    55
+  ]
+}

@@ -8,7 +8,8 @@
     "fixture": "node tools/make-fixture.mjs",
     "fonts": "node tools/vendor-fonts.mjs",
     "inventory": "node tools/inventory.mjs",
-    "coverage": "rm -rf coverage/raw && COVERAGE=1 playwright test && node tools/coverage-report.mjs"
+    "coverage": "rm -rf coverage/raw && COVERAGE=1 playwright test && node tools/coverage-report.mjs",
+    "selfcheck": "node tools/selfcheck.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.56.1"

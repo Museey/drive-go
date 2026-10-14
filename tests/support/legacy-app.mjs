@@ -55,11 +55,28 @@ export function legacyApp(page) {
     // the messages that appeared since the previous call.
     async signature() {
       return page.evaluate(() => {
-        const text = el => (el ? el.textContent.replace(/\s+/g, ' ').trim() : '');
+        // Text of an element with a space between separate pieces of text,
+        // so "<b>รับชำระ</b><span>MA-SA…</span>" reads "รับชำระ MA-SA…".
+        const text = el => {
+          if (!el) return '';
+          const parts = [], walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+          while (walk.nextNode()) parts.push(walk.currentNode.data);
+          return parts.join(' ').replace(/\s+/g, ' ').trim();
+        };
         const visible = el => !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
         const nav = [...document.querySelectorAll('[data-v].on')].filter(visible).map(text);
-        const modals = [...document.querySelectorAll('.modal.on')].filter(visible).map(m =>
-          text(m.querySelector('#askTitle, header h2, h2, h3')) || m.id);
+        // Pop-ups have ids starting with "m" (mAsk, mSale…) and get class "on"
+        // when open; side panels such as the payment panel (aside#mSalePay)
+        // are shown without it, so visible asides count too.
+        const title = m => {
+          const h = m.querySelector('#askTitle, header h2, h2, h3') || m.querySelector('header, [class*="-head"]');
+          if (!h) return m.getAttribute('aria-label') || m.id;
+          const c = h.cloneNode(true);
+          c.querySelectorAll('button').forEach(b => b.remove());
+          return text(c) || m.id;
+        };
+        const modals = [...document.querySelectorAll('[id^="m"].on, aside[id^="m"]')]
+          .filter(m => /^m[A-Z]/.test(m.id) && visible(m)).map(title);
         const messages = window.__seenMessages.splice(0);
         return { page: nav, popups: modals, messages };
       });

@@ -11,9 +11,11 @@
 import { test as base, expect } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { prepareContext } from './browser.mjs';
+import { TEST_SEED } from './config.mjs';
 import { legacyApp, messageRecorderInitScript } from './legacy-app.mjs';
 import { stateDiff, formatDiff } from './state-diff.mjs';
 import { executedFunctions } from './coverage.mjs';
+import { SABOTAGE } from './sabotage.mjs';
 
 const TARGET = process.env.TARGET || 'legacy';
 
@@ -33,8 +35,9 @@ export const test = base.extend<{ dataset: string; app: App; golden: Golden }>({
   },
 
   context: async ({ context }, use) => {
-    await prepareContext(context);
+    await prepareContext(context, TEST_SEED);
     await context.addInitScript(messageRecorderInitScript);
+    if (process.env.SABOTAGE) await context.addInitScript(SABOTAGE[process.env.SABOTAGE]);
     await use(context);
   },
 

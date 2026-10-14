@@ -9,6 +9,13 @@
 // ("@DB.cust[ปรีชา ทองสุข]", "@DB.receipts[MA-SA261000003]"). References to it
 // elsewhere (custId, quoteId…) get the same alias. That keeps the golden stable
 // across runs and comparable with a future system whose ids are different.
+//
+// Generated ids also appear in other fields (payId "SPmv619vk062x4o"…). The
+// legacy uid() is Date.now() in base 36 plus 5 random characters, and the clock
+// is frozen, so any such value is shown as "<uid>" ("SP<uid>").
+import { FIXED_NOW } from './config.mjs';
+
+const UID = new RegExp(Date.parse(FIXED_NOW).toString(36) + '[0-9a-z]{5}', 'g');
 
 const LABEL_FIELDS = ['no', 'code', 'docNo', 'name', 'title'];
 
@@ -42,7 +49,7 @@ function collectAliases(value, path, aliases, taken) {
 }
 
 function replaceIds(value, aliases) {
-  if (typeof value === 'string') return aliases.has(value) ? '@' + aliases.get(value) : value;
+  if (typeof value === 'string') return aliases.has(value) ? '@' + aliases.get(value) : value.replace(UID, '<uid>');
   if (Array.isArray(value)) return value.map(v => replaceIds(v, aliases));
   if (isObj(value)) {
     const out = {};

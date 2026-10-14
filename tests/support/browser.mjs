@@ -2,14 +2,14 @@
 // seeded Math.random, Google Fonts served from tests/support/fonts, and no
 // other outside network.
 import { readFileSync } from 'node:fs';
-import { FIXED_NOW, RANDOM_SEED, seedRandomInitScript } from './config.mjs';
+import { FIXED_NOW, seedRandomInitScript } from './config.mjs';
 
 const fontsDir = new URL('./fonts/', import.meta.url);
 const fonts = JSON.parse(readFileSync(new URL('manifest.json', fontsDir), 'utf8'));
 
-export async function prepareContext(context) {
+export async function prepareContext(context, seed) {
   await context.clock.setFixedTime(new Date(FIXED_NOW));
-  await context.addInitScript(seedRandomInitScript, RANDOM_SEED);
+  await context.addInitScript(seedRandomInitScript, seed);
   await context.route(/^https?:\/\/(?!127\.0\.0\.1[:/])/, route => {
     const hit = fonts[route.request().url()];
     if (!hit) return route.abort();

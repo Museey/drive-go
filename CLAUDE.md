@@ -26,6 +26,7 @@ npm run test:record -- tests/scenarios/S05-xxx.spec.ts   # บันทึกเ
 npm run fixture -- biz trial               # สร้างข้อมูลตั้งต้นใหม่ (ผลต้องเหมือนเดิมทุกไบต์)
 npm run inventory                          # สร้าง docs/behaviors.csv ใหม่
 npm run coverage                           # รันทุก test พร้อมวัดว่าฟังก์ชันไหนยังไม่เคยถูกเรียก
+npm run selfcheck                          # พิสูจน์ว่ากรรมการ 3 ตัวยังจับความผิดปกติได้ (ทำระบบพังโดยตั้งใจ 3 แบบ)
 ```
 
 ## กติกา (ห้ามละเมิด)
