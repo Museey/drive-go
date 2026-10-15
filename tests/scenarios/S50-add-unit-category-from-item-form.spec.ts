@@ -1,10 +1,27 @@
 import { test, expect } from '../support/test';
+import type { Locator } from '@playwright/test';
+
+// A register sizes its columns from the rows it has drawn, a moment after drawing them, and never narrows them
+// again. Before a search narrows the list, wait until a column header has stopped moving (1 s); otherwise the
+// column widths (and so the screenshots) depend on timing.
+async function waitUntilStill(header: Locator) {
+  let last = '', still = 0;
+  await expect.poll(async () => {
+    const box = JSON.stringify(await header.boundingBox());
+    still = box === last ? still + 1 : 0;
+    last = box;
+    return still;
+  }, { intervals: [250], timeout: 60_000 }).toBeGreaterThanOrEqual(4);
+}
 
 test('S50 เพิ่มหน่วยนับ "ขวด" และหมวด "น้ำยาและสารเคมี" จากหน้ารายละเอียดสินค้า แล้วย้ายน้ำยาล้างระบบเชื้อเพลิงไปใช้', async ({ app, page, golden }) => {
   await app.loginAsOwner();
   await golden.step('หน้าแรก');
 
   await page.getByText('สต๊อกอะไหล่', { exact: true }).click();
+  await expect(page.getByText('พบ 52 รายการ · แสดง 1–10 · หน้า 1/6').first()).toBeVisible();
+  await waitUntilStill(page.getByText('5 · ราคาขาย A', { exact: true }).filter({ visible: true }));
+  await golden.step('ทะเบียนอะไหล่');
   const search = page.getByPlaceholder('ค้นหา รหัสอู่ / OEM / ชื่อสินค้า / แบรนด์').filter({ visible: true });
   await search.fill('MS-995');
   await search.press('Enter');

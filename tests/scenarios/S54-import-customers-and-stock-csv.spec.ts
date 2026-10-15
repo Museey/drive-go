@@ -1,4 +1,18 @@
 import { test, expect } from '../support/test';
+import type { Locator } from '@playwright/test';
+
+// A register sizes its columns from the rows it has drawn, a moment after drawing them, and never narrows them
+// again. Before a search narrows the list, wait until a column header has stopped moving (1 s); otherwise the
+// column widths (and so the screenshots) depend on timing.
+async function waitUntilStill(header: Locator) {
+  let last = '', still = 0;
+  await expect.poll(async () => {
+    const box = JSON.stringify(await header.boundingBox());
+    still = box === last ? still + 1 : 0;
+    last = box;
+    return still;
+  }, { intervals: [250], timeout: 60_000 }).toBeGreaterThanOrEqual(4);
+}
 
 // Sample files: tests/assets/S54-customers.csv (2 new customers with 3 cars, 1 more car for an existing
 // customer, 1 car already in the system, 1 row without a name) and tests/assets/S54-stock.csv (4 new items,
@@ -39,6 +53,9 @@ test('S54 นำเข้าลูกค้า / รถ และอะไหล
   await golden.stateChange('import-stock', before);
 
   await page.getByText('สต๊อกอะไหล่', { exact: true }).click();
+  await expect(page.getByText('พบ 56 รายการ · แสดง 1–10 · หน้า 1/6').first()).toBeVisible();
+  await waitUntilStill(page.getByText('5 · ราคาขาย A', { exact: true }).filter({ visible: true }));
+  await golden.step('ทะเบียนอะไหล่ (56 รายการ)');
   const search = page.getByPlaceholder('ค้นหา รหัสอู่ / OEM / ชื่อสินค้า / แบรนด์').filter({ visible: true });
   await search.fill('AC-240');
   await search.press('Enter');
@@ -49,6 +66,9 @@ test('S54 นำเข้าลูกค้า / รถ และอะไหล
   await golden.screen('imported-item-in-register');
 
   await page.getByRole('button', { name: '02 ข้อมูลลูกค้า' }).click();
+  await expect(page.getByText(/^พบ 56 รายการ · แสดง 1–50/).first()).toBeVisible();
+  await waitUntilStill(page.getByText('จัดการ', { exact: true }).filter({ visible: true }));
+  await golden.step('รายชื่อลูกค้า (56 รายการ)');
   const custSearch = page.getByPlaceholder('ค้นหา ยี่ห้อ / ทะเบียน / ชื่อลูกค้า / เบอร์โทร');
   await custSearch.fill('ส่งด่วนบางขุนเทียน');
   await custSearch.press('Enter');
