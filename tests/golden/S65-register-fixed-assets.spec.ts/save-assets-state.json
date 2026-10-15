@@ -1,0 +1,84 @@
+{
+  "DB.assets": {
+    "added": [
+      {
+        "id": "@DB.assets[MA-FA261000001]",
+        "no": "MA-FA261000001",
+        "date": "2026-10-10",
+        "vendor": "บริษัท เครื่องมือช่างไทย จำกัด",
+        "inv": "TT-6910-0077",
+        "vat": 7,
+        "method": "sl",
+        "status": "use",
+        "out": "",
+        "name": "เครื่องเชื่อม CO2 / MIG 250A",
+        "cat": "เครื่องมือช่าง",
+        "cost": 38000,
+        "life": 5,
+        "salvage": 1,
+        "note": "",
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]"
+      },
+      {
+        "id": "@DB.assets[MA-FA261000002]",
+        "no": "MA-FA261000002",
+        "date": "2026-10-10",
+        "vendor": "บริษัท เครื่องมือช่างไทย จำกัด",
+        "inv": "TT-6910-0077",
+        "vat": 7,
+        "method": "sl",
+        "status": "use",
+        "out": "",
+        "name": "เครื่องปรับอากาศห้องรับรองลูกค้า 18,000 BTU",
+        "cat": "เครื่องใช้สำนักงาน",
+        "cost": 24500,
+        "life": 5,
+        "salvage": 1,
+        "note": "",
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-FA261000001]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "asset",
+        "docId": "@DB.assets[MA-FA261000001]",
+        "no": "MA-FA261000001",
+        "act": "save",
+        "note": "เครื่องเชื่อม CO2 / MIG 250A · ราคาทุน 38,000.00 บาท"
+      },
+      {
+        "id": "@DB.audit[MA-FA261000002]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "asset",
+        "docId": "@DB.assets[MA-FA261000002]",
+        "no": "MA-FA261000002",
+        "act": "save",
+        "note": "เครื่องปรับอากาศห้องรับรองลูกค้า 18,000 BTU · ราคาทุน 24,500.00 บาท"
+      }
+    ]
+  },
+  "DB.seq.MA-FA2610": [
+    null,
+    2
+  ]
+}

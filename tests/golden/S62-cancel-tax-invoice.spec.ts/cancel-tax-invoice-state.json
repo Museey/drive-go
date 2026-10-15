@@ -1,0 +1,80 @@
+{
+  "DB.receipts[MA-SA261000010].taxDocs": {
+    "added": [
+      {
+        "no": "MA-TX261000003",
+        "date": "2026-10-13",
+        "cancelled": true,
+        "cancelReason": "ลูกค้าแจ้งว่าชื่อบริษัทในใบกำกับภาษีไม่ถูกต้อง",
+        "cancelDate": "2026-10-13"
+      }
+    ],
+    "removed": [
+      {
+        "no": "MA-TX261000003",
+        "date": "2026-10-13",
+        "cancelled": false,
+        "cancelReason": "",
+        "cancelDate": ""
+      }
+    ]
+  },
+  "DB.receipts[MA-SA261000010].paid": [
+    true,
+    false
+  ],
+  "DB.receipts[MA-SA261000010].paidDate": [
+    "2026-10-13",
+    ""
+  ],
+  "DB.receipts[MA-SA261000010].taxCancelled": [
+    false,
+    true
+  ],
+  "DB.receipts[MA-SA261000010].taxCancelReason": [
+    "",
+    "ลูกค้าแจ้งว่าชื่อบริษัทในใบกำกับภาษีไม่ถูกต้อง"
+  ],
+  "DB.receipts[MA-SA261000010].taxCancelDate": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.receipts[MA-SA261000010].cancelled": [
+    null,
+    true
+  ],
+  "DB.receipts[MA-SA261000010].cancelReason": [
+    null,
+    "ยกเลิกตามใบกำกับภาษี MA-TX261000003"
+  ],
+  "DB.receipts[MA-SA261000010].cancelDate": [
+    null,
+    "2026-10-13"
+  ],
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-SA261000010#50]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "receipt",
+        "docId": "@DB.receipts[MA-SA261000010]",
+        "no": "MA-SA261000010",
+        "act": "taxcancel",
+        "note": "ยกเลิกใบกำกับภาษี MA-TX261000003 — ลูกค้าแจ้งว่าชื่อบริษัทในใบกำกับภาษีไม่ถูกต้อง"
+      },
+      {
+        "id": "@DB.audit[MA-SA261000010#51]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "receipt",
+        "docId": "@DB.receipts[MA-SA261000010]",
+        "no": "MA-SA261000010",
+        "act": "del",
+        "note": "ยกเลิกเอกสารตามการยกเลิกใบกำกับภาษี"
+      }
+    ]
+  }
+}

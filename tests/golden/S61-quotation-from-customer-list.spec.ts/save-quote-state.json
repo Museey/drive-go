@@ -1,0 +1,147 @@
+{
+  "DB.quotes": {
+    "added": [
+      {
+        "id": "@DB.quotes[MA-QT261000005]",
+        "no": "MA-QT261000005",
+        "date": "2026-10-13",
+        "jobIn": "2026-10-13",
+        "custId": "@DB.cust[C00002]",
+        "vehIdx": 2,
+        "mile": "96620",
+        "probs": [
+          "มีเสียงดังที่ช่วงล่างหน้าเวลาขับผ่านลูกระนาด",
+          "",
+          ""
+        ],
+        "finds": [
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          }
+        ],
+        "tier": "A",
+        "items": [
+          {
+            "type": "part",
+            "code": "SU-350",
+            "oem": "43330-09510",
+            "name": "ลูกหมากปีกนกล่าง",
+            "qty": 2,
+            "price": 1140,
+            "stockId": "@DB.stock[SU-350]",
+            "warr": 6
+          },
+          {
+            "type": "labor",
+            "code": "",
+            "oem": "",
+            "name": "ค่าแรงเปลี่ยนลูกหมากปีกนกล่าง 2 ข้าง",
+            "qty": 1,
+            "price": 800,
+            "stockId": "",
+            "warr": ""
+          }
+        ],
+        "disc": 0,
+        "vat": 7,
+        "byPos": "",
+        "byName": "",
+        "apPos": "",
+        "apName": "",
+        "tech": "",
+        "techName": "",
+        "status": "ร่าง",
+        "deducted": false,
+        "apv": {
+          "status": "draft",
+          "byName": "",
+          "date": "",
+          "note": ""
+        },
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-QT261000005]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "quote",
+        "docId": "@DB.quotes[MA-QT261000005]",
+        "no": "MA-QT261000005",
+        "act": "save",
+        "note": "ยอดรวม 3,295.60 บาท"
+      }
+    ]
+  },
+  "DB.seq.MA-QT2610": [
+    4,
+    5
+  ]
+}

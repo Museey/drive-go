@@ -1,0 +1,49 @@
+{
+  "DB.expenses": {
+    "added": [
+      {
+        "id": "@DB.expenses[MA-EX261000003]",
+        "no": "MA-EX261000003",
+        "date": "2026-10-13",
+        "cat": "ค่าไฟฟ้า",
+        "desc": "ค่าไฟฟ้าประจำเดือน กันยายน 2569",
+        "payee": "การไฟฟ้านครหลวง",
+        "tax": "",
+        "inv": "MEA-6909-112233",
+        "base": 4500,
+        "vat": 7,
+        "wht": 0,
+        "method": "เครดิต (ยังไม่จ่าย)",
+        "paid": false,
+        "note": "",
+        "billDate": "2026-10-05",
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-EX261000003]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "expense",
+        "docId": "@DB.expenses[MA-EX261000003]",
+        "no": "MA-EX261000003",
+        "act": "save",
+        "note": "ค่าไฟฟ้า · 4,815.00 บาท"
+      }
+    ]
+  },
+  "DB.seq.MA-EX2610": [
+    2,
+    3
+  ]
+}

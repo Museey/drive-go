@@ -1,0 +1,124 @@
+{
+  "DB.stock[EL-101].qty": [
+    19,
+    20
+  ],
+  "DB.moves": {
+    "added": [
+      {
+        "id": "@DB.moves[#47]",
+        "stockId": "@DB.stock[EL-101]",
+        "type": "in",
+        "qty": 1,
+        "date": "2026-10-13",
+        "ref": "รับสินค้าเคลมคืนเข้าสต๊อก",
+        "refNo": "MA-CL261000001",
+        "vendorId": "@DB.vendors[V00001]",
+        "cost": 4200,
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.claims[MA-CL261000001].items": {
+    "added": [
+      {
+        "stockId": "@DB.stock[EL-101]",
+        "code": "EL-101",
+        "name": "ไดชาร์จ Toyota Revo",
+        "qty": 1,
+        "reason": "ชาร์จไฟไม่เข้า",
+        "result": {
+          "t": "back",
+          "qty": 1,
+          "amt": 0
+        }
+      },
+      {
+        "stockId": "@DB.stock[EL-125]",
+        "code": "EL-125",
+        "name": "ชุดคอยล์จุดระเบิด",
+        "qty": 2,
+        "reason": "ไฟรั่ว เครื่องสะดุด",
+        "result": {
+          "t": "credit",
+          "qty": 0,
+          "amt": 1960
+        }
+      },
+      {
+        "stockId": "@DB.stock[EL-133]",
+        "code": "EL-133",
+        "name": "ไฟหน้า LED Revo (ข้าง)",
+        "qty": 1,
+        "reason": "เลนส์แตกระหว่างขนส่ง",
+        "result": {
+          "t": "loss",
+          "qty": 0,
+          "amt": 0
+        }
+      }
+    ],
+    "removed": [
+      {
+        "stockId": "@DB.stock[EL-101]",
+        "code": "EL-101",
+        "name": "ไดชาร์จ Toyota Revo",
+        "qty": 1,
+        "reason": "ชาร์จไฟไม่เข้า"
+      },
+      {
+        "stockId": "@DB.stock[EL-125]",
+        "code": "EL-125",
+        "name": "ชุดคอยล์จุดระเบิด",
+        "qty": 2,
+        "reason": "ไฟรั่ว เครื่องสะดุด"
+      },
+      {
+        "stockId": "@DB.stock[EL-133]",
+        "code": "EL-133",
+        "name": "ไฟหน้า LED Revo (ข้าง)",
+        "qty": 1,
+        "reason": "เลนส์แตกระหว่างขนส่ง"
+      }
+    ]
+  },
+  "DB.claims[MA-CL261000001].restocked": [
+    null,
+    true
+  ],
+  "DB.claims[MA-CL261000001].restockDate": [
+    null,
+    "2026-10-13"
+  ],
+  "DB.claims[MA-CL261000001].creditAmt": [
+    null,
+    1960
+  ],
+  "DB.claims[MA-CL261000001].recvSummary": [
+    null,
+    "รับคืน 1 ชิ้น · ตีเสีย 1 รายการ · หักยอด 1,960.00 บาท"
+  ],
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-CL261000001#54]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "claim",
+        "docId": "@DB.claims[MA-CL261000001]",
+        "no": "MA-CL261000001",
+        "act": "restock",
+        "note": "รับคืน 1 ชิ้น · ตีเสีย 1 รายการ · หักยอด 1,960.00 บาท"
+      }
+    ]
+  },
+  "DB.fifo.lots[#0].left": [
+    19,
+    20
+  ],
+  "DB.fifo.allocs[#17].back": [
+    0,
+    1
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-SA261000011#53]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "stockcut",
+        "docId": "@DB.stockCuts[MA-SA261000011]",
+        "no": "MA-SA261000011",
+        "act": "open",
+        "note": ""
+      }
+    ]
+  }
+}

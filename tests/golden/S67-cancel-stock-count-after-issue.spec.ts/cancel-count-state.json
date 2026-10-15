@@ -1,0 +1,130 @@
+{
+  "DB.stock[AC-215].qty": [
+    16,
+    19
+  ],
+  "DB.moves": {
+    "added": [
+      {
+        "id": "@DB.moves[#46]",
+        "stockId": "@DB.stock[AC-204]",
+        "type": "adj",
+        "qty": 0,
+        "date": "2026-10-13",
+        "ref": "คืนยอดจากการยกเลิกใบตรวจนับสินค้า",
+        "refNo": "MA-CT261000001",
+        "vendorId": "",
+        "cost": 0,
+        "br": "@DB.branches[MA]"
+      },
+      {
+        "id": "@DB.moves[#47]",
+        "stockId": "@DB.stock[AC-215]",
+        "type": "adj",
+        "qty": 2,
+        "date": "2026-10-13",
+        "ref": "คืนยอดจากการยกเลิกใบตรวจนับสินค้า",
+        "refNo": "MA-CT261000001",
+        "vendorId": "",
+        "cost": 0,
+        "br": "@DB.branches[MA]"
+      },
+      {
+        "id": "@DB.moves[#48]",
+        "stockId": "@DB.stock[AC-222]",
+        "type": "adj",
+        "qty": 0,
+        "date": "2026-10-13",
+        "ref": "คืนยอดจากการยกเลิกใบตรวจนับสินค้า",
+        "refNo": "MA-CT261000001",
+        "vendorId": "",
+        "cost": 0,
+        "br": "@DB.branches[MA]"
+      },
+      {
+        "id": "@DB.moves[#49]",
+        "stockId": "@DB.stock[AC-230]",
+        "type": "adj",
+        "qty": 0,
+        "date": "2026-10-13",
+        "ref": "คืนยอดจากการยกเลิกใบตรวจนับสินค้า",
+        "refNo": "MA-CT261000001",
+        "vendorId": "",
+        "cost": 0,
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-CT261000001#56]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "count",
+        "docId": "@DB.stockCounts[MA-CT261000001]",
+        "no": "MA-CT261000001",
+        "act": "del",
+        "note": "ยกเลิกใบตรวจนับ MA-CT261000001 · คืนสต๊อกแล้ว — นับผิดชั้นวาง"
+      },
+      {
+        "id": "@DB.audit[MA-CT261000001#57]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "count",
+        "docId": "@DB.stockCounts[MA-CT261000001]",
+        "no": "MA-CT261000001",
+        "act": "open",
+        "note": ""
+      }
+    ]
+  },
+  "DB.stockCounts[MA-CT261000001].applied": [
+    true,
+    false
+  ],
+  "DB.stockCounts[MA-CT261000001].cancelled": [
+    null,
+    true
+  ],
+  "DB.stockCounts[MA-CT261000001].cancelReason": [
+    null,
+    "นับผิดชั้นวาง"
+  ],
+  "DB.stockCounts[MA-CT261000001].cancelDate": [
+    null,
+    "2026-10-13"
+  ],
+  "DB.fifo.lots[#10].left": [
+    16,
+    18
+  ],
+  "DB.fifo.lots": {
+    "added": [
+      {
+        "id": "@DB.fifo.lots[#25]",
+        "seq": 1791856800000002,
+        "br": "@DB.branches[MA]",
+        "stockId": "@DB.stock[AC-215]",
+        "date": "2026-10-13",
+        "ref": "ปรับยอดยกมา (ไม่มีเอกสารต้นทาง)",
+        "refNo": "",
+        "vendorId": "",
+        "src": "open",
+        "cost": 120,
+        "qty": 1,
+        "left": 1,
+        "exp": "",
+        "mfg": "",
+        "expSrc": "",
+        "lotNo": ""
+      }
+    ]
+  },
+  "DB.fifo.allocs[#17].back": [
+    0,
+    2
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "DB.expenses[MA-EX261000003].paid": [
+    false,
+    true
+  ],
+  "DB.expenses[MA-EX261000003].payDate": [
+    null,
+    "2026-10-13"
+  ]
+}
