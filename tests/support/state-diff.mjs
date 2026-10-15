@@ -113,6 +113,21 @@ export function stateDiff(before, after) {
   return replaceIds(out, aliases);
 }
 
+// Size of every collection (and plain values at the top of each store), for
+// actions that replace the whole data set where a full diff would be huge.
+export function stateCounts(state) {
+  const out = {};
+  for (const [store, value] of Object.entries(state)) {
+    if (!isObj(value)) { out[store] = value; continue; }
+    for (const [k, v] of Object.entries(value)) {
+      if (Array.isArray(v)) out[`${store}.${k}`] = v.length;
+      else if (isObj(v)) out[`${store}.${k}`] = `{${Object.keys(v).length} keys}`;
+      else out[`${store}.${k}`] = v;
+    }
+  }
+  return out;
+}
+
 export function formatDiff(diff) {
   return JSON.stringify(diff, null, 2) + '\n';
 }

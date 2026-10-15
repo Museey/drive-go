@@ -4,3 +4,4 @@ playwright-report/
 coverage/
 tests/fixtures/*-full.json
 .explore/
+.pw/

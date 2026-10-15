@@ -8,12 +8,14 @@
 //             golden.screen(name)               referee 2: screenshot
 //             golden.step(label)                referee 3: page, pop-ups and messages at each step
 //                                               (all steps of a test are checked together as flow.json)
+//             golden.counts(name)               referee 1 for actions that replace the whole data set
+//                                               (wipe, restore, import, demo data): record counts per collection
 import { test as base, expect } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { prepareContext } from './browser.mjs';
 import { FIXED_NOW, TEST_SEED } from './config.mjs';
 import { legacyApp, messageRecorderInitScript } from './legacy-app.mjs';
-import { stateDiff, formatDiff } from './state-diff.mjs';
+import { stateDiff, stateCounts, formatDiff } from './state-diff.mjs';
 import { executedFunctions } from './coverage.mjs';
 import { SABOTAGE } from './sabotage.mjs';
 
@@ -24,6 +26,7 @@ type Golden = {
   step(label: string): Promise<void>;
   screen(name: string): Promise<void>;
   stateChange(name: string, before: unknown): Promise<void>;
+  counts(name: string): Promise<void>;
 };
 
 export const test = base.extend<{ dataset: string; app: App; golden: Golden }>({
@@ -70,6 +73,10 @@ export const test = base.extend<{ dataset: string; app: App; golden: Golden }>({
         await app.settle();
         const after = await app.state();
         expect(formatDiff(stateDiff(before, after))).toMatchSnapshot(`${name}.state.json`);
+      },
+      async counts(name) {
+        await app.settle();
+        expect(formatDiff(stateCounts(await app.state()))).toMatchSnapshot(`${name}.counts.json`);
       },
     });
     if (steps.length && testInfo.status === testInfo.expectedStatus)
