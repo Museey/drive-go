@@ -44,6 +44,7 @@ test('S58 ลบรายการบัญชีที่บันทึกผ�
   const scrap = page.getByRole('row').filter({ hasText: 'ขายเศษเหล็กและอะไหล่เก่า' }).filter({ visible: true });
   await expect(scrap).toContainText('25,000.00');
   await expect(page.getByText('25 รายการ', { exact: true }).filter({ visible: true })).toBeVisible();
+  await expect(page.getByText('-1,540,866', { exact: true })).toBeVisible();
   await golden.step('หน้าเงินลงทุน / เงินสด 25 รายการ');
   await golden.screen('capital-before');
   await scrap.getByRole('button', { name: 'ลบ' }).click();
@@ -55,5 +56,8 @@ test('S58 ลบรายการบัญชีที่บันทึกผ�
   await expect(page.getByText('24 รายการ', { exact: true }).filter({ visible: true })).toBeVisible();
   await golden.step('หลังลบรายการ เหลือ 24 รายการ');
   await golden.stateChange('delete-capital', before);
+  const cash = page.getByText('-1,565,866', { exact: true });
+  await expect(cash).toBeVisible();
+  await cash.scrollIntoViewIfNeeded();
   await golden.screen('capital-after');
 });

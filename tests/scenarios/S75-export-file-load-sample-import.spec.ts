@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { test, expect } from '../support/test';
 
-test('S75 ส่งออกไฟล์สำรองทั้งระบบ ลองโหลดข้อมูลตัวอย่าง แล้วนำเข้าไฟล์สำรองกลับ ข้อมูลเดิมกลับมา', async ({ app, page, golden }) => {
+test('S75 ส่งออกไฟล์สำรองทั้งระบบ ล้างข้อมูลแล้วลองโหลดข้อมูลตัวอย่าง จากนั้นนำเข้าไฟล์สำรองกลับ ข้อมูลเดิมกลับมา', async ({ app, page, golden }) => {
   test.slow(); // many steps; each one waits for the saved data to settle
   await app.loginAsOwner();
   await golden.step('หน้าแรก');
@@ -23,10 +23,17 @@ test('S75 ส่งออกไฟล์สำรองทั้งระบบ 
   const file = { name: download.suggestedFilename(), mimeType: 'application/json', buffer: await readFile(await download.path()) };
   await golden.step('ส่งออกไฟล์สำรอง garage-backup-2026-10-13.json');
 
+  // Counts are measured from an emptied shop: the order of the collections in the data the app
+  // opened with depends on start-up timing, and the record-count referee keeps that order.
   await page.getByRole('button', { name: '10 ตั้งค่าองค์กร' }).click();
+  await page.getByRole('button', { name: 'ล้างข้อมูลทั้งหมด' }).click();
+  await page.getByRole('button', { name: 'ล้างข้อมูล', exact: true }).click();
+  await expect(page.getByText('ล้างข้อมูลทั้งหมดออกจากระบบ?', { exact: true })).toBeHidden();
+  await golden.step('เมนู 10 ล้างข้อมูลทั้งหมด');
+
   await page.getByRole('button', { name: 'โหลดข้อมูลตัวอย่าง' }).click();
   await expect(page.getByRole('button', { name: 'ดูรายงานลูกหนี้' })).toBeVisible(); // back on the home page
-  await golden.step('เมนู 10 กดโหลดข้อมูลตัวอย่าง (ไม่มีถามยืนยัน)');
+  await golden.step('กดโหลดข้อมูลตัวอย่าง (ไม่มีถามยืนยัน)');
   await golden.counts('after-sample-data');
   await golden.screen('home-sample-data');
 
