@@ -1,0 +1,11 @@
+{
+  "_note": "Legacy functions no screen action can reach (superseded by newer code that wraps or replaces their callers). Checked in the running app by the scenario writers. They do not need a scenario and do not need to be migrated. tools/inventory.mjs marks them in behaviors.csv.",
+  "doPayGR": "ตัวเปิดของมัน payGR() ไม่ถูกเรียกจากที่ไหนเลย ปุ่มจ่ายใบรับสินค้าใช้หน้าต่างตัดชำระใหม่ openPartPay('ap') แทน (S31)",
+  "ppConfirm": "ปุ่มยืนยันของหน้าต่างรับชำระแบบเก่า #mPartPay ถูกซ่อนไว้ หลังมีหน้าต่างตัดชำระใหม่ (บรรทัดราว 28903)",
+  "deductQuoteStock": "ถูกเรียกเฉพาะจาก approveQuote และ readyQuoteInline ตัวเดิม ซึ่งตัวที่ทำงานจริงไม่เรียกแล้ว (อนุมัติแล้วไปตัดสต็อกที่ 4.1 แทน)",
+  "readyQuoteInline": "ต้องใช้ฟอร์มใบเสร็จแบบเก่า mReceiptEdit ซึ่งแพ็กเกจ Biz ไม่เปิดแล้ว (ทุกทางเปลี่ยนไปที่ใบตัดสต็อก 4.1)",
+  "handleIssueTaxToggle": "ต้องใช้ฟอร์มใบเสร็จแบบเก่า mReceiptEdit ซึ่งแพ็กเกจ Biz ไม่เปิดแล้ว",
+  "cancelCurrentReceipt": "ต้องใช้ฟอร์มใบเสร็จแบบเก่า mReceiptEdit ซึ่งแพ็กเกจ Biz ไม่เปิดแล้ว (การยกเลิกทำที่ใบตัดสต็อกแทน S15)",
+  "issueTaxFromRegistry": "openTaxNew ถูกแทนด้วยหน้าต่างออกใบกำกับภาษีใหม่ (บรรทัด 25501 ใช้ใน S14) หน้าต่างเดิมเก็บไว้เป็น pkgOldTaxNew ที่ไม่มีใครเรียก",
+  "saveInvoiceDoc": "ฟอร์ม mInvoiceEdit เปิดได้จาก DB.invoices เท่านั้น ส่วน 4.2 ปัจจุบันเก็บใบแจ้งหนี้ไว้ใน receipts[].inv (S23)"
+}
