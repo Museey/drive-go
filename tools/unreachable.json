@@ -7,5 +7,9 @@
   "handleIssueTaxToggle": "ต้องใช้ฟอร์มใบเสร็จแบบเก่า mReceiptEdit ซึ่งแพ็กเกจ Biz ไม่เปิดแล้ว",
   "cancelCurrentReceipt": "ต้องใช้ฟอร์มใบเสร็จแบบเก่า mReceiptEdit ซึ่งแพ็กเกจ Biz ไม่เปิดแล้ว (การยกเลิกทำที่ใบตัดสต็อกแทน S15)",
   "issueTaxFromRegistry": "openTaxNew ถูกแทนด้วยหน้าต่างออกใบกำกับภาษีใหม่ (บรรทัด 25501 ใช้ใน S14) หน้าต่างเดิมเก็บไว้เป็น pkgOldTaxNew ที่ไม่มีใครเรียก",
-  "saveInvoiceDoc": "ฟอร์ม mInvoiceEdit เปิดได้จาก DB.invoices เท่านั้น ส่วน 4.2 ปัจจุบันเก็บใบแจ้งหนี้ไว้ใน receipts[].inv (S23)"
+  "saveInvoiceDoc": "ฟอร์ม mInvoiceEdit เปิดได้จาก DB.invoices เท่านั้น ส่วน 4.2 ปัจจุบันเก็บใบแจ้งหนี้ไว้ใน receipts[].inv (S23)",
+  "dgbSignup": "อยู่ในหน้าจอ #dgbGate ซึ่ง CSS ซ่อนไว้ถาวร (display:none!important) และหน้าเข้าระบบสร้างข้อมูลร้านให้เองเสมอ จึงไม่ต้องสมัคร",
+  "dgbCodeOk": "แสดงหลัง dgbSignup เท่านั้น ซึ่งกดไม่ถึง",
+  "dgbPay": "ปุ่มชำระเงินแสดงเมื่อไม่ใช่โหมดพัฒนาเท่านั้น แต่ไฟล์ตั้ง DGB_DEV_MODE = true ไว้ตายตัว หน้าล็อกจึงไม่เคยขึ้น (ระบบจริงต้องมีการเก็บเงินและล็อกจริง)",
+  "dgbFreshStart": "ไม่มีโค้ดส่วนไหนเรียกใช้"
 }
