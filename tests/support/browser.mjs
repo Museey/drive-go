@@ -28,7 +28,8 @@ export async function prepareContext(context, { seed, now }) {
 // IndexedDB before the data is there.
 export async function restoreDataset(page, dataset) {
   const state = JSON.parse(readFileSync(new URL(`../fixtures/${dataset}.json`, import.meta.url), 'utf8'));
-  const origin = state.origins.find(o => o.origin === LEGACY_ORIGIN);
+  // A fixture holds one origin; the port it was saved from does not matter.
+  const origin = state.origins[0];
   await page.route(`${LEGACY_ORIGIN}/__blank`, r => r.fulfill({ contentType: 'text/html', body: '<!doctype html><title>restore</title>' }));
   await page.goto(`${LEGACY_ORIGIN}/__blank`);
   await page.evaluate(async origin => {

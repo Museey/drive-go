@@ -17,7 +17,12 @@ export const FIXTURE_NOW = '2026-10-13T08:00:00+07:00';
 export const FIXTURE_SEED = 20261013;
 export const TEST_SEED = 1013;
 
-export const PORT = Number(process.env.LEGACY_PORT || 4173);
+// Every test run and every tool serves the legacy file on its own port, so
+// runs on the same machine never stop each other's server. The first process
+// picks the port and its children (Playwright workers, serve.mjs) inherit it.
+// Set LEGACY_PORT yourself to reuse a server you started by hand.
+if (!process.env.LEGACY_PORT) process.env.LEGACY_PORT = String(4200 + Math.floor(Math.random() * 1500));
+export const PORT = Number(process.env.LEGACY_PORT);
 export const LEGACY_ORIGIN = `http://127.0.0.1:${PORT}`;
 export const LEGACY_URL = `${LEGACY_ORIGIN}/DRIVEGO_TRIAL_v23.html`;
 
