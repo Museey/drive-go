@@ -115,11 +115,15 @@ export function stateDiff(before, after) {
 
 // Size of every collection (and plain values at the top of each store), for
 // actions that replace the whole data set where a full diff would be huge.
+// Keys are sorted: the app creates some collections at a timing-dependent
+// moment during start-up, so their insertion order varies between runs.
 export function stateCounts(state) {
   const out = {};
-  for (const [store, value] of Object.entries(state)) {
+  for (const store of Object.keys(state).sort()) {
+    const value = state[store];
     if (!isObj(value)) { out[store] = value; continue; }
-    for (const [k, v] of Object.entries(value)) {
+    for (const k of Object.keys(value).sort()) {
+      const v = value[k];
       if (Array.isArray(v)) out[`${store}.${k}`] = v.length;
       else if (isObj(v)) out[`${store}.${k}`] = `{${Object.keys(v).length} keys}`;
       else out[`${store}.${k}`] = v;

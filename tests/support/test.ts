@@ -67,6 +67,7 @@ export const test = base.extend<{ dataset: string; app: App; golden: Golden }>({
         await app.settle();
         // Park the pointer so hover effects never depend on the last click.
         await page.mouse.move(0, 0);
+        await app.layoutStable();
         await expect(page).toHaveScreenshot(`${name}.png`, { style: app.screenshotStyle });
       },
       async stateChange(name, before) {

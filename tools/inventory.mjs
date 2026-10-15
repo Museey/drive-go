@@ -37,6 +37,10 @@ const lineAt = off => {
 
 const SAVE_FNS = new Set(['save', 'pxSave', 'frSave', 'dgbSave']);
 
+// Functions no screen action can reach (checked in the running app), with the reason.
+const UNREACHABLE = JSON.parse(readFileSync(new URL('tools/unreachable.json', ROOT), 'utf8'));
+delete UNREACHABLE._note;
+
 // ---------- static: scripts ----------
 const fns = new Map();   // name -> { decls: [{line,start,end,src}], overrides: Set<line>, calls: Set, savesDirect }
 const getFn = name => {
@@ -250,7 +254,7 @@ for (const f of fnRows) {
     declared_lines: declLines.join(' '), replaced_at: [...f.overrides].sort((a, b) => a - b).join(' '),
     live_line: liveLine, live_note: liveNote, saves, label: '', code: '',
     calls: [...f.calls].filter(c => fns.has(c) && c !== f.name).sort().join(' '),
-    tested_by: scen.join(' '),
+    tested_by: scen.join(' '), unreachable: UNREACHABLE[f.name] || '',
   });
 }
 n = 0;
@@ -278,7 +282,7 @@ for (const l of listeners) {
     tested_by: ranBy([l.line]).join(' '),
   });
 }
-const COLS = ['id', 'kind', 'name', 'line', 'declared_lines', 'replaced_at', 'live_line', 'live_note', 'saves', 'label', 'code', 'calls', 'tested_by'];
+const COLS = ['id', 'kind', 'name', 'line', 'declared_lines', 'replaced_at', 'live_line', 'live_note', 'saves', 'label', 'code', 'calls', 'tested_by', 'unreachable'];
 writeFileSync(new URL('docs/behaviors.csv', ROOT), [COLS.join(','), ...rows.map(r => COLS.map(c => csv(r[c])).join(','))].join('\n') + '\n');
 
 // ---------- summary ----------
@@ -286,6 +290,9 @@ const F = rows.filter(r => r.id.startsWith('F'));
 const H = rows.filter(r => r.id.startsWith('H'));
 const L = rows.filter(r => r.id.startsWith('L'));
 const saveF = F.filter(r => r.saves);
+// What still needs a scenario: saving functions that are reachable and never ran.
+const todo = saveF.filter(r => !r.tested_by && !r.unreachable);
+const unreach = F.filter(r => r.unreachable);
 const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0) + '%';
 const tested = arr => arr.filter(r => r.tested_by).length;
 const summary = `# รายการพฤติกรรมของระบบเดิม
@@ -308,6 +315,9 @@ const summary = `# รายการพฤติกรรมของระบ�
 | — ที่นำไปสู่การบันทึกข้อมูล | ${H.filter(r => r.saves).length} | ${tested(H.filter(r => r.saves))} |
 | ตัวรับเหตุการณ์ที่ผูกด้วยโค้ด (addEventListener, el.onclick=) | ${L.length} | ${tested(L)} |
 
+ฟังก์ชันที่บันทึกข้อมูล ${saveF.length} ตัว: ถูกเรียกแล้ว ${tested(saveF)} ตัว, กดจากหน้าจอไม่ถึง ${saveF.filter(r => r.unreachable && !r.tested_by).length} ตัว (โค้ดที่ไม่ได้ใช้งานแล้ว ไม่ต้องย้าย),
+**ยังต้องมีสถานการณ์ ${todo.length} ตัว**
+
 ## จุดที่ต้องระวังตอนย้ายระบบ
 
 | รายการ | จำนวน |
@@ -322,18 +332,28 @@ ${live.size ? `| ฟังก์ชันที่ตอนทำงานจร
 ${F.filter(r => r.replaced_at).sort((a, b) => b.replaced_at.split(' ').length - a.replaced_at.split(' ').length).slice(0, 15)
   .map(r => `| \`${r.name}\` | ${r.declared_lines} | ${r.replaced_at} | ${r.saves === 'direct' ? 'ตรง' : r.saves === 'indirect' ? 'ผ่านฟังก์ชันอื่น' : '-'} |`).join('\n')}
 
-${haveCoverage ? `## ฟังก์ชันที่บันทึกข้อมูลแต่ยังไม่มีสถานการณ์ไหนเรียก (${saveF.filter(r => !r.tested_by).length} ตัว)
+${haveCoverage ? `## ฟังก์ชันที่บันทึกข้อมูลแต่ยังไม่มีสถานการณ์ไหนเรียก (${todo.length} ตัว)
 
 ใช้วางแผนสถานการณ์ชุดถัดไป: คอลัมน์ปุ่มคือข้อความบนปุ่มในหน้าจอที่เรียกฟังก์ชันนั้นโดยตรง
+(ไม่นับฟังก์ชันที่กดจากหน้าจอไม่ถึง ซึ่งอยู่ในหัวข้อถัดไป)
 
 | ฟังก์ชัน | บรรทัด | ปุ่มที่เรียก |
 |---|---|---|
-${saveF.filter(r => !r.tested_by).map(r => {
+${todo.map(r => {
   const labels = [...new Set(H.filter(h => h.calls.split(' ').includes(r.name)).map(h => h.label.replace(/^<[^>]*>\s*/, '').trim()).filter(Boolean))].slice(0, 4);
   return `| \`${r.name}\` | ${r.line} | ${labels.join(' · ').replace(/\|/g, '/') || '-'} |`;
 }).join('\n')}
 
-` : ''}## คอลัมน์ใน behaviors.csv
+` : ''}## ฟังก์ชันที่กดจากหน้าจอไม่ถึง (${unreach.length} ตัว)
+
+ตรวจในโปรแกรมที่ทำงานจริงแล้วว่าไม่มีปุ่มหรือขั้นตอนไหนเรียกได้ ส่วนใหญ่เป็นโค้ดเก่าที่ถูกโค้ดใหม่ครอบหรือแทนที่
+ไม่ต้องเขียนสถานการณ์และไม่ต้องย้ายไประบบใหม่ รายการนี้แก้ที่ \`tools/unreachable.json\`
+
+| ฟังก์ชัน | บรรทัด | เหตุผล |
+|---|---|---|
+${unreach.map(r => `| \`${r.name}\` | ${r.line} | ${r.unreachable.replace(/\|/g, '/')} |`).join('\n')}
+
+## คอลัมน์ใน behaviors.csv
 
 | คอลัมน์ | ความหมาย |
 |---|---|
@@ -345,6 +365,7 @@ ${saveF.filter(r => !r.tested_by).map(r => {
 | saves | direct = บันทึกข้อมูลเอง, indirect = เรียกฟังก์ชันที่บันทึกข้อมูล |
 | label | ข้อความบนปุ่มหรือ element (สำหรับ H) |
 | calls | ฟังก์ชันที่ถูกเรียก |
+| unreachable | ถ้ามีค่า = กดจากหน้าจอไม่ถึง พร้อมเหตุผล (จาก tools/unreachable.json) |
 | tested_by | สถานการณ์ที่ทำให้โค้ดนี้ทำงาน (จาก \`npm run coverage\`) สำหรับ H นับเมื่อทุกฟังก์ชันที่ปุ่มเรียกถูกเรียกในสถานการณ์เดียวกัน |
 `;
 writeFileSync(new URL('docs/BEHAVIORS.md', ROOT), summary);

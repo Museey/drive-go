@@ -11,6 +11,10 @@ const ranBy = new Map(names.map(n => [n, new Set()]));
 for (const f of readdirSync(dir)) {
   const { test, ran } = JSON.parse(readFileSync(new URL(f, dir), 'utf8'));
   const id = (test.match(/\bS\d+\b/) || [test])[0];
-  for (const r of ran) if (ranBy.has(r.name)) ranBy.get(r.name).add(id);
+  // A function replaced by `window.x = function…` runs under the name "window.x".
+  for (const r of ran) {
+    const n = r.name.replace(/^window\./, '');
+    if (ranBy.has(n)) ranBy.get(n).add(id);
+  }
 }
 for (const [n, s] of ranBy) console.log(`${s.size ? 'ran    ' : 'NOT RUN'}  ${n}${s.size ? '  ← ' + [...s].sort().join(' ') : ''}`);

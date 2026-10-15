@@ -13,6 +13,8 @@ export function messageRecorderInitScript() {
       const el = r.type === 'attributes' ? r.target : r.target.nodeType === 1 ? r.target : r.target.parentElement;
       if (!el) continue;
       if (el.id === 'toast' && r.type === 'childList') push(el.textContent);
+      // The sign-in form shows its errors in place, not as a toast.
+      if (el.id === 'studio-result' && r.type === 'childList' && !el.hidden) push(el.textContent);
       if (el.id === 'saveFx' && r.type === 'attributes' && el.classList.contains('on') && !(r.oldValue || '').split(' ').includes('on')) {
         const t1 = el.querySelector('#saveFxT1'), t2 = el.querySelector('#saveFxT2');
         push('✓ ' + [t1 && t1.textContent, t2 && t2.textContent].filter(Boolean).join(' · '));
@@ -52,6 +54,42 @@ export function legacyApp(page, { dataset = 'biz-trial' } = {}) {
       await this.settle();
     },
 
+    // Signs out through the account menu and its confirmation, back to the
+    // sign-in screen.
+    async logout() {
+      await page.getByText('ออกจากระบบ', { exact: true }).filter({ visible: true }).first().click();
+      await page.getByRole('button', { name: 'ออกจากระบบ', exact: true }).filter({ visible: true }).click();
+      await page.getByPlaceholder('กรอกรหัสผ่าน').waitFor();
+      await this.settle();
+    },
+
+    // A sign-in that must fail: returns the error the form shows.
+    async loginRefused(user, pass) {
+      const studio = page.locator('#drivego-studio');
+      await studio.getByPlaceholder(/ชื่อผู้ใช้/).fill(user);
+      await studio.getByPlaceholder('กรอกรหัสผ่าน').fill(pass);
+      await studio.locator('[type="submit"]:visible').click();
+      const result = page.locator('#studio-result');
+      await result.waitFor({ state: 'visible' });
+      await this.settle();
+      if (await page.evaluate(() => document.documentElement.classList.contains('pkg-open')))
+        throw new Error(`sign-in as ${user} was expected to fail but succeeded`);
+      return (await result.textContent()).trim();
+    },
+
+    // Waits until table column widths and page height stop changing: some
+    // registers size their columns a moment after drawing.
+    async layoutStable() {
+      let last = '', since = Date.now();
+      for (const start = Date.now(); Date.now() - start < 8000;) {
+        const now = await page.evaluate(() => [...document.querySelectorAll('th')]
+          .filter(th => th.offsetWidth).map(th => th.offsetWidth).join(',') + '|' + document.documentElement.scrollHeight);
+        if (now !== last) { last = now; since = Date.now(); }
+        else if (Date.now() - since >= 600) return;
+        await page.waitForTimeout(150);
+      }
+    },
+
     // Lets deferred renders and saves finish before the next step.
     settle() {
       return waitForStableState(page, { quietMs: 800 });
@@ -78,20 +116,24 @@ export function legacyApp(page, { dataset = 'biz-trial' } = {}) {
         // sign-in screen the menu stays in the DOM behind it, so say so instead.
         const signedIn = document.documentElement.classList.contains('pkg-open');
         const nav = signedIn
-          ? [...new Set([...document.querySelectorAll('.navparent.on, .navchildren button.on')].filter(visible))].map(text)
+          ? [...new Set([...document.querySelectorAll('.navparent.on, .navchildren button.on, [id$="Tabs"] button.on')].filter(visible))].map(text)
           : ['(หน้าเข้าสู่ระบบ)'];
         // Pop-ups have ids starting with "m" (mAsk, mSale…) and get class "on"
         // when open; side panels such as the payment panel (aside#mSalePay)
         // are shown without it; cards such as "ตรวจก่อนบันทึก" have role=dialog.
         const title = m => {
+          // Franchise inspect bar: no heading, its own text says which branch.
+          if (m.id === 'frInspectBar') { const c = m.cloneNode(true); c.querySelectorAll('button').forEach(b => b.remove()); return text(c).slice(0, 100); }
           const h = m.querySelector('#askTitle, header h2, h2, h3') || m.querySelector('header, [class*="-head"]');
           if (!h) return m.getAttribute('aria-label') || m.id;
           const c = h.cloneNode(true);
           c.querySelectorAll('button').forEach(b => b.remove());
           return text(c) || m.getAttribute('aria-label') || m.id;
         };
-        const modals = [...new Set([...document.querySelectorAll('[id^="m"].on, aside[id^="m"], [role="dialog"]')]
-          .filter(m => (m.getAttribute('role') === 'dialog' || /^m[A-Z]/.test(m.id)) && visible(m)))].map(title);
+        // Franchise request details (#frDet) and inspect bar (#frInspectBar)
+        // are shown with style="display:flex" instead.
+        const modals = [...new Set([...document.querySelectorAll('[id^="m"].on, aside[id^="m"], [role="dialog"], #frDet, #frInspectBar')]
+          .filter(m => (m.getAttribute('role') === 'dialog' || /^m[A-Z]/.test(m.id) || /^fr(Det|InspectBar)$/.test(m.id)) && visible(m)))].map(title);
         // A message shown several times in a row reads as one to the user.
         const messages = window.__seenMessages.splice(0).filter((m, i, a) => m !== a[i - 1]);
         return { page: nav, popups: modals, messages };
