@@ -1,6 +1,6 @@
 // How the tests drive the legacy HTML. A future target (the new system) gets
 // its own file with the same functions, so the scenarios stay unchanged.
-import { LEGACY_URL, OWNER } from './config.mjs';
+import { LEGACY_URL, OWNERS } from './config.mjs';
 import { restoreDataset, waitForLegacyBoot, waitForStableState, readState } from './browser.mjs';
 
 // Records every message the user sees: the centred toast (#toast) and the
@@ -22,24 +22,30 @@ export function messageRecorderInitScript() {
 }
 
 // dataset: starting data (tests/fixtures/<dataset>.json) put into the browser
-// before the first open().
+// before the first open(). Its first word is the package (biz, prox,
+// franchise): the app is opened with ?package=<it> (biz is the default and is
+// left out, as the goldens were recorded that way) and loginAsOwner() uses
+// that package's owner account.
 export function legacyApp(page, { dataset = 'biz-trial' } = {}) {
+  const plan = dataset.split('-')[0];
   let restored = false;
   return {
     async open(params = '') {
       if (!restored) { await restoreDataset(page, dataset); restored = true; }
-      await page.goto(`${LEGACY_URL}?login=account${params ? '&' + params : ''}`);
+      const pkg = plan === 'biz' ? '' : `package=${plan}&`;
+      await page.goto(`${LEGACY_URL}?${pkg}login=account${params ? '&' + params : ''}`);
       await waitForLegacyBoot(page);
     },
 
     async loginAsOwner() {
       await this.open();
-      await this.login(OWNER.user, OWNER.pass);
+      await this.login(OWNERS[plan].user, OWNERS[plan].pass);
     },
 
     async login(user, pass) {
       const studio = page.locator('#drivego-studio');
-      await studio.getByPlaceholder('ชื่อผู้ใช้ อีเมล หรือเบอร์โทร').fill(user);
+      // The user box reads "ชื่อผู้ใช้ อีเมล หรือเบอร์โทร" (Biz, ProX) or "ชื่อผู้ใช้ของคุณ" (Franchise).
+      await studio.getByPlaceholder(/ชื่อผู้ใช้/).fill(user);
       await studio.getByPlaceholder('กรอกรหัสผ่าน').fill(pass);
       await studio.locator('[type="submit"]:visible').click();
       await page.waitForFunction(() => document.documentElement.classList.contains('pkg-open'));

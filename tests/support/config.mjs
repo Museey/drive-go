@@ -29,8 +29,14 @@ export const CONTEXT_OPTIONS = {
   timezoneId: 'Asia/Bangkok',
 };
 
-// Demo owner account printed on the legacy login screen.
-export const OWNER = { user: 'dg1688', pass: '123456' };
+// Demo owner accounts printed on the legacy login screen of each package
+// (?package=biz|prox|franchise). Franchise signs in as head office (HQ).
+export const OWNERS = {
+  biz: { user: 'dg1688', pass: '123456' },
+  prox: { user: 'dg1688', pass: '123456' },
+  franchise: { user: 'hq', pass: '1234' },
+};
+export const OWNER = OWNERS.biz;
 
 // Runs in the page before any app script.
 export function seedRandomInitScript(seed) {

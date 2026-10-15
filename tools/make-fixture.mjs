@@ -11,14 +11,17 @@
 // full  = the 36-month demo data right after the first open (no sign-in).
 //         About 18 MB, so it is not committed.
 //
-// Clock and Math.random are fixed (tests/support/config.mjs), so the output is
-// the same on every run. Two storage keys are dropped because they only hold
+// Clock and Math.random are fixed (tests/support/config.mjs), so the content
+// is the same on every run, but generated ids may differ: timers in the app
+// draw random numbers before the trial data is built, and how many depends on
+// timing. Goldens alias ids, so they do not depend on them. The committed
+// fixture is the reference; rebuild only when the starting data must change. Two storage keys are dropped because they only hold
 // copies of the data: the daily backup (<key>.bak.<date>) and the copy kept
 // for ?restoreTrial=1 (<key>.trialkeep).
 import { chromium } from '@playwright/test';
 import { spawn } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { CONTEXT_OPTIONS, FIXTURE_NOW, FIXTURE_SEED, LEGACY_URL, OWNER } from '../tests/support/config.mjs';
+import { CONTEXT_OPTIONS, FIXTURE_NOW, FIXTURE_SEED, LEGACY_URL, OWNERS } from '../tests/support/config.mjs';
 import { prepareContext, waitForLegacyBoot, waitForStableState, readState } from '../tests/support/browser.mjs';
 
 const plan = process.argv[2] || 'biz';
@@ -35,8 +38,10 @@ try {
   await waitForStableState(page);
 
   if (kind === 'trial') {
-    await page.locator('#drivego-studio').getByPlaceholder('ชื่อผู้ใช้ อีเมล หรือเบอร์โทร').fill(OWNER.user);
-    await page.locator('#drivego-studio').getByPlaceholder('กรอกรหัสผ่าน').fill(OWNER.pass);
+    const owner = OWNERS[plan];
+    const studio = page.locator('#drivego-studio');
+    await studio.locator('input:not([type=password]):visible').first().fill(owner.user);
+    await studio.getByPlaceholder('กรอกรหัสผ่าน').fill(owner.pass);
     await page.locator('#drivego-studio [type="submit"]:visible').click();
     const ready = page.locator('#mAsk.on');
     await ready.filter({ hasText: 'ข้อมูลทดลองพร้อมใช้งาน' }).waitFor({ timeout: 120_000 });
