@@ -1,0 +1,99 @@
+{
+  "DB.stock[EN-501].qty": [
+    0,
+    40
+  ],
+  "DB.stock[EN-501].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[OI-801].qty": [
+    0,
+    20
+  ],
+  "DB.stock[OI-801].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.moves": {
+    "added": [
+      {
+        "id": "@DB.moves[#44]",
+        "stockId": "@DB.stock[EN-501]",
+        "type": "in",
+        "qty": 40,
+        "date": "2026-10-13",
+        "ref": "รับสินค้าเติมสต๊อกจาก HQ (ใบเบิกแฟรนไชส์)",
+        "refNo": "REQ-6910-0001",
+        "vendorId": "",
+        "cost": 0,
+        "br": "@DB.branches[MA]"
+      },
+      {
+        "id": "@DB.moves[#45]",
+        "stockId": "@DB.stock[OI-801]",
+        "type": "in",
+        "qty": 20,
+        "date": "2026-10-13",
+        "ref": "รับสินค้าเติมสต๊อกจาก HQ (ใบเบิกแฟรนไชส์)",
+        "refNo": "REQ-6910-0001",
+        "vendorId": "",
+        "cost": 0,
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.fifo.lots": {
+    "added": [
+      {
+        "id": "@DB.fifo.lots[#25]",
+        "seq": 1791856800000000,
+        "br": "@DB.branches[MA]",
+        "stockId": "@DB.stock[EN-501]",
+        "date": "2026-10-13",
+        "ref": "รับสินค้าเติมสต๊อกจาก HQ (ใบเบิกแฟรนไชส์)",
+        "refNo": "REQ-6910-0001",
+        "vendorId": "",
+        "src": "in",
+        "cost": 95,
+        "qty": 40,
+        "left": 40,
+        "exp": "",
+        "mfg": "",
+        "expSrc": "",
+        "lotNo": ""
+      },
+      {
+        "id": "@DB.fifo.lots[#26]",
+        "seq": 1791856800000001,
+        "br": "@DB.branches[MA]",
+        "stockId": "@DB.stock[OI-801]",
+        "date": "2026-10-13",
+        "ref": "รับสินค้าเติมสต๊อกจาก HQ (ใบเบิกแฟรนไชส์)",
+        "refNo": "REQ-6910-0001",
+        "vendorId": "",
+        "src": "in",
+        "cost": 980,
+        "qty": 20,
+        "left": 20,
+        "exp": "",
+        "mfg": "",
+        "expSrc": "",
+        "lotNo": ""
+      }
+    ]
+  },
+  "FR.reqs[REQ-6910-0001].status": [
+    "shipped",
+    "received"
+  ],
+  "FR.reqs[REQ-6910-0001].log": {
+    "added": [
+      {
+        "d": "2026-10-13",
+        "t": "สาขายืนยันรับของเข้าสต๊อก",
+        "by": "ผู้จัดการสาขาหลัก รังสิต"
+      }
+    ]
+  }
+}

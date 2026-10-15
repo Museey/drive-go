@@ -1,0 +1,1 @@
+confirm: ลบ "ค่าแรงดันน้ำยาแอร์ที่วัดได้ Toyota Yaris ATIV" ?

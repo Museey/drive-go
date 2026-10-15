@@ -1,0 +1,51 @@
+[
+  {
+    "step": "หน้าแรก",
+    "page": [
+      "00 Mr.DriveGo 0"
+    ],
+    "popups": [],
+    "messages": [
+      "เปิดใบแจ้งหนี้ใบใหม่",
+      "ยินดีต้อนรับ เจ้าของร้านทดสอบ — เจ้าของร้าน ร้านทดสอบ DriveGoProX"
+    ]
+  },
+  {
+    "step": "เมนู P1 คิวจองจาก BOOK",
+    "page": [
+      "P1 DriveGo ProX · Ecosystem 3",
+      "คิวจองจาก BOOK"
+    ],
+    "popups": [],
+    "messages": []
+  },
+  {
+    "step": "กดเชื่อมต่อสาขาโดยยังไม่กรอก URL",
+    "page": [
+      "P1 DriveGo ProX · Ecosystem 3",
+      "คิวจองจาก BOOK"
+    ],
+    "popups": [],
+    "messages": [
+      "กรอก URL เซิร์ฟเวอร์ก่อน"
+    ]
+  },
+  {
+    "step": "กรอก URL ผู้ใช้สาขา และรหัสผ่าน",
+    "page": [
+      "P1 DriveGo ProX · Ecosystem 3",
+      "คิวจองจาก BOOK"
+    ],
+    "popups": [],
+    "messages": []
+  },
+  {
+    "step": "หลังกดเชื่อมต่อ (เซิร์ฟเวอร์ติดต่อไม่ได้)",
+    "page": [
+      "P1 DriveGo ProX · Ecosystem 3",
+      "คิวจองจาก BOOK"
+    ],
+    "popups": [],
+    "messages": []
+  }
+]

@@ -1,0 +1,51 @@
+[
+  {
+    "step": "หน้าแรก",
+    "page": [
+      "00 Mr.DriveGo 0"
+    ],
+    "popups": [],
+    "messages": [
+      "เปิดใบแจ้งหนี้ใบใหม่",
+      "ยินดีต้อนรับ เจ้าของร้านทดสอบ — เจ้าของร้าน ร้านทดสอบ DriveGoProX"
+    ]
+  },
+  {
+    "step": "แท็บหน้าร้านบนแอป BOOK",
+    "page": [
+      "P1 DriveGo ProX · Ecosystem 3",
+      "หน้าร้านบนแอป BOOK"
+    ],
+    "popups": [],
+    "messages": []
+  },
+  {
+    "step": "กรอกคำบรรยาย LINE Facebook และป้ายรูป 12 รูป",
+    "page": [
+      "P1 DriveGo ProX · Ecosystem 3",
+      "หน้าร้านบนแอป BOOK"
+    ],
+    "popups": [],
+    "messages": []
+  },
+  {
+    "step": "หลังกดบันทึก",
+    "page": [
+      "P1 DriveGo ProX · Ecosystem 3",
+      "หน้าร้านบนแอป BOOK"
+    ],
+    "popups": [],
+    "messages": [
+      "บันทึกหน้าร้านบนแอปแล้ว — ผู้ใช้ DriveGo BOOK เห็นข้อมูลใหม่ทันที (10/10 รูป)"
+    ]
+  },
+  {
+    "step": "ออกไปแท็บคิวจองแล้วกลับมาหน้าร้าน",
+    "page": [
+      "P1 DriveGo ProX · Ecosystem 3",
+      "หน้าร้านบนแอป BOOK"
+    ],
+    "popups": [],
+    "messages": []
+  }
+]

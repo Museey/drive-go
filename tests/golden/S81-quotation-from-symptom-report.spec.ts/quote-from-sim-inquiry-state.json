@@ -1,0 +1,115 @@
+{
+  "DB.cust": {
+    "added": [
+      {
+        "id": "@DB.cust[คุณต้น วราเทพ]",
+        "type": "person",
+        "tax": "",
+        "name": "คุณต้น วราเทพ",
+        "company": "",
+        "branch": "",
+        "tier": "C",
+        "stars": 0,
+        "addr": {
+          "no": "",
+          "village": "",
+          "moo": "",
+          "soi": "",
+          "road": "",
+          "sub": "",
+          "dist": "",
+          "prov": "นนทบุรี",
+          "zip": ""
+        },
+        "tel": "092-118-3306",
+        "tel2": "",
+        "vehicles": [
+          {
+            "brand": "MG",
+            "model": "ZS EV",
+            "color": "",
+            "plateL": "9กบ",
+            "plateN": "1577",
+            "plateProv": "นนทบุรี",
+            "mile": "45100",
+            "engine": "",
+            "vin": "",
+            "year": "2022"
+          }
+        ],
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.quotes": {
+    "added": [
+      {
+        "id": "@DB.quotes[QO.69-10-13-01]",
+        "no": "QO.69-10-13-01",
+        "date": "2026-10-13",
+        "jobIn": "2026-10-13",
+        "custId": "@DB.cust[คุณต้น วราเทพ]",
+        "vehIdx": 0,
+        "mile": "45100",
+        "probs": [
+          "ชาร์จ AC ที่บ้านแล้วตัดเองบ่อย ขึ้นเตือนรูปกุญแจสีเหลือง แอร์เย็นช้ากว่าเดิมมาก",
+          "",
+          ""
+        ],
+        "finds": [],
+        "tier": "C",
+        "items": [],
+        "disc": 0,
+        "vat": 7,
+        "tech": "",
+        "techName": "",
+        "byPos": "",
+        "byName": "",
+        "apPos": "",
+        "apName": "",
+        "status": "ร่าง",
+        "bookRef": "BOOK · ลูกค้าแจ้งอาการเอง"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[คุณต้น วราเทพ]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "cust",
+        "docId": "@DB.cust[คุณต้น วราเทพ]",
+        "no": "คุณต้น วราเทพ",
+        "act": "save",
+        "note": "เพิ่มลูกค้าอัตโนมัติจาก DriveGo BOOK · 9กบ 1577"
+      },
+      {
+        "id": "@DB.audit[QO.69-10-13-01]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "quote",
+        "docId": "@DB.quotes[QO.69-10-13-01]",
+        "no": "QO.69-10-13-01",
+        "act": "save",
+        "note": "ใบเสนอราคาอัตโนมัติจากอาการเสียที่ลูกค้าแจ้ง (BOOK) · 9กบ 1577"
+      }
+    ]
+  },
+  "DB.px.inq[#0].st": [
+    "wait",
+    "done"
+  ],
+  "DB.px.inq[#0].note": [
+    null,
+    "ออก QO.69-10-13-01"
+  ]
+}

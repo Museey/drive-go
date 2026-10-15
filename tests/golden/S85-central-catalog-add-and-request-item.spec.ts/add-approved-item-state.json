@@ -1,0 +1,50 @@
+{
+  "DB.stock": {
+    "added": [
+      {
+        "id": "@DB.stock[PX-NEW01]",
+        "code": "PX-NEW01",
+        "oem": "D09W-61-J6X",
+        "name": "กรองแอร์ Protect Filter — Mazda 2 / CX-3",
+        "cat": "ไส้กรอง",
+        "unit": "ชิ้น",
+        "cost": 110,
+        "pa": 264,
+        "pb": 0,
+        "pc": 0,
+        "qty": 0,
+        "min": 2,
+        "max": 12,
+        "stale": 6,
+        "lastMove": "2026-10-13",
+        "warr": "",
+        "warrNote": "",
+        "zone": "",
+        "shelf": "",
+        "loc": "",
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[PX-NEW01]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "stock",
+        "docId": "@DB.stock[PX-NEW01]",
+        "no": "PX-NEW01",
+        "act": "save",
+        "note": "เพิ่มจากคลังกลาง DriveGo ProX · ราคาตรง ทุน 110.00"
+      }
+    ]
+  }
+}

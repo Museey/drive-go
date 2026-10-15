@@ -1,0 +1,474 @@
+{
+  "FR.hqStock": {
+    "added": [
+      {
+        "id": "@FR.hqStock[EL-101]",
+        "code": "EL-101",
+        "name": "ไดชาร์จ Toyota Revo",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[EL-105]",
+        "code": "EL-105",
+        "name": "ไดสตาร์ท D-Max",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[EL-118]",
+        "code": "EL-118",
+        "name": "แบตเตอรี่ 75Ah",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[EL-125]",
+        "code": "EL-125",
+        "name": "ชุดคอยล์จุดระเบิด",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[EL-133]",
+        "code": "EL-133",
+        "name": "ไฟหน้า LED Revo (ข้าง)",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[EV-101]",
+        "code": "EV-101",
+        "name": "สายชาร์จ AC Type 2 (7.4 kW)",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[EV-110]",
+        "code": "EV-110",
+        "name": "น้ำยาหล่อเย็นชุดแบตเตอรี่ EV (5 ลิตร)",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[EV-120]",
+        "code": "EV-120",
+        "name": "ฟิวส์แรงดันสูง 500V ชุดแบตเตอรี่",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[EV-130]",
+        "code": "EV-130",
+        "name": "ชุดกรองแอร์ EV พร้อมฟิลเตอร์ PM2.5",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[AC-204]",
+        "code": "AC-204",
+        "name": "คอมเพรสเซอร์แอร์ D-Max",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[AC-215]",
+        "code": "AC-215",
+        "name": "กรองแอร์ในห้องโดยสาร",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[AC-222]",
+        "code": "AC-222",
+        "name": "แผงคอยล์ร้อน Revo",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[AC-230]",
+        "code": "AC-230",
+        "name": "น้ำยาแอร์ R134a (ถัง 13.6 กก.)",
+        "unit": "ถัง",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[SU-330]",
+        "code": "SU-330",
+        "name": "โช้คอัพหน้า Hilux",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[SU-335]",
+        "code": "SU-335",
+        "name": "โช้คอัพหลัง Hilux",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[SU-341]",
+        "code": "SU-341",
+        "name": "ยางกันโคลงหน้า",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[SU-350]",
+        "code": "SU-350",
+        "name": "ลูกหมากปีกนกล่าง",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[SU-360]",
+        "code": "SU-360",
+        "name": "บูชปีกนก (ชุด)",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[BR-001]",
+        "code": "BR-001",
+        "name": "ผ้าเบรกหน้า Toyota Revo",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[BR-005]",
+        "code": "BR-005",
+        "name": "ผ้าเบรกหลัง D-Max",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[BR-014]",
+        "code": "BR-014",
+        "name": "จานเบรกหน้า",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[BR-020]",
+        "code": "BR-020",
+        "name": "แม่ปั๊มเบรกบน",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[BR-025]",
+        "code": "BR-025",
+        "name": "น้ำมันเบรก DOT4 (1 ลิตร)",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[CO-402]",
+        "code": "CO-402",
+        "name": "หม้อน้ำ D-Max",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[CO-410]",
+        "code": "CO-410",
+        "name": "ปั๊มน้ำ",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[CO-415]",
+        "code": "CO-415",
+        "name": "ท่อยางหม้อน้ำบน-ล่าง (ชุด)",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[CO-420]",
+        "code": "CO-420",
+        "name": "น้ำยาหล่อเย็น (5 ลิตร)",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[EN-501]",
+        "code": "EN-501",
+        "name": "กรองน้ำมันเครื่อง Toyota",
+        "unit": "ชิ้น",
+        "qty": 320,
+        "min": 50,
+        "max": 640
+      },
+      {
+        "id": "@FR.hqStock[EN-505]",
+        "code": "EN-505",
+        "name": "กรองน้ำมันเครื่อง Isuzu",
+        "unit": "ชิ้น",
+        "qty": 320,
+        "min": 50,
+        "max": 640
+      },
+      {
+        "id": "@FR.hqStock[EN-512]",
+        "code": "EN-512",
+        "name": "กรองอากาศ D-Max",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[EN-520]",
+        "code": "EN-520",
+        "name": "ชุดตั้งโซ่ราวลิ้น",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[EN-530]",
+        "code": "EN-530",
+        "name": "ชุดปะเก็นเครื่องบน",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[EN-540]",
+        "code": "EN-540",
+        "name": "หัวฉีดดีเซลคอมมอนเรล",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[TR-601]",
+        "code": "TR-601",
+        "name": "ชุดคลัตช์ครบชุด",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[TR-610]",
+        "code": "TR-610",
+        "name": "น้ำมันเกียร์-เฟืองท้าย 80W-90 (4 ลิตร)",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[TR-620]",
+        "code": "TR-620",
+        "name": "ยอยกากบาทเพลากลาง",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[BD-701]",
+        "code": "BD-701",
+        "name": "กระจังหน้า Revo",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[BD-710]",
+        "code": "BD-710",
+        "name": "กันชนหน้า D-Max",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[BD-720]",
+        "code": "BD-720",
+        "name": "กระจกมองข้างไฟฟ้า (ข้าง)",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[OI-801]",
+        "code": "OI-801",
+        "name": "น้ำมันเครื่องดีเซล 5W-30 (6 ลิตร)",
+        "unit": "ชุด",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[OI-805]",
+        "code": "OI-805",
+        "name": "น้ำมันเครื่องเบนซิน 0W-20 (4 ลิตร)",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[TY-901]",
+        "code": "TY-901",
+        "name": "ยาง 265/65R17",
+        "unit": "เส้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[TY-905]",
+        "code": "TY-905",
+        "name": "ยาง 215/55R17",
+        "unit": "เส้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[TY-910]",
+        "code": "TY-910",
+        "name": "จุ๊บลมยาง TPMS",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[CS-950]",
+        "code": "CS-950",
+        "name": "ไส้กรองดักน้ำมันเชื้อเพลิง",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[CS-961]",
+        "code": "CS-961",
+        "name": "ใบปัดน้ำฝน 22 นิ้ว",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[CS-970]",
+        "code": "CS-970",
+        "name": "หลอดไฟหน้า H4 (คู่)",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[MS-980]",
+        "code": "MS-980",
+        "name": "น็อตล้อ + แหวนรอง (ชุด)",
+        "unit": "ชิ้น",
+        "qty": 600,
+        "min": 50,
+        "max": 1200
+      },
+      {
+        "id": "@FR.hqStock[MS-985]",
+        "code": "MS-985",
+        "name": "สายรัดพลาสติก / คลิปล็อกกันชน",
+        "unit": "ชิ้น",
+        "qty": 800,
+        "min": 50,
+        "max": 1600
+      },
+      {
+        "id": "@FR.hqStock[MS-990]",
+        "code": "MS-990",
+        "name": "กาวซิลิโคนทนความร้อน",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[MS-995]",
+        "code": "MS-995",
+        "name": "น้ำยาล้างระบบเชื้อเพลิง",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      },
+      {
+        "id": "@FR.hqStock[OT-999]",
+        "code": "OT-999",
+        "name": "ค่าอะไหล่จัดหาพิเศษนอกสต๊อก",
+        "unit": "ชิ้น",
+        "qty": 200,
+        "min": 50,
+        "max": 400
+      }
+    ]
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "DB.px.coins": {
+    "added": [
+      {
+        "rcNo": "MA-SA261000011",
+        "plate": "งจ 2055",
+        "cust": "คุณช่างใหญ่วีระ",
+        "amt": 1348.2,
+        "earn": 13,
+        "date": "2026-10-13"
+      },
+      {
+        "rcNo": "MA-SA261000010",
+        "plate": "งจ 2055",
+        "cust": "คุณช่างใหญ่วีระ",
+        "amt": 2546.6,
+        "earn": 25,
+        "date": "2026-10-13"
+      },
+      {
+        "rcNo": "MA-SA261000002",
+        "plate": "1ขฆ 2975",
+        "cust": "สมชาย ใจดี",
+        "amt": 663.4,
+        "earn": 6,
+        "date": "2026-10-04"
+      },
+      {
+        "rcNo": "MA-SA261000001",
+        "plate": "-",
+        "cust": "-",
+        "amt": 5820.8,
+        "earn": 58,
+        "date": "2026-10-03"
+      }
+    ]
+  },
+  "DB.px.coined.@DB.receipts[MA-SA261000001]": [
+    null,
+    true
+  ],
+  "DB.px.coined.@DB.receipts[MA-SA261000002]": [
+    null,
+    true
+  ],
+  "DB.px.coined.@DB.receipts[MA-SA261000010]": [
+    null,
+    true
+  ],
+  "DB.px.coined.@DB.receipts[MA-SA261000011]": [
+    null,
+    true
+  ]
+}

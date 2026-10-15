@@ -1,0 +1,72 @@
+{
+  "DB.crm": {
+    "added": [
+      {
+        "id": "@DB.crm[#0]",
+        "custId": "@DB.cust[C00017]",
+        "vehIdx": 0,
+        "type": "warranty",
+        "date": "2027-01-11",
+        "owner": "",
+        "note": "ครบกำหนดตรวจเช็กตามเงื่อนไขรับประกัน 3 เดือน หลังรับบริการตามใบเสร็จ MA-SA261000004",
+        "refId": "@DB.receipts[MA-SA261000004]",
+        "refNo": "MA-SA261000004",
+        "done": false,
+        "openedAt": "2026-10-13",
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]"
+      },
+      {
+        "id": "@DB.crm[#1]",
+        "custId": "@DB.cust[C00016]",
+        "vehIdx": 0,
+        "type": "warranty",
+        "date": "2027-01-10",
+        "owner": "",
+        "note": "ครบกำหนดตรวจเช็กตามเงื่อนไขรับประกัน 3 เดือน หลังรับบริการตามใบเสร็จ MA-SA261000003",
+        "refId": "@DB.receipts[MA-SA261000003]",
+        "refNo": "MA-SA261000003",
+        "done": false,
+        "openedAt": "2026-10-13",
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[#50]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "crm",
+        "docId": "@DB.crm[#0]",
+        "no": "",
+        "act": "save",
+        "note": "ลูกค้า วิภา ศรีสมบูรณ์ · นัดหมายวันที่ 11/01/2570 (สร้างจากใบเสร็จ MA-SA261000004)"
+      },
+      {
+        "id": "@DB.audit[#51]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "crm",
+        "docId": "@DB.crm[#1]",
+        "no": "",
+        "act": "save",
+        "note": "ลูกค้า ปรีชา ทองสุข · นัดหมายวันที่ 10/01/2570 (สร้างจากใบเสร็จ MA-SA261000003)"
+      }
+    ]
+  }
+}

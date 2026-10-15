@@ -1,0 +1,85 @@
+{
+  "DB.stock[MS-995].cat": [
+    "อะไหล่เบ็ดเตล็ด",
+    "น้ำยาและสารเคมี"
+  ],
+  "DB.stock[MS-995].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[MS-995].unit": [
+    "ชิ้น",
+    "ขวด"
+  ],
+  "DB.stock[MS-995].brand": [
+    null,
+    ""
+  ],
+  "DB.stock[MS-995].stale": [
+    null,
+    0
+  ],
+  "DB.stock[MS-995].warrNote": [
+    null,
+    ""
+  ],
+  "DB.stock[MS-995].createdBy": [
+    null,
+    ""
+  ],
+  "DB.stock[MS-995].createdByName": [
+    null,
+    "เจ้าของกิจการ / ผู้ดูแลระบบ"
+  ],
+  "DB.stock[MS-995].createdAt": [
+    null,
+    "2026-10-13T02:00:00.000Z"
+  ],
+  "DB.stock[MS-995].updatedBy": [
+    null,
+    ""
+  ],
+  "DB.stock[MS-995].updatedByName": [
+    null,
+    "เจ้าของกิจการ / ผู้ดูแลระบบ"
+  ],
+  "DB.stock[MS-995].updatedAt": [
+    null,
+    "2026-10-13T02:00:00.000Z"
+  ],
+  "DB.stock[MS-995].br": [
+    null,
+    "@DB.branches[MA]"
+  ],
+  "DB.stock[MS-995].expTrack": [
+    null,
+    false
+  ],
+  "DB.stock[MS-995].expMonths": [
+    null,
+    ""
+  ],
+  "DB.stock[MS-995].expWarn": [
+    null,
+    90
+  ],
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MS-995]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "stock",
+        "docId": "@DB.stock[MS-995]",
+        "no": "MS-995",
+        "act": "save",
+        "note": "แก้ไข น้ำยาล้างระบบเชื้อเพลิง"
+      }
+    ]
+  },
+  "DB.partBrands": [
+    null,
+    []
+  ]
+}

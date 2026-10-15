@@ -1,0 +1,19 @@
+{
+  "DB.px.learn": {
+    "removed": [
+      {
+        "id": "@DB.px.learn[ค่าแรงดันน้ำยาแอร์ที่วัดได้ Toyota Yaris ATIV]",
+        "title": "ค่าแรงดันน้ำยาแอร์ที่วัดได้ Toyota Yaris ATIV",
+        "cat": "ปริมาณน้ำมันคอมพ์",
+        "vis": "private",
+        "desc": "รอบเดินเบา แอร์เปิดสุด: ฝั่งต่ำ 30–35 psi ฝั่งสูง 180–200 psi ที่อุณหภูมิ 32°C",
+        "date": "2026-10-13",
+        "by": "curEmp",
+        "kind": "file",
+        "fname": "S86-ac-gauge-reading.png",
+        "mime": "image/png",
+        "data": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAgCAIAAADbtmxLAAAASUlEQVR42mOQr/IdVIhh1EGjDhp10Ihz0H8c4PNyIayI1upHHTTqoFEHjTwHDZTFuNSPOmjUQaMOGnkOGi2pRx006qBRBw2wgwAOGdXmjbcHLgAAAABJRU5ErkJggg=="
+      }
+    ]
+  }
+}

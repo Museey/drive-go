@@ -1,0 +1,19 @@
+{
+  "FR.branches[B001].perms": [
+    null,
+    {
+      "tabs": {
+        "acct": false,
+        "hr": false
+      }
+    }
+  ],
+  "FR.branches[B002].active": [
+    true,
+    false
+  ],
+  "FR.accounts[ศักดิ์ชัย มั่นคง].active": [
+    true,
+    false
+  ]
+}

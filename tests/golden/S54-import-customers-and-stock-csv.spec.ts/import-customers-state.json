@@ -1,0 +1,178 @@
+{
+  "DB.cust[C00025].vehicles": {
+    "added": [
+      {
+        "brand": "Honda (ฮอนด้า)",
+        "model": "Jazz",
+        "color": "ฟ้า",
+        "plateL": "5กก",
+        "plateN": "9090",
+        "plateProv": "นนทบุรี",
+        "mile": "61000",
+        "engine": "",
+        "vin": "",
+        "year": "2562"
+      }
+    ]
+  },
+  "DB.cust[C00025].createdBy": [
+    null,
+    ""
+  ],
+  "DB.cust[C00025].createdByName": [
+    null,
+    "เจ้าของกิจการ / ผู้ดูแลระบบ"
+  ],
+  "DB.cust[C00025].createdAt": [
+    null,
+    "2026-10-13T02:00:00.000Z"
+  ],
+  "DB.cust[C00025].updatedBy": [
+    null,
+    ""
+  ],
+  "DB.cust[C00025].updatedByName": [
+    null,
+    "เจ้าของกิจการ / ผู้ดูแลระบบ"
+  ],
+  "DB.cust[C00025].updatedAt": [
+    null,
+    "2026-10-13T02:00:00.000Z"
+  ],
+  "DB.cust[C00025].br": [
+    null,
+    "@DB.branches[MA]"
+  ],
+  "DB.cust": {
+    "added": [
+      {
+        "id": "@DB.cust[C00031]",
+        "type": "person",
+        "tax": "",
+        "name": "มาลี ศรีสุข",
+        "company": "",
+        "branch": "",
+        "tier": "B",
+        "stars": 0,
+        "addr": {
+          "no": "55/1 ถ.เพชรเกษม",
+          "village": "",
+          "moo": "",
+          "soi": "",
+          "road": "",
+          "sub": "",
+          "dist": "",
+          "prov": "กรุงเทพมหานคร",
+          "zip": ""
+        },
+        "tel": "0861234567",
+        "tel2": "",
+        "vehicles": [
+          {
+            "brand": "Toyota (โตโยต้า)",
+            "model": "Yaris Ativ",
+            "color": "แดง",
+            "plateL": "3กข",
+            "plateN": "1122",
+            "plateProv": "กรุงเทพมหานคร",
+            "mile": "32000",
+            "engine": "",
+            "vin": "",
+            "year": "2563"
+          }
+        ],
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]",
+        "code": "C00031"
+      },
+      {
+        "id": "@DB.cust[C00032]",
+        "type": "company",
+        "tax": "0105560999888",
+        "name": "ธนพล วงศ์ดี",
+        "company": "บริษัท ส่งด่วนบางขุนเทียน จำกัด",
+        "branch": "",
+        "tier": "B",
+        "stars": 0,
+        "addr": {
+          "no": "88 ถ.พระราม 2",
+          "village": "",
+          "moo": "",
+          "soi": "",
+          "road": "",
+          "sub": "",
+          "dist": "",
+          "prov": "กรุงเทพมหานคร",
+          "zip": ""
+        },
+        "tel": "024567890",
+        "tel2": "",
+        "vehicles": [
+          {
+            "brand": "Isuzu (อีซูซุ)",
+            "model": "D-Max Spark",
+            "color": "ขาว",
+            "plateL": "4ขข",
+            "plateN": "5566",
+            "plateProv": "กรุงเทพมหานคร",
+            "mile": "85000",
+            "engine": "",
+            "vin": "",
+            "year": "2564"
+          },
+          {
+            "brand": "Isuzu (อีซูซุ)",
+            "model": "D-Max Spark",
+            "color": "ขาว",
+            "plateL": "4ขข",
+            "plateN": "5567",
+            "plateProv": "กรุงเทพมหานคร",
+            "mile": "79000",
+            "engine": "",
+            "vin": "",
+            "year": "2564"
+          }
+        ],
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]",
+        "code": "C00032"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[นภาพร บุญรอด]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "cust",
+        "docId": "@DB.cust[C00025]",
+        "no": "นภาพร บุญรอด",
+        "act": "save",
+        "note": "เพิ่มรถจากไฟล์ CSV 1 คัน · รวม 2 คัน"
+      },
+      {
+        "id": "@DB.audit[CSV]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "cust",
+        "docId": "",
+        "no": "CSV",
+        "act": "save",
+        "note": "นำเข้าลูกค้าจากไฟล์ · ลูกค้าใหม่ 2 ราย · เพิ่มรถให้ลูกค้าเดิม 1 ราย · รถ 4 คัน · ข้าม 2 แถว"
+      }
+    ]
+  }
+}

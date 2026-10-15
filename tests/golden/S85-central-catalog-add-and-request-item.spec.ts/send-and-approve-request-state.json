@@ -1,0 +1,46 @@
+{
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[PX-REQ]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "stock",
+        "docId": "@DB.px.reqs[PX-NEW01]",
+        "no": "PX-REQ",
+        "act": "save",
+        "note": "แจ้งขอเพิ่มสินค้าใหม่เข้าคลังกลาง ProX: กรองแอร์ Protect Filter — Mazda 2 / CX-3"
+      }
+    ]
+  },
+  "DB.px.catalog": {
+    "added": [
+      {
+        "code": "PX-NEW01",
+        "oem": "D09W-61-J6X",
+        "name": "กรองแอร์ Protect Filter — Mazda 2 / CX-3",
+        "cat": "ไส้กรอง",
+        "unit": "ชิ้น",
+        "cost": 110,
+        "pa": 264
+      }
+    ]
+  },
+  "DB.px.reqs": {
+    "added": [
+      {
+        "id": "@DB.px.reqs[PX-NEW01]",
+        "date": "2026-10-13",
+        "name": "กรองแอร์ Protect Filter — Mazda 2 / CX-3",
+        "oem": "D09W-61-J6X",
+        "cat": "ไส้กรอง",
+        "unit": "ชิ้น",
+        "cost": 110,
+        "note": "ลูกค้า Mazda 2 เข้าบ่อย เดือนละ 6-8 คัน",
+        "st": "approved",
+        "code": "PX-NEW01"
+      }
+    ]
+  }
+}

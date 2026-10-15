@@ -1,0 +1,44 @@
+{
+  "DB.assets": {
+    "removed": [
+      {
+        "id": "@DB.assets[MA-FA260400001]",
+        "no": "MA-FA260400001",
+        "date": "2026-04-12",
+        "name": "คอมพิวเตอร์ POS หน้าร้านพร้อมเครื่องพิมพ์",
+        "cat": "คอมพิวเตอร์และโปรแกรมคอมพิวเตอร์",
+        "vendor": "ไอทีซิตี้",
+        "inv": "AS-1331",
+        "cost": 32000,
+        "vat": 7,
+        "life": 3,
+        "salvage": 1,
+        "method": "sl",
+        "status": "use",
+        "out": "",
+        "note": "",
+        "createdBy": "",
+        "createdByName": "EMP004 · มานะ บริหารเก่ง",
+        "createdAt": "2026-04-12T08:15:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "EMP004 · มานะ บริหารเก่ง",
+        "updatedAt": "2026-04-12T08:15:00.000Z"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-FA260400001]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "asset",
+        "docId": "@DB.assets[MA-FA260400001]",
+        "no": "MA-FA260400001",
+        "act": "del",
+        "note": ""
+      }
+    ]
+  }
+}

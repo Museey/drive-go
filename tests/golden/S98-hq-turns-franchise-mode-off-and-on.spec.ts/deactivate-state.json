@@ -1,0 +1,10 @@
+{
+  "FR.enabled": [
+    true,
+    false
+  ],
+  "FR.session.accId": [
+    "@FR.accounts[สำนักงานใหญ่ (HQ)]",
+    ""
+  ]
+}

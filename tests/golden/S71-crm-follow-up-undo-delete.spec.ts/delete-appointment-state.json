@@ -1,0 +1,42 @@
+{
+  "DB.crm": {
+    "removed": [
+      {
+        "id": "@DB.crm[#1]",
+        "custId": "@DB.cust[C00016]",
+        "vehIdx": 0,
+        "type": "warranty",
+        "date": "2026-10-20",
+        "owner": "",
+        "ownerId": "",
+        "note": "ต่อเนื่องจากการติดตามวันที่ 13/10/2569 · ลูกค้าจะเข้ามา · ลูกค้าสะดวกนำรถเข้ามาวันอังคารหน้า ช่วงเช้า",
+        "refId": "@DB.receipts[MA-SA261000003]",
+        "refNo": "MA-SA261000003",
+        "done": false,
+        "openedAt": "2026-10-13",
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[#55]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "crm",
+        "docId": "@DB.crm[#1]",
+        "no": "",
+        "act": "del",
+        "note": "ลูกค้า ปรีชา ทองสุข · นัดหมายวันที่ 20/10/2569"
+      }
+    ]
+  }
+}

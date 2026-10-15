@@ -1,0 +1,16 @@
+{
+  "FR.accounts": {
+    "added": [
+      {
+        "id": "@FR.accounts[สมปอง คลังแน่น]",
+        "user": "sompong",
+        "pass": "9674",
+        "role": "SHB",
+        "branchId": "@FR.branches[B001]",
+        "empId": "@DB.emp[EMP007]",
+        "name": "สมปอง คลังแน่น",
+        "active": true
+      }
+    ]
+  }
+}

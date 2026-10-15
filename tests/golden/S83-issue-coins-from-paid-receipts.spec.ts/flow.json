@@ -1,0 +1,85 @@
+[
+  {
+    "step": "หน้าแรก",
+    "page": [
+      "00 Mr.DriveGo 0"
+    ],
+    "popups": [],
+    "messages": [
+      "เปิดใบแจ้งหนี้ใบใหม่",
+      "ยินดีต้อนรับ เจ้าของร้านทดสอบ — เจ้าของร้าน ร้านทดสอบ DriveGoProX"
+    ]
+  },
+  {
+    "step": "แท็บ DriveGo Coins",
+    "page": [
+      "P1 DriveGo ProX · Ecosystem 3",
+      "DriveGo Coins"
+    ],
+    "popups": [],
+    "messages": []
+  },
+  {
+    "step": "หลังสแกนครั้งแรก",
+    "page": [
+      "P1 DriveGo ProX · Ecosystem 3",
+      "DriveGo Coins"
+    ],
+    "popups": [],
+    "messages": [
+      "ออก DriveGo Coins จากใบเสร็จชำระแล้ว 4 ใบ — ลูกค้าเห็นในแอป BOOK ทันที"
+    ]
+  },
+  {
+    "step": "หลังรับชำระ MA-SA261000003 เงินสดเต็มจำนวน",
+    "page": [
+      "04 ใบเสร็จรับเงิน / ใบกำกับภาษี 1 ›",
+      "4.1 ตัดสต็อกสินค้า"
+    ],
+    "popups": [
+      "ใบตัดสต็อกขายสินค้า MA-SA261000003",
+      "บันทึกข้อมูลสำเร็จ"
+    ],
+    "messages": [
+      "รับชำระ 9,913.55 บาท · ยังไม่ออกใบเสร็จ · ชำระครบแล้ว"
+    ]
+  },
+  {
+    "step": "กลับไปหน้าค้นหาเอกสาร",
+    "page": [
+      "04 ใบเสร็จรับเงิน / ใบกำกับภาษี 1 ›",
+      "4.1 ตัดสต็อกสินค้า"
+    ],
+    "popups": [],
+    "messages": []
+  },
+  {
+    "step": "กลับมาแท็บ DriveGo Coins",
+    "page": [
+      "P1 DriveGo ProX · Ecosystem 3",
+      "DriveGo Coins"
+    ],
+    "popups": [],
+    "messages": []
+  },
+  {
+    "step": "หลังสแกนครั้งที่สอง",
+    "page": [
+      "P1 DriveGo ProX · Ecosystem 3",
+      "DriveGo Coins"
+    ],
+    "popups": [],
+    "messages": [
+      "ออก DriveGo Coins จากใบเสร็จชำระแล้ว 1 ใบ — ลูกค้าเห็นในแอป BOOK ทันที"
+    ]
+  },
+  {
+    "step": "หลังสแกนครั้งที่สาม (ไม่มีใบใหม่)",
+    "page": [
+      "P1 DriveGo ProX · Ecosystem 3",
+      "DriveGo Coins"
+    ],
+    "popups": [],
+    "messages": []
+  }
+]

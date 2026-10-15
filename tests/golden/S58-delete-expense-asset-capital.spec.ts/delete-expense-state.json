@@ -1,0 +1,44 @@
+{
+  "DB.expenses": {
+    "removed": [
+      {
+        "id": "@DB.expenses[MA-EX261000002]",
+        "no": "MA-EX261000002",
+        "date": "2026-10-13",
+        "cat": "ค่าไฟฟ้า",
+        "desc": "ค่าเช่าอาคารประจำเดือน",
+        "payee": "คุณสุนทร เจ้าของอาคาร",
+        "tax": "3101200456789",
+        "inv": "",
+        "base": 25000,
+        "vat": 0,
+        "wht": 5,
+        "method": "เงินโอน",
+        "paid": true,
+        "note": "",
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T01:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T01:00:00.000Z",
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-EX261000002#50]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "expense",
+        "docId": "@DB.expenses[MA-EX261000002]",
+        "no": "MA-EX261000002",
+        "act": "del",
+        "note": ""
+      }
+    ]
+  }
+}

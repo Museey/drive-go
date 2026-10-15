@@ -1,0 +1,18 @@
+{
+  "DB.px.coins": {
+    "added": [
+      {
+        "rcNo": "MA-SA261000003",
+        "plate": "1กข 3021",
+        "cust": "ปรีชา ทองสุข",
+        "amt": 9913.55,
+        "earn": 99,
+        "date": "2026-10-13"
+      }
+    ]
+  },
+  "DB.px.coined.@DB.receipts[MA-SA261000003]": [
+    null,
+    true
+  ]
+}

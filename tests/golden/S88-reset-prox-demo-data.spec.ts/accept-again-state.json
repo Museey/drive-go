@@ -1,0 +1,56 @@
+{
+  "DB.quotes": {
+    "added": [
+      {
+        "id": "@DB.quotes[QO.69-10-13-02]",
+        "no": "QO.69-10-13-02",
+        "date": "2026-10-13",
+        "jobIn": "2026-10-13",
+        "custId": "@DB.cust[คุณเมษา วงศ์สว่าง]",
+        "vehIdx": 0,
+        "mile": "58920",
+        "probs": [
+          "เช็คระยะ 60,000 กม.",
+          "",
+          ""
+        ],
+        "finds": [],
+        "tier": "C",
+        "items": [],
+        "disc": 0,
+        "vat": 7,
+        "tech": "",
+        "techName": "",
+        "byPos": "",
+        "byName": "",
+        "apPos": "",
+        "apName": "",
+        "status": "ร่าง",
+        "bookRef": "BOOK · นัด พรุ่งนี้ 09:00"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[QO.69-10-13-02]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "quote",
+        "docId": "@DB.quotes[QO.69-10-13-02]",
+        "no": "QO.69-10-13-02",
+        "act": "save",
+        "note": "เปิดใบเสนอราคาจากคิวจอง DriveGo BOOK · 8กด 5219"
+      }
+    ]
+  },
+  "DB.px.queue[#0].st": [
+    "wait",
+    "done"
+  ],
+  "DB.px.queue[#0].note": [
+    null,
+    "รับเข้าระบบ · QO.69-10-13-02"
+  ]
+}

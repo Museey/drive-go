@@ -1,0 +1,49 @@
+{
+  "DB.crm[#0].done": [
+    true,
+    false
+  ],
+  "DB.crm[#0].doneDate": [
+    "2026-10-13",
+    ""
+  ],
+  "DB.crm[#0].doneResult": [
+    "come",
+    null
+  ],
+  "DB.crm[#0].doneResultText": [
+    "ติดต่อได้ · ลูกค้าจะเข้ามา / นัดวันเข้ารับบริการ",
+    null
+  ],
+  "DB.crm[#0].doneChannel": [
+    "line",
+    null
+  ],
+  "DB.crm[#0].doneNote": [
+    "ลูกค้าสะดวกนำรถเข้ามาวันอังคารหน้า ช่วงเช้า",
+    null
+  ],
+  "DB.crm[#0].doneBy": [
+    "ฝนทิพย์ ต้อนรับ",
+    null
+  ],
+  "DB.crm[#0].doneById": [
+    "@DB.emp[EMP005]",
+    null
+  ],
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[#54]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "crm",
+        "docId": "@DB.crm[#0]",
+        "no": "",
+        "act": "undone",
+        "note": "ลูกค้า ปรีชา ทองสุข · นัดหมายวันที่ 10/01/2570"
+      }
+    ]
+  }
+}
