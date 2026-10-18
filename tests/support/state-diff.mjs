@@ -102,7 +102,22 @@ function diffInto(a, b, path, out, aliases) {
   out[path] = [a === undefined ? null : a, b === undefined ? null : b];
 }
 
+// Decision Q7: password fields are compared only as "set" or "empty". The new
+// system never sends a password to the browser (it shows a placeholder), so
+// the value itself is not something the referee can or should compare.
+export const SECRET_MARK = '<มีรหัส>';
+const mask = v => (typeof v === 'string' && v !== '' ? SECRET_MARK : v);
+export function hideSecrets(state) {
+  const s = JSON.parse(JSON.stringify(state));
+  if (s.DGB && s.DGB.shop && 'pass' in s.DGB.shop) s.DGB.shop.pass = mask(s.DGB.shop.pass);
+  for (const e of (s.DB && s.DB.emp) || []) for (const f of ['dgbPass', 'pin']) if (e && f in e) e[f] = mask(e[f]);
+  for (const a of (s.FR && s.FR.accounts) || []) if (a && 'pass' in a) a.pass = mask(a.pass);
+  return s;
+}
+
 export function stateDiff(before, after) {
+  before = hideSecrets(before);
+  after = hideSecrets(after);
   const aliases = new Map(), taken = new Set();
   collectAliases(before, '', aliases, taken);
   collectAliases(after, '', aliases, taken);

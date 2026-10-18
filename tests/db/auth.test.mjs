@@ -81,7 +81,8 @@ describe('Biz / ProX', () => {
 
   test('รหัสผ่านอยู่บน server เป็น hash เท่านั้น ข้อมูลร้านมีแค่ค่าแทน', async () => {
     const { shopId } = await newShop('biz-trial', 'biz');
-    const rows = await asApp(shopId, '', c => c.query("select data::text as d from records where data::text like '%123456%'"));
+    // The fixture's owner password is 123456 (tax ids also contain those digits).
+    const rows = await asApp(shopId, '', c => c.query(`select data::text as d from records where data::text like '%"pass":"123456"%'`));
     assert.equal(rows.rowCount, 0);
     const shop = JSON.parse((await asApp(shopId, '', c => readMain(c, '', 'dgb.v22'))).json).shop;
     assert.equal(shop.pass, SECRET_PLACEHOLDER);

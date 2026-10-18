@@ -4,7 +4,7 @@
       {
         "id": "@FR.accounts[สมปอง คลังแน่น]",
         "user": "sompong",
-        "pass": "9674",
+        "pass": "<มีรหัส>",
         "role": "SHB",
         "branchId": "@FR.branches[B001]",
         "empId": "@DB.emp[EMP007]",

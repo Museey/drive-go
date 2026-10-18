@@ -18,7 +18,7 @@
       {
         "id": "@FR.accounts[ผู้จัดการสาขาลาดพร้าว]",
         "user": "b003",
-        "pass": "3220",
+        "pass": "<มีรหัส>",
         "role": "HB",
         "branchId": "@FR.branches[B003]",
         "name": "ผู้จัดการสาขาลาดพร้าว",
@@ -27,7 +27,7 @@
       {
         "id": "@FR.accounts[รองผู้จัดการสาขาลาดพร้าว]",
         "user": "b003.deputy",
-        "pass": "5555",
+        "pass": "<มีรหัส>",
         "role": "HB",
         "branchId": "@FR.branches[B003]",
         "name": "รองผู้จัดการสาขาลาดพร้าว",

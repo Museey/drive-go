@@ -72,14 +72,16 @@ export const test = base.extend<{ dataset: string; app: App; golden: Golden }>({
     if (TARGET === 'legacy') return use(legacyApp(page, { dataset, url: LEGACY_URL }));
     if (TARGET !== 'new') throw new Error(`No app adapter for TARGET=${TARGET}.`);
     const shop = await openTestShop(dataset);
-    await context.addCookies([{ name: 'dg_session', value: shop.token, url: LEGACY_ORIGIN }]);
+    // Tells window.storage to also check the server's copy when signing out.
+    await context.addInitScript(() => { (window as any).__drivegoTest = true; });
     await use(legacyApp(page, { dataset, url: `${LEGACY_ORIGIN}/${shop.code}/`, restore: restoreLocalStorage }));
     if (testInfo.status !== testInfo.expectedStatus || page.isClosed()) return;
     const storage = await page.evaluate(async () => {
       const s = (window as any).storage;
       if (!s || !s.verify || typeof STORAGE_MODE === 'undefined') return null;
       const { checked, wrong } = await s.verify();
-      return { mode: STORAGE_MODE, usesShopData: checked.includes('garage.v22'), problems: s.problems, notOnServer: wrong };
+      // Signed in: the shop's data must have been read from (and saved to) the server.
+      return { mode: STORAGE_MODE, usesShopData: !s.signedIn || checked.some((k: string) => k.startsWith('garage.v22')), problems: s.problems, notOnServer: wrong };
     });
     expect(storage, 'every save reached the server unchanged').toEqual({ mode: 'host', usesShopData: true, problems: [], notOnServer: [] });
   },
