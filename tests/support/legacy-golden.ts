@@ -4,8 +4,11 @@
 // app. These helpers read those goldens; nothing here records or changes them.
 import { readFileSync } from 'node:fs';
 import type { Page, TestInfo } from '@playwright/test';
+// The image comparator behind toHaveScreenshot.
+import { getComparator } from 'playwright-core/lib/utils';
 import { expect } from './test';
 
+const compare = getComparator('image/png');
 const golden = (scenario: string, file: string) => new URL(`../golden/${scenario}/${file}`, import.meta.url);
 
 type App = { settle(): Promise<void>; signature(): Promise<object>; layoutStable(): Promise<void>; screenshotStyle: string };
@@ -31,17 +34,24 @@ export function legacySteps(scenario: string, app: App) {
 }
 
 // The screen must be the replaced scenario's screenshot, pixel for pixel:
-// taken the way golden.screen() takes it, and equal to the legacy PNG.
+// taken and compared the way golden.screen() (toHaveScreenshot with
+// maxDiffPixels 0) does it, against the legacy PNG.
 export async function sameScreen(page: Page, app: App, testInfo: TestInfo, scenario: string, name: string) {
   await app.settle();
   await page.mouse.move(0, 0);
   await app.layoutStable();
-  const shot = () => page.screenshot({ animations: 'disabled', caret: 'hide', scale: 'css', style: app.screenshotStyle });
-  let a = await shot(), b = await shot();
-  for (let n = 0; !a.equals(b) && n < 10; n++) { a = b; b = await shot(); }
   const expected = readFileSync(golden(scenario, `${name}.png`));
-  if (!b.equals(expected)) await testInfo.attach(`${name}-actual.png`, { body: b, contentType: 'image/png' });
-  expect(b.equals(expected), `screen ${name} is ${scenario}'s ${name}.png`).toBe(true);
+  const shot = () => page.screenshot({ animations: 'disabled', caret: 'hide', scale: 'css', style: app.screenshotStyle });
+  const differs = (b: Buffer) => compare(b, expected, { maxDiffPixels: 0 });
+  // Like toHaveScreenshot: retry until the expect timeout.
+  const until = Date.now() + 15_000;
+  let actual = await shot(), result = differs(actual);
+  while (result && Date.now() < until) { await page.waitForTimeout(250); actual = await shot(); result = differs(actual); }
+  if (result) {
+    await testInfo.attach(`${name}-actual.png`, { body: actual, contentType: 'image/png' });
+    if (result.diff) await testInfo.attach(`${name}-diff.png`, { body: result.diff, contentType: 'image/png' });
+  }
+  expect(result?.errorMessage ?? null, `screen ${name} is ${scenario}'s ${name}.png`).toBeNull();
 }
 
 // What an action changed in the data must be what the replaced scenario's

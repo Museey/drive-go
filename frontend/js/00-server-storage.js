@@ -211,6 +211,9 @@
   }
   async function mustReload(text, why) {
     problems.push(why);
+    const style = document.createElement("style");
+    style.textContent = "#pkg-loading{display:none!important}";
+    document.head.append(style);
     try {
       if (typeof window.askP === "function") await window.askP({ title: "โหลดข้อมูลใหม่", text, yes: "ตกลง", no: "" });
       else window.alert(text);

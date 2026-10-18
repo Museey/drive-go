@@ -14,7 +14,10 @@ test('S107 ระบบใหม่: เข้าระบบแล้วเป�
   expect(s.DGB.session).toEqual({ who: 'owner' });
   expect(s.DB.receipts.length).toBeGreaterThan(0);
 
-  await app.logout();
+  // A Biz shop signs out without asking (app.logout() answers Franchise's confirmation).
+  await page.getByText('ออกจากระบบ', { exact: true }).filter({ visible: true }).click();
+  await page.getByPlaceholder('กรอกรหัสผ่าน').waitFor();
+  await app.settle();
   await app.open();
   expect(await page.evaluate(() => document.documentElement.classList.contains('pkg-open'))).toBe(false);
   await expect(page.getByPlaceholder('กรอกรหัสผ่าน')).toBeVisible();

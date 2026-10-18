@@ -67,6 +67,11 @@ declare global {
 // written on top of a refused save.
 async function mustReload(text: string, why: string): Promise<never> {
   problems.push(why);
+  // The legacy spinner covers the screen while a save runs, and this save
+  // never ends: keep it off the question.
+  const style = document.createElement('style');
+  style.textContent = '#pkg-loading{display:none!important}';
+  document.head.append(style);
   try {
     if (typeof window.askP === 'function') await window.askP({ title: 'โหลดข้อมูลใหม่', text, yes: 'ตกลง', no: '' });
     else window.alert(text);

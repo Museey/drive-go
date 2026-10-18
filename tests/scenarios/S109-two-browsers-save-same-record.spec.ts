@@ -28,7 +28,7 @@ test('S109 ระบบใหม่: สองเครื่องแก้ล�
   await page.evaluate(() => (window as any).storage.idle());
 
   // Second browser still shows the old grade and changes the same customer.
-  await customer(other).getByTitle('3 ดาว · ลูกค้าประจำ').click();
+  await customer(other).getByTitle('3 ดาว · ลูกค้าทั่วไป').click();
   await other.getByRole('button', { name: 'เปลี่ยนเกรด' }).click();
   await expect(other.getByText('มีคนแก้ข้อมูลนี้จากเครื่องอื่นก่อนหน้า สิ่งที่เพิ่งทำยังไม่ถูกบันทึก — กดตกลงเพื่อโหลดข้อมูลล่าสุด')).toBeVisible();
   await other.getByRole('button', { name: 'ตกลง', exact: true }).filter({ visible: true }).click();

@@ -29,6 +29,7 @@ test('S103 ระบบใหม่: หน้าเข้าระบบไม�
   expect(after.DGB.session).toEqual({ who: 'owner' });
   // A3: the browser never gets the password itself.
   expect(after.DGB.shop.pass).toBe('********');
-  expect(JSON.stringify(after)).not.toContain('123456');
+  // (Tax ids in the data also contain these digits, so look for the password as a value.)
+  expect(JSON.stringify(after)).not.toContain('"123456"');
   steps.done();
 });
