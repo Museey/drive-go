@@ -4,6 +4,11 @@
   "type": "module",
   "scripts": {
     "test": "playwright test",
+    "test:db": "node --test tests/db/*.test.mjs",
+    "test:unit": "node --test server/lib/*.test.ts",
+    "dev": "DEV=1 node tools/serve-new.mjs",
+    "build": "npm run build -w server",
+    "typecheck": "npm run typecheck -w server",
     "test:record": "TARGET=legacy playwright test --update-snapshots=all",
     "fixture": "node tools/make-fixture.mjs",
     "fonts": "node tools/vendor-fonts.mjs",
@@ -15,5 +20,8 @@
     "@playwright/test": "1.56.1",
     "acorn": "^8.15.0",
     "acorn-walk": "^8.3.4"
-  }
+  },
+  "workspaces": [
+    "server"
+  ]
 }

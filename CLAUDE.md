@@ -12,11 +12,12 @@
 |---|---|
 | `legacy/DRIVEGO_TRIAL_v23.html` | ระบบเดิม = **เฉลย** ห้ามแก้ |
 | `frontend/` | ระบบเดิมที่แยกเป็นไฟล์ (`index.html`, `js/`, `css/`, `assets/`) สร้างจาก `legacy/` ด้วย `tools/split-legacy.mjs` ห้ามแก้ด้วยมือในเฟส 1 (ตั้งแต่เฟส 2 แก้ได้และต้องจดทุกจุดที่แก้ ห้ามสร้างใหม่ทับ) |
+| `server/` | ระบบใหม่ (เฟส 2): แอป Next.js + TypeScript ที่เสิร์ฟหน้าจอจาก `frontend/` ที่ `/<รหัสร้าน>/` และ API ที่ `/api/` (แบบที่อนุมัติ: `docs/PHASE2-DESIGN.md`) |
 | `tests/scenarios/` | สถานการณ์ทดสอบ หนึ่งไฟล์ต่อหนึ่งสถานการณ์ ชื่อ `Sxx-<english-slug>.spec.ts` ชื่อ test เป็นภาษาไทย |
 | `tests/golden/<spec file>/` | เฉลยที่บันทึกจากระบบเดิม (`flow.json`, `*-state.json`, `*.png`) |
 | `tests/fixtures/` | ข้อมูลตั้งต้นที่ถูก restore ลงเบราว์เซอร์ก่อนทุก test |
 | `tests/support/` | ตัวช่วยของ test: กรรมการ 3 ตัว, ตัวขับระบบเดิม, การตั้งค่าเบราว์เซอร์ |
-| `tools/` | สคริปต์: static server, สร้าง fixture, ดึงฟอนต์, ทำรายการพฤติกรรม, รายงาน coverage |
+| `tools/` | สคริปต์: static server, สร้าง fixture, ดึงฟอนต์, ทำรายการพฤติกรรม, รายงาน coverage, PostgreSQL ชั่วคราว (`pg-temp.mjs`), เปิดระบบใหม่ (`serve-new.mjs`) |
 
 ## คำสั่ง
 
@@ -24,6 +25,11 @@
 npm install
 npm test                                   # รันทุกสถานการณ์ เทียบกับเฉลย (ระบบเดิม)
 TARGET=frontend npm test                   # รันทุกสถานการณ์กับ frontend/ เทียบกับเฉลยชุดเดียวกัน
+TARGET=new npm test                        # รันทุกสถานการณ์กับระบบใหม่ (build server/ + PostgreSQL ชั่วคราว ให้เอง)
+npm run dev                                # เปิดระบบใหม่แบบ next dev + PostgreSQL ชั่วคราว (ข้อมูลหายเมื่อปิด)
+npm run typecheck                          # ตรวจ TypeScript ของ server/
+npm run test:db                            # test ของฐานข้อมูล: แยกข้อมูลระหว่างอู่/สาขา (RLS), เก็บ/อ่าน/บันทึกข้อมูลร้าน
+npm run test:unit                          # test ของ server/lib (แบ่งข้อมูลเป็นหน่วยแล้วประกอบกลับได้ทุกไบต์ ฯลฯ)
 node tools/split-legacy.mjs --check        # พิสูจน์ว่า frontend/ ประกอบกลับเป็นไฟล์เดิมได้ทุกไบต์
 npm run test:record -- tests/scenarios/S05-xxx.spec.ts   # บันทึกเฉลยจากระบบเดิม (เฉพาะไฟล์ที่ระบุ)
 npm run fixture -- biz trial               # สร้างข้อมูลตั้งต้นใหม่ (biz | prox | franchise) — ปกติไม่ต้องสร้างใหม่ ใช้ไฟล์ที่ commit ไว้
@@ -33,6 +39,9 @@ npm run selfcheck                          # พิสูจน์ว่าก�
 node tools/explore.mjs <ชื่อ> "<คำสั่ง Playwright>" [dataset]   # สำรวจหน้าจอตอนเขียนสถานการณ์ (ภาพอยู่ที่ .explore/)
 COVERAGE=1 npx playwright test <ไฟล์> && node tools/which-ran.mjs <ชื่อฟังก์ชัน…>   # ตรวจว่าสถานการณ์เรียกฟังก์ชันที่ต้องการจริง
 ```
+
+PostgreSQL ไม่ต้องติดตั้ง server เอง: `tools/pg-temp.mjs` สร้างฐานข้อมูลชั่วคราวจากโปรแกรม PostgreSQL ในเครื่อง (ไม่ใช้ Docker)
+บนพอร์ตสุ่ม แล้วลบทิ้งเมื่อปิด ถ้าตั้ง `DATABASE_URL` ไว้จะใช้ฐานข้อมูลนั้นแทน
 
 ถ้ารัน Playwright หลายชุดพร้อมกัน (เช่น หลาย agent) ให้ใส่ `--output=<โฟลเดอร์ของตัวเอง>`
 เพราะทุกการรันจะล้าง `test-results/` ของชุดอื่นทิ้ง ส่วน server ของไฟล์เดิมไม่ต้องเปิดเอง

@@ -330,7 +330,7 @@ server จำลองเป็นของ test เท่านั้น ไม
 ## 8. การทดสอบ (T9)
 
 ### 8.1 ตัวขับระบบใหม่ `TARGET=new`
-- เปิด server ของตัวเองบนพอร์ตสุ่ม + ฐานข้อมูลของการรันนั้น (Docker) แบบเดียวกับ `LEGACY_PORT`
+- เปิด server ของตัวเองบนพอร์ตสุ่ม + ฐานข้อมูลชั่วคราวของการรันนั้น (`tools/pg-temp.mjs`) แบบเดียวกับ `LEGACY_PORT`
 - ทุก test สร้างร้านใหม่จาก fixture เดิม (`tests/fixtures/*.json`) ด้วยโค้ดเดียวกับสคริปต์เปิดอู่ (P3) ร้านละ test ไม่ปนกัน
 - ใช้สถานการณ์และเฉลยชุดเดิมทั้งหมด
 - จบทุกสถานการณ์ด้วยการโหลดหน้าใหม่ แล้วเทียบข้อมูลก่อนและหลังโหลด (ยกเว้นช่องของ session)
@@ -393,6 +393,7 @@ server/                 แอป Next.js + TypeScript
   db/migrations/*.sql   ตาราง + RLS
   client/storage.ts     ต้นฉบับของ frontend/js/00-server-storage.js
 tools/new-shop.mjs      เปิดอู่ใหม่ / นำเข้า fixture (P3)
-docker-compose.yml      PostgreSQL สำหรับเครื่องนักพัฒนาและการรัน test
+tools/pg-temp.mjs       PostgreSQL ชั่วคราวสำหรับเครื่องนักพัฒนาและการรัน test (ใช้โปรแกรม PostgreSQL ในเครื่อง ไม่ต้องใช้ Docker)
+tools/serve-new.mjs     build + เปิดระบบใหม่กับฐานข้อมูลนั้น (TARGET=new, npm run dev)
 frontend/CHANGES.md     ทุกจุดที่แก้ในโค้ดเดิม พร้อมเหตุผล
 ```

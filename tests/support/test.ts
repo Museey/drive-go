@@ -13,7 +13,7 @@
 import { test as base, expect } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { prepareContext } from './browser.mjs';
-import { FIXED_NOW, FRONTEND_URL, LEGACY_ORIGIN, LEGACY_URL, TEST_SEED } from './config.mjs';
+import { FIXED_NOW, FRONTEND_URL, LEGACY_ORIGIN, LEGACY_URL, NEW_URL, TEST_SEED } from './config.mjs';
 import { legacyApp, messageRecorderInitScript } from './legacy-app.mjs';
 import { stateDiff, stateCounts, formatDiff } from './state-diff.mjs';
 import { executedFunctions } from './coverage.mjs';
@@ -61,8 +61,9 @@ export const test = base.extend<{ dataset: string; app: App; golden: Golden }>({
 
   // legacy: the original HTML (goldens are recorded from it).
   // frontend: the same app split into files in Phase 1; must match every golden.
+  // new: the new system (Phase 2, server/); must match every golden too.
   app: async ({ page, dataset }, use) => {
-    const url = { legacy: LEGACY_URL, frontend: FRONTEND_URL }[TARGET];
+    const url = { legacy: LEGACY_URL, frontend: FRONTEND_URL, new: NEW_URL }[TARGET];
     if (!url) throw new Error(`No app adapter for TARGET=${TARGET}.`);
     await use(legacyApp(page, { dataset, url }));
   },

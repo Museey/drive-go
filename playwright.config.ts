@@ -1,5 +1,5 @@
 import { defineConfig } from '@playwright/test';
-import { CONTEXT_OPTIONS, LEGACY_URL } from './tests/support/config.mjs';
+import { CONTEXT_OPTIONS, LEGACY_ORIGIN, LEGACY_URL } from './tests/support/config.mjs';
 
 // Which app the scenarios run against. Goldens are always recorded from the
 // legacy HTML; any other target is only ever compared with them.
@@ -19,5 +19,10 @@ export default defineConfig({
   use: { ...CONTEXT_OPTIONS, browserName: 'chromium', trace: 'retain-on-failure' },
   webServer: ['legacy', 'frontend'].includes(TARGET)
     ? { command: 'node tools/serve.mjs', url: LEGACY_URL, reuseExistingServer: !process.env.CI }
-    : undefined,
+    : TARGET === 'new'
+      // Builds server/ and starts it with a throwaway database; SIGTERM lets
+      // it remove the database again.
+      ? { command: 'node tools/serve-new.mjs', url: `${LEGACY_ORIGIN}/api/health`, timeout: 300_000,
+          gracefulShutdown: { signal: 'SIGTERM', timeout: 10_000 } }
+      : undefined,
 });

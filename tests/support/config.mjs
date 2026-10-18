@@ -27,6 +27,9 @@ export const LEGACY_ORIGIN = `http://127.0.0.1:${PORT}`;
 export const LEGACY_URL = `${LEGACY_ORIGIN}/DRIVEGO_TRIAL_v23.html`;
 // Phase 1: the same app split into files (frontend/), served next to it.
 export const FRONTEND_URL = `${LEGACY_ORIGIN}/frontend/index.html`;
+// Phase 2: the new system (server/, tools/serve-new.mjs) on the same port,
+// a shop's screens at /<shop code>/.
+export const NEW_URL = `${LEGACY_ORIGIN}/DG-1688/`;
 
 // Browser context settings shared by tests and fixtures. Timezone matters: the
 // app turns "now" into local dates, so the fixture and the tests must agree.
