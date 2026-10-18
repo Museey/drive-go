@@ -1,0 +1,174 @@
+
+/* ══════════════════════════════════════════════════════════════
+   ดีไซน์ใหม่ DriveGo (ย้ายมาจากไฟล์ตัวอย่าง 12 ส.ค. 2569)
+   คงไว้ตามที่สั่ง: แถบบนสุด (สีพื้น/สีน้ำเงิน/ชื่อร้าน) และสีพื้นหลังหน้า — ไม่แตะเลย
+   เปลี่ยน: ฟอนต์ · มุมมน · แผง/การ์ด · ปุ่ม · ช่องกรอก · ตาราง · ป้ายสถานะ · ป๊อปอัพ · เมนูข้าง(รูปทรง)
+   ══════════════════════════════════════════════════════════════ */
+:root{
+  --slate:#6b7280; --line:#e4e8ef; --line2:#eef1f6;
+  --ok:#16a34a; --danger:#dc2626; --blue:#2563eb;
+  --r:12px;
+  --ring:rgba(240,164,0,.20);
+  --sh-sm:0 1px 2px rgba(16,24,40,.05);
+  --sh:0 1px 2px rgba(16,24,40,.04), 0 4px 14px rgba(16,24,40,.06);
+}
+/* Sarabun = ฟอนต์ไทยสาย UI ตัวอักษรกลมกว่า อ่านสบายกว่าฟอนต์เดิม */
+body{font-family:'Sarabun','IBM Plex Sans Thai',system-ui,sans-serif;font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font-family:inherit}
+/* ตัวเลขเงิน: ฟอนต์เดียวกับเนื้อหาแต่บังคับความกว้างตัวเลขเท่ากัน — คอลัมน์ยังตรง แต่ไม่ดูเป็นโค้ด */
+.tbl .num,.card .v,.mtot b,.bars .b em,.bars .b span,.navfoot .clock b{
+  font-family:'Sarabun',sans-serif;font-variant-numeric:tabular-nums}
+/* รหัส/เลขที่เอกสาร ยังเป็น mono เพราะอ่านรหัสยาว ๆ ไม่ตาลาย */
+.mono{font-family:'Sarabun','Sarabun',sans-serif;font-size:.94em}
+
+@media screen{
+  /* ── เมนูข้าง: คงสีเดิม เปลี่ยนเฉพาะรูปทรง — รายการที่เลือกเป็นแคปซูลสีทอง ── */
+  nav.tabs{padding-top:4px}
+  .navitem{border-bottom:0}
+  nav.tabs .navparent{width:calc(100% - 18px);margin:1px 8px;border-radius:10px;padding:10px 12px;
+    transition:background .15s ease,color .15s ease}
+  nav.tabs .navparent:not(.on):hover{background:rgba(255,255,255,.07);color:#fff}
+  nav.tabs .navparent.on,nav.tabs .navparent.on:hover{background:var(--amber);color:#1a1204;border-radius:10px;font-weight:700;box-shadow:0 2px 10px rgba(240,164,0,.30)}
+  nav.tabs button .n{font-size:11px;opacity:.85;letter-spacing:.3px}
+  nav.tabs button .bdg{border-radius:999px;padding:1px 7px;font-weight:600}
+  nav.tabs.collapsed .navparent{width:calc(100% - 10px);margin:2px 5px;padding:10px 0}
+  .navtoggle{border-bottom:0;padding:8px 14px}
+  .navtoggle:hover{background:transparent;color:#fff}
+  .navseg{border-radius:10px!important;margin:1px 8px 5px;padding:5px}
+  .navseg button{border-radius:9px}
+  .navfoot{border-top:1px solid rgba(255,255,255,.08)}
+
+  /* ── แผงเนื้อหา: การ์ดขาว มุมมน เงานุ่ม แทนกรอบเส้นแข็ง ── */
+  .panel{border:1px solid var(--line2);border-radius:14px;box-shadow:var(--sh);overflow:hidden;margin-bottom:14px}
+  .panel>header{background:#fff;border-bottom:1px solid var(--line2);padding:9px 12px}
+  .panel>header h2{font-size:13px;font-weight:700;letter-spacing:-.1px}
+  .panel>header .tag{border:0;background:#f2f5f9;color:var(--slate);border-radius:999px;padding:3px 10px;font-weight:600;font-size:11px}
+  .panel>.ptools{background:#fbfcfe;padding:8px 12px}
+  .panel .body{padding:12px}
+
+  /* ── ปุ่ม: มุมมน ตัวหนาขึ้น มีจังหวะตอบสนองตอนกด ── */
+  .btn{border-radius:10px;padding:7px 13px;font-weight:600;box-shadow:var(--sh-sm);
+    transition:background .15s ease,box-shadow .15s ease,transform .06s ease}
+  .btn:hover{box-shadow:0 2px 8px rgba(16,24,40,.10)}
+  .btn:active{transform:translateY(1px)}
+  .btn.sm{padding:4px 9px;font-size:12.5px;border-radius:8px}
+  .btn.pri{box-shadow:0 1px 2px rgba(240,164,0,.45)}
+  .btn.pri:hover{box-shadow:0 3px 12px rgba(240,164,0,.42)}
+  .btn.gh{border-color:var(--line);color:var(--steel)}
+  .btn.gh:hover{background:#f7f9fc;border-color:#cfd6e2}
+  /* ปุ่มอันตราย (ยกเลิก/ลบ) เป็นแบบเส้นขอบ — เดิมทึบแดงจัดจนแย่งสายตาปุ่มหลัก */
+  .btn.dgr{background:#fff;color:#c0271b;border:1px solid #f0b8b2;box-shadow:none}
+  .btn.dgr:hover{background:#fdf1f0;border-color:#e08c83;color:#a8342a}
+  .btn.grn{background:#15803d;border-color:#15803d}
+  .btn.grn:hover{background:#116a32;border-color:#116a32}
+  /* ระยะห่างช่องกรอกในฟอร์ม — เดิมแน่นจนอ่านเป็นบล็อกเดียว */
+  .seg{border-radius:999px;border-color:var(--line);overflow:hidden}
+  .seg button{padding:6px 14px;font-weight:600;color:var(--slate)}
+  .seg button.on{background:var(--amber);color:#241802}
+  .cats button{border-radius:999px;padding:3px 12px;border-color:var(--line);font-weight:500}
+
+  /* ── ช่องกรอก: มุมมน + วงแหวนโฟกัสนุ่ม แทนกรอบทึบแข็ง ── */
+  input[type=text],input[type=number],input[type=date],select,textarea{
+    border-radius:10px;border-color:var(--line);padding:6px 8px;
+    transition:border-color .15s ease,box-shadow .15s ease}
+  input:focus,select:focus,textarea:focus{border-color:var(--amber);box-shadow:0 0 0 3.5px var(--ring);outline:0}
+  :focus-visible{outline:0;box-shadow:0 0 0 3.5px var(--ring)}
+  input[readonly]{background:#f7f9fc}
+  label.f>span{font-size:11.5px;color:var(--slate);font-weight:600;margin-bottom:3px}
+
+  /* ── ตาราง: หัวขาว เส้นบาง ระยะหายใจมากขึ้น ── */
+  .tbl th{background:#fff;color:#8892a4;font-size:11.5px;font-weight:700;letter-spacing:.35px;
+    padding:7px 8px;border-bottom:1px solid var(--line)}
+  .tbl td{padding:6px 8px;border-bottom:1px solid var(--line2)}
+  .tbl tr:hover td{background:#f8fafd}
+  .tbl tfoot td{background:#f8fafd;border-top:1px solid var(--line)}
+  .tbl tr.cancelrow>td{background:#fef4f3}
+  .tbl tr.cancelrow:hover>td{background:#fdeceb}
+  .docno,.codechip{color:#c07600;font-weight:700}
+
+  /* ── ป้ายสถานะ: พาสเทลไม่มีขอบ สะอาดกว่าแบบมีกรอบ ── */
+  .chip,.stbtn{border:0;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:600;line-height:1.55}
+  .chip{background:#f2f5f9;color:#4b5563}
+  .chip.g,.st-green{background:#e7f7ee;color:#15803d}
+  .chip.a,.st-orange{background:#fef3e0;color:#b45309}
+  .chip.r,.st-red{background:#fdecec;color:#b91c1c}
+  .chip.b,.st-blue{background:#eaf1fd;color:#1d4ed8}
+  .st-grey{background:#f2f5f9;color:#6b7280}
+
+  /* ── การ์ดตัวเลขหน้าแรก: จุดสีนำสายตาแทนขีดสีด้านบน + ตัวเลขทุกใบอยู่ระดับเดียวกัน ── */
+  .card{border:1px solid var(--line2)!important;border-radius:14px;padding:12px 14px;box-shadow:var(--sh);
+    transition:box-shadow .18s ease,transform .18s ease;display:flex;flex-direction:column}
+  .card:hover{box-shadow:0 4px 18px rgba(16,24,40,.10);transform:translateY(-1px)}
+  .card .k{font-size:11.5px;font-weight:600;color:var(--slate);display:flex;align-items:flex-start;gap:7px;min-height:2.3em}
+  .card .k::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--steel);flex:none;margin-top:6px}
+  .card.amber .k::before{background:var(--amber)}
+  .card.red .k::before{background:var(--danger)}
+  .card.green .k::before{background:var(--ok)}
+  .card .v{font-size:26px;font-weight:700;letter-spacing:-.6px;margin:2px 0;margin-top:auto}
+  .card .s{font-size:11.5px}
+
+  /* ── กล่องเตือน / กราฟ / อื่น ๆ ── */
+  .alert{border-radius:14px;background:#fef4f3;border:1px solid #f7d4d0;border-left:4px solid var(--danger);padding:10px 13px}
+  .secthead{border-bottom:1px solid var(--line);padding-bottom:7px;margin:22px 0 12px}
+  .secthead h2{font-size:15px;font-weight:700}
+  .secthead .no{background:var(--ink);color:#fff;border-radius:999px;padding:4px 11px;font-size:11px;font-weight:700}
+  .bars .b i{border-radius:7px 7px 0 0}
+  .hbar .tr{border-radius:999px;border-color:var(--line2)}
+  .hbar .tr i{border-radius:999px}
+  .mbar{border-radius:999px;border-color:var(--line2)}
+  .mbar i{border-radius:999px}
+  .empty{padding:24px;color:#98a1b0}
+
+  /* ── ป๊อปอัพ: มุมมนขึ้น หัว-ท้ายสีขาว ── */
+  .modal{background:rgba(17,24,39,.48)}
+  .modal .sheet{border-radius:16px;border:0;box-shadow:0 18px 50px rgba(16,24,40,.22)}
+  .modal .sheet>header{background:#fff;border-bottom:1px solid var(--line2);padding:10px 14px}
+  .modal .sheet>header h2{font-size:14px;font-weight:700}
+  .modal .sheet footer{background:#fbfcfe;border-top:1px solid var(--line2);padding:10px 14px}
+  .toast{border-radius:12px;padding:10px 20px;box-shadow:0 10px 30px rgba(15,20,24,.30)}
+  #mPageTitle{font-weight:800;letter-spacing:-.3px}
+  .msheet{border-radius:20px 20px 0 0}
+
+  /* ── แถบเลื่อนให้เข้ากับดีไซน์ (Chrome/Safari) ── */
+  ::-webkit-scrollbar{width:11px;height:11px}
+  ::-webkit-scrollbar-thumb{background:#cbd3e0;border-radius:999px;border:3px solid transparent;background-clip:content-box}
+  ::-webkit-scrollbar-thumb:hover{background:#aab5c6;background-clip:content-box}
+  ::-webkit-scrollbar-track{background:transparent}
+  nav.tabs::-webkit-scrollbar-thumb{background:#39435a;background-clip:content-box}
+  ::selection{background:rgba(240,164,0,.28)}
+}
+/* ระยะขอบเนื้อหาใช้ค่าเดิม 16px — ไม่เพิ่ม เพื่อให้ตำแหน่งทุกอย่างตรงกับของเดิม */
+/* ══ บล็อกนี้อยู่ท้ายไฟล์ จึงต้องคืนค่าให้ชั้นมือถือที่อาจถูกทับ ══
+   เงื่อนไขต้องตรงกับชั้นมือถือเป๊ะ ๆ (ดูบันทึกเรื่อง MQ_MOB) */
+@media (max-width:720px), ((orientation:landscape) and (pointer:coarse) and (max-height:600px)){
+  main{padding-left:10px;padding-right:10px}
+  .modal .sheet{border-radius:0}
+  .panel{border-radius:12px}
+}
+/* ── เอกสารสำหรับพิมพ์: คงฟอนต์และระยะเดิมทุกอย่าง ──
+   ใบเสร็จ/ใบกำกับถูกจัดหน้าให้พอดีแผ่นไว้แล้ว เปลี่ยนฟอนต์เสี่ยงข้อความตกหน้า */
+.sheetpage,.sheetpage *{font-family:'IBM Plex Sans Thai',system-ui,'Noto Sans Thai',sans-serif;line-height:1.35}
+.sheetpage .mono,.sheetpage .num{font-family:'Sarabun',sans-serif}
+/* ══ แถวตารางสลับสีอ่อน-เข้ม (zebra) ทุกตารางทั้งระบบ อ่านสบายตา ══ */
+.tbl tbody tr:nth-child(odd)>td{background:#ffffff}
+.tbl tbody tr:nth-child(even)>td{background:#f3f6fb}
+.tbl tbody tr:hover>td{background:#e7effa}
+.tbl tfoot td{background:#eef2f7}
+/* ระยะหายใจของบรรทัด + เส้นคั่นจางลง ลดความรก */
+.tbl td{padding:8px 10px;border-bottom:1px solid #edf1f6}
+.tbl th{padding:9px 10px}
+/* หัวตารางลอยติดขอบบนเมื่อเลื่อนดูรายการยาว ๆ จะได้ไม่หลงคอลัมน์ */
+.scroll{max-height:none}
+.scroll .tbl thead th{position:sticky;top:0;z-index:3;box-shadow:0 1px 0 var(--line)}
+/* แถวเอกสารที่ยกเลิกยังต้องเด่นเป็นโทนแดงเสมอ ไม่ให้ zebra กลบ */
+.tbl tbody tr.cancelrow>td{background:#fdecec}
+.tbl tbody tr.cancelrow:hover>td{background:#fbdfdf}
+
+/* ══ การ์ดสรุปหน้า 00: พื้นสีอ่อนตามสีประจำการ์ด แทนจุดสีเล็ก ══ */
+#v-home .card{background:#eef3f8;border-color:#dbe4ee!important}
+#v-home .card.amber{background:#fdf3dc;border-color:#f1e0b5!important}
+#v-home .card.red{background:#fdecea;border-color:#f4cfc9!important}
+#v-home .card.green{background:#e9f6ef;border-color:#cfe8da!important}
+#v-home .card .k::before{display:none}
+#v-home .card .k{color:var(--steel)}
+#v-home .card:hover{box-shadow:0 4px 18px rgba(16,24,40,.12)}

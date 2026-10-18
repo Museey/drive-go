@@ -1,0 +1,1 @@
+window.PKG_AUTO_TRIAL={shop:"Drivego Service"};

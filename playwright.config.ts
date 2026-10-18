@@ -17,7 +17,7 @@ export default defineConfig({
   expect: { timeout: 15_000, toHaveScreenshot: { maxDiffPixels: 0 } },
   reporter: [['list']],
   use: { ...CONTEXT_OPTIONS, browserName: 'chromium', trace: 'retain-on-failure' },
-  webServer: TARGET === 'legacy'
+  webServer: ['legacy', 'frontend'].includes(TARGET)
     ? { command: 'node tools/serve.mjs', url: LEGACY_URL, reuseExistingServer: !process.env.CI }
     : undefined,
 });

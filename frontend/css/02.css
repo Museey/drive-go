@@ -1,0 +1,1001 @@
+
+:root{
+  --ink:#14181c; --steel:#2b3238; --slate:#5b6873; --line:#c6ccd2; --line2:#e2e6ea;
+  --paper:#fff; --bg:#e5e9ec; --amber:#f0a400; --ok:#1f7a4d; --danger:#a8342a; --blue:#1f5c8c;
+  --c-min:#ffe27a; --c-max:#ffbdb6; --c-stale:#dcc19a; --r:3px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans Thai',system-ui,'Noto Sans Thai',sans-serif;font-size:14px;line-height:1.45}
+.mono{font-family:'Sarabun','IBM Plex Sans Thai',sans-serif}
+button,input,select,textarea{font-family:inherit;font-size:14px;color:inherit}
+:focus-visible{outline:2px solid var(--amber);outline-offset:1px}
+
+.top{background:var(--steel);color:#fff;display:flex;align-items:stretch}
+.top-brand{width:230px;flex:0 0 230px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;
+  border-right:3px solid var(--amber);padding:10px 16px;transition:width .15s ease,flex-basis .15s ease}
+.top-brand.collapsed{width:44px;flex-basis:44px;padding:10px 0}
+.top-main{flex:1;min-width:0;display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:10px 16px}
+.brandmark{width:30px;height:30px;border:2px solid var(--amber);border-radius:8px;display:grid;place-items:center;font-weight:700;color:var(--amber);font-family:'Sarabun',sans-serif;flex:none}
+/* แถบโลโก้ผู้พัฒนา — รูป (ถ้ามี) หรือตัวย่อในกรอบทอง + ชื่อ Drivebiz */
+.brandwrap{display:flex;align-items:center;gap:9px;min-width:0}
+/* โลโก้เป็นวงกลมอยู่แล้ว — ครอบมุมกลมเพื่อตัดขอบขาว 4 มุมทิ้ง ได้ผลเหมือนพื้นหลังโปร่ง */
+.brandlogo{width:32px;height:32px;border-radius:50%;object-fit:cover;flex:none;display:block}
+.brandname{font-size:15px;font-weight:700;color:#fff;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* ตอนพับเมนู เหลือแต่โลโก้ */
+.top-brand.collapsed .brandname{display:none}
+.top h1{font-size:15px;margin:0;font-weight:600}
+.top .sub{font-size:11.5px;color:#9fb0bd;margin-top:1px}
+.navfoot{border-top:1px solid #262c31;padding:12px 14px;margin-top:auto}
+.navfoot .clock{font-size:11px;color:#9fb0bd}
+.navfoot .clock b{color:#fff;display:block;font-size:13px;font-weight:600;font-family:'Sarabun',sans-serif}
+.navfoot .lic{white-space:normal;margin-top:3px}
+.navfoot .vendor{padding-left:0;margin-left:0;border-left:0;align-items:flex-start;margin-top:14px;padding-top:14px;border-top:1px solid #262c31}
+.navfoot .vendor img{width:34px;height:34px}
+.navfoot .vendor .vt{min-width:0;flex:1}
+.navfoot .vendor .vt b{white-space:normal;line-height:1.3}
+.navfoot .vendor .vt .prod{flex-wrap:wrap;row-gap:3px}
+.navfoot .vendor .vt span{white-space:normal}
+nav.tabs.collapsed .navfoot{display:none}
+
+.shell{display:flex;align-items:flex-start}
+
+nav.tabs{background:var(--ink);border-right:3px solid var(--amber);width:230px;flex:0 0 230px;
+  position:sticky;top:0;height:100vh;max-height:100vh;overflow-y:auto;overflow-x:hidden;box-sizing:border-box;
+  display:flex;flex-direction:column;transition:width .15s ease,flex-basis .15s ease}
+nav.tabs>*{flex:0 0 auto}
+nav.tabs.collapsed{width:44px;flex-basis:44px}
+.navitem{border-bottom:1px solid #262c31}
+nav.tabs button{background:none;border:0;color:#93a2ad;padding:11px 14px;cursor:pointer;font-weight:500;
+  white-space:nowrap;width:100%;text-align:left;display:flex;align-items:center}
+nav.tabs button .n{font-family:'Sarabun',sans-serif;font-size:11px;color:#5f6d78;margin-right:8px;flex:0 0 auto}
+nav.tabs button:hover{color:#fff;background:#1b2126}
+nav.tabs button.on{background:var(--amber);color:#1a1204;font-weight:600}
+nav.tabs button.on .n{color:#7a5600}
+nav.tabs button .bdg{background:var(--danger);color:#fff;border-radius:9px;padding:0 6px;font-size:10.5px;margin-left:auto;font-family:'Sarabun',sans-serif}
+nav.tabs .navparent .lbl{overflow:hidden;text-overflow:ellipsis}
+nav.tabs .navparent .chev{margin-left:auto;flex:0 0 auto;font-size:10px;color:#5f6d78;transition:transform .15s ease}
+nav.tabs .navitem.expanded .navparent .chev{transform:rotate(90deg)}
+.navchildren{display:none}
+.navitem.expanded .navchildren{display:block}
+.navseg{display:block!important;border:0!important;border-radius:0!important;background:#0e1216;overflow:visible!important;padding:5px 8px}
+.navseg button{display:flex;align-items:center;gap:7px;width:100%;text-align:left;background:none;color:#93a2ad;border:0!important;
+  border-radius:6px;padding:7px 10px;font-size:12.5px;margin:1px 0}
+.navseg button::before{content:'└';color:#48525c;font-size:11px;flex:none;font-family:'Sarabun',sans-serif}
+.navseg button:hover{color:#fff;background:#1b2126}
+.navseg button.on{background:#3a2f0d;color:var(--amber);font-weight:600}
+.navseg button.on::before{color:var(--amber)}
+/* ป้ายตัวเลขบนเมนูย่อย — ชี้ว่าเอกสารรออนุมัติค้างอยู่เมนูไหน */
+.navseg button .subbdg{background:var(--danger);color:#fff;border-radius:9px;padding:0 6px;font-size:10.5px;
+  margin-left:auto;flex:0 0 auto;font-family:'Sarabun',sans-serif;line-height:16px;min-width:16px;text-align:center}
+nav.tabs.collapsed .navparent .lbl,nav.tabs.collapsed .navparent .chev,
+nav.tabs.collapsed .navchildren{display:none}
+nav.tabs.collapsed button .bdg{display:none!important}
+nav.tabs.collapsed button{padding:11px 0;justify-content:center}
+nav.tabs.collapsed button .n{margin-right:0}
+.navtoggle{background:none;border:0;color:#5f6d78;cursor:pointer;padding:9px 14px;width:100%;text-align:left;
+  font-size:11.5px;border-bottom:1px solid #262c31}
+.navtoggle:hover{color:#fff;background:#1b2126}
+nav.tabs.collapsed .navtoggle{text-align:center;padding:9px 0}
+nav.tabs.collapsed .navtoggle .txt{display:none}
+/* ── ปุ่มเปิดเมนูตอนพับ: ทองสว่างสดใส ลูกศรคู่ + ป้าย "เมนู" กระพริบเรียกสายตา ── */
+nav.tabs.collapsed .navtoggle .n{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
+  width:36px;height:46px;border-radius:11px;
+  background:linear-gradient(160deg,#FFE082 0%,#FFC733 45%,#F0A400 100%);
+  color:#2b1d00;font-weight:800;font-size:19px;line-height:1;border:1px solid #ffdf7e;
+  box-shadow:0 0 0 0 rgba(255,199,51,.6),0 2px 8px rgba(240,164,0,.5);
+  animation:doorPulse 1.6s ease-out infinite}
+nav.tabs.collapsed .navtoggle .n i{font-style:normal;font-size:8.5px;font-weight:700;letter-spacing:.05em;margin-top:1px}
+nav.tabs.collapsed .navtoggle:hover .n{animation:none;transform:scale(1.1);box-shadow:0 0 14px rgba(255,199,51,.8)}
+@keyframes doorPulse{
+  0%{box-shadow:0 0 0 0 rgba(255,199,51,.6),0 2px 8px rgba(240,164,0,.5);filter:brightness(1)}
+  50%{filter:brightness(1.18)}
+  70%{box-shadow:0 0 0 12px rgba(255,199,51,0),0 2px 8px rgba(240,164,0,.5)}
+  100%{box-shadow:0 0 0 0 rgba(255,199,51,0),0 2px 8px rgba(240,164,0,.5);filter:brightness(1)}}
+/* กระดิ่งเขย่าตอนมีแจ้งเตือนใหม่ */
+@keyframes bellShake{0%,100%{transform:rotate(0)}15%{transform:rotate(18deg)}30%{transform:rotate(-14deg)}45%{transform:rotate(10deg)}60%{transform:rotate(-6deg)}75%{transform:rotate(3deg)}}
+.bell.ring .bicon{display:inline-block;animation:bellShake .75s ease;transform-origin:top center}
+
+main{padding:16px;flex:1;min-width:0}
+section.view{display:none}
+section.view.on{display:block}
+
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);margin-bottom:14px}
+.panel>header{padding:9px 12px;border-bottom:1px solid var(--line2);display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#f6f8f9}
+.panel>header h2{margin:0;font-size:13px;font-weight:600}
+.panel>.ptools{padding:8px 12px;border-bottom:1px solid var(--line2);display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#f6f8f9}
+.whoSug{position:absolute;top:100%;left:0;right:0;z-index:60;
+  /* ช่องแคบ ๆ กล่องรายการขยายเกินขอบช่องได้ถึง 560px — ข้อมูลยาวไม่ถูกบีบจนซ้อนทับ */
+  width:max-content;min-width:100%;max-width:min(560px,92vw);background:#fff;border:1px solid var(--line);border-radius:4px;max-height:250px;overflow:auto;box-shadow:0 6px 18px rgba(0,0,0,.14)}
+/* กรอบครอบช่องพิมพ์ค้นหา — ต้อง position:relative เพื่อให้รายการแนะนำลอยเกาะตำแหน่งถูก */
+.pickwrap{position:relative;display:inline-block;flex:0 0 auto}
+/* ปุ่มกากบาทล้างค่าในช่องพิมพ์ค้นหา — โผล่เฉพาะตอนมีค่าที่เลือกไว้แล้ว */
+.pickclear-wrap{position:relative;display:block}
+.pickclear-wrap input{padding-right:34px}
+.pickclear{display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  width:24px;height:24px;border-radius:50%;border:0;background:#e9edf0;color:var(--slate);
+  font-size:13px;line-height:1;cursor:pointer;align-items:center;justify-content:center;padding:0}
+.pickclear:hover{background:var(--danger);color:#fff}
+.pickclear.on{display:flex}
+.pickwrap .whoSug{min-width:340px}
+/* หน้าต่างเล็กที่มีแต่ช่องค้นหา ต้องเผื่อความสูงให้รายการแนะนำกางออกได้
+   ไม่งั้นรายการจะถูกแถบปุ่มด้านล่างบัง เลือกไม่ได้ */
+#mTaxNew .body{min-height:330px;padding:16px 18px}
+/* กันรายการล้นไปโดนแถบปุ่มด้านล่างบัง — สูงสุดต้องจบภายในกรอบเนื้อหา */
+#mTaxNew .whoSug{max-height:278px}
+.whoSug .it{padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--line2);font-size:13px;
+  display:flex;align-items:baseline;gap:12px}
+.whoSug .it:last-child{border-bottom:0}
+.whoSug .it:hover{background:#fdf6e8}
+.whoSug .it .l{flex:1 1 auto;min-width:0}
+.whoSug .it .l b{display:block;font-weight:600;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* บรรทัดรองแบบเด่น (subBold) — ใช้กับช่องดึงใบเสนอราคา ให้ชื่อลูกค้า+ทะเบียนรถสะดุดตาเท่าเลขที่ใบ */
+.whoSug .it .l .s.sb{font-size:13px;color:var(--ink);font-weight:600;margin-top:2px}
+.whoSug .it .l .s{display:block;font-size:11.5px;color:var(--slate);margin-top:1px;line-height:1.35}
+.whoSug .it .r{flex:0 0 auto;max-width:45%;overflow:hidden;text-overflow:ellipsis;margin-left:12px;text-align:right;font-size:11.5px;color:var(--slate);white-space:pre;
+  font-family:'Sarabun',sans-serif;line-height:1.45}
+.whoSug .it.none{cursor:default;display:block;text-align:center;padding:12px}
+.whoSug .it.none:hover{background:none}
+.panel>header .tag{font-family:'Sarabun',sans-serif;font-size:10.5px;color:var(--slate);border:1px solid var(--line);padding:1px 6px;border-radius:2px}
+.panel .body{padding:12px}
+.spacer{flex:1}
+/* ══ หัวป๊อปอัพเอกสาร: กลุ่มปุ่มต้องอยู่ด้วยกันเสมอ ══
+   เดิมปุ่มเรียงเดี่ยว ๆ ในแถวที่ยอมตัดบรรทัด พอป้ายเลขที่ยาวขึ้น (เช่นหลังกด "คัดลอกใบนี้"
+   จะมี "· คัดลอกจาก QO.xx" ต่อท้าย) ปุ่มท้าย ๆ อย่าง "พิมพ์" กับ "ปิด" จะหลุดไปบรรทัดใหม่ทีละตัว
+   คุมด้วย nowrap = ถ้าที่ไม่พอ ทั้งกลุ่มย้ายลงบรรทัดใหม่พร้อมกัน ตำแหน่งปุ่มสัมพันธ์กันเหมือนเดิมเสมอ
+   margin-left:auto = ชิดขวาเสมอ ไม่ว่าจะอยู่บรรทัดเดียวกับหัวเรื่องหรือตกลงบรรทัดใหม่
+   (ตัว .spacer ดันขวาได้เฉพาะบรรทัดแรก พอกลุ่มตกบรรทัดสองจะไปเริ่มจากซ้าย) */
+.hdr-actions{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;margin-left:auto}
+/* ป้ายเลขที่ยาวแค่ไหนก็ไม่ดันหัวให้บวม — ตัดด้วย … และดูข้อความเต็มได้จากการชี้เมาส์ */
+.panel>header .tag{min-width:0;max-width:min(54ch,42vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+label.f{display:block;margin-bottom:9px}
+label.f>span{display:block;font-size:11.5px;color:var(--slate);margin-bottom:3px;font-weight:500}
+input[type=text],input[type=number],input[type=date],select,textarea{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:2px;background:#fff}
+/* ซ่อนลูกศรเพิ่ม-ลดเฉพาะ "ช่องเงิน" (ที่ตั้ง step 0.01) — กดทีขยับทีละสตางค์ ใช้จริงไม่ได้
+   ส่วนช่องจำนวนสินค้า (step เต็มหน่วย) คงลูกศรไว้ เพราะกดเพิ่มลดทีละชิ้นสะดวกดี */
+input[type=number][step="0.01"]::-webkit-outer-spin-button,
+input[type=number][step="0.01"]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input[type=number][step="0.01"]{-moz-appearance:textfield;appearance:textfield}
+input[readonly]{background:#f2f4f6;color:var(--slate)}
+.grid{display:grid;gap:0 10px}
+.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}.g5{grid-template-columns:repeat(5,1fr)}.g6{grid-template-columns:repeat(6,1fr)}
+@media(max-width:960px){.g3,.g4,.g5,.g6{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.g2,.g3,.g4,.g5,.g6{grid-template-columns:1fr}}
+
+.btn{background:var(--steel);color:#fff;border:0;padding:7px 13px;border-radius:2px;cursor:pointer;font-weight:500;white-space:nowrap}
+.btn:hover{background:#3c464e}
+.btn.pri{background:var(--amber);color:#1a1204;font-weight:600}
+.btn.pri:hover{background:#ffb61a}
+.btn.gh{background:#fff;color:var(--steel);border:1px solid var(--line)}
+.btn.gh:hover{background:#f0f3f5}
+.btn.dgr{background:var(--danger);color:#fff;border:1px solid var(--danger);font-weight:600}
+.btn.dgr:hover{background:#8e2b22;border-color:#8e2b22}
+.btn.pur{background:#6b3fa0;color:#fff;border:1px solid #6b3fa0;font-weight:600}
+.btn.pur:hover{background:#57327f;border-color:#57327f}
+.btn.grn{background:#1e7a45;color:#fff;border:1px solid #1e7a45;font-weight:600}
+.btn.grn:hover{background:#186237;border-color:#186237}
+.btn.sm{padding:4px 9px;font-size:12.5px}
+/* แถวเอกสารที่ถูกยกเลิก — ไล่สีแดงอ่อนทั้งแถว */
+.tbl tr.cancelrow>td{background:#fdeaea}
+.tbl tr.cancelrow:hover>td{background:#fbdede}
+.tbl tr.cancelrow .mono{text-decoration:line-through;text-decoration-color:#b03a2e}
+/* เลขที่เอกสารที่คลิกเปิดดูได้ */
+.docno{color:#d98200;font-weight:700;cursor:pointer}
+.docno:hover{text-decoration:underline}
+.btn:disabled{opacity:.42;cursor:not-allowed;filter:grayscale(.6)}
+.btn:disabled:hover{filter:grayscale(.6)}
+.btn.blinkbtn:disabled{animation:none}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.seg button{background:#fff;border:0;padding:6px 14px;cursor:pointer;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--steel);color:#fff;font-weight:600}
+.hint{font-size:11.5px;color:var(--slate)}
+/* คอลัมน์ผู้บันทึก — ชื่อคนที่ทำรายการนี้ ชี้ค้างไว้ดูวันเวลาเต็มได้ */
+.byc{font-size:11.5px;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;cursor:help}
+.byedit{margin-left:4px;color:#b07d00;font-size:11px}
+.byline{cursor:help}
+/* หัวคอลัมน์ที่กดเรียงได้ — ลูกศรโผล่เฉพาะคอลัมน์ที่เรียงอยู่ จึงแทบไม่กินความกว้างเพิ่ม */
+th.sortable{cursor:pointer;user-select:none;white-space:nowrap}
+th.sortable:hover{background:#eef2f5}
+th.sorted{color:var(--ink)}
+.sarr{font-size:9px;margin-left:3px;color:var(--amber);vertical-align:1px}
+.chip{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid var(--line);background:#f6f8f9}
+.chip.g{background:#e7f4ed;border-color:#b6dcc7;color:#14603c}
+.chip.a{background:#fff3d6;border-color:#f0d79a;color:#7a5600}
+.chip.r{background:#fdeceb;border-color:#efc3bf;color:#8e2b22}
+.chip.b{background:#e9f1f8;border-color:#b9d0e3;color:#17466b}
+/* ปรับต้นทุนหลายแถวในใบรับสินค้า */
+.costcell{display:flex;gap:4px;align-items:stretch}
+.costcell input{flex:1;min-width:0}
+.costcell .gplus{flex:none;padding:0 8px;font-size:13px;line-height:1}
+.prevcost{font-size:10.5px;color:var(--slate);white-space:nowrap;margin-top:2px;text-align:right}
+.prevcost .up{color:var(--danger);font-weight:600}
+.prevcost .dn{color:var(--ok);font-weight:600}
+#grItems tr.gadjsel>td{background:#fffaed}
+.prevcost{overflow:hidden;text-overflow:ellipsis}
+/* ยึดขอบบนของทุกช่องในแถวให้ตรงกัน — ป้ายราคาเดิมในระบบเป็นส่วนเดียวที่ยื่นลงด้านล่าง
+   (เดิม vertical-align:middle ทำให้ช่องราคาทุนถูกป้ายดันขึ้นสูงกว่าช่องอื่น) */
+#grItems tbody td{vertical-align:top}
+#grItems tbody td:not(:has(input,button)){padding-top:13px}   /* ช่องตัวหนังสือล้วน ขยับให้บรรทัดตรงกับตัวหนังสือในช่องกรอก */
+#grItems .gsel{margin-top:9px}   /* ช่องติ๊กเล็กกว่าช่องกรอก เลื่อนลงให้อยู่แนวเดียวกัน */
+.gaflabel{font-size:11.5px;color:var(--slate);font-weight:600;margin:0 0 5px}
+.gaopts{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
+.gaopt{flex:1 1 46%;min-width:170px;display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:2px;padding:8px 10px;cursor:pointer;background:#fff}
+.gaopt.wide{flex:1 1 100%}
+.gaopt:hover{background:#f6f8f9}
+.gaopt.on{border-color:var(--ok);background:#f2f9f5}
+.gaopt .dot{width:17px;height:17px;border-radius:50%;border:2px solid var(--line);flex:none;display:grid;place-items:center;color:#fff;font-size:10px;font-weight:700}
+.gaopt.on .dot{background:var(--ok);border-color:var(--ok)}
+.gaopt .lb{font-size:12.5px;font-weight:500;line-height:1.3}
+.gaopt .lb small{display:block;font-weight:400;color:var(--slate);font-size:11px}
+.gaamt{display:flex;align-items:stretch;margin-bottom:7px}
+.gaamt input{border-radius:2px 0 0 2px;font-size:19px;font-family:'Sarabun',sans-serif;text-align:right;padding:8px 10px}
+.gaamt .suf{border:1px solid var(--line);border-left:0;border-radius:0 2px 2px 0;background:#f2f5f6;display:grid;place-items:center;padding:0 12px;font-weight:600;color:var(--slate);min-width:96px;white-space:nowrap;font-size:12px}
+.gaarw{color:var(--slate);text-align:center;width:24px}
+.ganew{font-weight:700}
+.ganew.up{color:var(--ok)}
+.ganew.dn{color:var(--danger)}
+/* ดรอปดาวน์ค้นหาสินค้าในใบรับสินค้า */
+.grpick{position:relative;display:block}
+.grpick-list{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--line);max-height:300px;overflow-y:auto;z-index:45;box-shadow:0 10px 22px rgba(15,20,24,.16)}
+.grpick-it{display:flex;gap:10px;align-items:center;padding:7px 10px;cursor:pointer;border-bottom:1px solid var(--line2);font-size:13px}
+.grpick-it:hover,.grpick-it.hl{background:#fff8e6}
+.grpick-it .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.grpick-it .sub{flex:none;font-size:11px;color:var(--slate);font-family:'Sarabun',sans-serif;text-align:right;line-height:1.35}
+.grpick-emp{padding:10px 12px;font-size:12px;color:var(--slate)}
+/* ปุ่มแบ่งหน้า — ใช้ร่วมทุกทะเบียนที่มีช่อง "แสดง n รายการ" */
+.pgbar{display:inline-flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-left:8px;vertical-align:middle}
+.pgbar button{background:#fff;border:0;border-right:1px solid var(--line);padding:5px 11px;cursor:pointer;
+  font-family:inherit;font-size:12.5px;font-weight:600;color:var(--blue);min-width:34px}
+.pgbar button:last-child{border-right:0}
+.pgbar button:hover:not(:disabled):not(.on){background:#eef4f9}
+.pgbar button.on{background:var(--ok);color:#fff;cursor:default}
+.pgbar button:disabled{color:var(--slate);cursor:default;background:#fff}
+.pgbar .gap{padding:5px 8px;color:var(--slate);font-size:12.5px;border-right:1px solid var(--line)}
+@media(max-width:560px){ .pgbar{margin-left:0;margin-top:6px} .pgbar button{padding:6px 10px} }
+/* แถบเลขหน้าชิดขวา — ตัวบนอยู่ท้ายแถบเครื่องมือ · ตัวล่างอยู่ใต้ตาราง กดต่อได้เลยไม่ต้องเลื่อนกลับขึ้นไป */
+#taxBuyTbl tr.noinv>td{background:#fff8e6}
+#taxBuyTbl tr.noinv:hover>td{background:#fdf1d4}
+.pgtop{margin-left:auto;flex:0 0 auto}
+.pgbottom{display:flex;justify-content:flex-end;align-items:center;gap:10px;
+  padding:9px 12px;border-top:1px solid var(--line2);background:#fbfcfc;flex-wrap:wrap}
+.pgbottom .hint{margin-right:auto}
+@media(max-width:560px){ .pgbottom{justify-content:center} .pgbottom .hint{margin-right:0;width:100%;text-align:center} }
+.whoSug .it.hl{background:#fff8e6}
+/* ช่องพิมพ์ค้นหาที่ "เลือกค่าไว้แล้ว" (ลูกค้า · ผู้ขาย · ใบอ้างอิง) — ตัวอักษรเข้มและหนาขึ้น
+   ให้ต่างจากข้อความชวนพิมพ์สีจาง จะได้รู้ทันทีว่าช่องนี้มีค่าอยู่ */
+#qCustSearch,#grVendorPick,#clVendorSearch,#ivCustSearch,#bnCustSearch,
+#rSrcSearch,#clGrRefSearch,#clReceiptRefSearch,#taxNewSearch{color:var(--ink);font-weight:600}
+/* บรรทัดกำกับใต้ยอดเงินฝั่งขวา (meta2) — ตัวเข้มสะดุดตา ใช้บอกว่าใบนี้ออกใบเสร็จไปแล้ว */
+.whoSug .it .r b.r2{display:block;margin-top:2px;font-size:11.5px;font-weight:700;color:var(--ink)}
+/* หัวใบเสนอราคา: วันที่สองช่องแคบลง ยกพื้นที่ให้ช่องลูกค้า (จอมือถือยุบ 1 คอลัมน์ตามกติกาเดิม) */
+#qHeadGrid{grid-template-columns:150px 150px 1.5fr 1.1fr 90px}   /* 150px = ตัวเลขวันที่ไม่เบียดไอคอนปฏิทิน */
+/* หัวฟอร์มใบเสร็จ: ช่องดึงใบเสนอราคากว้างสุด · วันที่ 150px · สองช่องอ้างอิงเท่ากัน (มือถือยุบ 1 คอลัมน์ตามกติกาเดิม) */
+#rHeadGrid{grid-template-columns:1.9fr 150px 1fr 1fr}
+/* ป้ายสถานะ — เดิมถูกใช้ทั่วระบบแต่ไม่เคยมี CSS จึงแสดงเป็นตัวอักษรเปล่า */
+.stbtn{display:inline-block;font-size:11px;padding:2px 9px;border-radius:999px;border:1px solid var(--line);
+  background:#f6f8f9;font-weight:600;line-height:1.55;white-space:nowrap;font-family:inherit}
+button.stbtn{cursor:pointer}
+.st-green{background:#e7f4ed;border-color:#b6dcc7;color:#14603c}
+.st-orange{background:#fff3d6;border-color:#f0d79a;color:#7a5600}
+.st-red{background:#fdeceb;border-color:#efc3bf;color:#8e2b22}
+.st-blue{background:#e9f1f8;border-color:#8fb8db;color:#17466b}
+.st-grey{background:#f0f3f5;border-color:var(--line);color:var(--slate)}
+
+.cats{display:flex;gap:6px;flex-wrap:wrap;padding:9px 12px;border-bottom:1px solid var(--line2);background:#fbfcfc}
+.cats button{background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px 12px;cursor:pointer;font-size:12.5px}
+.cats button .c{font-family:'Sarabun',sans-serif;font-size:10.5px;color:var(--slate);margin-left:6px}
+.cats button .st{color:var(--amber);letter-spacing:1px}
+.cats button.on{background:var(--steel);color:#fff;border-color:var(--steel)}
+.cats button.on .c{color:#9fb0bd}
+
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{background:#f2f5f6;text-align:left;padding:7px 8px;font-size:11.5px;color:var(--slate);font-weight:600;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td{padding:6px 8px;border-bottom:1px solid var(--line2);vertical-align:middle}
+.tbl tr:hover td{background:#fafbfc}
+.tbl .num{text-align:right;font-family:'Sarabun',sans-serif}
+.tbl .ctr{text-align:center}
+.tbl tr.click{cursor:pointer}
+.scroll{overflow-x:auto}
+.empty{padding:24px;text-align:center;color:var(--slate);font-size:13px}
+
+td.codecell{padding:0;position:relative}
+.codechip{display:block;padding:6px 10px;font-family:'Sarabun',sans-serif;font-weight:700;border-left:4px solid transparent;font-size:13px;color:#d98200}
+.codechip:hover{text-decoration:underline}
+/* รูปอะไหล่ในตารางทะเบียน */
+.thumb{width:46px;height:46px;object-fit:cover;border-radius:3px;border:1px solid var(--line);background:#fff;cursor:pointer;display:block;margin:0 auto}
+.thumb-none{font-size:10.5px;color:var(--slate)}
+.codechip.flag{border-left-color:rgba(0,0,0,.35)}
+.flagdots{position:absolute;right:4px;top:50%;transform:translateY(-50%);display:flex;gap:3px}
+.flagdots i{width:6px;height:6px;border-radius:50%;display:block;border:1px solid rgba(0,0,0,.25)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--slate);align-items:center}
+.secthead{display:flex;align-items:center;gap:12px;margin:22px 0 12px;padding-bottom:7px;border-bottom:2px solid var(--steel)}
+.secthead:first-of-type{margin-top:4px}
+.secthead h2{margin:0;font-size:15px;font-weight:600;letter-spacing:.2px}
+.secthead .no{font-family:'Sarabun',sans-serif;font-size:11px;background:var(--steel);color:#fff;padding:2px 9px;border-radius:2px}
+.apvbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;padding:8px 12px;border-bottom:1px solid var(--line2);background:#fbfcfc}
+/* หมวด 04 — ตรึงแถบปุ่มไว้ด้านบนขวา เพื่อกดบันทึก/ส่งขออนุมัติ/อนุมัติได้โดยไม่ต้องเลื่อนกลับขึ้นไป */
+.modal .sheet.sticky-act>.panel>header{position:sticky;top:0;z-index:6}
+.modal .sheet.sticky-act .apvbar{position:sticky;top:var(--hdrH,52px);z-index:5}
+.apvbar .who{font-size:11.5px;color:var(--slate)}
+/* กลุ่มปุ่มของแถบอนุมัติ — ชิดขวาเสมอ แม้ตกลงบรรทัดใหม่บนจอแคบ
+   (.spacer ดันขวาได้เฉพาะบรรทัดแรก · ที่นี่ยอมให้ปุ่มตัดบรรทัดได้ แต่ทุกบรรทัดยังชิดขวา) */
+.apv-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-left:auto}
+.draftstamp{display:none}
+.prodrow{display:flex;gap:6px;margin:5px 0 4px}
+.prodrow i{font-style:normal;font-size:11.5px;font-weight:600;color:var(--amber-d,#a86f00);
+  border:1px solid #f0d79a;background:#fff8e6;border-radius:999px;padding:2px 11px;letter-spacing:.2px}
+.rmark{font-size:.62em;vertical-align:super;line-height:0;margin-left:1px;font-weight:600}
+.lic{font-size:11px;color:#9fb0bd;margin-top:2px;white-space:nowrap}
+.lic b{color:#fff;font-family:'Sarabun',sans-serif;font-weight:600}
+.lic .warn{color:var(--amber);font-weight:700;animation:licblink 1s steps(1,end) infinite;margin-right:3px}
+.lic .days{color:var(--amber)}
+.lic .exp{color:#ff9a8f}
+@keyframes licblink{0%,49%{opacity:1}50%,100%{opacity:.15}}
+@media(prefers-reduced-motion:reduce){.lic .warn{animation:none}}
+.licbar{background:#fff8e6;border:1px solid #f0d79a;border-left:4px solid var(--amber);padding:10px 13px;border-radius:2px;margin-bottom:14px}
+.licbar.dead{background:#fdeceb;border-color:#edb9b3;border-left-color:var(--danger)}
+.licbar b{font-size:13px}
+.vendor{display:flex;align-items:center;gap:9px;padding-left:16px;margin-left:16px;border-left:1px solid #46525b}
+.vendor img{width:42px;height:42px;border-radius:50%;object-fit:cover;background:#fff;flex:none;box-shadow:0 0 0 2px #46525b}
+.vendor .vt{line-height:1.25}
+.vendor .vt b{display:block;font-size:12px;font-weight:600;color:#fff;letter-spacing:.1px}
+.vendor .vt .prod{display:flex;gap:5px;margin:3px 0 2px}
+.vendor .vt .prod i{font-style:normal;font-size:10.5px;font-weight:600;color:var(--amber);
+  border:1px solid rgba(240,164,0,.55);border-radius:999px;padding:1px 8px;letter-spacing:.2px;line-height:1.5}
+.vendor .vt span{display:block;font-size:10px;color:#9fb0bd}
+.vendor .vt a{display:block;font-size:10.5px;color:var(--amber);text-decoration:none;font-family:'Sarabun',sans-serif;margin-top:1px}
+.vendor .vt a:hover{text-decoration:underline}
+@media(max-width:760px){.vendor{padding-left:0;margin-left:0;border-left:0;border-top:1px solid #46525b;padding-top:9px;width:100%}}
+.userbox{display:flex;align-items:center;gap:8px}
+.brandline{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.brandline .cap{font-family:'Sarabun',sans-serif;font-weight:700;font-size:13.5px;border-radius:99px;padding:3.5px 16px;border:1.5px solid;line-height:1.35}
+.brandline .capx{color:var(--amber);border-color:var(--amber)}
+.brandline .capeco{color:#3DDC84;border-color:#3DDC84;text-shadow:0 0 12px rgba(61,220,132,.35)}
+.brandline .rmark{font-size:8px;vertical-align:super}
+/* ══ คลังความรู้ (บทความ/คลิป) ══ */
+.lrnCard{display:flex;gap:12px;border:1px solid var(--line2);border-radius:8px;padding:11px 13px;margin-top:8px;background:#fff;align-items:flex-start}
+.lrnCard .lic2{flex:0 0 auto;width:42px;height:42px;border-radius:8px;background:#f4f6f7;border:1px solid var(--line2);display:grid;place-items:center;font-size:20px}
+.lrnCard .lbody{flex:1;min-width:0}
+.lrnCard .lbody b{font-size:13.5px}
+.lrnCard .lmeta{font-size:11.5px;color:#5b6873;margin-top:2px}
+.lrnCard .ldesc{font-size:12.5px;color:#3c4650;margin-top:4px;line-height:1.6}
+.lrnCard .lact{flex:0 0 auto;display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.visw{display:inline-flex;border:1px solid var(--line);border-radius:99px;overflow:hidden;cursor:pointer}
+.visw span{font-size:10.5px;padding:3px 10px;font-weight:600;color:#8a96a0;background:#fff}
+.visw span.on.pv{background:#3c4650;color:#fff}
+.visw span.on.pb{background:var(--ok);color:#fff}
+.topicChip{border:1px solid var(--line);background:#fff;border-radius:99px;padding:4px 13px;font-size:12px;cursor:pointer;font-family:inherit}
+.topicChip.on{background:var(--amber);border-color:#c98a00;color:#1a1204;font-weight:600}
+
+/* ══ ห้องเทคนิคบนจอมือถือ: การ์ดแนวตั้ง อ่านเต็มความกว้าง ══ */
+@media(max-width:760px){
+  /* แถบแท็บ 3 ปุ่ม → เรียงลงเต็มแถว แตะง่าย */
+  #trTabsIn{flex-wrap:wrap;gap:6px}
+  #trTabsIn button{flex:1 1 100%;text-align:left;padding:11px 14px;font-size:14px}
+  /* แถบอธิบาย 3 ขั้น (คลังกลาง) → แนวตั้ง */
+  .pxsteps{flex-direction:column}
+  .pxsteps .stp{border-right:0;border-bottom:1px dashed var(--line2)}
+  /* หัวการ์ดความรู้: ปุ่มเพิ่ม/หมวด ห่อบรรทัดเต็มกว้าง */
+  #tech-learn .panel header{flex-wrap:wrap;gap:8px}
+  #tech-learn .panel header .btn{flex:1 1 auto;padding:9px 12px;font-size:13.5px}
+  /* การ์ดเนื้อหา: แถว1 ไอคอน+ชื่อเรื่อง / แถว2 รายละเอียดเต็มกว้าง / แถว3 สวิตช์+ปุ่ม */
+  .lrnCard{flex-wrap:wrap;gap:10px;padding:13px}
+  .lrnCard .lic2{width:38px;height:38px;font-size:18px}
+  .lrnCard .lbody{flex:1 1 calc(100% - 50px);min-width:calc(100% - 50px)}
+  .lrnCard .lbody b{font-size:15.5px;line-height:1.55;display:block}
+  .lrnCard .lmeta{font-size:12px;margin-top:4px;line-height:1.6}
+  .lrnCard .ldesc{font-size:13.5px;line-height:1.7;margin-top:6px}
+  .lrnCard .lact{flex:1 1 100%;flex-direction:row;justify-content:space-between;align-items:center;border-top:1px dashed var(--line2);padding-top:10px}
+  .lrnCard .visw span{font-size:12.5px;padding:6px 13px}
+  .lrnCard .lact>div{gap:8px}
+  .lrnCard .lact .btn{padding:8px 16px;font-size:13.5px}
+  /* ตัวกรองหมวด + คำอธิบาย Private/Published */
+  #tech-learn .row{flex-direction:column;align-items:flex-start!important}
+  #tech-learn .row .hint[style*="margin-left"]{margin-left:0!important}
+  /* ตารางสเปค: ฟอนต์กระชับ เลื่อนแนวนอนลื่น */
+  #pxTechTbl{font-size:12.5px;min-width:860px}
+  #tech-spec .row input#pxTechQ{width:100%!important}
+  #tech-spec .row{flex-direction:column;align-items:stretch}
+}
+
+/* ══ แท็บคลังกลาง ProX: ทองเมื่อปกติ / เข้มอ่านชัดเมื่อ active ══ */
+#stkTabs button[data-s=px]:not(.on){color:var(--amber);font-weight:600}
+#stkTabs button[data-s=px].on{color:#1a1204;font-weight:700}
+#proxTabs button[data-p=tech]:not(.on){color:var(--amber)}
+/* ══ แถบอธิบายขั้นตอน + คำขอสินค้าใหม่ ══ */
+.pxsteps{display:flex;gap:0;border-bottom:1px solid var(--line2);background:#fffdf4}
+.pxsteps .stp{flex:1;display:flex;gap:9px;align-items:flex-start;padding:11px 14px;border-right:1px dashed var(--line2)}
+.pxsteps .stp:last-child{border-right:0}
+.pxsteps .n{flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:var(--amber);color:#1a1204;font-weight:700;font-size:12px;display:grid;place-items:center;font-family:'Sarabun',sans-serif}
+.pxsteps b{font-size:12.5px;display:block}
+.pxsteps span{font-size:11.5px;color:#5b6873;line-height:1.5}
+.reqst{font-size:11.5px;border-radius:99px;padding:2px 10px;font-weight:600}
+.rq-w{background:#fff3cd;color:#7a5600}.rq-a{background:#e6f4ea;color:#1f7a4d}
+
+/* ══ บล็อกลิขสิทธิ์/ผู้พัฒนา มุมขวาบน (ย้ายจากท้าย sidebar) ══ */
+.top-vendor{display:flex;flex-direction:column;align-items:flex-end;gap:3px;margin-left:auto;padding-left:16px;border-left:1px solid rgba(255,255,255,.15);flex:0 0 auto;text-align:right}
+.top-vendor .tvl1{display:flex;align-items:center;gap:8px}
+.top-vendor .tvl1 img{width:24px;height:24px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.25)}
+.top-vendor .tvl1 b{font-size:12px;color:#fff;white-space:nowrap}
+.top-vendor .tvprod{display:flex;gap:5px}
+.top-vendor .tvprod i{font-style:normal;font-family:'Sarabun',sans-serif;font-weight:600;font-size:10px;color:var(--amber);border:1px solid rgba(240,164,0,.55);border-radius:99px;padding:1px 8px;white-space:nowrap}
+.top-vendor .rmark{font-size:7px;vertical-align:super}
+.top-vendor .tvl2{font-size:10.5px;color:#9fb0bd;display:flex;align-items:center;gap:6px;flex-wrap:nowrap;white-space:nowrap}
+.top-vendor .tvl2 b#today{color:#fff;font-family:'Sarabun',sans-serif;font-weight:600;font-size:10.5px}
+.top-vendor .tvl2 .lic{white-space:nowrap}
+.top-vendor .tvl2 .lic b{color:#fff}
+.top-vendor .tvl2 .lic .warn{color:#ffb84d}
+.top-vendor .tvl2 .lic .days,.top-vendor .tvl2 .lic .exp{color:#ff8a80}
+.top-vendor .tvl2 a{color:var(--amber);text-decoration:none;font-weight:600}
+.top-vendor .tvl2 .tvsep{opacity:.45}
+@media(max-width:1180px){.top-vendor .tvl1 b{display:none}}
+@media(max-width:900px){.top-vendor{display:none}}
+
+/* ══ กระดิ่งแจ้งเอกสารรออนุมัติ ══ โชว์เฉพาะคนที่มีสิทธิ์อนุมัติ · สั่นเมื่อมีของค้างจริง */
+.bell{display:none;position:relative;background:transparent;border:0;cursor:pointer;padding:6px 7px;line-height:1;border-radius:10px;flex:0 0 auto}
+/* ไม่ใส่ margin-left:auto ที่กระดิ่ง — ปล่อยให้ .userbox เป็นตัวดันคู่นี้ไปชิดขวาพร้อมกัน
+   (ถ้าใส่ทั้งคู่ ช่องว่างจะไปแทรกระหว่างช่องผู้ใช้กับกระดิ่ง) */
+.bell.show{display:block;margin-left:4px}
+.bell:hover{background:rgba(255,255,255,.12)}
+.bell .bicon{font-size:21px;display:block}
+.bell .bcount{display:none;position:absolute;top:-2px;right:-4px;background:var(--danger);color:#fff;
+  font-size:10.5px;font-weight:700;min-width:19px;height:19px;border-radius:999px;align-items:center;justify-content:center;
+  padding:0 5px;border:2px solid var(--steel);font-family:'Sarabun',sans-serif}
+.bell.on .bcount{display:flex}
+/* สั่นแรงขึ้นและพักสั้นลงกว่าเดิม (เดิม 14° รอบ 2.4s สังเกตยาก) — ให้เห็นชัดว่ามีของค้างรออนุมัติ */
+@keyframes bellring{0%,64%,100%{transform:rotate(0)}
+  4%,16%,28%,40%{transform:rotate(20deg)}
+  10%,22%,34%,46%{transform:rotate(-20deg)}
+  52%{transform:rotate(9deg)}58%{transform:rotate(-6deg)}}
+.bell.on .bicon{animation:bellring 1.9s ease-in-out infinite;transform-origin:50% 12%}
+/* ป้ายตัวเลขเต้นเบา ๆ พร้อมกัน ให้สะดุดตาแม้มองผ่าน ๆ */
+@keyframes bellpulse{0%,70%,100%{transform:scale(1)}12%{transform:scale(1.22)}30%{transform:scale(1)}}
+.bell.on .bcount{animation:bellpulse 1.9s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){.bell.on .bicon,.bell.on .bcount{animation:none}}
+/* การ์ดสรุปจำนวนเอกสารรออนุมัติ (กดเพื่อกรองตาราง) */
+.apvcards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:900px){.apvcards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.apvcards{grid-template-columns:1fr}}
+.apvcard{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:12px;
+  padding:12px 14px;cursor:pointer;text-align:left;font-family:inherit;transition:border-color .15s,box-shadow .15s}
+.apvcard:hover{border-color:var(--amber);box-shadow:0 2px 10px rgba(16,24,40,.10)}
+.apvcard.on{border-color:var(--amber);background:#fffaf0}
+.apvcard .ic{width:46px;height:46px;border-radius:10px;background:#1a9aa6;color:#fff;display:flex;
+  align-items:center;justify-content:center;font-size:21px;flex:0 0 auto}
+.apvcard .tx b{display:block;font-size:14px;color:var(--ink)}
+.apvcard .tx span{font-size:12px;color:var(--slate)}
+.apvwait{font-family:'Sarabun',sans-serif;font-weight:700}
+.apvwait.w0{color:var(--slate)} .apvwait.w1{color:#b45309} .apvwait.w2{color:var(--danger)}
+.userbox select{padding:5px 8px;border-radius:2px;border:1px solid #4a555e;background:#1b2126;color:#fff}
+.hbar{display:flex;align-items:center;gap:9px;margin-bottom:7px}
+.hbar .lb{width:150px;font-size:12px;text-align:right;color:var(--slate);flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hbar .tr{flex:1;background:#eef1f3;height:16px;border-radius:2px;overflow:hidden;border:1px solid var(--line2)}
+.hbar .tr i{display:block;height:100%;background:var(--steel)}
+.hbar:nth-child(1) .tr i{background:var(--amber)}
+.hbar .vl{width:110px;text-align:right;font-family:'Sarabun',sans-serif;font-size:12px;flex:none}
+/* กล่องกึ่งกลางสำหรับวางแถบเลขหน้า .pgbar ใต้แผงหน้า 00 */
+.pgpanel{display:flex;justify-content:center;padding:6px 14px 10px}
+.pgpanel .pgbar{margin-left:0}
+.hbar .tr{position:relative}
+.pctlb{position:absolute;top:50%;font-size:10.5px;font-weight:700;font-family:'Sarabun',sans-serif;pointer-events:none;white-space:nowrap}
+.pctlb.in{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.45)}
+.pctlb.out{color:var(--steel)}
+/* โหมดเปรียบเทียบ: สองแถบต่อรายการ บน=ช่วง A ล่าง=ช่วง B (เทา) */
+.cmplegend{display:flex;gap:18px;align-items:center;font-size:13px;color:var(--steel);margin:0 0 12px}
+.cmplegend i{display:inline-block;width:16px;height:10px;border-radius:2px;margin-right:5px;vertical-align:baseline}
+.hbarc{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.hbarc .lb{width:150px;font-size:13.5px;font-weight:600;text-align:right;color:var(--steel);flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hbarc .trs{flex:1;display:flex;flex-direction:column;gap:4px}
+.hbarc .tr{position:relative;background:#eef1f3;height:20px;border-radius:3px;overflow:hidden;border:1px solid var(--line2)}
+.hbarc .tr i{display:block;height:100%}
+.hbarc .pctlb{font-size:12.5px}
+.hbarc .vlc{width:158px;flex:none;display:flex;flex-direction:column;align-items:flex-end;line-height:1.35;font-family:'Sarabun',sans-serif}
+.hbarc .vlc b{font-size:13.5px}
+.hbarc .vlc small{font-size:12px;color:var(--slate)}
+.hbarc .vlc .chg{font-size:12px;font-weight:700;font-style:normal}
+.chg.up{color:var(--ok)} .chg.dn{color:var(--danger)} .chg.fl{color:var(--slate)}
+.permgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px 14px}
+@media(max-width:700px){.permgrid{grid-template-columns:1fr}}
+.permgrid label{font-size:12.5px;display:flex;gap:6px;align-items:center;padding:2px 0}
+.permbox{border:1px solid var(--line2);border-radius:2px;padding:9px 11px;margin-bottom:9px;background:#fbfcfc}
+.permbox h4{margin:0 0 6px;font-size:12.5px;font-weight:600}
+.wmark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:0}
+.wmark img{max-width:62%;max-height:52%;filter:grayscale(1)}
+.sheetpage>*:not(.wmark){position:relative;z-index:1}
+.sheetpage .apvwm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:2;overflow:hidden}
+.sheetpage .apvwm span{font-size:56px;font-weight:700;color:rgba(176,58,46,.15);border:4px solid rgba(176,58,46,.15);border-radius:8px;padding:8px 34px;transform:rotate(-24deg);white-space:nowrap;letter-spacing:8px}
+.dochead .logo{max-height:46px;max-width:150px;margin-bottom:4px;display:block}
+.invsum{background:#fff;border:1px solid var(--line);border-left:4px solid var(--amber);border-radius:var(--r);padding:9px 14px;min-width:290px}
+.invsum .k{font-size:11.5px;color:var(--slate);font-weight:500}
+.invsum .v{font-family:'Sarabun',sans-serif;font-size:24px;font-weight:600;letter-spacing:-.5px;line-height:1.15;margin:1px 0 2px}
+.invsum .v span{font-size:13px;font-weight:400;color:var(--slate);letter-spacing:0}
+.invsum .s{font-size:11.5px;color:var(--slate)}
+.invsum .s b{color:var(--ink);font-family:'Sarabun',sans-serif}
+.invsum .fl{color:var(--amber-d,#a86f00);font-weight:500}
+.sheetpage .bl{border-bottom:1px dotted #555;display:inline-block;min-width:60px;height:14px;vertical-align:-2px}
+.blink{color:var(--amber);animation:ambblink 1.1s steps(1,end) infinite;font-weight:700}
+@keyframes ambblink{0%,55%{opacity:1}56%,100%{opacity:.2}}
+@media(prefers-reduced-motion:reduce){.blink{animation:none}}
+/* ปุ่มบันทึกกระพริบตลอด — ตั้งใจไม่ปิดตาม prefers-reduced-motion เพราะเป็นข้อกำหนดการใช้งาน */
+.btn.blinkbtn{animation:btnblink 1.15s steps(1,end) infinite}
+@keyframes btnblink{0%,58%{opacity:1}59%,100%{opacity:.4}}
+.vatgate{display:none;padding:26px 18px;text-align:center;color:var(--slate);font-size:13px;line-height:1.7}
+.vatgate b{display:block;font-size:14.5px;color:var(--ink);margin-bottom:4px}
+.vatoff>.vatgate{display:block}
+.vatoff>*:not(.vatgate){display:none!important}
+/* แถบเตือนโหมดอ่านอย่างเดียว — เลิกจดทะเบียน VAT แล้วแต่ยังมีเอกสารเก่าให้ดูย้อนหลัง */
+.vatro{background:#fff8e6;border:1px solid #f0d79a;border-radius:var(--r);padding:9px 12px;
+  font-size:12.5px;color:#7a5600;margin-bottom:12px}
+.vatoff>.vatro{display:none!important}
+.btn.pri .blink{color:#7a4a00}
+.stars{white-space:nowrap;font-size:15px;line-height:1;letter-spacing:1px;color:#d6dbe0}
+.stars b{color:var(--amber);font-weight:400}
+.stars.click i{cursor:pointer;font-style:normal;transition:transform .1s}
+.stars.click i:hover{transform:scale(1.25)}
+.gradebox{display:flex;gap:9px;align-items:center}
+.mbar{background:#eef1f3;height:9px;border-radius:2px;overflow:hidden;border:1px solid var(--line2)}
+.mbar i{display:block;height:100%;background:var(--steel)}
+.tbl tfoot td{background:#f2f5f6;font-weight:600;border-top:2px solid var(--line);border-bottom:0}
+.legend .sw{width:22px;height:12px;display:inline-block;border:1px solid rgba(0,0,0,.2);margin-right:5px;vertical-align:-1px}
+
+/* dashboard */
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.cards.c5{grid-template-columns:repeat(5,1fr)}
+.cards.c6{grid-template-columns:repeat(6,1fr)}
+.card .cbtn{margin-top:6px;font-size:11px;padding:4px 10px}
+@media(max-width:1400px){.cards.c6{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:1100px){.cards.c6{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:1100px){.cards{grid-template-columns:repeat(2,1fr)}.cards.c5{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.cards{grid-template-columns:1fr}.cards.c5{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--line);border-top:3px solid var(--steel);border-radius:var(--r);padding:12px 14px}
+.card.amber{border-top-color:var(--amber)} .card.red{border-top-color:var(--danger)} .card.green{border-top-color:var(--ok)}
+.card .k{font-size:11.5px;color:var(--slate);font-weight:500}
+.card .v{font-size:25px;font-weight:600;font-family:'Sarabun',sans-serif;letter-spacing:-.5px;margin:2px 0}
+.card .s{font-size:11.5px;color:var(--slate)}
+.card .s b{color:var(--ink)}
+.alert{background:#fdeceb;border:1px solid #edb9b3;border-left:4px solid var(--danger);padding:10px 13px;border-radius:2px;margin-bottom:14px}
+.alert b{color:#8e2b22}
+/* ══ กล่องเตือนหน้าแรกแบบยุบได้ ══
+   เดิมกางรายชื่อ 5 บรรทัดตลอดเวลา สองกล่องรวมกันสูง 420px ดันการ์ดตัวเลขหลุดจอแรกบนมือถือ
+   ตอนนี้เหลือบรรทัดเดียว กดหัวข้อเพื่อกาง · ปุ่มขวาลิงก์ตรงไปหน้ารายงานเต็ม */
+.alert-slim{padding:9px 13px}
+.alert-slim .alert-head{display:flex;align-items:center;gap:10px;cursor:pointer;flex-wrap:wrap}
+.alert-slim .alert-head b{flex:0 1 auto;min-width:0}
+.alert-slim .alert-ch{color:var(--slate);font-size:12px;transition:transform .15s ease;flex:0 0 auto}
+.alert-slim.open .alert-ch{transform:rotate(180deg)}
+.alert-slim .alert-body{display:none;margin-top:8px;padding-top:8px;border-top:1px dashed rgba(0,0,0,.14)}
+.alert-slim.open .alert-body{display:block}
+.alert-apv{background:#fff8e6;border-color:#f0d79a;border-left-color:var(--amber)}
+.bars{display:flex;align-items:flex-end;gap:8px;height:120px;padding:4px 2px 0}
+.bars .b{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;height:100%}
+.bars .b i{display:block;width:100%;background:var(--steel);min-height:2px;border-radius:2px 2px 0 0}
+.bars .b.blt i{background:#7fa5d0}   /* เดือนคี่ ฟ้าอ่อน */
+.bars .b.bdk i{background:#1f5c8c}   /* เดือนคู่ ฟ้าเข้ม */
+.bars .b span{font-size:14px;font-weight:700;color:var(--ink);font-family:'Sarabun',sans-serif}
+.bars .b em{font-size:10.5px;font-style:normal;font-family:'Sarabun',sans-serif}
+
+.modal{position:fixed;inset:0;background:rgba(15,20,24,.55);display:none;padding:18px;overflow:auto;z-index:50}
+.modal.on{display:block}
+.modal.center{z-index:60}
+.modal.center.on{display:grid;place-items:center}
+/* ป๊อปอัพทั้งระบบมุมโค้ง 12px — overflow:hidden ให้แถบหัว/ท้ายโค้งตามกรอบ ไม่มีมุมแหลมโผล่ */
+.modal .sheet{background:#fff;max-width:1000px;margin:0 auto;border-radius:12px;border:1px solid var(--line);overflow:hidden;box-shadow:0 18px 44px rgba(15,20,24,.18)}
+.modal .sheet.wide{max-width:1200px}
+.modal .sheet>header{padding:10px 14px;border-bottom:1px solid var(--line2);display:flex;align-items:center;background:#f6f8f9;gap:10px}
+.modal .sheet>header h2{margin:0;font-size:14px}
+.modal .sheet .body{padding:14px}
+.modal .sheet footer{padding:10px 14px;border-top:1px solid var(--line2);display:flex;gap:8px;justify-content:flex-end;background:#f6f8f9}
+
+/* แจ้งเตือนแสดงกึ่งกลางด้านบนของจอ (เดิมอยู่ด้านล่าง มองไม่ถนัด) */
+/* ป้ายยืนยันการบันทึก — ขึ้นกลางจอพร้อมเครื่องหมายถูกที่ค่อย ๆ วาดตัวเอง
+   ให้คนบันทึกมั่นใจว่าเอกสารถูกบันทึกจริง ไม่ใช่แค่ข้อความเล็ก ๆ ที่อาจมองข้าม */
+.savefx{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;pointer-events:none}
+.savefx.on{display:flex}
+.savefx .box{background:#fff;border:1px solid var(--line);border-radius:18px;
+  padding:22px 26px 18px;text-align:center;box-shadow:0 18px 50px rgba(15,20,24,.22);
+  max-width:min(330px,84vw);animation:savepop .32s cubic-bezier(.2,1.5,.4,1) both}
+.savefx .tick{width:62px;height:62px;margin:0 auto 10px;border-radius:50%;background:#e7f4ed;
+  display:grid;place-items:center;animation:savering .5s ease-out both}
+.savefx svg{width:34px;height:34px}
+.savefx svg path{fill:none;stroke:#12945a;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:36;stroke-dashoffset:36;animation:savedraw .42s .16s ease-out forwards}
+.savefx .t1{font-size:15.5px;font-weight:700;color:var(--ink)}
+.savefx .t2{font-size:12px;color:var(--slate);margin-top:4px;font-family:'Sarabun',sans-serif;
+  line-height:1.5;word-break:break-word}
+.savefx .t2:empty{display:none}
+/* เครื่องหมายถูกในป๊อปอัพยืนยัน — บอกว่า "ทำเสร็จแล้ว" ก่อนถามว่าจะไปทำอะไรต่อ */
+.asktick{text-align:center;padding:4px 0 14px;margin-bottom:12px;border-bottom:1px solid var(--line2)}
+.asktick .tick{width:56px;height:56px;margin:0 auto 8px;border-radius:50%;background:#e7f4ed;
+  display:grid;place-items:center;animation:savering .45s ease-out both}
+.asktick svg{width:31px;height:31px}
+.asktick svg path{fill:none;stroke:#12945a;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:36;stroke-dashoffset:36;animation:savedraw .42s .14s ease-out forwards}
+.asktick-t{font-size:13px;font-weight:700;color:#12945a}
+.asktick-t:empty{display:none}
+@media(prefers-reduced-motion:reduce){
+  .asktick .tick,.asktick svg path{animation:none}
+  .asktick svg path{stroke-dashoffset:0}
+}
+@keyframes savepop{0%{opacity:0;transform:scale(.86)}100%{opacity:1;transform:scale(1)}}
+@keyframes savering{0%{transform:scale(.5);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes savedraw{to{stroke-dashoffset:0}}
+.savefx.out .box{animation:savefade .28s ease-in forwards}
+@keyframes savefade{to{opacity:0;transform:scale(.96) translateY(-6px)}}
+@media(prefers-reduced-motion:reduce){
+  .savefx .box,.savefx .tick,.savefx svg path{animation:none}
+  .savefx svg path{stroke-dashoffset:0}
+}
+.toast{position:fixed;left:50%;top:18px;transform:translateX(-50%) translateY(-90px);
+  background:var(--ink);color:#fff;padding:10px 20px;border-radius:3px;opacity:0;transition:.25s;
+  z-index:99;border-left:3px solid var(--amber);box-shadow:0 6px 22px rgba(15,20,24,.28);
+  max-width:min(720px,92vw);text-align:center;line-height:1.5}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(prefers-reduced-motion:reduce){.toast{transition:none}}
+
+/* ---------- documents ---------- */
+#printStage{display:none}
+.sheetpage{background:#fff;color:#000;padding:10mm 10mm;width:210mm;margin:0 auto 14px;
+  border:1px solid var(--line);font-size:11px;position:relative;line-height:1.35}
+.copytag{display:none}
+.sheetpage h3{margin:0;font-size:16px;letter-spacing:.5px}
+/* ===== หัวเอกสารมาตรฐาน ===== */
+.dochd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+  border-bottom:2.2px solid #111;padding-bottom:5px;margin-bottom:7px}
+.dochd .brand{display:flex;gap:11px;align-items:flex-start;flex:1;min-width:0}
+.dochd .dlogo{max-height:44px;max-width:112px;object-fit:contain;flex:none}
+.dochd .bname{font-size:14px;font-weight:700;line-height:1.2;letter-spacing:.2px}
+.dochd .bsub{font-size:10.5px;color:#444;margin-top:1px}
+.dochd .binfo{font-size:9.6px;color:#333;line-height:1.45;margin-top:2px}
+.dochd .binfo b{font-weight:600;color:#111}
+.dochd .dmeta{text-align:right;width:58mm;flex:none}
+.dochd .copybox{display:inline-block;border:1.2px solid #111;border-radius:2px;padding:1px 10px;
+  font-size:10px;font-weight:700;letter-spacing:1.5px;margin-bottom:5px}
+.dochd .dtitle{font-size:15.5px;font-weight:700;letter-spacing:.5px;line-height:1.12}
+.dochd .den{font-size:8.5px;letter-spacing:2.2px;color:#666;margin:1px 0 4px}
+.dochd .dfields{width:100%;border-collapse:collapse;margin:0}
+.dochd .dfields th{background:#f0f0f0;border:1px solid #8a8a8a;font-size:9.3px;font-weight:600;
+  padding:1px 5px;text-align:left;width:42%;white-space:nowrap}
+.dochd .dfields td{border:1px solid #8a8a8a;font-size:10px;padding:1px 5px;text-align:right;
+  font-family:'Sarabun','IBM Plex Sans Thai',sans-serif}
+.dochd .dnote{font-size:10px;color:#444;line-height:1.55;margin-top:4px}
+.dochd .dstamp{display:inline-block;border:1.4px solid #b03a2e;color:#b03a2e;border-radius:2px;
+  padding:2px 9px;font-size:9.5px;font-weight:700;letter-spacing:1px;margin-top:5px}
+.sheetpage table{width:100%;border-collapse:collapse;margin-top:5px}
+.sheetpage table th,.sheetpage table td{border:1px solid #7c7c7c;padding:2px 5px;font-size:10.5px}
+.sheetpage table th{background:#eee;font-weight:600}
+.sheetpage .num{text-align:right;font-family:'Sarabun',sans-serif}
+.sheetpage .box{border:1px solid #7c7c7c;padding:3px 7px;margin-top:5px;page-break-inside:avoid}
+.sheetpage .lbl{font-size:9.5px;color:#444}
+.sheetpage .sign{display:flex;gap:24px;margin-top:10px;page-break-inside:avoid}
+.sheetpage .sign div{flex:1;text-align:center}
+.sheetpage .sign .line{border-bottom:1px dotted #000;height:22px;margin-bottom:2px}
+/* บีบอัตโนมัติเมื่อเนื้อหายาวเกินหน้า */
+.sheetpage.tight{font-size:10.2px;padding:8mm 9mm}
+.sheetpage.tight table th,.sheetpage.tight table td{padding:1.5px 4px;font-size:9.8px}
+.sheetpage.tight .box{padding:2px 6px;margin-top:4px}
+.sheetpage.tight .sign{margin-top:7px}
+.sheetpage.tight .sign .line{height:18px}
+.sheetpage.tight .note{font-size:8.8px;line-height:1.35;margin-top:4px}
+.sheetpage.tight .dochd .dlogo{max-height:38px}
+.sheetpage.tight .dochd .bname{font-size:13px}
+.sheetpage.tighter{font-size:9.6px}
+.sheetpage.tighter table th,.sheetpage.tighter table td{padding:1px 3.5px;font-size:9.2px}
+.sheetpage.tighter .note{font-size:8.2px;line-height:1.3}
+.sheetpage.tighter .sign .line{height:15px}
+.sheetpage .note{font-size:9.3px;margin-top:6px;line-height:1.42}
+.tick{display:inline-block;width:11px;height:11px;border:1px solid #000;margin-right:4px;vertical-align:-1px;text-align:center;line-height:10px;font-size:10px}
+.preview{background:#dfe4e8;padding:14px;overflow:auto}
+.preview .sheetpage{transform-origin:top center}
+
+@media print{
+  body{background:#fff}
+  .wmark img{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .apvwm span{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #app{display:none!important}
+  #printStage{display:block!important}
+  .sheetpage{border:0;margin:0;padding:7mm 8mm;width:auto;page-break-after:always}
+  .sheetpage:last-child{page-break-after:auto}
+  @page{size:A4;margin:6mm}
+}
+/* ══════════ ชั้นรองรับจอมือถือ — ทำงานเมื่อจอ ≤720px · จอกว้างไม่เปลี่ยนอะไร ══════════ */
+#mburger,#mnavDim,#trialBadge,.mclose,.maddfind,#mPageTitle{display:none}
+.msec-h{display:none}
+.mrail{display:none}
+.mtot{display:none}
+.msheet{display:none}
+@media (max-width:720px), ((orientation:landscape) and (pointer:coarse) and (max-height:600px)){
+  /* เงื่อนไขที่ 2 = มือถือแนวนอน (จอสัมผัส เตี้ยกว่า 600px) — จอ PC ไม่เข้าเงื่อนไขเพราะเป็น pointer:fine */
+  /* กันทุกชิ้นดันหน้ากว้างเกินจอ (ต้นเหตุมือถือซูมออกจนตัวหนังสือจิ๋ว/ป๊อปอัพไม่เต็มจอ)
+     ตารางกว้างยังเลื่อนได้ในกรอบ .scroll ของตัวเอง — ข้อมูลครบทุกช่องเหมือนเดิม */
+  html,body{max-width:100vw;overflow-x:hidden}
+  .scroll{overflow-x:auto;max-width:100%}
+  .panel,.card,.secthead,.alert{min-width:0;max-width:100%}
+  /* กล่องเตือนยุบได้บนจอแคบ: หัวข้อเต็มบรรทัด · ปุ่มขึ้นบรรทัดใหม่ชิดซ้าย · ลูกศรชิดขวา
+     (ไม่งั้นปุ่มของสองกล่องจะไปคนละฝั่งเพราะความยาวหัวข้อไม่เท่ากัน) */
+  .alert-slim .alert-head b{flex:1 1 100%}
+  .alert-slim .alert-head .spacer{display:none}
+  .alert-slim .alert-head .alert-ch{margin-left:auto}
+  /* หัวข้อส่วนในหน้าแรก: ชิป+ชื่อเรียงแถวเดียวแนวนอน ปุ่มลงบรรทัดถัดไป */
+  .secthead{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+  .secthead .no{white-space:nowrap;font-size:11px;padding:4px 9px;flex:0 0 auto}
+  .secthead h2{flex:1 1 55%;min-width:55%;font-size:15.5px;margin:0}
+  .secthead .spacer{display:none}
+  .secthead .btn{flex:0 0 auto}
+  /* แถวตัวกรองทะเบียน: "การชำระเงิน" เต็มบรรทัดบน · "เลือกช่วงวันที่ + แสดง" คู่กันบรรทัดถัดไป */
+  label.f:has(#docOvPay){flex:1 1 100%;min-width:100%}
+  label.f:has(select[id$="OvDateMode"]){flex:1 1 47%;min-width:47%}
+  label.f:has(select[id$="OvLimit"]){flex:1 1 42%;min-width:42%}
+  label.f:has(select[id$="OvDateMode"]) select,label.f:has(select[id$="OvLimit"]) select,label.f:has(#docOvPay) select{width:100%!important}
+  /* กลุ่มค้นหาในทะเบียนทุกหน้า (03 / 4.1 / 4.2 / 4.3): แถวเดียว ปุ่มค้นหาชิดขวาสุด ช่องกรอกยืดเต็ม */
+  div[style*="flex-direction:column"][style*="flex-end"]{flex:1 1 100%;display:flex;flex-direction:row-reverse!important;align-items:center!important;gap:8px!important;width:100%}
+  div[style*="flex-direction:column"][style*="flex-end"] input{flex:1;width:auto!important;min-width:0}
+  .panel>.body,.panel>header{max-width:100%;overflow-x:auto}
+  .hbar,.bars{min-width:0!important;max-width:100%}
+  .shell{display:block}
+  /* เมนูสูงเต็มจอจริงเสมอ — 100dvh รองรับแถบ URL มือถือที่หด/ขยาย (fallback 100vh) */
+  #tabs{position:fixed;left:0;top:0;bottom:auto;width:282px;height:100vh;height:100dvh;min-height:100vh;min-height:100dvh;
+    z-index:80;transform:translateX(-105%);transition:transform .18s;overflow-y:auto;
+    background:#22262a;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+  body.mnav #tabs{transform:none}
+  body.mnav{overflow:hidden}   /* เมนูเปิดอยู่ หน้าหลังไม่เลื่อนตาม */
+  #mnavDim{position:fixed;inset:0;height:100vh;height:100dvh;background:rgba(10,14,18,.55);z-index:70}
+  body.mnav #mnavDim{display:block}
+  /* วาดขีดเองด้วย CSS แทนตัวอักษร ☰ — ตัวอักษรมีช่องว่างซ้าย/บนไม่เท่ากันในแต่ละฟอนต์
+     ทำให้ดูเยื้องออกจากกลางปุ่ม · ขีด 3 เส้นจาก ::before อยู่กึ่งกลางเป๊ะเสมอ */
+  #mburger{display:flex;position:fixed;left:10px;top:10px;z-index:60;width:44px;height:44px;border-radius:11px;background:#22262a;color:#fff;border:1px solid #3a4148;font-size:0;line-height:0;padding:0;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(0,0,0,.3)}
+  #mburger::before{content:'';display:block;width:19px;height:2px;border-radius:2px;background:currentColor;
+    box-shadow:0 -6px 0 currentColor,0 6px 0 currentColor}
+  #tabs .navtoggle{display:none!important}   /* ปุ่มพับเมนูเป็นของจอ PC — จอแคบห้ามโผล่ */
+  #tabs.collapsed .lbl{display:inline!important}   /* กันสถานะพับค้างจาก localStorage */
+  main{padding-left:10px;padding-right:10px}
+  .grid.g2,.grid.g3,.grid.g4,.grid.g5{grid-template-columns:1fr!important}
+  input,select,textarea{font-size:16px!important;min-height:42px}
+  .btn{min-height:44px}
+  .btn.sm{min-height:38px}
+  .modal{padding:0!important}
+  .modal .sheet{max-width:100vw!important;width:100vw!important;min-width:0;height:100%;max-height:100%!important;border-radius:0;margin:0;overflow-y:auto;overflow-x:hidden}
+  .modal .sheet header{flex-wrap:wrap}
+  /* จอแคบไม่มีปุ่มบนหัวมาแย่งที่แล้ว ป้ายเลขที่จึงแสดงเต็มได้ ไม่ต้องตัดด้วย … */
+  .panel>header .tag{max-width:100%;white-space:normal}
+  .cards{display:block!important;overflow:visible}
+  .cards .card{min-width:0;width:100%;margin-bottom:8px}
+  .preview{display:none}
+  .scroll{overflow-x:auto}
+  /* ── ฟอร์มแบ่งส่วนพับได้ ── */
+  .msec{background:#fff;border:1px solid var(--line);border-radius:10px;margin:0 0 10px}
+  .msec-h{display:flex;align-items:center;gap:9px;padding:12px;cursor:pointer}
+  .msec-h b{font-size:14px}
+  .msec-num{width:24px;height:24px;border-radius:50%;background:var(--line2);display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:700;flex:0 0 auto}
+  .msec.open .msec-num{background:var(--amber);color:#1a1204}
+  .msec-ch{margin-left:auto;color:#98a2ab;font-size:12px}
+  .msec-b{display:none;padding:6px 12px 12px;border-top:1px solid var(--line2)}
+  .msec.open .msec-b{display:block}
+  /* ── แถบเครื่องมือลอยขอบขวา (ตามแบบอ้างอิง) + ป้ายยอดรวมมุมล่างซ้าย ── */
+  .modal .sheet{padding-bottom:70px}
+  body:has(.modal.on) #mburger{display:none}
+  /* เนื้อหาฟอร์มเต็มความกว้างจอ — แถบเครื่องมือลอยทับด้านบน (ตามที่ตกลง) */
+  .mrail{display:flex;flex-direction:column;gap:8px;position:fixed;right:6px;top:50%;transform:translateY(-50%);z-index:9999}
+  /* ปุ่มมีทั้งไอคอนและป้ายชื่อ — แถบลอยนี้ทับเนื้อหาอยู่ ถ้ามีแต่ไอคอนจะเดาหน้าที่ไม่ออก */
+  .mrail button{width:54px;min-height:52px;border-radius:13px;border:0;color:#fff;box-shadow:0 3px 12px rgba(0,0,0,.32);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:5px 2px;line-height:1.1}
+  .mrail .mi{font-size:16px;line-height:1}
+  .mrail .ml{font-size:10px;font-weight:700}
+  .mrail .mr-ok{background:#2e7d32}
+  .mrail .mr-ok .mi{font-size:19px}
+  /* ปุ่มแถบลอยไม่ได้ใช้คลาส .btn จึงต้องมีสไตล์ "กดไม่ได้" ของตัวเอง */
+  .mrail button:disabled{opacity:.45;filter:grayscale(.7);cursor:not-allowed;box-shadow:none}
+  .mrail .mr-up,.mrail .mr-dn{background:var(--amber);color:#1a1204}
+  .mrail .mr-mo{background:#3f4850}
+  .mtot{display:flex;position:fixed;left:8px;bottom:8px;z-index:9999;background:#22262a;color:#fff;border-radius:999px;padding:8px 15px;font-size:12px;gap:8px;align-items:center;box-shadow:0 3px 10px rgba(0,0,0,.3)}
+  .mtot b{color:#f5c169;font-family:'Sarabun',sans-serif;font-size:14.5px}
+  .msheet.on{display:block;position:fixed;left:0;right:0;bottom:0;background:#fff;border-radius:16px 16px 0 0;z-index:95;padding:12px 14px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.28)}
+  .msheet button{display:flex;width:100%;margin-bottom:8px;justify-content:center}
+  .msheet .mgrab{width:44px;height:5px;border-radius:3px;background:#d5dade;margin:0 auto 12px}
+  /* (ทะเบียนใช้ระบบตารางยุบคอลัมน์ .rt — กำหนดไว้นอกบล็อกนี้) */
+  .ptools{position:sticky;top:0;z-index:5}
+  /* ── หัวดำบนสุด: ☰ อยู่แถวเดียวกับชื่อร้าน · ช่องผู้ใช้เต็มกว้างบรรทัดล่าง · เนื้อหาไม่เว้นซ้าย ── */
+  .top{display:block;padding:8px 12px 10px;position:relative}
+  /* กระดิ่งลอยมุมขวาบนของแถบดำ — ช่องผู้ใช้ถูกย้ายไปเมนูข้างแล้ว จึงจัดตำแหน่งเอง */
+  .bell.show{position:absolute;right:8px;top:9px;padding:8px}
+  .bell .bicon{font-size:23px}
+  .top-brand{display:none}
+  .top .sub{display:none}
+  .top-main{display:block}
+  #shopName{display:none!important}
+  .brandline{font-size:16px;padding-left:52px;min-height:42px}
+  /* ชื่อหัวข้อที่กำลังเปิดอยู่ (00–10) — แถบหัวเรื่องตัวใหญ่คั่นระหว่างหัวดำกับเนื้อหา ให้รู้ว่าอยู่หน้าไหน */
+  #mPageTitle{display:block;padding:12px 12px 2px;font-size:19px;font-weight:800;color:var(--ink);letter-spacing:.2px}
+  #mPageTitle:empty{display:none}
+  /* หัวข้อในกรอบที่ซ้ำกับชื่อหัวข้อใหญ่ด้านบน — ซ่อนบนมือถือ เหลือหัวใหญ่อันเดียว (จอกว้างแสดงตามเดิม) */
+  header h2.mht{display:none}
+  /* ช่องผู้ใช้ถูกย้ายไปบนสุดของเมนูข้างด้วย placeUserbox() — แสดงเหนือหมวด 00 หน้าแรก */
+  #tabs .userbox{display:block;margin:10px 12px 12px;padding:10px 11px;background:#1b2126;border:1px solid #3a4148;border-radius:10px}
+  #tabs .userbox .hint{display:block;font-size:11px;margin-bottom:5px}
+  #tabs .userbox select{width:100%!important;min-height:42px}
+  /* ── หัวป๊อปอัพเอกสาร: เก็บปุ่มที่กองอยู่บนหัวออก (ทุกปุ่มอยู่ในแถบล่าง / เมนู ⋯ แล้ว) ── */
+  #mQuoteEdit .sheet>.panel>header :is(button,select),
+  #mReceiptEdit .sheet>.panel>header :is(button,select){display:none}
+  .mclose{display:flex!important;position:fixed;top:8px;right:8px;z-index:9999;width:42px;height:42px;border-radius:10px;background:#22262a;color:#fff;border:0;font-size:17px;align-items:center;justify-content:center}
+  .modal .f input,.modal .f select,.modal .f textarea{width:100%!important}
+  .modal input[style*="width"],.modal select[style*="width"]{max-width:100%}
+  /* ── ตารางอาการตรวจพบ → รายการ + ชิปแตะเลือก ── */
+  #qFindTbl thead{display:none}
+  #qFindTbl,#qFindTbl tbody{display:block;width:100%}
+  #qFindTbl tr{display:flex;flex-wrap:wrap;gap:7px;border:1px solid var(--line);border-radius:10px;padding:9px;margin-bottom:8px;align-items:center;background:#fff}
+  #qFindTbl td{display:block;border:0!important;padding:0!important;background:none!important}
+  #qFindTbl td:nth-child(1){display:none}
+  #qFindTbl td:nth-child(2){flex:1 1 100%}
+  #qFindTbl td:nth-child(2) input{width:100%!important}
+  #qFindTbl td:nth-child(n+3):nth-child(-n+5){display:flex;align-items:center;gap:6px;border:1.5px solid var(--line)!important;border-radius:999px;padding:7px 12px!important;font-size:12.5px;color:var(--slate)}
+  #qFindTbl td:nth-child(3)::after{content:"ซ่อม"}
+  #qFindTbl td:nth-child(4)::after{content:"เปลี่ยนบางชิ้น"}
+  #qFindTbl td:nth-child(5)::after{content:"เปลี่ยนใหม่"}
+  #qFindTbl td:nth-child(n+3):nth-child(-n+5) input{min-height:0;width:18px;height:18px;margin:0}
+  #qFindTbl td:nth-child(n+3):nth-child(-n+5):has(input:checked){background:var(--amber)!important;border-color:var(--amber)!important;color:#1a1204;font-weight:700}
+  /* ช่องปุ่มลบท้ายแถวอาการตรวจพบ — ดันชิดขวา ปุ่มขนาดแตะง่าย */
+  #qFindTbl td:nth-child(6){margin-left:auto;display:flex;align-items:center}
+  #qFindTbl td:nth-child(6) button{min-height:38px;min-width:44px}
+  #qFindTbl tr.mhide{display:none}
+  .maddfind{display:block;width:100%;min-height:44px;border:1.5px dashed var(--amber);color:#8a5a00;background:#fdf6ec;border-radius:10px;font-size:14.5px;font-weight:700;margin-top:2px}
+  /* ── ตารางรายการอะไหล่ → การ์ดบรรทัดละใบ ไม่ต้องเลื่อนข้าง ── */
+  #qItems thead{display:none}
+  #qItems,#qItems tbody{display:block;width:100%}
+  #qItems tr{display:grid;grid-template-columns:84px 1fr 96px;gap:5px 8px;border:1px solid var(--line);border-radius:10px;padding:8px 9px;margin-bottom:8px;background:#fff}
+  #qItems td{display:block;border:0!important;padding:0!important;background:none!important}
+  #qItems td:nth-child(1),#qItems td:nth-child(3),#qItems td:nth-child(8){display:none}
+  #qItems td:nth-child(2){grid-column:1/3;grid-row:1;align-self:end}
+  #qItems td:nth-child(9){grid-column:3;grid-row:1;justify-self:end;align-self:center}
+  #qItems td:nth-child(4){grid-column:1/4}
+  #qItems td input{width:100%!important}
+  #qItems td:nth-child(5)::before{content:"จำนวน";font-size:10.5px;color:var(--slate);display:block}
+  #qItems td:nth-child(6)::before{content:"ราคา/หน่วย";font-size:10.5px;color:var(--slate);display:block}
+  #qItems td:nth-child(7)::before{content:"จำนวนเงิน";font-size:10.5px;color:var(--slate);display:block}
+  #qItems td:nth-child(7){align-self:end;font-weight:700}
+  #qItems tr.mhide{display:none}
+  /* ── กลุ่มตัวกรอง+ค้นหาแบบเรียงลง (.mcol เช่นหน้า 02) — คงเรียงลง ช่องค้นหาอยู่ใต้ตัวกรอง ── */
+  div[style*="flex-direction:column"][style*="flex-end"].mcol{flex-direction:column!important;align-items:flex-end!important;gap:6px!important}
+  div[style*="flex-direction:column"][style*="flex-end"].mcol select,
+  div[style*="flex-direction:column"][style*="flex-end"].mcol input{width:100%!important;min-width:0}
+  /* ── ตารางรายการ+รับประกันในใบเสร็จ → การ์ดบรรทัดละใบ (แบบเดียวกับ #qItems) ── */
+  #rItems thead{display:none}
+  #rItems,#rItems tbody{display:block;width:100%}
+  #rItems tr{display:grid;grid-template-columns:repeat(3,1fr);gap:5px 8px;border:1px solid var(--line);border-radius:10px;padding:8px 9px;margin-bottom:8px;background:#fff}
+  #rItems td{display:block;border:0!important;padding:0!important;background:none!important;text-align:left!important}
+  #rItems td:nth-child(1){display:none}
+  #rItems td:nth-child(3){grid-column:1/3;grid-row:1;align-self:end}
+  #rItems td:nth-child(8){grid-column:3;grid-row:1;justify-self:end;align-self:center}
+  #rItems td:nth-child(2){grid-column:1/4;grid-row:2}
+  #rItems td:nth-child(4){grid-column:1;grid-row:3}
+  #rItems td:nth-child(5){grid-column:2;grid-row:3}
+  #rItems td:nth-child(6){grid-column:3;grid-row:3;align-self:end;font-weight:700}
+  #rItems td:nth-child(7){grid-column:1/4;grid-row:4}
+  #rItems td input{width:100%!important;text-align:left!important}
+  #rItems td:nth-child(2)::before{content:"รหัสสินค้า";font-size:10.5px;color:var(--slate);display:block}
+  #rItems td:nth-child(4)::before{content:"จำนวน";font-size:10.5px;color:var(--slate);display:block}
+  #rItems td:nth-child(5)::before{content:"ราคา/หน่วย";font-size:10.5px;color:var(--slate);display:block}
+  #rItems td:nth-child(6)::before{content:"จำนวนเงิน";font-size:10.5px;color:var(--slate);display:block;font-weight:400}
+  #rItems td:nth-child(7)::before{content:"รับประกัน (เดือน)";font-size:10.5px;color:var(--slate);display:block}
+  #rItems tr.mhide{display:none}
+  /* ── การชำระเงินในใบเสร็จ → ปุ่มแตะเลือกขนาดใหญ่ (ติ๊กแล้วเป็นสีทึบ) ── */
+  #payMethods{gap:8px!important}
+  #payMethods .paych{flex:1 1 30%;min-height:48px;border:1.5px solid var(--line);border-radius:11px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:600;color:var(--slate);background:#fff;padding:4px 8px}
+  #payMethods .paych input{width:20px;height:20px;min-height:0;margin:0;flex:0 0 auto}
+  #payMethods .paych:has(input:checked){background:var(--amber);border-color:var(--amber);color:#1a1204}
+  #payMethods .payterm{flex:1 1 240px;display:flex;align-items:center;gap:8px;font-size:13px}
+  #payMethods .payterm input{flex:1;min-width:0}
+  #payMethods .paypaid{flex:1 1 100%;min-height:50px;border:1.5px dashed #2e7d32;border-radius:11px;display:flex;align-items:center;justify-content:center;gap:9px;font-size:15px;font-weight:700;color:#2e7d32;background:#fff}
+  #payMethods .paypaid input{width:22px;height:22px;min-height:0;margin:0;flex:0 0 auto}
+  #payMethods .paypaid:has(input:checked){background:#2e7d32;border-style:solid;color:#fff}
+  #pSplitBox label{flex:1 1 100%;display:flex;align-items:center;gap:8px}
+  #pSplitBox label input{flex:1;min-width:0}
+}
+/* ══════════ ตารางทะเบียนยุบคอลัมน์ตามความสำคัญ (ตามแบบอ้างอิง) ══════════
+   >1100px = ตารางเต็มปกติ · ≤1100px = คอลัมน์หลักเรียงบน คอลัมน์รองเป็น ป้าย:ค่า ใต้แถว
+   ≤760px = ทุกช่องเป็น ป้าย:ค่า เรียงลงทั้งใบ */
+/* แท็บเล็ตจอกว้าง (iPad Pro แนวนอน 1366px) — แถวที่มีตารางถูกบีบเหลือครึ่งจอ ชื่อลูกค้าตกบรรทัดทีละคำ
+   บังคับ pointer:coarse = มีผลเฉพาะจอสัมผัส · โน้ตบุ๊ก/พีซีจอ 1366px เหมือนเดิมทุกพิกเซล */
+@media (max-width:1400px) and (pointer:coarse){
+  section.view>.grid.g2:has(table){grid-template-columns:1fr!important}
+  section.view>.grid.g2>.panel{min-width:0}
+}
+@media(max-width:1100px){
+  /* ── ชั้นแท็บเล็ต (เช่น iPad Pro แนวตั้ง 1024px) ──
+     กริด 2 คอลัมน์ในหน้าเนื้อหาบีบตาราง/กราฟจนอ่านยาก (ชื่อลูกค้าและชิปตกบรรทัดทีละคำ)
+     → เรียงลงทีละแผงเต็มความกว้าง · ป๊อปอัพเอกสารอยู่นอก section.view จึงไม่ถูกกระทบ */
+  section.view>.grid.g2{grid-template-columns:1fr!important}
+  section.view>.grid.g2>.panel{min-width:0}
+  table.rt thead{display:none}
+  table.rt,table.rt tbody{display:block;width:100%}
+  /* การ์ดแต่ละใบต้องแยกจากกันให้ชัด — ขอบเข้มขึ้น + แถบสีด้านซ้ายบอกจุดเริ่มของรายการ
+     + เงาบาง ๆ และเว้นระยะระหว่างใบให้มากขึ้น (เดิมขอบจางจนอ่านไม่ออกว่าใบไหนจบตรงไหน) */
+  table.rt tbody tr{display:flex;flex-wrap:wrap;gap:2px 16px;border:1px solid #c9d0d8;border-left:4px solid var(--amber);
+    border-radius:11px;padding:11px 13px;margin-bottom:14px;background:#fff;box-shadow:0 1px 3px rgba(16,24,40,.08)}
+  table.rt tbody tr.cancelrow{background:#fdf0ee;border-left-color:var(--danger)}
+  table.rt td{display:block;border:0!important;padding:2px 0!important;background:none!important;text-align:left!important;font-size:13px}
+  table.rt td::before{content:attr(data-l);display:block;font-size:10px;color:var(--slate)}
+  table.rt td.rt-p{flex:0 1 auto;min-width:86px}
+  table.rt td.rt-s{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;border-top:1px solid var(--line2)!important;padding:7px 0 5px!important;min-width:0}
+  table.rt td.rt-s::before{flex:0 0 128px;font-size:11.5px;padding-top:1px}
+  table.rt td.rt-x{flex:1 1 100%;border-top:1px solid var(--line2)!important;padding-top:9px!important}
+  table.rt td.rt-x::before{display:none}
+  table.rt td.rt-x{display:flex;justify-content:flex-end}
+  table.rt td.rt-x>div{display:flex!important;flex-direction:row!important;width:auto!important;gap:8px!important;flex-wrap:wrap;align-items:stretch;justify-content:flex-end}
+  table.rt td.rt-x button{min-height:40px}
+  table.rt td.rt-empty{display:none}
+  /* แถวสรุปท้ายตาราง — ทำเป็นการ์ดสรุปแยก มีป้ายบอกทุกบรรทัด (เดิมเป็นตัวเลขลอย ๆ อ่านไม่รู้เรื่อง)
+     ใช้แถบซ้ายสีเทาเข้มให้ต่างจากการ์ดรายการที่เป็นสีทอง */
+  table.rt tfoot{display:block;width:100%}
+  table.rt tfoot tr{display:block;border:1px solid #c9d0d8;border-left:4px solid var(--steel);
+    background:#f4f7f8;border-radius:10px;padding:9px 12px;margin:2px 0 12px}
+  table.rt tfoot td{display:flex!important;justify-content:space-between;align-items:baseline;gap:12px;
+    padding:3px 0!important;font-size:13.5px;font-variant-numeric:tabular-nums}
+  table.rt tfoot td::before{content:attr(data-l);color:var(--slate);font-size:11.5px;flex:0 0 auto}
+  table.rt tfoot td.rt-ftitle{font-weight:700;font-size:13px;display:block!important;
+    border-bottom:1px solid var(--line2);padding-bottom:6px!important;margin-bottom:4px}
+  table.rt tfoot td.rt-ftitle::before{display:none}
+}
+/* ══ หน้าตั้งค่าองค์กร (10) บนจอแคบ ══
+   ปัญหาเดิม: ป้ายกับปุ่มเลือกถูกบีบอยู่บรรทัดเดียวกัน ข้อความยาว ๆ เลยถูกตัดหาย
+   เช่น "การจดทะเบียนภาษีมูลค่าเพิ่ม" กับปุ่ม "จดภาษีมูลค่าเพิ่ม / ไม่จด"
+   แก้: ให้ป้ายขึ้นบรรทัดของตัวเอง · ปุ่มเลือกเต็มความกว้างและแบ่งครึ่งเท่ากัน
+   ⚠️ ใช้ 720px ให้ตรงกับเงื่อนไข MQ_MOB ในโค้ด (กติกา: มือถือมี 2 ที่ ต้องตรงกัน) */
+@media(max-width:720px){
+  #v-setting .body>.row{gap:14px!important;flex-direction:column;align-items:stretch}
+  #v-setting .body>.row>label.row{flex-direction:column;align-items:stretch;gap:5px!important}
+  #v-setting .body>.row>label.row>.hint{font-size:12px;font-weight:600;color:var(--slate);white-space:normal;line-height:1.4}
+  #v-setting .seg{display:flex;width:100%;border-radius:10px}
+  #v-setting .seg button{flex:1 1 0;min-width:0;padding:9px 6px;font-size:13px;
+    white-space:normal;line-height:1.3;text-align:center}
+  /* กล่องธนาคาร: แต่ละบัญชีเรียงลงเป็นแถว ไม่บีบให้ล้นขอบ */
+  #v-setting .bankrow{flex-wrap:wrap!important}
+  #v-setting .bankrow>*{flex:1 1 100%!important;min-width:0}
+  #v-setting .bankrow>button{flex:0 0 auto!important;align-self:flex-end}
+  #v-setting .bankrow>label.row{flex:1 1 auto!important}
+  /* หัวข้อกล่อง + ปุ่มบันทึกด้านบน ไม่ให้ชนกัน */
+  #v-setting .panel>header{flex-wrap:wrap}
+  #v-setting .panel>header h2{flex:1 1 100%}
+}
+@media(max-width:760px){
+  /* จอแคบ: ทุกช่องเรียงลงเป็น ป้าย:ค่า — ใส่เส้นคั่นทุกช่องให้เท่ากัน
+     (เดิมช่องบน ๆ ไม่มีเส้น ช่องล่าง ๆ มีเส้น เลยดูไม่เป็นระเบียบ) */
+  table.rt td.rt-p{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;min-width:0;
+    border-top:1px solid var(--line2)!important;padding:7px 0 5px!important}
+  table.rt tbody tr>td:first-child{border-top:0!important;padding-top:1px!important}
+  table.rt td.rt-p::before{flex:0 0 128px;font-size:11.5px;padding-top:1px}
+}
+
+/* ══ v23: ย้ายช่องผู้ใช้ + กระดิ่ง ไปชิดขวาสุดของแถบหัว ══ */
+@media(min-width:721px){
+  /* แถวบน: ชื่อระบบซ้าย · ช่องผู้ใช้+กระดิ่งขวาสุด | แถวล่าง: ข้อมูลผู้พัฒนา (ชื่อบริษัทไม่หาย) */
+  .brandline{order:1;flex:0 0 auto}
+  .userbox{order:3;flex:0 0 auto;margin-left:auto}
+  #apvBell{order:4;flex:0 0 auto;margin-left:2px}
+  .top-vendor{order:5;flex:1 0 100%;margin-left:0;padding-left:0;border-left:0;
+    border-top:1px solid rgba(255,255,255,.12);padding-top:7px;margin-top:2px}
+}
+/* v23: ข้อมูลผู้พัฒนาอยู่บรรทัดของตัวเองแล้ว มีที่พอ — ยกเลิกการซ่อนชื่อบริษัทที่จอ ≤1180 */
+@media(min-width:901px){.top-vendor .tvl1 b{display:inline!important}}
+
+/* ══ v23: หน้าแรก Mr.DriveGo โหมด HQ — รวมทุกสาขา ══ */
+body.hqhome #v-home > *:not(#hqHome):not(#licAlert){display:none!important}
+#hqHome .hqbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--steel);color:#fff;
+  border-radius:var(--r);padding:12px 16px;margin-bottom:14px}
+#hqHome .hqbar h2{margin:0;font-size:16px;font-weight:700;color:#fff}
+#hqHome .hqbar .sub{font-size:11.5px;color:#9fb0bd}
+#hqHome .hqbar select{min-width:250px;background:#fff;color:var(--ink);border:1px solid var(--line);
+  border-radius:var(--r);padding:7px 10px;font-weight:600}
+#hqHome .hqbar .lb{font-size:12px;color:#9fb0bd}
+#hqHome .hqmark{background:var(--amber);color:#3a2a00;font-weight:700;font-size:11px;border-radius:99px;padding:2px 10px}
+#hqHome .rankno{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;
+  background:var(--steel);color:#fff;font-size:11px;font-weight:700;margin-right:7px}
+#hqHome .rankno.g1{background:var(--amber);color:#3a2a00}
+#hqHome .bar{height:6px;background:var(--line2);border-radius:99px;overflow:hidden;margin-top:5px;min-width:70px}
+#hqHome .bar i{display:block;height:100%;background:var(--blue);border-radius:99px}
+#hqHome table.tbl td:first-child{white-space:nowrap;min-width:190px}
+#hqHome table.tbl td:first-child a{color:var(--blue);text-decoration:none}
+#hqHome table.tbl td:first-child a:hover{text-decoration:underline}
+

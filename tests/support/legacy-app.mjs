@@ -28,14 +28,16 @@ export function messageRecorderInitScript() {
 // franchise): the app is opened with ?package=<it> (biz is the default and is
 // left out, as the goldens were recorded that way) and loginAsOwner() uses
 // that package's owner account.
-export function legacyApp(page, { dataset = 'biz-trial' } = {}) {
+// url: which copy of the app to open (the legacy file, or frontend/index.html
+// for TARGET=frontend); both have the same screens and behaviour.
+export function legacyApp(page, { dataset = 'biz-trial', url = LEGACY_URL } = {}) {
   const plan = dataset.split('-')[0];
   let restored = false;
   return {
     async open(params = '') {
       if (!restored) { await restoreDataset(page, dataset); restored = true; }
       const pkg = plan === 'biz' ? '' : `package=${plan}&`;
-      await page.goto(`${LEGACY_URL}?${pkg}login=account${params ? '&' + params : ''}`);
+      await page.goto(`${url}?${pkg}login=account${params ? '&' + params : ''}`);
       await waitForLegacyBoot(page);
     },
 

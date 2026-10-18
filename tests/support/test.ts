@@ -13,7 +13,7 @@
 import { test as base, expect } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { prepareContext } from './browser.mjs';
-import { FIXED_NOW, TEST_SEED } from './config.mjs';
+import { FIXED_NOW, FRONTEND_URL, LEGACY_ORIGIN, LEGACY_URL, TEST_SEED } from './config.mjs';
 import { legacyApp, messageRecorderInitScript } from './legacy-app.mjs';
 import { stateDiff, stateCounts, formatDiff } from './state-diff.mjs';
 import { executedFunctions } from './coverage.mjs';
@@ -43,7 +43,15 @@ export const test = base.extend<{ dataset: string; app: App; golden: Golden }>({
   page: async ({ page }, use, testInfo) => {
     const coverage = !!process.env.COVERAGE;
     if (coverage) await page.coverage.startJSCoverage({ resetOnNavigation: false });
+    // Every file of the app itself must load (a split-out script that fails
+    // to load would otherwise only show up in scenarios that use it).
+    const missing: string[] = [];
+    page.on('response', r => { if (r.url().startsWith(LEGACY_ORIGIN) && r.status() >= 400) missing.push(`${r.status()} ${r.url()}`); });
+    page.on('requestfailed', r => {
+      if (r.url().startsWith(LEGACY_ORIGIN) && !/ERR_ABORTED/.test(r.failure()?.errorText || '')) missing.push(`${r.failure()?.errorText} ${r.url()}`);
+    });
     await use(page);
+    expect(missing, 'files of the app that failed to load').toEqual([]);
     if (coverage) {
       const ran = executedFunctions(await page.coverage.stopJSCoverage());
       mkdirSync('coverage/raw', { recursive: true });
@@ -51,9 +59,12 @@ export const test = base.extend<{ dataset: string; app: App; golden: Golden }>({
     }
   },
 
+  // legacy: the original HTML (goldens are recorded from it).
+  // frontend: the same app split into files in Phase 1; must match every golden.
   app: async ({ page, dataset }, use) => {
-    if (TARGET !== 'legacy') throw new Error(`No app adapter for TARGET=${TARGET} yet (added in Phase 2).`);
-    await use(legacyApp(page, { dataset }));
+    const url = { legacy: LEGACY_URL, frontend: FRONTEND_URL }[TARGET];
+    if (!url) throw new Error(`No app adapter for TARGET=${TARGET}.`);
+    await use(legacyApp(page, { dataset, url }));
   },
 
   golden: async ({ page, app }, use, testInfo) => {
