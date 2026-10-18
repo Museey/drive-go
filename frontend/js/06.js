@@ -7,7 +7,7 @@
  const labels={biz:'DriveGoBiz',prox:'DriveGoProX',franchise:'DriveGoProX Franchise'};
  let ready=false,loggedIn=false,loginIdentity='';
  // Remove this copy-only experiment before production promotion.
- const COPY_ACCOUNT_SWITCHER=true;
+ const COPY_ACCOUNT_SWITCHER=false;   // DriveGo phase 2 (A1): no switching accounts without a password
  const previewSwitch=document.createElement('label');previewSwitch.id='pkg-preview-account';previewSwitch.hidden=true;
  const switchCaption=document.createElement('span');switchCaption.textContent='ทดลองสลับบัญชี';previewSwitch.appendChild(switchCaption);
  const switchSelect=document.createElement('select');switchSelect.id='pkg-preview-user';switchSelect.setAttribute('aria-label','ทดลองสลับบัญชี');switchSelect.dataset.noTranslate='';previewSwitch.appendChild(switchSelect);
@@ -127,8 +127,8 @@
   }catch(e){accountMode();lock();error(e.message);}
  }
  const oldDgbOut=dgbLogout,oldFrOut=frLogout;
- dgbLogout=async function(){await oldDgbOut();accountMode();lock();};
- frLogout=async function(){await oldFrOut();if(!frAcc()){accountMode();lock();}};
+ dgbLogout=async function(){await oldDgbOut();await window.storage.signOut();accountMode();lock();};
+ frLogout=async function(){await oldFrOut();if(!frAcc()){await window.storage.signOut();accountMode();lock();}};
  gate.querySelectorAll('[data-package]').forEach(b=>b.addEventListener('click',()=>{
   const url=new URL(location.href);url.searchParams.set('package',b.dataset.package);url.searchParams.delete('login');location.href=url.href;
  }));
@@ -139,6 +139,11 @@
   event.preventDefault();if(!ready)return;field('result').hidden=true;
   const submit=field('form').querySelector('[type="submit"]');submit.disabled=true;
   try{
+   // DriveGo phase 2 (T7): the server decides first, with the same rules and messages; then the shop's
+   // data is read (before signing in the browser has none) and the routines below run as before.
+   const signIn=await window.storage.signIn(field('username').value,field('password').value);
+   if(!signIn.ok){error(signIn.error);return;}
+   await frLoadFR();await dgbLoad();DB=frFreshDB();await load();boot();
    // The existing routines retain all password, suspension and employee permission checks.
    loggedIn=true;
    if(franchise){
@@ -170,11 +175,11 @@
  const switchAccount=document.createElement('button');switchAccount.type='button';switchAccount.textContent='ทดสอบบัญชีอื่น';
  switchAccount.addEventListener('click',async()=>{
   if(!ready)return;await save();accountMode();
-  DGB.session={who:''};FR.session={accId:'',inspect:''};await dgbSave();await frSave();
+  DGB.session={who:''};FR.session={accId:'',inspect:''};await dgbSave();await frSave();await window.storage.signOut();
   lock();field('result').hidden=true;field('username').value='';field('username').focus();
  });
  status.appendChild(switchAccount);
- const quick=document.createElement('button');quick.type='button';quick.className='dg-text-button';quick.textContent=franchise?'กลับเข้าโหมดทดลอง HQ โดยไม่กรอกรหัส':'กลับเข้าโหมดทดลองเจ้าของร้านโดยไม่กรอกรหัส';quick.addEventListener('click',previewOwner);field('form').appendChild(quick);
+ // DriveGo phase 2 (A1): no way in without a password (was: 'กลับเข้าโหมดทดลอง… โดยไม่กรอกรหัส').
  status.querySelector('button').addEventListener('click',async()=>{
   if(loggedIn&&!confirm('บันทึกข้อมูลแล้วกลับไปเลือกแพ็กเกจ?'))return;
   if(ready)await save();const url=new URL(location.href);url.searchParams.delete('package');location.href=url.href;
@@ -197,19 +202,20 @@
   for(let i=0;i<1200&&!window.__dgbReady;i++)await new Promise(r=>setTimeout(r,25));
   if(!window.__dgbReady)throw new Error('ระบบเดิมยังเริ่มทำงานไม่สำเร็จ กรุณาเปิดไฟล์ใหม่');
   if(franchise){
-   FR.enabled=true;if(!FR.accounts.length)await frSeed();FR.session={accId:'',inspect:''};await frSave();
-   DGB.session={who:''};await dgbSave();
-   field('credentials').textContent='บัญชีทดสอบเดิม: HQ = hq / 1234 · สาขา = b001 / 1234 (หากเปลี่ยนรหัสแล้วให้ใช้รหัสใหม่)';
+   // DriveGo phase 2: no demo accounts (A1), no passwords shown (A3), and a signed-in browser stays signed in (Q2).
+   FR.enabled=true;if(!window.storage.signedIn){FR.session={accId:'',inspect:''};await frSave();
+   DGB.session={who:''};await dgbSave();}
   }else if(plan){
-   FR.enabled=false;FR.session={accId:'',inspect:''};await frSave();
-   if(!DGB.shop){
-    DGB.shop={code:'DG-1688',ownerUser:'dg1688',pass:'123456',name:'ร้านทดสอบ '+labels[plan],owner:'เจ้าของร้านทดสอบ',email:'demo@example.com',created:iso(),trialStart:iso(),licensed:false,licEnd:'',payments:[]};
-   }
-   DGB.session={who:''};DB.curEmp='';await dgbSave();
-   field('credentials').textContent='บัญชีทดสอบ: dg1688 / 123456 · รหัสร้าน DG-1688 (หากเปลี่ยนรหัสแล้วให้ใช้รหัสใหม่)';
+   // DriveGo phase 2: no demo shop (A1), no passwords shown (A3), and a signed-in browser stays signed in (Q2).
+   FR.enabled=false;if(!window.storage.signedIn){FR.session={accId:'',inspect:''};await frSave();
+   DGB.session={who:''};DB.curEmp='';await dgbSave();}
   }
   frApplyUI();applyPerms();ready=true;field('form').querySelector('[type="submit"]').disabled=false;
-  if(plan){if(new URL(location.href).searchParams.get('login')==='account')field('username').focus();else await previewOwner();}
+  // DriveGo phase 2: signed in already (Q2) -> straight in; otherwise the sign-in form (no preview as owner, A1).
+  if(plan&&window.storage.signedIn&&(franchise?frAcc():DGB.session.who)){
+   const e=!franchise&&DGB.session.who!=='owner'?(DB.emp||[]).find(x=>x.id===DGB.session.who):null;
+   loginIdentity=franchise?frAcc().user:e?(e.tel||e.code||e.name):(DGB.shop.ownerUser||DGB.shop.email);unlock();
+  }else if(plan)field('username').focus();
  }catch(e){error(e.message);}
 })();
 

@@ -5,6 +5,8 @@ const config: NextConfig = {
   // shop's page must keep its trailing slash (/DG-1688/); app/[shop] adds it.
   skipTrailingSlashRedirect: true,
   poweredByHeader: false,
+  // Native password hashing: loaded by Node at run time, not bundled.
+  serverExternalPackages: ['@node-rs/argon2'],
 };
 
 export default config;

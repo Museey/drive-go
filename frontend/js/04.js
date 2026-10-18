@@ -68,7 +68,7 @@ async function frDoLogin(){
   /* ── ทะเบียนบัญชีรวมศูนย์: ทุกคน (HQ/HB/SHB) มี username เฉพาะตัว ไม่ซ้ำกันทั้งระบบ ── */
   const acc=FR.accounts.find(x=>frUserNorm(x.user)===frUserNorm(u));
   if(acc&&acc.role==='SHB'){
-    if(acc.pass!==p) return showErr('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+    if(!(await window.storage.checkSecret(FRKEY,'FR.accounts',acc.id,'pass',p))) return showErr('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
     if(acc.active===false) return showErr('บัญชีนี้ถูกระงับการใช้งาน — ติดต่อหัวหน้าสาขา');
     const b=frBranch(acc.branchId);
     if(!b||b.active===false) return showErr('สาขานี้ถูกระงับการใช้งานโดย HQ');
@@ -99,7 +99,7 @@ async function frDoLogin(){
     if(!emp) return showErr('ไม่พบรหัสพนักงาน "'+mm[1]+'" ในสาขา '+b.code+' — ตรวจสอบรหัสในเมนู 10 ส่วนที่ 2');
     if(!empActive(emp)) return showErr('บัญชีพนักงานนี้ถูกปิดการใช้งานแล้ว เข้าระบบไม่ได้');
     if(!emp.pin) return showErr('พนักงานคนนี้ยังไม่ได้ตั้งรหัส PIN — ให้หัวหน้าสาขา (HB) ตั้งให้ในเมนู 10 ก่อน');
-    if(p!==emp.pin) return showErr('รหัสผ่าน (PIN) ไม่ถูกต้อง');
+    if(!(await window.storage.checkSecret(KEY,'DB.emp',emp.id,'pin',p))) return showErr('รหัสผ่าน (PIN) ไม่ถูกต้อง');
     if(err) err.style.display='none';
     if($('#frLoginPass')) $('#frLoginPass').value='';
     FR.session={accId:hb.id,inspect:'',empId:emp.id}; await frSave();
@@ -112,7 +112,7 @@ async function frDoLogin(){
   }
   /* ── HQ / HB ── ชื่อผู้ใช้ไม่สนตัวพิมพ์ใหญ่-เล็ก (พิมพ์ HQ / hq / Hq ได้หมด) — รหัสผ่านยังต้องตรงเป๊ะ */
   const a=FR.accounts.find(x=>String(x.user||'').toLowerCase()===u.toLowerCase());
-  if(!a||a.pass!==p){ if(err){err.textContent='ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';err.style.display='';} return; }
+  if(!a||!(await window.storage.checkSecret(FRKEY,'FR.accounts',a.id,'pass',p))){ if(err){err.textContent='ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';err.style.display='';} return; }
   if(a.active===false){ if(err){err.textContent='รหัสนี้ถูกระงับการใช้งานโดย HQ — ติดต่อสำนักงานใหญ่';err.style.display='';} return; }
   if(a.role==='HB'){ const b=frBranch(a.branchId);
     if(!b||b.active===false){ if(err){err.textContent='สาขานี้ถูกระงับการใช้งานโดย HQ';err.style.display='';} return; } }
@@ -675,7 +675,7 @@ async function frChangePass(){
   const a=frAcc(); if(!a) return;
   const o=await askPromptP({title:'เปลี่ยนรหัสผ่าน',text:'ใส่รหัสผ่านเดิมของ '+a.user,yes:'ต่อไป',no:'ยกเลิก'});
   if(o===null||o===undefined||o===false) return;
-  if(String(o)!==String(a.pass)) return toast('รหัสผ่านเดิมไม่ถูกต้อง');
+  if(!(await window.storage.checkSecret(FRKEY,'FR.accounts',a.id,'pass',o))) return toast('รหัสผ่านเดิมไม่ถูกต้อง');
   const np=await askPromptP({title:'เปลี่ยนรหัสผ่าน',text:'ตั้งรหัสผ่านใหม่ (อย่างน้อย 4 ตัวอักษร)',yes:'บันทึก',no:'ยกเลิก'});
   if(np===null||np===undefined||np===false) return;
   if(!frPassValid(np)) return toast('รหัสผ่านสั้นเกินไป — อย่างน้อย 4 ตัวอักษร');
@@ -702,7 +702,7 @@ async function frChangePass(){
       const pw=await askPromptP({title:'กลับสู่โหมดผู้จัดการ (สิทธิเต็ม)',
         text:'ใส่รหัสผ่านของบัญชี "'+a.user+'" เพื่อยืนยันตัวตน',yes:'ยืนยัน',no:'ยกเลิก'});
       if(pw===null||pw===undefined||pw===false){ sel.value=DB.curEmp||''; return; }
-      if(String(pw)!==String(a.pass)){ sel.value=DB.curEmp||''; return toast('รหัสผ่านไม่ถูกต้อง'); }
+      if(!(await window.storage.checkSecret(FRKEY,'FR.accounts',a.id,'pass',pw))){ sel.value=DB.curEmp||''; return toast('รหัสผ่านไม่ถูกต้อง'); }
       DB.curEmp=''; save(); applyPerms(); try{renderStock();renderHome();}catch(e){} frApplyUI();
       return toast('กลับสู่โหมดผู้จัดการ ('+a.user+')');
     }
@@ -712,7 +712,7 @@ async function frChangePass(){
       return toast('พนักงานคนนี้ยังไม่ได้ตั้งรหัส PIN — ผู้จัดการตั้งให้ในเมนู 10 ส่วนที่ 2 ก่อน จึงจะสลับเข้าทำงานได้'); }
     const p=await askPromptP({title:'ยืนยันตัวตน',text:'ใส่รหัส PIN 4 หลักของ '+e.name,yes:'เข้าใช้งาน',no:'ยกเลิก'});
     if(p===null||p===undefined||p===false){ sel.value=DB.curEmp||''; return; }
-    if(String(p)!==String(e.pin)){ sel.value=DB.curEmp||''; return toast('รหัส PIN ไม่ถูกต้อง'); }
+    if(!(await window.storage.checkSecret(KEY,'DB.emp',e.id,'pin',p))){ sel.value=DB.curEmp||''; return toast('รหัส PIN ไม่ถูกต้อง'); }
     DB.curEmp=id; save(); applyPerms(); try{renderStock();renderHome();}catch(e2){} frApplyUI();
     toast('เข้าใช้งานในนาม '+e.name);
   };
@@ -986,7 +986,7 @@ window.PKG_FR_BOOT=(async()=>{
   await frLoadFR();
   for(let i=0;i<600&&!window.__frBootDone;i++) await new Promise(r=>setTimeout(r,25));
   if(!FR.enabled){ frApplyUI(); return; }     /* โหมดอู่เดี่ยว — ใช้งานแบบ ProX เดิมทันที ไม่มีหน้า Login */
-  if(!FR.accounts.length) await frSeed();
+  /* DriveGo phase 2 (A1): no demo chain accounts when none are loaded */
   const a=frAcc();
   if(!a){ frApplyUI(); const u=$('#frLoginUser'); if(u) try{u.focus()}catch(e){} return; }
   if(a.role==='HQ'){

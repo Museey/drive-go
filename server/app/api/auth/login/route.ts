@@ -1,0 +1,25 @@
+// Signs in at a shop's address (decision Q1): { code, user, pass } -> sets the
+// session cookie, or { error } with the legacy app's message for that case.
+import { json } from '@/lib/api';
+import { signInBiz, signInFranchise, userIdOf } from '@/lib/auth';
+import { pool, withShop } from '@/lib/db';
+import { shopByCode } from '@/lib/public';
+import { startSession } from '@/lib/session';
+
+export const dynamic = 'force-dynamic';
+
+export async function POST(req: Request) {
+  const { code, user, pass } = await req.json() as { code?: string; user?: string; pass?: string };
+  const shop = typeof code === 'string' ? await shopByCode(pool(), code) : null;
+  if (!shop || shop.status !== 'active') return json({ error: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' }, 401);
+  const r = await withShop(pool(), shop.id, '*', async c => {
+    const s = shop.package === 'franchise' ? await signInFranchise(c, String(user ?? ''), String(pass ?? ''))
+      : await signInBiz(c, String(user ?? ''), String(pass ?? ''));
+    if (!s.ok) return { error: s.error };
+    const userId = await userIdOf(c, s.account);
+    if (!userId) return { error: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' };
+    return { cookie: (await startSession(c, userId, s.scope)).cookie };
+  });
+  if ('error' in r) return json({ error: r.error }, 401);
+  return new Response(JSON.stringify({ ok: true }), { headers: { 'content-type': 'application/json', 'set-cookie': r.cookie } });
+}

@@ -9,19 +9,22 @@ const TARGET = process.env.TARGET || 'legacy';
 // Approved behaviour changes (tests/intentional-changes.json): for TARGET=new
 // a replaced scenario gives way to the one written for the new behaviour,
 // which in turn never runs against the legacy app.
-const { replaced } = JSON.parse(readFileSync('tests/intentional-changes.json', 'utf8')) as
-  { replaced: { scenario: string; by: string; decision: string }[] };
-for (const r of replaced) {
+const { replaced, added = [] } = JSON.parse(readFileSync('tests/intentional-changes.json', 'utf8')) as
+  { replaced: { scenario: string; by: string; decision: string }[]; added?: { scenario: string; decision: string }[] };
+for (const r of [...replaced, ...added]) {
   if (!r.decision) throw new Error(`${r.scenario}: no approved decision given`);
-  for (const f of [r.scenario, r.by]) if (!existsSync(`tests/scenarios/${f}`)) throw new Error(`tests/intentional-changes.json: tests/scenarios/${f} does not exist`);
+  for (const f of [r.scenario, 'by' in r ? r.by : r.scenario])
+    if (!existsSync(`tests/scenarios/${f}`)) throw new Error(`tests/intentional-changes.json: tests/scenarios/${f} does not exist`);
 }
+// Scenarios that check behaviour of the new system only (never run on the legacy app).
+const newOnly = [...replaced.map(r => r.by), ...added.map(a => a.scenario)];
 const updating = process.argv.some(a => a === '-u' || a.startsWith('--update-snapshots'));
 if (TARGET !== 'legacy' && updating)
   throw new Error('Goldens can only be recorded from the legacy app (TARGET=legacy).');
 
 export default defineConfig({
   testDir: 'tests/scenarios',
-  testIgnore: replaced.map(r => `**/${TARGET === 'new' ? r.scenario : r.by}`),
+  testIgnore: (TARGET === 'new' ? replaced.map(r => r.scenario) : newOnly).map(f => `**/${f}`),
   snapshotPathTemplate: '{testDir}/../golden/{testFileName}/{arg}{ext}',
   updateSnapshots: TARGET === 'legacy' ? 'missing' : 'none',
   fullyParallel: true,

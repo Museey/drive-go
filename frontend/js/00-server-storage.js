@@ -42,6 +42,11 @@
   RULES["DB.px"] = GROUP;
   RULES["DB.fifo"] = GROUP;
   for (const u of ["DB.curEmp", "FR.session", "DGB.session"]) RULES[u] = SESSION;
+  var SESSION_DEFAULTS = {
+    "DB.curEmp": '""',
+    "FR.session": '{"accId":"","inspect":""}',
+    "DGB.session": '{"who":""}'
+  };
   var SECRET_FIELDS = {
     "DB.emp": ["dgbPass", "pin"],
     "FR.accounts": ["pass"],
@@ -127,6 +132,40 @@
     delete out.keep;
     return out;
   }
+  function assemble(storeKey, layout, rows, { session = {}, secrets = [] } = {}) {
+    const root = rootOf(storeKey);
+    if (!root) throw new Error(`not a main data key: ${storeKey}`);
+    const units = byUnit(rows);
+    const reveal = /* @__PURE__ */ new Map();
+    for (const s of secrets) {
+      const k = `${s.unit}\0${s.key}`;
+      reveal.set(k, [...reveal.get(k) || [], s]);
+    }
+    const text = (r) => {
+      const hidden = reveal.get(`${r.unit}\0${r.key}`);
+      if (!hidden) return r.data;
+      const v = JSON.parse(r.data);
+      for (const s of hidden) v[s.field] = s.value;
+      return JSON.stringify(v);
+    };
+    const one = (unit) => {
+      const r = units.get(unit);
+      if (!r || r.length !== 1 || r[0].key !== "") throw new Error(`missing or repeated row for ${unit}`);
+      return text(r[0]);
+    };
+    const build = (entries, path) => "{" + entries.map(([field, kind]) => {
+      const unit = `${path}.${field}`;
+      let v;
+      if (Array.isArray(kind)) v = build(kind, unit);
+      else if (kind === "L" || kind === "K") v = "[" + (units.get(unit) || []).map(text).join(",") + "]";
+      else if (kind === "M") v = "{" + (units.get(unit) || []).map((r) => JSON.stringify(r.key) + ":" + r.data).join(",") + "}";
+      else if (kind === "S") v = session[unit] ?? SESSION_DEFAULTS[unit] ?? "null";
+      else v = one(unit);
+      return JSON.stringify(field) + ":" + v;
+    }).join(",") + "}";
+    const parsed = JSON.parse(layout);
+    return parsed === "D" ? one(`${root}.`) : build(parsed, root);
+  }
   function diff(before, after) {
     const changes = { upsert: [], remove: [], order: {} };
     if (before.layout !== after.layout) changes.layout = after.layout;
@@ -147,15 +186,17 @@
   }
 
   // server/client/storage.ts
-  var KEEP_SECRETS = true;
   var API = "/api/storage";
   var fetch0 = window.fetch.bind(window);
   var MESSAGES = {
     // decision Q5
     conflict: "มีคนแก้ข้อมูลนี้จากเครื่องอื่นก่อนหน้า สิ่งที่เพิ่งทำยังไม่ถูกบันทึก — กดตกลงเพื่อโหลดข้อมูลล่าสุด",
     offline: "บันทึกไม่สำเร็จ — เชื่อมต่อ server ไม่ได้ ระบบจะลองใหม่อัตโนมัติ อย่าเพิ่งปิดหน้านี้",
-    signedOut: "หมดเวลาการเข้าระบบ กรุณาเข้าสู่ระบบใหม่"
+    signedOut: "หมดเวลาการเข้าระบบ กรุณาเข้าสู่ระบบใหม่",
+    lockedOut: "กรอกรหัสผิดหลายครั้ง กรุณารอ 15 นาทีแล้วลองใหม่"
   };
+  var SHOP = decodeURIComponent(location.pathname.split("/")[1] || "");
+  var signedIn = null;
   var mains = /* @__PURE__ */ new Map();
   var vk = (unit, key) => `${unit}|${key}`;
   var url = (key) => `${API}/${encodeURIComponent(key)}`;
@@ -195,24 +236,34 @@
     const r = await send(url(key), {}, false);
     const m = { value: null, sent: null, last: null, base: {} };
     if (r.status === 200) {
+      signedIn = true;
       const body = await r.text();
       const nl = body.indexOf("\n");
       m.base = JSON.parse(body.slice(0, nl));
       m.value = m.sent = body.slice(nl + 1);
-      m.last = split(key, m.sent, { keepSecrets: KEEP_SECRETS });
-    } else if (r.status !== 404 && r.status !== 401) {
+      m.last = split(key, m.sent);
+    } else if (r.status === 401) {
+      signedIn = false;
+      const pub = await send(`/api/public/${encodeURIComponent(SHOP)}/${encodeURIComponent(key)}`, {}, false);
+      if (pub.status === 200) m.value = await pub.text();
+    } else if (r.status !== 404) {
       problems.push(`read ${key}: ${r.status}`);
     }
     return m;
   }
+  function newSecrets(before, next) {
+    const was = new Map((before?.secrets || []).map((s) => [`${s.unit}|${s.key}|${s.field}`, s.value]));
+    return next.secrets.filter((s) => s.value !== SECRET_PLACEHOLDER && was.get(`${s.unit}|${s.key}|${s.field}`) !== s.value);
+  }
   async function flush(key) {
     const m = mains.get(key);
     const value = m.value;
-    if (value === null || value === m.sent) return;
-    const next = split(key, value, { keepSecrets: KEEP_SECRETS });
+    if (value === null || value === m.sent || !signedIn) return;
+    const next = split(key, value);
+    const secrets = newSecrets(m.last, next);
     const changes = m.last ? diff(m.last, next) : { layout: next.layout, upsert: next.rows, remove: [], order: {} };
     const sessionChanged = JSON.stringify(next.session) !== JSON.stringify(m.last?.session ?? {});
-    if (changes.layout === void 0 && !changes.upsert.length && !changes.remove.length && !Object.keys(changes.order).length && !sessionChanged) {
+    if (changes.layout === void 0 && !changes.upsert.length && !changes.remove.length && !Object.keys(changes.order).length && !sessionChanged && !secrets.length) {
       m.sent = value;
       m.last = next;
       return;
@@ -229,7 +280,7 @@
     const r = await send(url(key), {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ base, changes, session: next.session })
+      body: JSON.stringify({ base, changes, session: next.session, secrets })
     }, true);
     if (r.status === 409) return mustReload(MESSAGES.conflict, `conflict ${key}: ${JSON.stringify((await r.json()).conflicts)}`);
     if (r.status === 401) return mustReload(MESSAGES.signedOut, `signed out while saving ${key}`);
@@ -259,6 +310,10 @@
       return r.status === 200 ? { key, value: await r.text() } : null;
     },
     async set(key, value) {
+      if (signedIn === false) {
+        if (rootOf(key)) (mains.get(key) ?? mains.set(key, { value: null, sent: null, last: null, base: {} }).get(key)).value = value;
+        return { key, value };
+      }
       if (rootOf(key)) {
         const m = mains.get(key) ?? { value: null, sent: null, last: null, base: {} };
         mains.set(key, m);
@@ -274,6 +329,7 @@
       return { key, value };
     },
     async delete(key) {
+      if (signedIn === false) return { key, deleted: false };
       await enqueue(async () => {
         const r = await send(url(key), { method: "DELETE" }, true);
         if (!r.ok) problems.push(`delete ${key}: ${r.status}`);
@@ -283,25 +339,67 @@
     },
     // Every key, like IndexedDB's keys() (callers filter by prefix themselves).
     async list(_prefix) {
+      if (signedIn === false) return { keys: [] };
       await queue;
       const r = await send(API, {}, false);
       return r.ok ? await r.json() : { keys: [] };
+    },
+    get signedIn() {
+      return signedIn === true;
+    },
+    // Signs in at this shop. The server decides, with the legacy app's rules and
+    // messages; on success everything is read again, now with the shop's data.
+    async signIn(user, pass) {
+      await queue;
+      const r = await send("/api/auth/login", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ code: SHOP, user, pass })
+      }, false);
+      const body = await r.json().catch(() => ({}));
+      if (!r.ok) return { ok: false, error: body.error || "เข้าสู่ระบบไม่สำเร็จ" };
+      signedIn = true;
+      mains.clear();
+      return { ok: true };
+    },
+    // Ends the session once the app's own saves are done.
+    async signOut() {
+      await queue;
+      if (window.__drivegoTest)
+        for (const key of (await storage.verify()).wrong) problems.push(`not on the server at sign-out: ${key}`);
+      await send("/api/auth/logout", { method: "POST" }, false);
+      signedIn = false;
+      mains.clear();
+    },
+    // A password or PIN the legacy screens used to compare in the browser.
+    async checkSecret(storeKey, unit, key, field, value) {
+      const r = await send("/api/auth/check", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ storeKey, unit, key, field, value: String(value ?? "") })
+      }, false);
+      const body = await r.json().catch(() => ({}));
+      if (body.locked && typeof window.toast === "function") window.toast(MESSAGES.lockedOut);
+      return r.ok && body.ok === true;
     },
     // For the tests: resolves when every write so far has been answered.
     idle: () => queue.then(() => {
     }),
     problems,
     // For the tests: whether the server holds exactly what the app last wrote,
-    // for every main data key the app used.
+    // for every main data key the app used (passwords as placeholders).
     async verify() {
       await queue;
       const checked = [], wrong = [];
+      if (!signedIn) return { checked, wrong };
       for (const [key, m] of mains) {
         if (m.value === null) continue;
         checked.push(key);
         const r = await fetch0(url(key), { cache: "no-store" });
         const body = await r.text();
-        if (r.status !== 200 || body.slice(body.indexOf("\n") + 1) !== m.value) wrong.push(key);
+        const s = split(key, m.value);
+        const expected = assemble(key, s.layout, s.rows, { session: s.session });
+        if (r.status !== 200 || body.slice(body.indexOf("\n") + 1) !== expected) wrong.push(key);
       }
       return { checked, wrong };
     }

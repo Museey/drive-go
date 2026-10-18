@@ -6230,7 +6230,7 @@ $('#curUser').onchange=async()=>{
   else { const e=DB.emp.find(x=>x.id===id);
     /* ด่านกันในฟังก์ชัน ไม่ใช่แค่ซ่อนตัวเลือก */
     if(!empActive(e)){ toast('บัญชีนี้ถูกปิดการใช้งานแล้ว เข้าระบบไม่ได้'); $('#curUser').value=DB.curEmp||''; return; }
-    if(e&&e.pin){ const p=await askPromptP({title:'ยืนยันตัวตน',text:'ใส่รหัสผ่าน 4 หลักของ '+e.name,yes:'เข้าใช้งาน',no:'ยกเลิก'}); if(p!==e.pin){toast('รหัสผ่านไม่ถูกต้อง');$('#curUser').value=DB.curEmp||'';return} } }
+    if(e&&e.pin){ const p=await askPromptP({title:'ยืนยันตัวตน',text:'ใส่รหัสผ่าน 4 หลักของ '+e.name,yes:'เข้าใช้งาน',no:'ยกเลิก'}); if(!(await window.storage.checkSecret(KEY,'DB.emp',e.id,'pin',p))){toast('รหัสผ่านไม่ถูกต้อง');$('#curUser').value=DB.curEmp||'';return} } }
   DB.curEmp=id; save(); applyPerms(); renderStock(); renderHome();
   toast(id?('เข้าใช้งานในนาม '+(DB.emp.find(x=>x.id===id)||{}).name):'กลับสู่โหมดผู้ดูแลระบบ');
 };
@@ -10872,7 +10872,7 @@ function mkCards(tblId){
 }
 (async()=>{ await load();
   /* เปิดครั้งแรกและยังไม่มีข้อมูล — โหลดข้อมูลทดสอบ 36 เดือนให้อัตโนมัติ */
-  if(!DB.receipts.length&&!DB.cust.length&&!DB.stock.length){ seedDemo36(); }
+  if(!DB.receipts.length&&!DB.cust.length&&!DB.stock.length){ boot(); /* DriveGo phase 2 (A1): no demo data */ }
   else boot(); })();
 
 /* ==========================================================

@@ -1,1 +1,1 @@
-window.PKG_AUTO_TRIAL={shop:"Drivego Service"};
+/* DriveGo phase 2 (decision A1): the test copy built trial data by itself here (window.PKG_AUTO_TRIAL); the real system does not. */

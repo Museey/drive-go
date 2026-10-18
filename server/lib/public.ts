@@ -1,0 +1,26 @@
+// What the sign-in screen may know before anyone signs in (design §4.6): the
+// shop account without its sign-in names and password, and whether the
+// franchise mode is on, without branches, accounts, requests or stock.
+// No shop data (garage.v22) at all.
+import type pg from 'pg';
+import { readMain } from './storage.ts';
+
+export async function publicValue(c: pg.ClientBase, storeKey: string): Promise<string | null> {
+  if (storeKey !== 'dgb.v22' && storeKey !== 'franchise.v22') return null;
+  const main = await readMain(c, '', storeKey);
+  if (!main) return null;
+  const v = JSON.parse(main.json);
+  if (storeKey === 'dgb.v22') {
+    if (v.shop) { delete v.shop.pass; delete v.shop.email; delete v.shop.ownerUser; }
+    v.session = { who: '' };
+  } else {
+    for (const k of ['branches', 'accounts', 'reqs', 'hqStock']) if (Array.isArray(v[k])) v[k] = [];
+    v.session = { accId: '', inspect: '' };
+  }
+  return JSON.stringify(v);
+}
+
+export async function shopByCode(db: pg.Pool | pg.ClientBase, code: string): Promise<{ id: string; package: string; status: string } | null> {
+  const { rows } = await db.query<{ id: string; package: string; status: string }>('select id, package, status from shops where code = $1', [code]);
+  return rows[0] ?? null;
+}

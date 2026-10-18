@@ -105,7 +105,7 @@ async function dgbLogin(){
   if(dgbLoginMode==='owner'){
     const em=(($('#dgbLoEmail')||{}).value||'').trim().toLowerCase(), p=($('#dgbLoPass')||{}).value||'';
     const okUser=(em===DGB.shop.email)||(em===String(DGB.shop.ownerUser||'').toLowerCase());
-    if(!okUser||p!==DGB.shop.pass) return bad('รหัสผู้ใช้/อีเมล หรือรหัสผ่านไม่ถูกต้อง');
+    if(!okUser||!(await window.storage.checkSecret(DGBKEY,'DGB.shop','','pass',p))) return bad('รหัสผู้ใช้/อีเมล หรือรหัสผ่านไม่ถูกต้อง');
     DGB.session={who:'owner'}; await dgbSave();
     if($('#dgbLoPass')) $('#dgbLoPass').value='';
     dgbEnter(); return true;
@@ -117,7 +117,7 @@ async function dgbLogin(){
   const e=(DB.emp||[]).find(x=>empActive(x)&&telNorm(x.tel)===telNorm(tel)&&x.dgbPass);
   if(!e) return bad('ไม่พบบัญชีพนักงานจากเบอร์นี้ — ให้เจ้าของร้านออกบัญชีในเมนู 10 ก่อน');
   if(e.dgbActive===false) return bad('บัญชีนี้ถูกระงับการใช้งาน — ติดต่อเจ้าของร้าน');
-  if(p!==e.dgbPass) return bad('รหัสผ่านไม่ถูกต้อง');
+  if(!(await window.storage.checkSecret(KEY,'DB.emp',e.id,'dgbPass',p))) return bad('รหัสผ่านไม่ถูกต้อง');
   DGB.session={who:e.id}; await dgbSave();
   if($('#dgbLePass')) $('#dgbLePass').value='';
   dgbEnter(); return true;
@@ -167,7 +167,7 @@ async function dgbOwnerPass(){
   if(DGB.session.who!=='owner') return;
   const o=await askPromptP({title:'เปลี่ยนรหัสผ่านเจ้าของ',text:'ใส่รหัสผ่านเดิม',yes:'ต่อไป',no:'ยกเลิก'});
   if(o===null||o===undefined||o===false) return;
-  if(String(o)!==String(DGB.shop.pass)) return toast('รหัสผ่านเดิมไม่ถูกต้อง');
+  if(!(await window.storage.checkSecret(DGBKEY,'DGB.shop','','pass',o))) return toast('รหัสผ่านเดิมไม่ถูกต้อง');
   const np=await askPromptP({title:'เปลี่ยนรหัสผ่านเจ้าของ',text:'ตั้งรหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร)',yes:'บันทึก',no:'ยกเลิก'});
   if(np===null||np===undefined||np===false) return;
   if(String(np).length<6) return toast('รหัสผ่านสั้นเกินไป — อย่างน้อย 6 ตัวอักษร');

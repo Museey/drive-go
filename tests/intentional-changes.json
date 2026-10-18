@@ -1,11 +1,52 @@
 {
-  "about": "Scenarios whose legacy behaviour the owner approved changing in the new system (CLAUDE.md rule 5, docs/NOTES.md). For TARGET=new the scenario is replaced by the one in 'by', which checks the new behaviour with explicit expectations; 'by' runs only for TARGET=new. Nothing else may be skipped.",
+  "about": "Behaviour the owner approved changing in the new system (CLAUDE.md rule 5, docs/NOTES.md). 'replaced': for TARGET=new the scenario is replaced by the one in 'by', which checks the new behaviour with explicit expectations and the unchanged steps against the replaced scenario's goldens. 'added': new behaviour that the legacy app does not have. Both run only for TARGET=new. Nothing else may be skipped.",
   "replaced": [
     {
       "scenario": "S74-backup-wipe-restore.spec.ts",
       "by": "S100-server-backup-wipe-restore.spec.ts",
       "decision": "Q6",
       "why": "The settings page says the data is kept by the app (host storage mode), not in IndexedDB on this device; every other step is checked against S74's goldens."
+    },
+    {
+      "scenario": "S00-login.spec.ts",
+      "by": "S103-sign-in-screen-no-demo-no-data.spec.ts",
+      "decision": "A1, A3, design 4.6",
+      "why": "The sign-in screen has no demo account line or way in without a password, and before signing in the browser holds no shop data; signing in and the home screen are checked against S00's goldens."
+    },
+    {
+      "scenario": "S02-enter-as-owner-without-password.spec.ts",
+      "by": "S104-no-way-in-without-password.spec.ts",
+      "decision": "A1",
+      "why": "There is no way in as the owner without a password, neither the button nor opening the shop's link without ?login=account."
+    },
+    {
+      "scenario": "S03-owner-changes-password.spec.ts",
+      "by": "S105-owner-changes-password-on-server.spec.ts",
+      "decision": "T7, A1, A3",
+      "why": "Passwords are checked and stored on the server; the sign-in screenshot (demo account line) and the last step (way in without a password) cannot happen; every other step, screen and data change is checked against S03's goldens."
+    },
+    {
+      "scenario": "S05-suspend-and-reenable-employee-account.spec.ts",
+      "by": "S106-suspend-employee-account-on-server.spec.ts",
+      "decision": "T7, A3",
+      "why": "The refused sign-in happens on the server and the sign-in screen has no demo account line; every step, every other screen and every data change is checked against S05's goldens."
+    }
+  ],
+  "added": [
+    {
+      "scenario": "S107-stay-signed-in.spec.ts",
+      "decision": "Q2",
+      "why": "Stays signed in when the page is opened again; the test copy signed everyone out."
+    },
+    {
+      "scenario": "S108-too-many-wrong-passwords.spec.ts",
+      "decision": "Q2, Q5",
+      "why": "Five wrong passwords lock the account for 15 minutes."
+    },
+    {
+      "scenario": "S109-two-browsers-save-same-record.spec.ts",
+      "decision": "P1, Q5",
+      "why": "Two browsers save the same record: the second is refused with the approved message and reloads the latest data."
     }
   ]
 }
