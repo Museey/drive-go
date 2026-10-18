@@ -25,11 +25,8 @@ if (!process.env.LEGACY_PORT) process.env.LEGACY_PORT = String(4200 + Math.floor
 export const PORT = Number(process.env.LEGACY_PORT);
 export const LEGACY_ORIGIN = `http://127.0.0.1:${PORT}`;
 export const LEGACY_URL = `${LEGACY_ORIGIN}/DRIVEGO_TRIAL_v23.html`;
-// Phase 1: the same app split into files (frontend/), served next to it.
-export const FRONTEND_URL = `${LEGACY_ORIGIN}/frontend/index.html`;
-// Phase 2: the new system (server/, tools/serve-new.mjs) on the same port,
-// a shop's screens at /<shop code>/.
-export const NEW_URL = `${LEGACY_ORIGIN}/DG-1688/`;
+// The new system (server/, tools/serve-new.mjs) runs on the same port; a
+// shop's screens are at /<shop code>/ (each test opens its own shop).
 
 // Browser context settings shared by tests and fixtures. Timezone matters: the
 // app turns "now" into local dates, so the fixture and the tests must agree.

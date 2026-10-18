@@ -60,6 +60,19 @@ export async function restoreDataset(page, dataset) {
   await page.unroute(`${LEGACY_ORIGIN}/__blank`);
 }
 
+// TARGET=new keeps the shop's data on the server (new-shop.mjs); only what the
+// app keeps in the browser itself (localStorage) is put into the browser.
+export async function restoreLocalStorage(page, dataset) {
+  const state = JSON.parse(readFileSync(new URL(`../fixtures/${dataset}.json`, import.meta.url), 'utf8'));
+  await page.route(`${LEGACY_ORIGIN}/__blank`, r => r.fulfill({ contentType: 'text/html', body: '<!doctype html><title>restore</title>' }));
+  await page.goto(`${LEGACY_ORIGIN}/__blank`);
+  await page.evaluate(items => {
+    localStorage.clear();
+    for (const { name, value } of items) localStorage.setItem(name, value);
+  }, state.origins[0].localStorage || []);
+  await page.unroute(`${LEGACY_ORIGIN}/__blank`);
+}
+
 // The legacy app is ready when its sign-in button is enabled (boot finished)
 // or it has already opened the workspace.
 export async function waitForLegacyBoot(page) {

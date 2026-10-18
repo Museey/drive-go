@@ -1,6 +1,6 @@
-// Minimal static server for the tests: legacy/ at / (the original HTML) and
-// frontend/ at /frontend/ (the split version from Phase 1), on one origin so
-// datasets restore the same way for both.
+// Minimal static server for the tests: legacy/ at / (the original HTML).
+// (Phase 1 also served frontend/ here; since Phase 2 it needs the new system's
+// server, tools/serve-new.mjs.)
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
@@ -8,7 +8,6 @@ import { fileURLToPath } from 'node:url';
 import { PORT } from '../tests/support/config.mjs';
 
 const roots = [
-  ['/frontend/', fileURLToPath(new URL('../frontend/', import.meta.url))],
   ['/', fileURLToPath(new URL('../legacy/', import.meta.url))],
 ];
 const types = {

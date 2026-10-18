@@ -12,14 +12,16 @@
 //                                               (wipe, restore, import, demo data): record counts per collection
 import { test as base, expect } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { prepareContext } from './browser.mjs';
-import { FIXED_NOW, FRONTEND_URL, LEGACY_ORIGIN, LEGACY_URL, NEW_URL, TEST_SEED } from './config.mjs';
+import { prepareContext, restoreLocalStorage } from './browser.mjs';
+import { FIXED_NOW, LEGACY_ORIGIN, LEGACY_URL, TEST_SEED } from './config.mjs';
+import { openTestShop } from './new-shop.mjs';
 import { legacyApp, messageRecorderInitScript } from './legacy-app.mjs';
 import { stateDiff, stateCounts, formatDiff } from './state-diff.mjs';
 import { executedFunctions } from './coverage.mjs';
 import { SABOTAGE } from './sabotage.mjs';
 
 const TARGET = process.env.TARGET || 'legacy';
+declare const STORAGE_MODE: string;   // the legacy app's storage mode, read in the page
 
 type App = ReturnType<typeof legacyApp>;
 type Golden = {
@@ -46,9 +48,12 @@ export const test = base.extend<{ dataset: string; app: App; golden: Golden }>({
     // Every file of the app itself must load (a split-out script that fails
     // to load would otherwise only show up in scenarios that use it).
     const missing: string[] = [];
-    page.on('response', r => { if (r.url().startsWith(LEGACY_ORIGIN) && r.status() >= 400) missing.push(`${r.status()} ${r.url()}`); });
+    // (The new system's API answers 404 for a key with no data, as IndexedDB
+    // has none; its answers are checked by window.storage.problems instead.)
+    const appFile = (u: string) => u.startsWith(LEGACY_ORIGIN) && !u.startsWith(`${LEGACY_ORIGIN}/api/`);
+    page.on('response', r => { if (appFile(r.url()) && r.status() >= 400) missing.push(`${r.status()} ${r.url()}`); });
     page.on('requestfailed', r => {
-      if (r.url().startsWith(LEGACY_ORIGIN) && !/ERR_ABORTED/.test(r.failure()?.errorText || '')) missing.push(`${r.failure()?.errorText} ${r.url()}`);
+      if (appFile(r.url()) && !/ERR_ABORTED/.test(r.failure()?.errorText || '')) missing.push(`${r.failure()?.errorText} ${r.url()}`);
     });
     await use(page);
     expect(missing, 'files of the app that failed to load').toEqual([]);
@@ -60,12 +65,23 @@ export const test = base.extend<{ dataset: string; app: App; golden: Golden }>({
   },
 
   // legacy: the original HTML (goldens are recorded from it).
-  // frontend: the same app split into files in Phase 1; must match every golden.
-  // new: the new system (Phase 2, server/); must match every golden too.
-  app: async ({ page, dataset }, use) => {
-    const url = { legacy: LEGACY_URL, frontend: FRONTEND_URL, new: NEW_URL }[TARGET];
-    if (!url) throw new Error(`No app adapter for TARGET=${TARGET}.`);
-    await use(legacyApp(page, { dataset, url }));
+  // new: the new system (Phase 2, server/); must match every golden too. Each
+  // test opens a shop of its own from the dataset, and at the end the server
+  // must hold exactly what the app last saved, with no save refused or lost.
+  app: async ({ page, context, dataset }, use, testInfo) => {
+    if (TARGET === 'legacy') return use(legacyApp(page, { dataset, url: LEGACY_URL }));
+    if (TARGET !== 'new') throw new Error(`No app adapter for TARGET=${TARGET}.`);
+    const shop = await openTestShop(dataset);
+    await context.addCookies([{ name: 'dg_session', value: shop.token, url: LEGACY_ORIGIN }]);
+    await use(legacyApp(page, { dataset, url: `${LEGACY_ORIGIN}/${shop.code}/`, restore: restoreLocalStorage }));
+    if (testInfo.status !== testInfo.expectedStatus || page.isClosed()) return;
+    const storage = await page.evaluate(async () => {
+      const s = (window as any).storage;
+      if (!s || !s.verify || typeof STORAGE_MODE === 'undefined') return null;
+      const { checked, wrong } = await s.verify();
+      return { mode: STORAGE_MODE, usesShopData: checked.includes('garage.v22'), problems: s.problems, notOnServer: wrong };
+    });
+    expect(storage, 'every save reached the server unchanged').toEqual({ mode: 'host', usesShopData: true, problems: [], notOnServer: [] });
   },
 
   golden: async ({ page, app }, use, testInfo) => {

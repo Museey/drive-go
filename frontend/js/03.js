@@ -56,7 +56,7 @@ const IDB={db:null,
 const STORE={
   async init(){
     if(STORAGE_MODE) return STORAGE_MODE;
-    if(false&&typeof window.storage==='object'&&window.storage&&typeof window.storage.get==='function'){
+    if(typeof window.storage==='object'&&window.storage&&typeof window.storage.get==='function'){
       STORAGE_MODE='host'; return STORAGE_MODE; }
     try{ if(typeof indexedDB!=='undefined'&&indexedDB){ await IDB.open(); STORAGE_MODE='idb'; return STORAGE_MODE; } }catch(e){}
     try{ COPY_LOCAL_STORAGE.setItem('__t','1'); COPY_LOCAL_STORAGE.removeItem('__t'); STORAGE_MODE='ls'; return STORAGE_MODE; }catch(e){}

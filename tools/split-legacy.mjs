@@ -2,8 +2,10 @@
 // changing a single character of logic.
 //
 //   node tools/split-legacy.mjs          write frontend/ from the legacy file
-//   node tools/split-legacy.mjs --check  rebuild the legacy file from frontend/
-//                                        and require it to match byte for byte
+//                                        (Phase 1 only: it overwrites the Phase 2 changes)
+//   node tools/split-legacy.mjs --check  split the legacy file in memory and require
+//                                        frontend/ to match it, except the files
+//                                        listed in frontend/CHANGES.md (Phase 2 on)
 //
 // Output:
 //   frontend/index.html      the markup, with each block replaced by a reference
@@ -14,7 +16,9 @@
 //
 // Classic <script src> tags run in the same order as inline scripts and share
 // the same global scope, and <link rel="stylesheet"> replaces <style> in the
-// same place, so the page behaves the same. --check proves nothing else moved.
+// same place, so the page behaves the same. In Phase 1, frontend/ rebuilt
+// the legacy file byte for byte; --check now proves that nothing moved
+// beyond the changes listed in frontend/CHANGES.md.
 import { mkdirSync, readFileSync, rmSync, writeFileSync, readdirSync } from 'node:fs';
 
 const ROOT = new URL('../', import.meta.url);
@@ -63,33 +67,38 @@ function split(html) {
   return { index: parts.join(''), scripts, styles, images };
 }
 
-function rebuild(dir) {
-  const manifest = JSON.parse(readFileSync(new URL('split-manifest.json', dir), 'utf8'));
-  let html = readFileSync(new URL('index.html', dir), 'utf8');
-  for (const s of manifest.scripts)
-    html = html.replace(`<script src="${s.file}"></script>`, () => `<script>${readFileSync(new URL(s.file, dir), 'utf8')}</script>`);
-  for (const s of manifest.styles) {
-    const attrs = s.open.slice('<style'.length, -1);
-    html = html.replace(`<link rel="stylesheet" href="${s.file}"${attrs}>`, () => `${s.open}${readFileSync(new URL(s.file, dir), 'utf8')}</style>`);
-  }
-  for (const im of manifest.images)
-    html = html.split(im.file).join(`data:${im.mime};base64,${readFileSync(new URL(im.file, dir)).toString('base64')}`);
-  return html;
-}
-
 const legacy = readFileSync(LEGACY, 'utf8');
 if (process.argv.includes('--check')) {
-  const rebuilt = rebuild(OUT);
-  if (rebuilt === legacy) {
-    console.log(`OK: frontend/ rebuilds legacy/DRIVEGO_TRIAL_v23.html byte for byte (${Buffer.byteLength(legacy)} bytes)`);
-  } else {
-    let i = 0;
-    while (i < legacy.length && legacy[i] === rebuilt[i]) i++;
-    console.error(`DIFFERENT at character ${i} (legacy line ${legacy.slice(0, i).split('\n').length})`);
-    console.error('legacy : ' + JSON.stringify(legacy.slice(i, i + 120)));
-    console.error('rebuilt: ' + JSON.stringify(rebuilt.slice(i, i + 120)));
+  // Every file the split makes must be in frontend/ unchanged, unless
+  // frontend/CHANGES.md lists it; files frontend/ has beyond the split must be listed too.
+  const { index, scripts, styles, images } = split(legacy);
+  const expected = new Map([['index.html', Buffer.from(index)],
+    ...scripts.map(s => [s.file, Buffer.from(s.content)]), ...styles.map(s => [s.file, Buffer.from(s.content)]),
+    ...images.map(im => [im.file, Buffer.from(im.b64, 'base64')])]);
+  let listed = new Set();
+  try { listed = new Set([...readFileSync(new URL('CHANGES.md', OUT), 'utf8').matchAll(/`frontend\/([^`]+)`/g)].map(m => m[1])); } catch {}
+  const present = new Set();
+  const walk = (dir, rel = '') => { for (const e of readdirSync(new URL(dir, OUT), { withFileTypes: true })) {
+    const p = rel + e.name;
+    if (e.isDirectory()) walk(dir + e.name + '/', p + '/'); else present.add(p);
+  } };
+  walk('./');
+  const changed = [], unlisted = [];
+  for (const [file, content] of expected) {
+    let now = null;
+    try { now = readFileSync(new URL(file, OUT)); } catch {}
+    if (now && now.equals(content)) continue;
+    (listed.has(file) ? changed : unlisted).push(`${file}${now ? '' : ' (missing)'}`);
+  }
+  for (const file of present) {
+    if (expected.has(file) || ['split-manifest.json', 'CHANGES.md'].includes(file)) continue;
+    (listed.has(file) ? changed : unlisted).push(`${file} (new)`);
+  }
+  if (unlisted.length) {
+    console.error(`frontend/ differs from the legacy split in files not listed in frontend/CHANGES.md:\n  ${unlisted.join('\n  ')}`);
     process.exit(1);
   }
+  console.log(`OK: frontend/ is the legacy split byte for byte, except ${changed.length} file(s) listed in frontend/CHANGES.md: ${changed.join(', ')}`);
 } else {
   const { index, scripts, styles, images } = split(legacy);
   rmSync(OUT, { recursive: true, force: true });

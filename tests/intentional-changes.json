@@ -1,0 +1,11 @@
+{
+  "about": "Scenarios whose legacy behaviour the owner approved changing in the new system (CLAUDE.md rule 5, docs/NOTES.md). For TARGET=new the scenario is replaced by the one in 'by', which checks the new behaviour with explicit expectations; 'by' runs only for TARGET=new. Nothing else may be skipped.",
+  "replaced": [
+    {
+      "scenario": "S74-backup-wipe-restore.spec.ts",
+      "by": "S100-server-backup-wipe-restore.spec.ts",
+      "decision": "Q6",
+      "why": "The settings page says the data is kept by the app (host storage mode), not in IndexedDB on this device; every other step is checked against S74's goldens."
+    }
+  ]
+}
