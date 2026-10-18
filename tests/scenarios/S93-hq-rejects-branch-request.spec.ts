@@ -11,10 +11,6 @@ async function signOut(page: Page) {
 
 async function openHqRequests(page: Page) {
   await page.getByRole('button', { name: /07 สต๊อกอะไหล่/ }).click();
-  // The submenu slides open; a click while it moves may land on its neighbour
-  // first and scroll the menu (timing, not behaviour), so wait until it stops.
-  await page.waitForFunction(() => document.getAnimations()
-    .every(a => a.playState !== 'running' || a.effect?.getComputedTiming().iterations === Infinity));
   await page.getByRole('button', { name: '★ เบิกสินค้าจาก HQ' }).click();
 }
 

@@ -10,6 +10,15 @@ const fonts = JSON.parse(readFileSync(new URL('manifest.json', fontsDir), 'utf8'
 export async function prepareContext(context, { seed, now }) {
   await context.clock.setFixedTime(new Date(now));
   await context.addInitScript(seedRandomInitScript, seed);
+  // The side menu slides a submenu open over 560 ms. A click that lands while
+  // it moves can hit the neighbouring item first and scroll the menu: a
+  // timing effect, not behaviour, and the new system's timing differs from
+  // the legacy file's. The test browser opens submenus at once.
+  await context.addInitScript(() => document.addEventListener('DOMContentLoaded', () => {
+    const style = document.createElement('style');
+    style.textContent = '#tabs .navchildren{transition:none!important}';
+    document.head.append(style);
+  }, { once: true }));
   await context.route(/^https?:\/\/(?!127\.0\.0\.1[:/])/, route => {
     const hit = fonts[route.request().url()];
     if (!hit) return route.abort();
