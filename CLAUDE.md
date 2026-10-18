@@ -4,13 +4,14 @@
 
 - แผนทั้งหมด: [docs/PLAN.md](docs/PLAN.md)
 - ข้อค้นพบและข้อตัดสินใจ: [docs/NOTES.md](docs/NOTES.md)
-- **เฟสปัจจุบัน: เฟส 0 (เตรียมเฉลย)**
+- **เฟสปัจจุบัน: เฟส 1 (แยกไฟล์)** เฟส 0 เสร็จแล้ว
 
 ## โครงสร้าง
 
 | ที่อยู่ | คืออะไร |
 |---|---|
 | `legacy/DRIVEGO_TRIAL_v23.html` | ระบบเดิม = **เฉลย** ห้ามแก้ |
+| `frontend/` | ระบบเดิมที่แยกเป็นไฟล์ (`index.html`, `js/`, `css/`, `assets/`) สร้างจาก `legacy/` ด้วย `tools/split-legacy.mjs` ห้ามแก้ด้วยมือในเฟส 1 (ตั้งแต่เฟส 2 แก้ได้และต้องจดทุกจุดที่แก้ ห้ามสร้างใหม่ทับ) |
 | `tests/scenarios/` | สถานการณ์ทดสอบ หนึ่งไฟล์ต่อหนึ่งสถานการณ์ ชื่อ `Sxx-<english-slug>.spec.ts` ชื่อ test เป็นภาษาไทย |
 | `tests/golden/<spec file>/` | เฉลยที่บันทึกจากระบบเดิม (`flow.json`, `*-state.json`, `*.png`) |
 | `tests/fixtures/` | ข้อมูลตั้งต้นที่ถูก restore ลงเบราว์เซอร์ก่อนทุก test |
@@ -21,7 +22,9 @@
 
 ```bash
 npm install
-npm test                                   # รันทุกสถานการณ์ เทียบกับเฉลย
+npm test                                   # รันทุกสถานการณ์ เทียบกับเฉลย (ระบบเดิม)
+TARGET=frontend npm test                   # รันทุกสถานการณ์กับ frontend/ เทียบกับเฉลยชุดเดียวกัน
+node tools/split-legacy.mjs --check        # พิสูจน์ว่า frontend/ ประกอบกลับเป็นไฟล์เดิมได้ทุกไบต์
 npm run test:record -- tests/scenarios/S05-xxx.spec.ts   # บันทึกเฉลยจากระบบเดิม (เฉพาะไฟล์ที่ระบุ)
 npm run fixture -- biz trial               # สร้างข้อมูลตั้งต้นใหม่ (biz | prox | franchise) — ปกติไม่ต้องสร้างใหม่ ใช้ไฟล์ที่ commit ไว้
 npm run inventory                          # สร้าง docs/behaviors.csv ใหม่
