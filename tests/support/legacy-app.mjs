@@ -39,6 +39,11 @@ export function legacyApp(page, { dataset = 'biz-trial', url = LEGACY_URL } = {}
       const pkg = plan === 'biz' ? '' : `package=${plan}&`;
       await page.goto(`${url}?${pkg}login=account${params ? '&' + params : ''}`);
       await waitForLegacyBoot(page);
+      // Messages shown while the app is still starting are not counted. The
+      // legacy app shows "เปิดใบแจ้งหนี้ใบใหม่" on its first start only when
+      // reading the saved data finishes before its later scripts load (one of
+      // them mutes that message), so it comes down to timing (see NOTES.md).
+      await page.evaluate(() => window.__seenMessages && window.__seenMessages.splice(0));
     },
 
     async loginAsOwner() {
