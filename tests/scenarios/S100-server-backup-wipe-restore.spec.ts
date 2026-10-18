@@ -65,8 +65,9 @@ test('S100 ระบบใหม่: สร้างจุดสำรองบ�
   await step('กู้คืนข้อมูลแล้ว');
   expect(await counts()).toBe(legacyCounts('after-restore'));
   await expect(backups.getByRole('option')).toHaveText(['before-restore', '13/10/2569']);
-  // The restored data is the data from before the wipe.
-  expect(JSON.stringify((await app.state()).DB)).toBe(JSON.stringify(before.DB));
+  // The restored data is the data from before the wipe (the order of DB's
+  // fields follows the wiped data set, as in the legacy app).
+  expect((await app.state()).DB).toEqual(before.DB);
 
   await page.getByRole('button', { name: '00 Mr.DriveGo' }).click();
   await step('หน้าแรกหลังกู้คืน');
