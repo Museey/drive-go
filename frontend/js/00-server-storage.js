@@ -297,6 +297,10 @@
     m.sent = value;
     m.last = next;
   }
+  var scriptsLoaded = new Promise((resolve) => {
+    if (document.readyState !== "loading") resolve();
+    else document.addEventListener("DOMContentLoaded", () => resolve(), { once: true });
+  });
   var storage = {
     async get(key) {
       if (rootOf(key)) {
@@ -306,6 +310,7 @@
           if (!mains.has(key)) mains.set(key, m);
           else m = mains.get(key);
         }
+        await scriptsLoaded;
         return m.value === null ? null : { key, value: m.value };
       }
       await queue;

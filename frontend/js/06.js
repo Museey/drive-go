@@ -143,7 +143,9 @@
    // data is read (before signing in the browser has none) and the routines below run as before.
    const signIn=await window.storage.signIn(field('username').value,field('password').value);
    if(!signIn.ok){error(signIn.error);return;}
-   await frLoadFR();await dgbLoad();DB=frFreshDB();await load();boot();
+   await frLoadFR();await dgbLoad();
+   // A franchise account may read only its own branch (T8), so frDoLogin below loads it: KEY='' makes every path load.
+   if(franchise)KEY='';else{DB=frFreshDB();await load();boot();}
    // The existing routines retain all password, suspension and employee permission checks.
    loggedIn=true;
    if(franchise){
@@ -151,7 +153,7 @@
     document.getElementById('frLoginUser').value=field('username').value;
     document.getElementById('frLoginPass').value=field('password').value;
     await frDoLogin();
-    if(!frAcc()){loggedIn=false;error(document.getElementById('frLoginErr').textContent||'เข้าสู่ระบบไม่สำเร็จ');return;}
+    if(!frAcc()){loggedIn=false;await window.storage.signOut();error(document.getElementById('frLoginErr').textContent||'เข้าสู่ระบบไม่สำเร็จ');return;}
     loginIdentity=field('username').value.trim();unlock();if(frRole()==='HQ'&&!FR.session.inspect)go('hq');
    }else{
     DGB.session={who:''};
@@ -160,16 +162,16 @@
     const phone=/^[+\d\s().-]+$/.test(identity)?telNorm(identity):'';
     const employees=phone?(DB.emp||[]).filter(e=>telNorm(e.tel)===phone&&e.dgbPass):[];
     // Resolve one account first; never retry a failed owner password as another role.
-    if((owner&&employees.length)||employees.length>1){loggedIn=false;error('ข้อมูลเข้าสู่ระบบซ้ำกัน กรุณาให้ผู้ดูแลแก้ไขบัญชีก่อน');return;}
-    if(!owner&&!employees.length){loggedIn=false;error('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');return;}
+    if((owner&&employees.length)||employees.length>1){loggedIn=false;await window.storage.signOut();error('ข้อมูลเข้าสู่ระบบซ้ำกัน กรุณาให้ผู้ดูแลแก้ไขบัญชีก่อน');return;}
+    if(!owner&&!employees.length){loggedIn=false;await window.storage.signOut();error('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');return;}
     dgbLoginTab(owner?'owner':'emp');
     if(!owner){$('#dgbLeShop').value=DGB.shop.code;$('#dgbLeTel').value=identity;$('#dgbLePass').value=field('password').value;}
     else{$('#dgbLoEmail').value=identity;$('#dgbLoPass').value=field('password').value;}
-    const ok=await dgbLogin();if(!ok){loggedIn=false;error($('#dgbLoErr').textContent);return;}
+    const ok=await dgbLogin();if(!ok){loggedIn=false;await window.storage.signOut();error($('#dgbLoErr').textContent);return;}
     loginIdentity=identity;unlock();
    }
    field('password').value='';
-  }catch(e){lock();error('เข้าใช้งานไม่สำเร็จ: '+e.message);}finally{submit.disabled=false;}
+  }catch(e){lock();await window.storage.signOut().catch(()=>{});error('เข้าใช้งานไม่สำเร็จ: '+e.message);}finally{submit.disabled=false;}
  });
  const status=document.getElementById('pkg-copy-status');
  const switchAccount=document.createElement('button');switchAccount.type='button';switchAccount.textContent='ทดสอบบัญชีอื่น';

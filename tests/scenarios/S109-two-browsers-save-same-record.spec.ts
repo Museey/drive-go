@@ -42,4 +42,10 @@ test('S109 ระบบใหม่: สองเครื่องแก้ล�
   expect(stars(await otherApp.state())).toBe(4);
   expect(stars(await app.state())).toBe(4);
   await otherContext.close();
+
+  // The first browser still holds the data it read (seeing other people's
+  // changes at once is phase 3, decision Q8); opening the page again shows
+  // the latest, and the check after the test compares that with the server.
+  await app.open();
+  expect(stars(await app.state())).toBe(4);
 });

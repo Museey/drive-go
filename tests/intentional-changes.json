@@ -30,6 +30,18 @@
       "by": "S106-suspend-employee-account-on-server.spec.ts",
       "decision": "T7, A3",
       "why": "The refused sign-in happens on the server and the sign-in screen has no demo account line; every step, every other screen and every data change is checked against S05's goldens."
+    },
+    {
+      "scenario": "S96-branch-head-issues-staff-login.spec.ts",
+      "by": "S110-branch-head-issues-staff-login-no-passwords-shown.spec.ts",
+      "decision": "A3",
+      "why": "The branch head's account panel shows ******** instead of passwords; the new password is read from the message shown when it is set. Every step, message, data change and the rest of each screen is checked against S96's goldens."
+    },
+    {
+      "scenario": "S99-branch-head-suspends-staff-login.spec.ts",
+      "by": "S111-branch-head-suspends-staff-login-no-passwords-shown.spec.ts",
+      "decision": "A3",
+      "why": "The branch head's account panel shows ******** instead of passwords. Every step, data change and the rest of the screen is checked against S99's goldens."
     }
   ],
   "added": [

@@ -16,6 +16,8 @@ export async function inShop(req: Request, fn: (c: pg.ClientBase, s: Session) =>
     // saved first. Reported like any other conflict (decision P1).
     if ((e as { code?: string }).code === '23505') return json({ conflicts: [`unique:${(e as { constraint?: string }).constraint}`] }, 409);
     if ((e as { status?: number }).status === 400) return json({ error: (e as Error).message }, 400);
+    // Row-Level Security refused a write (e.g. another branch's data): not this session's to change.
+    if ((e as { code?: string }).code === '42501') return json({ error: 'forbidden' }, 403);
     throw e;
   }
 }

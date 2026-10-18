@@ -512,7 +512,7 @@ function frBrCard(b){
      <button class="btn sm gh" onclick="frAccAdd('${b.id}')">+ ออกรหัสเพิ่ม</button>
      <span class="hint" style="margin-left:6px">(ตัวอย่างระบบ — แสดงรหัสผ่านให้ HQ เห็น · ระบบจริงบน cloud จะเข้ารหัส bcrypt)</span>
      <table class="tbl" style="margin-top:6px"><thead><tr><th>ผู้ถือรหัส</th><th style="width:130px">Username</th><th style="width:110px">Password</th><th class="ctr" style="width:90px">สถานะ</th><th class="ctr" style="width:210px">จัดการ</th></tr></thead>
-     <tbody>${accs.map(a=>`<tr><td>${esc(a.name)}</td><td><input class="mono" style="width:100%" value="${esc(a.user)}" onchange="frAccUser('${a.id}',this.value)"></td><td class="mono">${esc(a.pass)}</td>
+     <tbody>${accs.map(a=>`<tr><td>${esc(a.name)}</td><td><input class="mono" style="width:100%" value="${esc(a.user)}" onchange="frAccUser('${a.id}',this.value)"></td><td class="mono">${a.pass?'********':''}</td>
         <td class="ctr">${a.active!==false?'ใช้งานได้':'<span style="color:#b91c1c;font-weight:700">ระงับ</span>'}</td>
         <td class="ctr"><button class="btn sm gh" onclick="frAccReset('${a.id}')">รีเซ็ตรหัสผ่าน</button>
           <button class="btn sm gh" onclick="frAccToggle('${a.id}')">${a.active!==false?'⏸ ระงับ':'▶ เปิดใช้'}</button></td></tr>`).join('')
@@ -630,7 +630,7 @@ function frRenderShbPanel(){
       <tbody>${emps.map(e=>{ const ac=frShbAccOf(e.id);
         return `<tr><td class="mono">${esc(e.code)}</td><td>${esc(e.name)}${e.position?' <span class="hint">('+esc(e.position)+')</span>':''}</td>
         <td>${ac?`<input class="mono" style="width:100%" value="${esc(ac.user)}" onchange="frShbUser('${ac.id}',this.value)">`:'<span class="hint">ยังไม่มีบัญชี</span>'}</td>
-        <td class="mono">${ac?esc(ac.pass):'-'}</td>
+        <td class="mono">${ac?(ac.pass?'********':''):'-'}</td>
         <td class="ctr">${!ac?'-':(ac.active!==false?'ใช้งานได้':'<span style="color:#b91c1c;font-weight:700">ระงับ</span>')}</td>
         <td class="ctr">${ac
           ?`<button class="btn sm gh" onclick="frShbReset('${ac.id}')">รีเซ็ตรหัสผ่าน</button>

@@ -3,9 +3,10 @@
 // match the replaced scenario's goldens, which were recorded from the legacy
 // app. These helpers read those goldens; nothing here records or changes them.
 import { readFileSync } from 'node:fs';
-import type { Page, TestInfo } from '@playwright/test';
-// The image comparator behind toHaveScreenshot.
+import type { Locator, Page, TestInfo } from '@playwright/test';
+// The image comparator behind toHaveScreenshot, and its PNG codec.
 import { getComparator } from 'playwright-core/lib/utils';
+import { PNG } from 'playwright-core/lib/utilsBundle';
 import { expect } from './test';
 
 const compare = getComparator('image/png');
@@ -36,12 +37,19 @@ export function legacySteps(scenario: string, app: App) {
 // The screen must be the replaced scenario's screenshot, pixel for pixel:
 // taken and compared the way golden.screen() (toHaveScreenshot with
 // maxDiffPixels 0) does it, against the legacy PNG.
-export async function sameScreen(page: Page, app: App, testInfo: TestInfo, scenario: string, name: string) {
+// `mask`: elements that show what was changed on purpose (the scenario checks
+// their content itself); their boxes are painted over in both images, so
+// everything around them must still match.
+export async function sameScreen(page: Page, app: App, testInfo: TestInfo, scenario: string, name: string,
+  { mask = [] }: { mask?: Locator[] } = {}) {
   await app.settle();
   await page.mouse.move(0, 0);
   await app.layoutStable();
-  const expected = readFileSync(golden(scenario, `${name}.png`));
-  const shot = () => page.screenshot({ animations: 'disabled', caret: 'hide', scale: 'css', style: app.screenshotStyle });
+  const boxes: { x: number; y: number; width: number; height: number }[] = [];
+  for (const l of mask) for (const el of await l.all()) { const b = await el.boundingBox(); if (b) boxes.push(b); }
+  if (mask.length) expect(boxes.length, `masked elements of ${name}`).toBeGreaterThan(0);
+  const expected = paint(readFileSync(golden(scenario, `${name}.png`)), boxes);
+  const shot = async () => paint(await page.screenshot({ animations: 'disabled', caret: 'hide', scale: 'css', style: app.screenshotStyle }), boxes);
   const differs = (b: Buffer) => compare(b, expected, { maxDiffPixels: 0 });
   // Like toHaveScreenshot: retry until the expect timeout.
   const until = Date.now() + 15_000;
@@ -52,6 +60,18 @@ export async function sameScreen(page: Page, app: App, testInfo: TestInfo, scena
     if (result.diff) await testInfo.attach(`${name}-diff.png`, { body: result.diff, contentType: 'image/png' });
   }
   expect(result?.errorMessage ?? null, `screen ${name} is ${scenario}'s ${name}.png`).toBeNull();
+}
+
+// Fills each box (CSS pixels, widened to whole pixels) with one colour.
+function paint(png: Buffer, boxes: { x: number; y: number; width: number; height: number }[]): Buffer {
+  if (!boxes.length) return png;
+  const img = PNG.sync.read(png);
+  for (const b of boxes) {
+    const x1 = Math.min(img.width, Math.ceil(b.x + b.width)), y1 = Math.min(img.height, Math.ceil(b.y + b.height));
+    for (let y = Math.max(0, Math.floor(b.y)); y < y1; y++)
+      for (let x = Math.max(0, Math.floor(b.x)); x < x1; x++) img.data.set([255, 0, 255, 255], (y * img.width + x) * 4);
+  }
+  return PNG.sync.write(img);
 }
 
 // What an action changed in the data must be what the replaced scenario's

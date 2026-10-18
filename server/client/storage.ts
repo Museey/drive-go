@@ -155,11 +155,22 @@ async function flush(key: string): Promise<void> {
   m.last = next;
 }
 
+// The legacy scripts keep wrapping the app's functions while the page loads.
+// Data handed over before the last of them has run would be shown through
+// only some of the wrappers (the legacy app's own start-up race: with fast
+// local data its first screen showed figures that a later script corrects),
+// so the app gets its data once every script has run.
+const scriptsLoaded = new Promise<void>(resolve => {
+  if (document.readyState !== 'loading') resolve();
+  else document.addEventListener('DOMContentLoaded', () => resolve(), { once: true });
+});
+
 const storage = {
   async get(key: string): Promise<{ key: string; value: string } | null> {
     if (rootOf(key)) {
       let m = mains.get(key);
       if (!m) { m = await readMain(key); if (!mains.has(key)) mains.set(key, m); else m = mains.get(key)!; }
+      await scriptsLoaded;
       return m.value === null ? null : { key, value: m.value };
     }
     await queue;   // see the app's own earlier writes (a backup point it just made)
