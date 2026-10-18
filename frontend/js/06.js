@@ -212,6 +212,8 @@
    FR.enabled=false;if(!window.storage.signedIn){FR.session={accId:'',inspect:''};await frSave();
    DGB.session={who:''};DB.curEmp='';await dgbSave();}
   }
+  // DriveGo phase 2 (A3): the line under the button showed the demo accounts once ready; now it is only cleared.
+  if(plan)field('credentials').textContent='';
   frApplyUI();applyPerms();ready=true;field('form').querySelector('[type="submit"]').disabled=false;
   // DriveGo phase 2: signed in already (Q2) -> straight in; otherwise the sign-in form (no preview as owner, A1).
   if(plan&&window.storage.signedIn&&(franchise?frAcc():DGB.session.who)){

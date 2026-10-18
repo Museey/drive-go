@@ -42,6 +42,54 @@
       "by": "S111-branch-head-suspends-staff-login-no-passwords-shown.spec.ts",
       "decision": "A3",
       "why": "The branch head's account panel shows ******** instead of passwords. Every step, data change and the rest of the screen is checked against S99's goldens."
+    },
+    {
+      "scenario": "S90-hq-overview-and-inspect-branch.spec.ts",
+      "by": "S112-hq-overview-own-data.spec.ts",
+      "decision": "Q3",
+      "why": "HQ works on its own data set: HQ's own screens show the chain's name, HQ's licence line and HQ's own (empty) badges. Every step, data change, branch screen and the rest of each HQ screen is checked against S90's goldens."
+    },
+    {
+      "scenario": "S91-hq-central-stock.spec.ts",
+      "by": "S113-hq-central-stock-own-data.spec.ts",
+      "decision": "Q3",
+      "why": "HQ works on its own data set: HQ's screens show the chain's name, HQ's licence line and HQ's own badges; the register import still copies the first branch's register. Every step, data change and the rest of each screen is checked against S91's goldens."
+    },
+    {
+      "scenario": "S92-branch-request-hq-ship-receive.spec.ts",
+      "by": "S114-branch-request-hq-ship-receive-own-data.spec.ts",
+      "decision": "Q3",
+      "why": "HQ works on its own data set (HQ's screens: chain's name, HQ's licence line, HQ's own badges). Every step, data change, branch screen and the rest of each HQ screen is checked against S92's goldens."
+    },
+    {
+      "scenario": "S93-hq-rejects-branch-request.spec.ts",
+      "by": "S115-hq-rejects-branch-request-own-data.spec.ts",
+      "decision": "Q3",
+      "why": "HQ works on its own data set (HQ's screens: chain's name, HQ's licence line, HQ's own badges). Every step, data change, branch screen and the rest of each HQ screen is checked against S93's goldens."
+    },
+    {
+      "scenario": "S94-hq-adds-branch-and-accounts.spec.ts",
+      "by": "S116-hq-adds-branch-own-data-no-passwords-shown.spec.ts",
+      "decision": "Q3, A3",
+      "why": "HQ works on its own data set and the branch register shows ******** instead of passwords; the new head's password comes from the message shown when the branch is made. Every step, message, data change and the rest of each screen is checked against S94's goldens."
+    },
+    {
+      "scenario": "S95-hq-suspends-branch-and-limits-menus.spec.ts",
+      "by": "S117-hq-suspends-branch-own-data.spec.ts",
+      "decision": "Q3, A3, A1",
+      "why": "HQ works on its own data set and the branch register shows ******** instead of passwords; the sign-in screen has no demo account line, so its screenshot is replaced by checks of its content. Every step, data change, branch screen and the rest of each HQ screen is checked against S95's goldens."
+    },
+    {
+      "scenario": "S97-what-each-franchise-role-sees.spec.ts",
+      "by": "S118-what-each-franchise-role-sees-own-data.spec.ts",
+      "decision": "Q3, A3",
+      "why": "HQ works on its own data set (its settings page shows HQ's own organisation settings) and the branch register shows ******** instead of passwords. Every step, data change, branch screen and the rest of each HQ screen is checked against S97's goldens."
+    },
+    {
+      "scenario": "S98-hq-turns-franchise-mode-off-and-on.spec.ts",
+      "by": "S119-hq-turns-franchise-mode-off-and-on-own-data.spec.ts",
+      "decision": "Q3",
+      "why": "Turning the franchise mode off switches from HQ's own data to the first branch's (which the test copy showed); compared from B001's data the change is S98's. Every step, screen and other data change is checked against S98's goldens."
     }
   ],
   "added": [

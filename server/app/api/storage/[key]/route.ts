@@ -3,10 +3,12 @@
 //   POST    main data key: one save, {base, changes, session, secrets} -> {versions} or 409 {conflicts}
 //   PUT     backup point (made from the server's own data, body ignored) or other key (body = value)
 //   DELETE  any key
+// A key of a branch outside the session's scope (another branch, or HQ's own
+// data for a branch account) answers 403 to every method.
 import { inShop, json } from '@/lib/api';
 import { endStaleSessions, storeSecrets } from '@/lib/auth';
 import { saveSessionFields, sessionFields } from '@/lib/session';
-import { branchOfKey, isBackupKey, makeBackup, readBackup, readBlob, readMain, removeKey, writeBlob, writeMain } from '@/lib/storage';
+import { branchOfKey, inScope, isBackupKey, makeBackup, readBackup, readBlob, readMain, removeKey, writeBlob, writeMain } from '@/lib/storage';
 import { type Changes, rootOf } from '@/lib/units';
 
 export const dynamic = 'force-dynamic';
@@ -14,11 +16,14 @@ export const dynamic = 'force-dynamic';
 type Ctx = { params: Promise<{ key: string }> };
 const text = (body: string) => new Response(body, { headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' } });
 const missing = () => new Response(null, { status: 404, headers: { 'cache-control': 'no-store' } });
+// Another branch's data (or HQ's) for a branch account: refused, not empty.
+const forbidden = () => json({ error: 'another branch' }, 403);
 
 export async function GET(req: Request, ctx: Ctx) {
   const { key } = await ctx.params;
   return inShop(req, async (c, s) => {
     const branch = await branchOfKey(c, key);
+    if (!inScope(s.scope, branch)) return forbidden();
     if (rootOf(key)) {
       const main = await readMain(c, branch, key, sessionFields(s, key));
       return main ? text(JSON.stringify(main.versions) + '\n' + main.json) : missing();
@@ -35,6 +40,7 @@ export async function POST(req: Request, ctx: Ctx) {
     secrets?: { unit: string; key: string; field: string; value: string }[] };
   return inShop(req, async (c, s) => {
     const branch = await branchOfKey(c, key);
+    if (!inScope(s.scope, branch)) return forbidden();
     const r = await writeMain(c, branch, key, body.base || {}, body.changes, s.userId);
     if (!r.ok) return json({ conflicts: r.conflicts }, 409);
     if (body.session) await saveSessionFields(c, s, key, body.session);
@@ -57,6 +63,7 @@ export async function PUT(req: Request, ctx: Ctx) {
   const value = await req.text();
   return inShop(req, async (c, s) => {
     const branch = await branchOfKey(c, key);
+    if (!inScope(s.scope, branch)) return forbidden();
     if (isBackupKey(key)) {
       const main = key.slice(0, key.indexOf('.bak.'));
       return (await makeBackup(c, branch, key, sessionFields(s, main))) ? json({ ok: true }) : missing();
@@ -68,8 +75,10 @@ export async function PUT(req: Request, ctx: Ctx) {
 
 export async function DELETE(req: Request, ctx: Ctx) {
   const { key } = await ctx.params;
-  return inShop(req, async c => {
-    await removeKey(c, await branchOfKey(c, key), key);
+  return inShop(req, async (c, s) => {
+    const branch = await branchOfKey(c, key);
+    if (!inScope(s.scope, branch)) return forbidden();
+    await removeKey(c, branch, key);
     return json({ ok: true });
   });
 }

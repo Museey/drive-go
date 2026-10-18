@@ -8,6 +8,7 @@ import type { Locator, Page, TestInfo } from '@playwright/test';
 import { getComparator } from 'playwright-core/lib/utils';
 import { PNG } from 'playwright-core/lib/utilsBundle';
 import { expect } from './test';
+import { formatDiff, stateDiff } from './state-diff.mjs';
 
 const compare = getComparator('image/png');
 const golden = (scenario: string, file: string) => new URL(`../golden/${scenario}/${file}`, import.meta.url);
@@ -46,7 +47,11 @@ export async function sameScreen(page: Page, app: App, testInfo: TestInfo, scena
   await page.mouse.move(0, 0);
   await app.layoutStable();
   const boxes: { x: number; y: number; width: number; height: number }[] = [];
-  for (const l of mask) for (const el of await l.all()) { const b = await el.boundingBox(); if (b) boxes.push(b); }
+  // Widened a little: a badge may stick out of the element it belongs to.
+  for (const l of mask) for (const el of await l.all()) {
+    const b = await el.boundingBox();
+    if (b) boxes.push({ x: b.x - 3, y: b.y - 3, width: b.width + 6, height: b.height + 6 });
+  }
   if (mask.length) expect(boxes.length, `masked elements of ${name}`).toBeGreaterThan(0);
   const expected = paint(readFileSync(golden(scenario, `${name}.png`)), boxes);
   const shot = async () => paint(await page.screenshot({ animations: 'disabled', caret: 'hide', scale: 'css', style: app.screenshotStyle }), boxes);
@@ -78,4 +83,21 @@ function paint(png: Buffer, boxes: { x: number; y: number; width: number; height
 // golden says (the same referee as golden.stateChange()).
 export function legacyStateChange(scenario: string, name: string): string {
   return readFileSync(golden(scenario, `${name}-state.json`), 'utf8');
+}
+
+// The replaced scenario's goldens used the way the golden fixture is used:
+// every step, screen and data change must be the legacy one (a screen may
+// leave out what the new scenario checks itself, see sameScreen's mask).
+export function legacyGolden(scenario: string, { app, page, testInfo }: { app: App & { state(): Promise<object> }; page: Page; testInfo: TestInfo }) {
+  const steps = legacySteps(scenario, app);
+  return {
+    step: steps.same,
+    skip: steps.skip,
+    done: steps.done,
+    screen: (name: string, opts?: { mask?: Locator[] }) => sameScreen(page, app, testInfo, scenario, name, opts),
+    async stateChange(name: string, before: object) {
+      await app.settle();
+      expect(formatDiff(stateDiff(before, await app.state())), `data change ${name}`).toBe(legacyStateChange(scenario, name));
+    },
+  };
 }

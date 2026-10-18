@@ -11,7 +11,7 @@ import { startTempPostgres } from '../../tools/pg-temp.mjs';
 import { migrate } from '../../server/db/migrate.ts';
 import { withShop } from '../../server/lib/db.ts';
 import { createShop, readFixture } from '../../server/lib/seed.ts';
-import { listKeys, makeBackup, readBackup, readBlob, readMain, removeKey, writeBlob, writeMain } from '../../server/lib/storage.ts';
+import { branchOf, inScope, listKeys, makeBackup, readBackup, readBlob, readMain, removeKey, writeBlob, writeMain } from '../../server/lib/storage.ts';
 import { assemble, diff, rootOf, split } from '../../server/lib/units.ts';
 
 let db, ownerPool, appPool;
@@ -66,6 +66,34 @@ describe('เปิดอู่จาก fixture (T4)', () => {
     assert.ok(await asApp(shopId, 'B001', c => readMain(c, 'B001', 'garage.v22')));
     assert.equal(await asApp(shopId, 'B002', c => readMain(c, 'B001', 'garage.v22')), null);
     assert.ok(await asApp(shopId, 'B002', c => readMain(c, '', 'franchise.v22')));
+  });
+
+  test('Franchise: HQ มีข้อมูลของตัวเอง (Q3) สาขาอ่านหรือเขียนข้อมูลของ HQ และของสาขาอื่นไม่ได้ HQ อ่านได้ทุกสาขา', async () => {
+    const fr = JSON.parse(fixture('franchise-trial').store['franchise.v22']);
+    assert.equal(branchOf('franchise', 'garage.v22', fr.branches), 'B001');
+    assert.equal(branchOf('franchise', 'garage.v22::B002', fr.branches), 'B002');
+    assert.equal(branchOf('franchise', 'garage.v22::HQ', fr.branches), 'HQ');
+    assert.equal(branchOf('biz', 'garage.v22'), '');
+    // The routes refuse what the scope does not reach before RLS would hide it.
+    assert.deepEqual(['B001', 'B002', 'HQ', ''].map(b => inScope('B001', b)), [true, false, false, true]);
+    assert.deepEqual(['B001', 'HQ', ''].map(b => inScope('*', b)), [true, true, true]);
+    assert.deepEqual(['', 'B001'].map(b => inScope('', b)), [true, false]);
+
+    const { shopId } = await newShop('franchise-trial', 'franchise');
+    const hq = split('garage.v22::HQ', JSON.stringify({ stock: [], shop: { name: 'ALL EV SERVICE' } }));
+    const first = await asApp(shopId, '*', c => writeMain(c, 'HQ', 'garage.v22::HQ', {}, { layout: hq.layout, upsert: hq.rows, remove: [], order: {} }));
+    assert.ok(first.ok);
+    assert.ok(await asApp(shopId, '*', c => readMain(c, 'HQ', 'garage.v22::HQ')));
+    assert.ok(await asApp(shopId, '*', c => readMain(c, 'B001', 'garage.v22')));
+    assert.equal(await asApp(shopId, 'B001', c => readMain(c, 'HQ', 'garage.v22::HQ')), null);
+    const b002 = split('garage.v22::B002', JSON.stringify({ stock: [] }));
+    await assert.rejects(asApp(shopId, 'B001', c => writeMain(c, 'B002', 'garage.v22::B002', {}, { layout: b002.layout, upsert: b002.rows, remove: [], order: {} })),
+      e => e.code === '42501');
+    // Removing HQ's rows: RLS hides them, so the save is refused as a conflict (or by RLS), never done.
+    const removed = await asApp(shopId, 'B001', c => writeMain(c, 'HQ', 'garage.v22::HQ', first.versions, { upsert: [], remove: hq.rows, order: {} })).catch(e => e);
+    assert.ok(removed.code === '42501' || removed.ok === false, String(removed));
+    assert.equal((await asApp(shopId, '*', c => readMain(c, 'HQ', 'garage.v22::HQ'))).json,
+      assemble('garage.v22::HQ', hq.layout, hq.rows), 'HQ data is unchanged');
   });
 
   test('ข้อมูล 36 เดือนเปิดอู่และอ่านกลับได้ตรง', { skip: !existsSync(new URL('../fixtures/biz-full.json', import.meta.url)) && 'biz-full.json not built' }, async () => {

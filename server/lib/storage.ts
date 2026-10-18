@@ -19,14 +19,21 @@ const mainOfBackup = (k: string) => k.slice(0, k.indexOf('.bak.'));
 
 // Which branch a STORE key's data belongs to. Biz/ProX: one data set ('').
 // Franchise: garage.v22::<id> is that branch; garage.v22 is the branch whose
-// storeKey it is (B001 in the trial chain). Chain data (franchise.v22) and
-// the shop account (dgb.v22) are chain-wide ('').
+// storeKey it is (B001 in the trial chain); HQ's own data is garage.v22::HQ
+// (decision Q3). Chain data (franchise.v22) and the shop account (dgb.v22)
+// are chain-wide ('').
 export function branchOf(pkg: string, storeKey: string, branches: { id: string; storeKey?: string }[] = []): string {
   if (pkg !== 'franchise' || rootOf(storeKey) !== 'DB') return '';
   const m = /^garage\.v22::(.+)$/.exec(storeKey);
   if (m) return m[1];
   return branches.find(b => b.storeKey === storeKey)?.id ?? 'HQ';
 }
+
+// Whether a session's branch scope reaches a branch's data: the same rule as
+// app_branch_ok() in the database ('*' = HQ, every branch; '' = chain-wide
+// data, every session). Routes check it first so that another branch's data
+// is refused (403) rather than looking empty.
+export const inScope = (scope: string, branch: string) => scope === '*' || branch === '' || branch === scope;
 
 // The layout row of a STORE key: unit = its root (DB, FR, DGB), key = the STORE key.
 const layoutUnit = (storeKey: string) => rootOf(storeKey)!;

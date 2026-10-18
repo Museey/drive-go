@@ -27,6 +27,9 @@ function frAcc(){ return FR.accounts.find(a=>a.id===FR.session.accId)||null; }
 function frRole(){ const a=frAcc(); return a?a.role:''; }
 function frBranch(id){ return FR.branches.find(b=>b.id===id)||null; }
 function brKey(b){ return b?(b.storeKey||('garage.v22::'+b.id)):'garage.v22'; }
+/* DriveGo phase 2 (T8, Q3): HQ works on its own data set (it starts empty); garage.v22 stays the data of the branch whose storeKey it is (B001). */
+const HQKEY='garage.v22::HQ';
+async function frLoadHQ(){ KEY=HQKEY; DB=frFreshDB(); await load(); if(!DB.shop.name) DB.shop.name=FR.org.name||''; boot(); }
 function frCurBranchId(){ const a=frAcc(); if(!a) return ''; return (a.role==='HB'||a.role==='SHB')?a.branchId:(FR.session.inspect||''); }
 function frWho(){ const a=frAcc(); const e=(typeof curEmp==='function')?curEmp():null; return e?e.name+' (SHB)':(a?a.name:'-'); }
 function frFreshDB(){ return {stock:[],cust:[],vendors:[],purchases:[],quotes:[],receipts:[],moves:[],crm:[],emp:[],curEmp:'',
@@ -124,8 +127,7 @@ async function frDoLogin(){
 async function frEnterSession(){
   const a=frAcc(); if(!a){ frApplyUI(); return; }
   if(a.role==='HQ'){
-    const bk=brKey(FR.branches[0]);
-    if(KEY!==bk) await frLoadBranch(FR.branches[0].id);
+    if(KEY!==HQKEY) await frLoadHQ();             /* DriveGo phase 2 (Q3): HQ's own data (was: the first branch's) */
     /* v23: HQ เข้าระบบแล้วมาที่หน้าแรก ซึ่งแสดงยอดรวมทุกสาขา (เปิด HQ Console ได้จากปุ่มบนหน้านี้) */
     frApplyUI(); go('home');
   }else{
@@ -352,7 +354,7 @@ async function hqBackOverview(){
   FR.session.homeBranch='';
   if(FR.session.inspect){
     FR.session.inspect='';
-    await frLoadBranch(FR.branches[0].id);
+    await frLoadHQ();                             /* DriveGo phase 2 (Q3): was the first branch's data */
   }
   await frSave();
   frApplyUI(); go('home');
@@ -754,7 +756,7 @@ async function frInspect(brId){
 }
 async function frExitInspect(){
   FR.session.inspect=''; await frSave();
-  await frLoadBranch(FR.branches[0].id);
+  await frLoadHQ();                               /* DriveGo phase 2 (Q3): was the first branch's data */
   frApplyUI(); go('hq');
 }
 
@@ -935,9 +937,11 @@ function frRenderHqStock(){
 function frHqStockEdit(i,k,v){ const h=FR.hqStock[i]; if(h){ h[k]=n(v); frSave(); } }
 function frHqStockDel(i){ FR.hqStock.splice(i,1); frSave(); frRenderHqStock(); }
 async function frHqStockSeed(){
-  if(!DB.stock.length) return toast('สาขาที่กำลังเปิดอยู่ยังไม่มีทะเบียนสินค้าให้คัดลอก — เข้าดูสาขาที่มีข้อมูลก่อน');
+  /* DriveGo phase 2 (Q3): on its own data HQ copies the first branch's register, as the test copy did (HQ worked on that branch's data) */
+  const src=KEY===HQKEY?(((await frReadBranchDB(FR.branches[0]))||{}).stock||[]):DB.stock;
+  if(!src.length) return toast('สาขาที่กำลังเปิดอยู่ยังไม่มีทะเบียนสินค้าให้คัดลอก — เข้าดูสาขาที่มีข้อมูลก่อน');
   let add=0;
-  DB.stock.forEach(s=>{
+  src.forEach(s=>{
     if(FR.hqStock.some(h=>String(h.code).toLowerCase()===String(s.code).toLowerCase())) return;
     FR.hqStock.push({id:uid(),code:s.code,name:s.name,unit:s.unit||'ชิ้น',
       qty:Math.max(200,Math.round(n(s.max)*4)||200),min:50,max:Math.max(400,Math.round(n(s.max)*8)||400)});
@@ -991,7 +995,7 @@ window.PKG_FR_BOOT=(async()=>{
   if(!a){ frApplyUI(); const u=$('#frLoginUser'); if(u) try{u.focus()}catch(e){} return; }
   if(a.role==='HQ'){
     if(FR.session.inspect){ await frLoadBranch(FR.session.inspect); frApplyUI(); go('home'); }
-    else{ frApplyUI(); go('hq'); }
+    else{ if(KEY!==HQKEY) await frLoadHQ(); frApplyUI(); go('hq'); }   /* DriveGo phase 2 (Q3): HQ's own data */
   }else{
     const b=frBranch(a.branchId);
     if(!b||b.active===false||a.active===false){ FR.session={accId:'',inspect:''}; await frSave(); frApplyUI(); return; }

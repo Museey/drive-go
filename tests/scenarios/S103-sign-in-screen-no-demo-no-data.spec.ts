@@ -14,6 +14,8 @@ test('S103 ระบบใหม่: หน้าเข้าระบบไม�
   await expect(page.getByText('บัญชีทดสอบ', { exact: false })).toHaveCount(0);
   await expect(page.getByText('dg1688 / 123456', { exact: false })).toHaveCount(0);
   await expect(page.getByRole('button', { name: /โดยไม่กรอกรหัส/ })).toHaveCount(0);
+  // The line where the demo account was shown is left empty once the program is ready.
+  await expect(page.getByText('กำลังเตรียมโปรแกรม…')).toBeHidden();
   const before = await app.state();
   for (const list of ['receipts', 'quotes', 'cust', 'stock', 'emp', 'vendors'])
     expect(before.DB[list], `DB.${list} before signing in`).toEqual([]);

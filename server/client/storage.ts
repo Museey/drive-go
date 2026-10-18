@@ -42,6 +42,10 @@ interface Main {
   sent: string | null;           // the value the server has confirmed
   last: Split | null;            // split of `sent`
   base: Record<string, number>;  // row versions the server confirmed
+  // Another branch's data (or HQ's) for a franchise branch account: the
+  // server refuses it (403). The legacy app still reads and writes the first
+  // branch's key while it starts; it gets no data and its writes are not sent.
+  forbidden?: boolean;
 }
 const mains = new Map<string, Main>();
 const vk = (unit: string, key: string) => `${unit}|${key}`;
@@ -105,6 +109,8 @@ async function readMain(key: string): Promise<Main> {
     m.base = JSON.parse(body.slice(0, nl));
     m.value = m.sent = body.slice(nl + 1);
     m.last = split(key, m.sent);
+  } else if (r.status === 403) {
+    m.forbidden = true;
   } else if (r.status === 401) {
     signedIn = false;
     const pub = await send(`/api/public/${encodeURIComponent(SHOP)}/${encodeURIComponent(key)}`, {}, false);
@@ -125,7 +131,7 @@ function newSecrets(before: Split | null, next: Split) {
 async function flush(key: string): Promise<void> {
   const m = mains.get(key)!;
   const value = m.value;
-  if (value === null || value === m.sent || !signedIn) return;
+  if (value === null || value === m.sent || !signedIn || m.forbidden) return;
   const next = split(key, value);
   const secrets = newSecrets(m.last, next);
   const changes = m.last ? diff(m.last, next)
@@ -268,7 +274,7 @@ const storage = {
     const checked: string[] = [], wrong: string[] = [];
     if (!signedIn) return { checked, wrong };
     for (const [key, m] of mains) {
-      if (m.value === null) continue;
+      if (m.value === null || m.forbidden) continue;
       checked.push(key);
       const r = await fetch0(url(key), { cache: 'no-store' });
       const body = await r.text();

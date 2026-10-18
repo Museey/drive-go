@@ -245,6 +245,8 @@
       m.base = JSON.parse(body.slice(0, nl));
       m.value = m.sent = body.slice(nl + 1);
       m.last = split(key, m.sent);
+    } else if (r.status === 403) {
+      m.forbidden = true;
     } else if (r.status === 401) {
       signedIn = false;
       const pub = await send(`/api/public/${encodeURIComponent(SHOP)}/${encodeURIComponent(key)}`, {}, false);
@@ -261,7 +263,7 @@
   async function flush(key) {
     const m = mains.get(key);
     const value = m.value;
-    if (value === null || value === m.sent || !signedIn) return;
+    if (value === null || value === m.sent || !signedIn || m.forbidden) return;
     const next = split(key, value);
     const secrets = newSecrets(m.last, next);
     const changes = m.last ? diff(m.last, next) : { layout: next.layout, upsert: next.rows, remove: [], order: {} };
@@ -401,7 +403,7 @@
       const checked = [], wrong = [];
       if (!signedIn) return { checked, wrong };
       for (const [key, m] of mains) {
-        if (m.value === null) continue;
+        if (m.value === null || m.forbidden) continue;
         checked.push(key);
         const r = await fetch0(url(key), { cache: "no-store" });
         const body = await r.text();
