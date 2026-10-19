@@ -1,0 +1,71 @@
+# Every push runs everything the project's rules count (CLAUDE.md, task T11):
+# checks and server tests, every scenario against the legacy app (its goldens)
+# and against the new system, and the referees' self-check. All jobs run in
+# the same pinned environment (.github/actions/setup).
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NEXT_TELEMETRY_DISABLED: '1'
+
+jobs:
+  checks:
+    name: Checks, unit and database tests
+    runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.56.1-noble
+      options: --shm-size=2g
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: npm run typecheck
+      - run: npm run test:unit
+      - run: npm run test:db
+      - run: node tools/split-legacy.mjs --check
+      - run: node tools/build-client.mjs --check
+
+  scenarios:
+    name: Scenarios, ${{ matrix.target }} ${{ matrix.shard }}/4
+    runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.56.1-noble
+      options: --shm-size=2g
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [legacy, new]
+        shard: [1, 2, 3, 4]
+    env:
+      TARGET: ${{ matrix.target }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: npx playwright test --shard=${{ matrix.shard }}/4
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: results-${{ matrix.target }}-${{ matrix.shard }}
+          path: test-results/
+          retention-days: 14
+
+  selfcheck:
+    name: Referees still catch breakage
+    runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.56.1-noble
+      options: --shm-size=2g
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: npm run selfcheck
