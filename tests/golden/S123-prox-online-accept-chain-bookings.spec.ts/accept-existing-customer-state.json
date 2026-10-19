@@ -1,0 +1,33 @@
+{
+  "DB.quotes": {
+    "added": [
+      {
+        "id": "@DB.quotes[QO.69-10-13-02]",
+        "no": "QO.69-10-13-02",
+        "date": "2026-10-13",
+        "jobIn": "2026-10-13",
+        "custId": "@DB.cust[C00001]",
+        "vehIdx": 0,
+        "mile": "",
+        "probs": [
+          "เปลี่ยนผ้าเบรกหน้า",
+          "",
+          ""
+        ],
+        "finds": [],
+        "tier": "A",
+        "items": [],
+        "disc": 0,
+        "vat": 7,
+        "tech": "",
+        "techName": "",
+        "byPos": "",
+        "byName": "",
+        "apPos": "",
+        "apName": "",
+        "status": "ร่าง",
+        "bookRef": "เครือ DriveGo · ใบจอง #102"
+      }
+    ]
+  }
+}

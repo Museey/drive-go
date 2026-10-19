@@ -1,0 +1,69 @@
+{
+  "DB.stock[EN-501].qty": [
+    0,
+    12
+  ],
+  "DB.stock[EN-501].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock": {
+    "added": [
+      {
+        "id": "@DB.stock[DC-OF21]",
+        "code": "DC-OF21",
+        "oem": "",
+        "name": "กรองน้ำมันเครื่อง Honda",
+        "cat": "ไส้กรอง",
+        "unit": "ชิ้น",
+        "cost": 105,
+        "pa": 0,
+        "pb": 0,
+        "pc": 0,
+        "qty": 6,
+        "min": 2,
+        "max": 50,
+        "stale": 6,
+        "lastMove": "2026-10-13",
+        "warr": "",
+        "warrNote": "",
+        "zone": "",
+        "shelf": "",
+        "loc": "",
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[EN-501]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "stock",
+        "docId": "@DB.stock[EN-501]",
+        "no": "EN-501",
+        "act": "save",
+        "note": "รับของจากศูนย์กระจายสินค้า HQ · คำขอ #501 · +12 ชิ้น"
+      },
+      {
+        "id": "@DB.audit[DC-OF21]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "stock",
+        "docId": "@DB.stock[DC-OF21]",
+        "no": "DC-OF21",
+        "act": "save",
+        "note": "รับของจากศูนย์กระจายสินค้า HQ · คำขอ #501 · +6 ชิ้น"
+      }
+    ]
+  }
+}
