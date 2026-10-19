@@ -4,7 +4,7 @@
 import { appendFileSync } from 'node:fs';
 import type pg from 'pg';
 import type { Session } from './session.ts';
-import type { Changes } from './units.ts';
+import { type Changes, rootOf } from './units.ts';
 
 // Who is signed in, as the legacy screens know them.
 //   Biz/ProX   owner | emp (an employee signed in with a phone number)
@@ -37,3 +37,102 @@ export function traceWrite(actor: Actor, key: string, changes: Changes, secrets:
     secrets: [...new Set(secrets.map(x => `${x.unit}.${x.field}`))].sort(),
   }) + '\n');
 }
+
+// The rules (design §5.1), worked out from what each role saves in all the
+// scenarios (DRIVEGO_WRITE_TRACE): every save of the legacy screens passes,
+// and these are refused (answer 403, nothing is written):
+//   shop account and chain settings   DGB.*, FR.* other than requests and their counter:
+//                                     the owner (Biz/ProX) or HQ (Franchise) only
+//   sign-in accounts of the chain     FR.accounts: HQ; a branch head for the staff accounts of
+//                                     its own branch; anyone for their own account (password)
+//                                     without changing its role, branch or status
+//   branch requests                   FR.reqs: HQ, or a branch's own people for that branch's requests
+//   employees' accounts               DB.emp fields dgbPass, dgbActive, pin, perms: the owner, HQ,
+//                                     or the head of that branch; removing an employee who has an account too
+//   passwords sent with a save        the same rules as the record they belong to
+// Branch scope (another branch's data) is checked before this (inScope).
+type Rec = Record<string, unknown>;
+const EMP_ACCOUNT_FIELDS = ['dgbPass', 'dgbActive', 'pin', 'perms'];
+const same = (a: unknown, b: unknown) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+
+async function current(c: pg.ClientBase, branch: string, unit: string, keys: string[]): Promise<Map<string, Rec>> {
+  if (!keys.length) return new Map();
+  const { rows } = await c.query<{ key: string; data: string }>(
+    'select key, data::text as data from records where shop_id = app_shop() and branch_id = $1 and unit = $2 and key = any($3)', [branch, unit, keys]);
+  return new Map(rows.map(r => [r.key, JSON.parse(r.data)]));
+}
+
+export async function refuseSave(c: pg.ClientBase, a: Actor, branch: string, key: string, changes: Changes,
+  secrets: { unit: string; key: string; field: string; value: string }[]): Promise<string | null> {
+  const shopManager = a.role === 'owner' || a.role === 'HQ';
+  const branchManager = shopManager || (a.role === 'HB' && a.branch === branch);
+  const root = rootOf(key);
+  const touched = (unit: string) => [...changes.upsert.filter(r => r.unit === unit), ...changes.remove.filter(r => r.unit === unit)];
+  const units = new Set([...changes.upsert, ...changes.remove].map(r => r.unit));
+
+  // Shop account and chain settings.
+  if (!shopManager && root !== 'DB') {
+    if (changes.layout !== undefined) return `${key}: layout`;
+    for (const u of units) if (!['FR.reqs', 'FR.seq', 'FR.accounts'].includes(u)) return u;
+  }
+
+  // Sign-in accounts of the chain.
+  const accRows = touched('FR.accounts');
+  if (accRows.length && !shopManager) {
+    const before = await current(c, '', 'FR.accounts', accRows.map(r => r.key));
+    const after = new Map(changes.upsert.filter(r => r.unit === 'FR.accounts').map(r => [r.key, JSON.parse(r.data) as Rec]));
+    for (const r of accRows) {
+      const old = before.get(r.key), now = after.get(r.key);   // now undefined = removed
+      const staffOfMine = (x?: Rec) => !x || (a.role === 'HB' && x.role === 'SHB' && x.branchId === a.branch);
+      const own = r.key === a.ref && !!old && !!now && ['role', 'branchId', 'active'].every(f => same(old[f], now[f]));
+      if (!own && !(staffOfMine(old) && staffOfMine(now) && (old || now))) return `FR.accounts|${r.key}`;
+    }
+  }
+
+  // Branch requests.
+  const reqRows = touched('FR.reqs');
+  if (reqRows.length && !shopManager) {
+    const before = await current(c, '', 'FR.reqs', reqRows.map(r => r.key));
+    const after = new Map(changes.upsert.filter(r => r.unit === 'FR.reqs').map(r => [r.key, JSON.parse(r.data) as Rec]));
+    for (const r of reqRows) {
+      const old = before.get(r.key), now = after.get(r.key);
+      if ((old && old.branchId !== a.branch) || (now && now.branchId !== a.branch) || !a.branch) return `FR.reqs|${r.key}`;
+    }
+  }
+
+  // Employees' accounts.
+  const empRows = touched('DB.emp');
+  if (empRows.length && !branchManager) {
+    const before = await current(c, branch, 'DB.emp', empRows.map(r => r.key));
+    const after = new Map(changes.upsert.filter(r => r.unit === 'DB.emp').map(r => [r.key, JSON.parse(r.data) as Rec]));
+    for (const r of empRows) {
+      const old = before.get(r.key), now = after.get(r.key);
+      const hasAccount = (x?: Rec) => !!x && (!!x.dgbPass || !!x.pin || x.dgbActive === true);
+      if (!now && hasAccount(old)) return `DB.emp|${r.key}`;
+      if (now && old && EMP_ACCOUNT_FIELDS.some(f => !same(old[f], now[f]))) return `DB.emp|${r.key}`;
+      if (now && !old && hasAccount(now)) return `DB.emp|${r.key}`;
+    }
+  }
+
+  // Passwords sent with the save.
+  for (const x of secrets) {
+    if (x.unit === 'DGB.shop' && !shopManager) return 'DGB.shop.pass';
+    if (x.unit === 'DB.emp' && !branchManager) return `DB.emp|${x.key}.${x.field}`;
+    if (x.unit === 'FR.accounts' && !shopManager && x.key !== a.ref) {
+      const sent = changes.upsert.find(r => r.unit === 'FR.accounts' && r.key === x.key);
+      const target = (await current(c, '', 'FR.accounts', [x.key])).get(x.key) ?? (sent ? JSON.parse(sent.data) as Rec : undefined);
+      if (!(a.role === 'HB' && target && target.role === 'SHB' && target.branchId === a.branch)) return `FR.accounts|${x.key}.pass`;
+    }
+  }
+  return null;
+}
+
+// Removing a whole data set (wipe, restore): its manager only.
+export function refuseRemoveKey(a: Actor, branch: string, key: string): string | null {
+  const shopManager = a.role === 'owner' || a.role === 'HQ';
+  const root = rootOf(key.includes('.bak.') ? key.slice(0, key.indexOf('.bak.')) : key);
+  if (!root) return null;
+  if (root === 'DB') return shopManager || (a.role === 'HB' && a.branch === branch) ? null : key;
+  return shopManager ? null : key;
+}
+

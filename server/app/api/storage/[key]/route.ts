@@ -4,10 +4,11 @@
 //   PUT     backup point (made from the server's own data, body ignored) or other key (body = value)
 //   DELETE  any key
 // A key of a branch outside the session's scope (another branch, or HQ's own
-// data for a branch account) answers 403 to every method.
+// data for a branch account) answers 403 to every method; so does a save or a
+// removal the account may not make (lib/permissions.ts, task T10).
 import { inShop, json } from '@/lib/api';
 import { endStaleSessions, storeSecrets } from '@/lib/auth';
-import { actorOf, traceWrite } from '@/lib/permissions';
+import { actorOf, refuseRemoveKey, refuseSave, traceWrite } from '@/lib/permissions';
 import { saveSessionFields, sessionFields } from '@/lib/session';
 import { branchOfKey, inScope, isBackupKey, makeBackup, readBackup, readBlob, readMain, removeKey, writeBlob, writeMain } from '@/lib/storage';
 import { type Changes, rootOf } from '@/lib/units';
@@ -42,7 +43,10 @@ export async function POST(req: Request, ctx: Ctx) {
   return inShop(req, async (c, s) => {
     const branch = await branchOfKey(c, key);
     if (!inScope(s.scope, branch)) return forbidden();
-    traceWrite(await actorOf(c, s), key, body.changes, body.secrets || []);
+    const actor = await actorOf(c, s);
+    traceWrite(actor, key, body.changes, body.secrets || []);
+    const refused = await refuseSave(c, actor, branch, key, body.changes, body.secrets || []);
+    if (refused) return json({ error: 'not allowed', what: refused }, 403);
     const r = await writeMain(c, branch, key, body.base || {}, body.changes, s.userId);
     if (!r.ok) return json({ conflicts: r.conflicts }, 409);
     if (body.session) await saveSessionFields(c, s, key, body.session);
@@ -80,6 +84,8 @@ export async function DELETE(req: Request, ctx: Ctx) {
   return inShop(req, async (c, s) => {
     const branch = await branchOfKey(c, key);
     if (!inScope(s.scope, branch)) return forbidden();
+    const refused = refuseRemoveKey(await actorOf(c, s), branch, key);
+    if (refused) return json({ error: 'not allowed', what: refused }, 403);
     await removeKey(c, branch, key);
     return json({ ok: true });
   });

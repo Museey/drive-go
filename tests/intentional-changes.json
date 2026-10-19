@@ -107,6 +107,16 @@
       "scenario": "S109-two-browsers-save-same-record.spec.ts",
       "decision": "P1, Q5",
       "why": "Two browsers save the same record: the second is refused with the approved message and reloads the latest data."
+    },
+    {
+      "scenario": "S121-employee-direct-api-calls-refused.spec.ts",
+      "decision": "T10",
+      "why": "An employee calling the storage API directly cannot change the shop's account, its own permissions, other people's passwords or wipe the data; a shop's page keeps the shop's package."
+    },
+    {
+      "scenario": "S122-branch-direct-api-calls-refused.spec.ts",
+      "decision": "T10, Q3",
+      "why": "A branch account calling the storage API directly cannot reach other branches' or HQ's data, other accounts, other branches' requests or the chain's settings; a staff account cannot issue accounts."
     }
   ]
 }
