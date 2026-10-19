@@ -7,6 +7,7 @@
 // data for a branch account) answers 403 to every method.
 import { inShop, json } from '@/lib/api';
 import { endStaleSessions, storeSecrets } from '@/lib/auth';
+import { actorOf, traceWrite } from '@/lib/permissions';
 import { saveSessionFields, sessionFields } from '@/lib/session';
 import { branchOfKey, inScope, isBackupKey, makeBackup, readBackup, readBlob, readMain, removeKey, writeBlob, writeMain } from '@/lib/storage';
 import { type Changes, rootOf } from '@/lib/units';
@@ -41,6 +42,7 @@ export async function POST(req: Request, ctx: Ctx) {
   return inShop(req, async (c, s) => {
     const branch = await branchOfKey(c, key);
     if (!inScope(s.scope, branch)) return forbidden();
+    traceWrite(await actorOf(c, s), key, body.changes, body.secrets || []);
     const r = await writeMain(c, branch, key, body.base || {}, body.changes, s.userId);
     if (!r.ok) return json({ conflicts: r.conflicts }, 409);
     if (body.session) await saveSessionFields(c, s, key, body.session);
