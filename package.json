@@ -6,7 +6,7 @@
     "test": "playwright test",
     "test:db": "node --test tests/db/*.test.mjs",
     "test:unit": "node --test server/lib/*.test.ts",
-    "dev": "DEV=1 node tools/serve-new.mjs",
+    "dev": "node tools/serve-new.mjs --dev",
     "build": "npm run build -w server",
     "typecheck": "npm run typecheck -w server",
     "test:record": "TARGET=legacy playwright test --update-snapshots=all",

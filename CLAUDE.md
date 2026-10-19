@@ -25,7 +25,7 @@
 npm install
 npm test                                   # รันทุกสถานการณ์ เทียบกับเฉลย (ระบบเดิม)
 TARGET=new npm test                        # รันทุกสถานการณ์กับระบบใหม่ (build server/ + PostgreSQL ชั่วคราว ให้เอง แต่ละ test ได้อู่ของตัวเองจาก fixture)
-npm run dev                                # เปิดระบบใหม่แบบ next dev + PostgreSQL ชั่วคราว (ข้อมูลหายเมื่อปิด)
+npm run dev                                # เปิดระบบใหม่แบบ next dev + PostgreSQL ชั่วคราว ที่ port 3000 พร้อมร้านตัวอย่าง demo-biz, demo-prox, demo-franchise (ข้อมูลหายเมื่อปิด; คู่มือสำหรับเจ้าของโปรเจกต์: docs/TRY-LOCALLY.md)
 npm run typecheck                          # ตรวจ TypeScript ของ server/
 npm run test:db                            # test ของฐานข้อมูล: แยกข้อมูลระหว่างอู่/สาขา (RLS), เก็บ/อ่าน/บันทึกข้อมูลร้าน
 npm run test:unit                          # test ของ server/lib (แบ่งข้อมูลเป็นหน่วยแล้วประกอบกลับได้ทุกไบต์ ฯลฯ)

@@ -9,22 +9,39 @@
 //
 // initdb and postgres refuse to run as root, so as root they run as the
 // "postgres" system user (the cloud container runs everything as root).
+// Works on Linux, macOS (Postgres.app or Homebrew) and Windows (the
+// PostgreSQL installer); see docs/TRY-LOCALLY.md.
 import { execFileSync, spawn } from 'node:child_process';
 import { chownSync, existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createServer } from 'node:net';
+import { pathToFileURL } from 'node:url';
 
 const PREFIX = 'drivego-pg-';
+
+const exe = name => process.platform === 'win32' ? `${name}.exe` : name;
+
+// The newest version under root/<version>/bin (Debian, Windows) or
+// root/postgresql@<version>/bin (Homebrew).
+function newestUnder(root) {
+  if (!existsSync(root)) return null;
+  const version = d => Number(d.replace(/^postgresql@/, '')) || 0;
+  const v = readdirSync(root).filter(d => version(d) && existsSync(join(root, d, 'bin', exe('initdb')))).sort((a, b) => version(b) - version(a))[0];
+  return v ? join(root, v, 'bin') : null;
+}
 
 function binDir() {
   if (process.env.PG_BIN) return process.env.PG_BIN;
   try { return execFileSync('pg_config', ['--bindir'], { encoding: 'utf8' }).trim(); } catch {}
-  const root = '/usr/lib/postgresql';
-  if (existsSync(root)) {
-    const v = readdirSync(root).filter(d => existsSync(join(root, d, 'bin', 'initdb'))).sort((a, b) => b - a)[0];
-    if (v) return join(root, v, 'bin');
-  }
+  const found = [
+    newestUnder('/usr/lib/postgresql'),
+    '/Applications/Postgres.app/Contents/Versions/latest/bin',
+    newestUnder('/opt/homebrew/opt'),
+    newestUnder('/usr/local/opt'),
+    newestUnder(join(process.env.ProgramFiles || 'C:\\Program Files', 'PostgreSQL')),
+  ].find(d => d && existsSync(join(d, exe('initdb'))));
+  if (found) return found;
   throw new Error('PostgreSQL binaries not found: install PostgreSQL or set PG_BIN');
 }
 
@@ -69,7 +86,10 @@ export async function startTempPostgres({ database = 'drivego', user = 'drivego'
   run('initdb', ['-D', data, '-U', user, '--auth=trust', '-E', 'UTF8', '--locale=C']);
   const port = await freePort();
   // Durability settings off: a test database is thrown away anyway.
-  const proc = spawn(join(bin, 'postgres'), ['-D', data, '-p', String(port), '-k', dir, '-c', 'listen_addresses=127.0.0.1',
+  // Clients connect over TCP; the socket goes in the cluster's own directory
+  // (Windows: none).
+  const socket = process.platform === 'win32' ? ['-c', 'unix_socket_directories='] : ['-k', dir];
+  const proc = spawn(join(bin, 'postgres'), ['-D', data, '-p', String(port), ...socket, '-c', 'listen_addresses=127.0.0.1',
     '-c', 'fsync=off', '-c', 'synchronous_commit=off', '-c', 'full_page_writes=off'], { ...asUser, stdio: 'ignore' });
   const exited = new Promise(r => proc.once('exit', r));
   for (let i = 0; ; i++) {
@@ -81,17 +101,20 @@ export async function startTempPostgres({ database = 'drivego', user = 'drivego'
   // Smart shutdown first (waits for clients that are still closing, so they
   // do not get a "terminating connection" error), then fast, then immediate.
   const stop = () => stopping ||= (async () => {
+    // Windows has no signals: pg_ctl asks the server to stop (fast shutdown).
+    if (process.platform === 'win32') try { run('pg_ctl', ['stop', '-D', data, '-m', 'fast', '-w']); } catch {}
     for (const [signal, ms] of [['SIGTERM', 3000], ['SIGINT', 5000], ['SIGQUIT', 5000]]) {
       if (proc.exitCode !== null || proc.signalCode !== null) break;
       proc.kill(signal);
       if (await Promise.race([exited.then(() => true), new Promise(r => setTimeout(r, ms, false))])) break;
     }
-    rmSync(dir, { recursive: true, force: true });
+    // Retries: Windows may hold the files open for a moment after the server exits.
+    rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
   })();
   return { url: `postgres://${user}@127.0.0.1:${port}/${database}`, port, stop };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const pg = await startTempPostgres();
   console.log(pg.url);
   const end = () => pg.stop().then(() => process.exit(0));

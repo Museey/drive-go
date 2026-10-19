@@ -7,6 +7,9 @@ const config: NextConfig = {
   poweredByHeader: false,
   // Native password hashing: loaded by Node at run time, not bundled.
   serverExternalPackages: ['@node-rs/argon2'],
+  // `next dev` would otherwise write server/AGENTS.md; the project's notes
+  // for agents are CLAUDE.md and docs/.
+  agentRules: false,
 };
 
 export default config;
