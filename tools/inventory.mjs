@@ -178,13 +178,13 @@ for (const m of html.matchAll(/\son(click|change|input|submit|keyup|keydown|keyp
 const live = new Map();
 async function runtime() {
   const { chromium } = await import('@playwright/test');
-  const { CONTEXT_OPTIONS, FIXED_NOW, TEST_SEED } = await import('../tests/support/config.mjs');
+  const { CONTEXT_OPTIONS, LAUNCH_OPTIONS, FIXED_NOW, TEST_SEED } = await import('../tests/support/config.mjs');
   const { prepareContext } = await import('../tests/support/browser.mjs');
   const { legacyApp } = await import('../tests/support/legacy-app.mjs');
   const server = spawn(process.execPath, [new URL('tools/serve.mjs', ROOT).pathname], { stdio: 'ignore' });
   await new Promise(r => setTimeout(r, 500));
   try {
-    const browser = await chromium.launch();
+    const browser = await chromium.launch(LAUNCH_OPTIONS);
     const context = await browser.newContext(CONTEXT_OPTIONS);
     await prepareContext(context, { seed: TEST_SEED, now: FIXED_NOW });
     const page = await context.newPage();

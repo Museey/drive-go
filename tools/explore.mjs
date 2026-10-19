@@ -12,14 +12,14 @@
 import { chromium } from '@playwright/test';
 import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
-import { CONTEXT_OPTIONS, FIXED_NOW, TEST_SEED } from '../tests/support/config.mjs';
+import { CONTEXT_OPTIONS, LAUNCH_OPTIONS, FIXED_NOW, TEST_SEED } from '../tests/support/config.mjs';
 import { prepareContext } from '../tests/support/browser.mjs';
 import { legacyApp, messageRecorderInitScript } from '../tests/support/legacy-app.mjs';
 
 const [name = 'explore', actions = '', dataset = 'biz-trial'] = process.argv.slice(2);
 const server = spawn(process.execPath, [new URL('serve.mjs', import.meta.url).pathname], { stdio: 'ignore' });
 await new Promise(r => setTimeout(r, 400));
-const browser = await chromium.launch();
+const browser = await chromium.launch(LAUNCH_OPTIONS);
 try {
   const context = await browser.newContext(CONTEXT_OPTIONS);
   await prepareContext(context, { seed: TEST_SEED, now: FIXED_NOW });

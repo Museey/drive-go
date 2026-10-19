@@ -8,3 +8,8 @@ CI installs these two files into `/etc/fonts/conf.d` (`.github/actions/setup`).
 
 `conf.d.txt` and `families.txt` list that machine's `/etc/fonts/conf.d` and its
 font families; CI stops if its own lists differ.
+
+Hinting is not left to these files: headless Chromium picked full hinting in
+CI's container whatever fontconfig said, so every test and tool starts it with
+`--font-render-hinting=none` (`LAUNCH_OPTIONS` in `tests/support/config.mjs`),
+which is what the goldens' machine used anyway.

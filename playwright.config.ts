@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { defineConfig } from '@playwright/test';
-import { CONTEXT_OPTIONS, LEGACY_URL } from './tests/support/config.mjs';
+import { CONTEXT_OPTIONS, LAUNCH_OPTIONS, LEGACY_URL } from './tests/support/config.mjs';
 
 // Which app the scenarios run against. Goldens are always recorded from the
 // legacy HTML; any other target is only ever compared with them.
@@ -31,7 +31,7 @@ export default defineConfig({
   timeout: 300_000,
   expect: { timeout: 15_000, toHaveScreenshot: { maxDiffPixels: 0 } },
   reporter: [['list']],
-  use: { ...CONTEXT_OPTIONS, browserName: 'chromium', trace: 'retain-on-failure' },
+  use: { ...CONTEXT_OPTIONS, browserName: 'chromium', launchOptions: LAUNCH_OPTIONS, trace: 'retain-on-failure' },
   webServer: TARGET === 'legacy'
     ? { command: 'node tools/serve.mjs', url: LEGACY_URL, reuseExistingServer: !process.env.CI }
     : undefined,

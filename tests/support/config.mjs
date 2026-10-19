@@ -36,6 +36,13 @@ export const CONTEXT_OPTIONS = {
   timezoneId: 'Asia/Bangkok',
 };
 
+// How Chromium is started, by tests and tools alike. Without the switch, the
+// headless browser takes its text hinting from the machine: unhinted on the
+// one the screenshot goldens were recorded on, fully hinted (glyphs snapped to
+// whole pixels) in CI's container, which changes every line of text in every
+// screenshot (task T11, NOTES.md). Naming it keeps text the same everywhere.
+export const LAUNCH_OPTIONS = { args: ['--font-render-hinting=none'] };
+
 // Demo owner accounts printed on the legacy login screen of each package
 // (?package=biz|prox|franchise). Franchise signs in as head office (HQ).
 export const OWNERS = {
