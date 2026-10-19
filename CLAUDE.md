@@ -40,6 +40,10 @@ node tools/explore.mjs <ชื่อ> "<คำสั่ง Playwright>" [dataset
 COVERAGE=1 npx playwright test <ไฟล์> && node tools/which-ran.mjs <ชื่อฟังก์ชัน…>   # ตรวจว่าสถานการณ์เรียกฟังก์ชันที่ต้องการจริง
 ```
 
+CI (GitHub Actions, `.github/workflows/ci.yml`) รันทุกอย่างข้างบนทุกครั้งที่ push ในสภาพแวดล้อมที่ล็อกไว้ (`.github/actions/setup`):
+image ของ Playwright 1.56.1 บน Ubuntu 24.04, Node 22.22.0, PostgreSQL 16 และฟอนต์กับการตั้งค่าฟอนต์ชุดเดียวกับเครื่องที่บันทึกเฉลย
+(`tests/support/fontconfig/`) ถ้าวันหนึ่งภาพใน CI ไม่ตรงกับเฉลย ให้ใช้ workflow "Record screenshot goldens (P4)" ซึ่งบันทึกภาพใหม่จากระบบเดิมเท่านั้น
+
 PostgreSQL ไม่ต้องติดตั้ง server เอง: `tools/pg-temp.mjs` สร้างฐานข้อมูลชั่วคราวจากโปรแกรม PostgreSQL ในเครื่อง (ไม่ใช้ Docker)
 บนพอร์ตสุ่ม แล้วลบทิ้งเมื่อปิด ถ้าตั้ง `DATABASE_URL` ไว้จะใช้ฐานข้อมูลนั้นแทน
 
