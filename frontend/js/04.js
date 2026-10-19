@@ -29,7 +29,24 @@ function frBranch(id){ return FR.branches.find(b=>b.id===id)||null; }
 function brKey(b){ return b?(b.storeKey||('garage.v22::'+b.id)):'garage.v22'; }
 /* DriveGo phase 2 (T8, Q3): HQ works on its own data set (it starts empty); garage.v22 stays the data of the branch whose storeKey it is (B001). */
 const HQKEY='garage.v22::HQ';
-async function frLoadHQ(){ KEY=HQKEY; DB=frFreshDB(); await load(); if(!DB.shop.name) DB.shop.name=FR.org.name||''; boot(); }
+async function frLoadHQ(){ KEY=HQKEY; DB=frFreshDB(); await load(); if(!DB.shop.name) DB.shop.name=FR.org.name||''; await frHqLicFromBranch(); boot(); }
+/* The licence stays the first branch's, as in the test copy (owner 2026-10-19): HQ reads it on every load, and a change HQ makes
+   (menu 10: dates, ต่ออายุ) is written to that branch too. Only HQ's own change is written, never a copy it read earlier. */
+let frHqLic='';
+const frLicOf=s=>JSON.stringify([s&&s.licStart||'',s&&s.licEnd||'']);
+async function frHqLicFromBranch(){
+  const db=FR.branches[0]?await frReadBranchDB(FR.branches[0]):null;
+  if(db&&db.shop){ DB.shop.licStart=db.shop.licStart||''; DB.shop.licEnd=db.shop.licEnd||''; }
+  frHqLic=frLicOf(DB.shop);
+}
+async function frHqLicToBranch(){
+  if(KEY!==HQKEY||frLicOf(DB.shop)===frHqLic||!FR.branches[0]) return;
+  const b=FR.branches[0], db=await frReadBranchDB(b); if(!db||!db.shop) return;
+  db.shop.licStart=DB.shop.licStart; db.shop.licEnd=DB.shop.licEnd;
+  await STORE.set(brKey(b),JSON.stringify(db));
+  frHqLic=frLicOf(DB.shop);
+}
+{ const o=save; save=async function(){ const r=await o.apply(this,arguments); await frHqLicToBranch(); return r; }; }
 function frCurBranchId(){ const a=frAcc(); if(!a) return ''; return (a.role==='HB'||a.role==='SHB')?a.branchId:(FR.session.inspect||''); }
 function frWho(){ const a=frAcc(); const e=(typeof curEmp==='function')?curEmp():null; return e?e.name+' (SHB)':(a?a.name:'-'); }
 function frFreshDB(){ return {stock:[],cust:[],vendors:[],purchases:[],quotes:[],receipts:[],moves:[],crm:[],emp:[],curEmp:'',
