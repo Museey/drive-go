@@ -3,7 +3,8 @@ description: >
   The pinned environment the tests run in (task T11): Ubuntu 24.04 with
   Playwright 1.56.1's Chromium (the job's container image), Node 22.22.0,
   PostgreSQL 16 for the throwaway databases (tools/pg-temp.mjs) and the same
-  fonts as the machine the screenshot goldens were recorded on.
+  fonts and font settings as the machine the screenshot goldens were recorded
+  on (tests/support/fontconfig).
 runs:
   using: composite
   steps:
@@ -19,8 +20,12 @@ runs:
           fonts-inter fonts-dejavu-core fonts-dejavu-mono fonts-crosextra-caladea fonts-crosextra-carlito \
           fonts-opensymbol fonts-liberation fonts-liberation2 fonts-freefont-ttf fonts-ipafont-gothic \
           fonts-noto-color-emoji fonts-tlwg-loma-otf fonts-unifont fonts-wqy-zenhei xfonts-cyrillic xfonts-scalable
-        fc-list : family | sort -u > "$RUNNER_TEMP/fonts.txt"
-        echo "fonts: $(wc -l < "$RUNNER_TEMP/fonts.txt") families"
+        cp tests/support/fontconfig/*.conf /etc/fonts/conf.d/
+        fc-cache -f
+        # The same fonts and font settings as the machine the goldens were recorded on.
+        ls /etc/fonts/conf.d | diff tests/support/fontconfig/conf.d.txt -
+        fc-list : family | sort -u | diff tests/support/fontconfig/families.txt -
+        fc-match -v sans-serif | grep -E 'family:|antialias|hint|rgba|lcdfilter'
     - name: npm ci
       shell: bash
       run: npm ci

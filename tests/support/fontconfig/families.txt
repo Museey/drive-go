@@ -1,0 +1,42 @@
+Bitstream Charter
+Caladea
+Carlito
+Courier 10 Pitch
+DejaVu Sans
+DejaVu Sans Mono
+DejaVu Serif
+FreeMono
+FreeSans
+FreeSerif
+IPAGothic,IPAゴシック
+IPAPGothic,IPA Pゴシック,䥐䅐䝯瑨楣
+Inter
+Inter Display
+Inter Display,Inter Display Black
+Inter Display,Inter Display ExtraBold
+Inter Display,Inter Display ExtraLight
+Inter Display,Inter Display Light
+Inter Display,Inter Display Medium
+Inter Display,Inter Display SemiBold
+Inter Display,Inter Display Thin
+Inter,Inter Black
+Inter,Inter ExtraBold
+Inter,Inter ExtraLight
+Inter,Inter Light
+Inter,Inter Medium
+Inter,Inter SemiBold
+Inter,Inter Thin
+Liberation Mono
+Liberation Sans
+Liberation Serif
+Loma
+Noto Color Emoji
+OpenSymbol
+Unifont
+Unifont CSUR
+Unifont Sample
+Unifont Upper
+Unifont\-JP
+WenQuanYi Zen Hei Mono,文泉驛等寬正黑,文泉驿等宽正黑
+WenQuanYi Zen Hei Sharp,文泉驛點陣正黑,文泉驿点阵正黑
+WenQuanYi Zen Hei,文泉驛正黑,文泉驿正黑

@@ -1,0 +1,49 @@
+# Decision P4: when the CI environment draws a screen a little differently from
+# the machine the goldens were recorded on, the screenshot goldens are recorded
+# again here, in CI's pinned environment, from the legacy app only
+# (TARGET=legacy, CLAUDE.md rule 3). Started by hand. Only *.png goldens may
+# change (anything else means the run is not repeatable and nothing is kept);
+# the legacy suite must then pass twice with them before they are committed.
+name: Record screenshot goldens (P4)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  record:
+    runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.56.1-noble
+      options: --shm-size=2g
+    timeout-minutes: 150
+    env:
+      TARGET: legacy
+    steps:
+      - name: git
+        run: apt-get update && apt-get install -y --no-install-recommends git
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Record changed screenshots from the legacy app
+        run: npx playwright test --update-snapshots=changed || true
+      - name: Only screenshots changed
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git status --porcelain tests/golden
+          if git status --porcelain | grep -v '^ M tests/golden/.*\.png$' | grep .; then
+            echo "Something other than a screenshot golden changed: not repeatable, nothing is kept."; exit 1
+          fi
+      - name: Legacy suite passes with them (1)
+        run: npx playwright test
+      - name: Legacy suite passes with them (2)
+        run: npx playwright test
+      - name: Commit
+        run: |
+          if [ -z "$(git status --porcelain tests/golden)" ]; then echo "No screenshot differs."; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/golden
+          git commit -m "Record screenshot goldens again in CI's environment, from the legacy app (decision P4)"
+          git push
