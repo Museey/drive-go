@@ -26,6 +26,9 @@ runs:
         ls /etc/fonts/conf.d | diff tests/support/fontconfig/conf.d.txt -
         fc-list : family | sort -u | diff tests/support/fontconfig/families.txt -
         fc-match -v sans-serif | grep -E 'family:|antialias|hint|rgba|lcdfilter'
+        # The processor: Chromium draws in software, with the vector instructions it finds.
+        grep -m1 'model name' /proc/cpuinfo
+        grep -m1 '^flags' /proc/cpuinfo | tr ' ' '\n' | grep -E '^(avx|fma|sse4)' | sort | tr '\n' ' '; echo
     - name: npm ci
       shell: bash
       run: npm ci
