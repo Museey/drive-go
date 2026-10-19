@@ -6,7 +6,8 @@ import { storageApi } from '../support/storage-api';
 // directly. The screens never make these saves (every scenario runs with the
 // checks on); here they are made by hand with the employee's own session and
 // must be refused, and nothing may change. The shop's page also keeps the
-// shop's own package whatever the link says.
+// shop's own package whatever the link says, and a refused save made by the
+// screens shows the approved message and reloads (owner, 2026-10-19).
 test('S121 ระบบใหม่: พนักงานเรียก API ตรงเพื่อแก้บัญชีร้าน สิทธิ์ของตัวเอง รหัสผ่าน หรือลบข้อมูลร้าน ถูกปฏิเสธทั้งหมด', async ({ app, page }) => {
   // The owner issues the cashier (EMP008) an account, as in S41.
   await app.loginAsOwner();
@@ -53,4 +54,18 @@ test('S121 ระบบใหม่: พนักงานเรียก API �
   const r = await page.request.get(shopUrl.href, { maxRedirects: 0 });
   expect(r.status()).toBe(302);
   expect(new URL(r.headers().location, shopUrl).searchParams.get('package')).toBe('biz');
+
+  // A refused save made through the screens' own storage (as when a rule is
+  // stricter than a screen): the user is told, and the page loads the latest data.
+  await page.evaluate(async () => {
+    const storage = (window as any).storage;
+    const dgb = JSON.parse((await storage.get('dgb.v22')).value);
+    dgb.shop.email = 'cashier@example.com';
+    storage.set('dgb.v22', JSON.stringify(dgb));   // never settles: the page reloads
+  });
+  await expect(page.getByText('บันทึกไม่สำเร็จ — บัญชีนี้ไม่มีสิทธิ์แก้ข้อมูลส่วนนี้ กดตกลงเพื่อโหลดข้อมูลล่าสุด')).toBeVisible();
+  await page.getByRole('button', { name: 'ตกลง', exact: true }).filter({ visible: true }).click();
+  await page.waitForEvent('load');
+  await app.settle();
+  expect(((await app.state()) as any).DGB.shop.email).toBe(shopBefore.email);
 });

@@ -193,6 +193,8 @@
     conflict: "มีคนแก้ข้อมูลนี้จากเครื่องอื่นก่อนหน้า สิ่งที่เพิ่งทำยังไม่ถูกบันทึก — กดตกลงเพื่อโหลดข้อมูลล่าสุด",
     offline: "บันทึกไม่สำเร็จ — เชื่อมต่อ server ไม่ได้ ระบบจะลองใหม่อัตโนมัติ อย่าเพิ่งปิดหน้านี้",
     signedOut: "หมดเวลาการเข้าระบบ กรุณาเข้าสู่ระบบใหม่",
+    notAllowed: "บันทึกไม่สำเร็จ — บัญชีนี้ไม่มีสิทธิ์แก้ข้อมูลส่วนนี้ กดตกลงเพื่อโหลดข้อมูลล่าสุด",
+    // task T10, owner 2026-10-19
     lockedOut: "กรอกรหัสผิดหลายครั้ง กรุณารอ 15 นาทีแล้วลองใหม่"
   };
   var SHOP = decodeURIComponent(location.pathname.split("/")[1] || "");
@@ -289,6 +291,7 @@
     }, true);
     if (r.status === 409) return mustReload(MESSAGES.conflict, `conflict ${key}: ${JSON.stringify((await r.json()).conflicts)}`);
     if (r.status === 401) return mustReload(MESSAGES.signedOut, `signed out while saving ${key}`);
+    if (r.status === 403) return mustReload(MESSAGES.notAllowed, `not allowed to save ${key}: ${await r.text()}`);
     if (!r.ok) {
       problems.push(`save ${key}: ${r.status} ${await r.text()}`);
       return;
@@ -342,6 +345,7 @@
       if (signedIn === false) return { key, deleted: false };
       await enqueue(async () => {
         const r = await send(url(key), { method: "DELETE" }, true);
+        if (r.status === 403) return mustReload(MESSAGES.notAllowed, `not allowed to delete ${key}`);
         if (!r.ok) problems.push(`delete ${key}: ${r.status}`);
         if (rootOf(key)) mains.set(key, { value: null, sent: null, last: null, base: {} });
       });
