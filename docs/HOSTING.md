@@ -1,10 +1,50 @@
 # เปรียบเทียบผู้ให้บริการ server และฐานข้อมูล
 
-ข้อมูล ณ 2026-10-18 · ทำให้เจ้าของโปรเจกต์ใช้ตัดสินใจก่อนเริ่มเฟส 2 (ดู [PLAN.md](PLAN.md) และกลุ่ม D ใน [NOTES.md](NOTES.md))
+ข้อมูล ณ 2026-10-18 (อัปเดต 2026-10-20) · ทำให้เจ้าของโปรเจกต์ใช้ตัดสินใจก่อนเริ่มเฟส 2 (ดู [PLAN.md](PLAN.md) และกลุ่ม D ใน [NOTES.md](NOTES.md))
 
 **ข้อจำกัด:** ข้อมูลรวบรวมจากผลค้นหาบนเว็บ (ส่วนใหญ่จากหน้าทางการ) เครื่องมือเปิดหน้าเว็บโดยตรงไม่ได้
 ตัวเลขราคาเป็นการประมาณจากราคาประกาศ **ต้องตรวจใน pricing calculator ของผู้ให้บริการก่อนตัดสินใจ**
 อัตราแลกเปลี่ยนประมาณ 33.5 บาท/USD ราคายังไม่รวม VAT
+
+## อัปเดต 2026-10-20: สิ่งที่ระบบต้องการจริงหลังเฟส 2 และ server ทดสอบ (T12)
+
+**สิ่งที่ระบบใหม่ต้องการ** (รู้แน่แล้วจากงานเฟส 2):
+- server ที่ทำงานตลอด รัน Node.js 22 (Next.js) ใน container ได้ มีโมดูล native สำหรับ hash รหัสผ่าน (argon2) ซึ่งใช้ได้บน Linux ปกติ
+- PostgreSQL 16 ที่ผู้ดูแลฐานข้อมูล **สร้าง role ใหม่ได้** (ระบบใช้ 2 role: เจ้าของตารางกับ role ของแอปที่ถูก Row-Level Security บังคับ) และสร้างฟังก์ชัน `security definer` ได้
+- การเชื่อมต่อค้างนาน (SSE) สำหรับให้ทุกเครื่องเห็นการเปลี่ยนแปลงทันที (เฟส 3) และที่เก็บไฟล์แนบแบบ S3 (เฟส 3)
+- HTTPS, backup อัตโนมัติ และกู้คืนย้อนเวลาได้ (PITR) ตั้งแต่อู่นำร่อง
+
+**server ทดสอบ (T12)** ใช้เครื่องเล็กที่สุดที่รันได้ ไม่ต้องมีเครื่องสำรอง (ราคาประมาณ ต้องตรวจในหน้าราคาก่อน):
+
+| ตัวเลือก | ประกอบด้วย | USD/เดือน | บาท/เดือน (ประมาณ) |
+|---|---|---|---|
+| Google Cloud กรุงเทพฯ | Cloud Run (หยุดเองเมื่อไม่มีคนใช้) + Cloud SQL แบบ shared core | 15–30 | 500–1,000 |
+| DigitalOcean สิงคโปร์ | App Platform $5–12 + Managed PostgreSQL 1 GB $15 | 20–27 | 700–900 |
+| Render สิงคโปร์ | Web service Standard $25 (Starter $7 มี RAM 512 MB น่าจะไม่พอ) + Postgres Basic-1GB ราว $19–20 | 27–45 | 900–1,500 |
+| AWS กรุงเทพฯ | Fargate + RDS db.t4g.micro + load balancer (ราว $18 ค่าเดียว) | 50–60 | 1,700–2,000 |
+
+**ข้อค้นพบใหม่**
+- Google Cloud กรุงเทพฯ (asia-southeast3 เปิดเดือน ม.ค. 2026) มีทั้ง Cloud Run และ Cloud SQL for PostgreSQL แล้ว ยังไม่ได้ราคาเฉพาะกรุงเทพฯ (ต้องดูใน calculator)
+  เครื่องทำงานของ Claude มีโปรแกรม `gcloud` ติดตั้งไว้แล้ว จึง deploy ได้ทันทีเมื่อได้สิทธิ์
+- Render: ยังหาเอกสารทางการเรื่อง **การสร้าง role ในฐานข้อมูล** และ **การเชื่อมต่อ SSE ค้างนาน** ไม่ได้ (ในฟอรัมมีรายงานว่า SSE ถูกตัดหลัง 60 วินาที ทีมงาน Render ตอบว่าไม่ควรเกิด)
+  ถ้าเลือก Render ต้องทดสอบสองเรื่องนี้เป็นอย่างแรกบน server ทดสอบ ถ้าไม่ผ่านต้องปรับระบบหรือเปลี่ยนเจ้า
+- Render และ Google Cloud deploy เองจาก GitHub ได้ทุกครั้งที่ push (Render ใช้ไฟล์ `render.yaml` ใน repo) เจ้าของจึงไม่ต้องให้รหัสหรือ token กับ Claude ถ้าใช้วิธีนี้
+- AWS ยังเป็นตัวเลือกที่ตั้งค่ามากที่สุด และ server ทดสอบแพงที่สุดเพราะต้องมี load balancer
+
+**คำแนะนำ (ปรับ 2026-10-20):** เลือกเจ้าเดียวกันทั้ง server ทดสอบและของจริง เพื่อให้ server ทดสอบเป็นการซ้อมขึ้นระบบจริงไปในตัว
+เรื่องที่ชี้ขาดคือข้อมูลต้องอยู่ในไทยหรือไม่
+- ต้องอยู่ในไทย หรือยังไม่แน่ใจ → **Google Cloud กรุงเทพฯ** (อันดับ 1 เหมือนเดิม)
+- อยู่สิงคโปร์ได้ และอยากใช้เจ้าที่คุ้นเคย → **Render สิงคโปร์** หลังทดสอบ role และ SSE ผ่าน (ไฟล์แนบใช้ Cloudflare R2)
+- อยู่สิงคโปร์ได้ และต้องการประหยัดที่สุด → **DigitalOcean สิงคโปร์**
+
+แหล่งข้อมูลเพิ่ม: https://cloud.google.com/run/pricing , https://docs.cloud.google.com/sql/docs/postgres/region-availability-overview ,
+https://en.wikipedia.org/wiki/Google_data_centers , https://docs.digitalocean.com/products/app-platform/details/pricing/index.html.md ,
+https://kuberns.com/blogs/digitalocean-pricing/ , https://www.budgetforge.dev/tools/render-pricing-2026 , https://kuberns.com/blogs/render-postgres-pricing-setup-limits/ ,
+https://community.render.com/t/server-sent-events-connection-closes-after-one-minute/4597 , https://aws.amazon.com/blogs/aws/announcing-the-new-aws-asia-pacific-thailand-region/
+
+---
+
+ข้อมูลด้านล่างคือการเปรียบเทียบเดิม (2026-10-18) สำหรับระบบจริงในช่วงเริ่มและปีที่ 5 ยังใช้ได้
 
 ## สมมติฐานขนาดระบบ
 - **ช่วงเริ่ม:** API 1 ตัว (2 vCPU / 4 GB), PostgreSQL 2 vCPU / 4–8 GB โซนเดียว มี backup และกู้คืนย้อนเวลาได้ (PITR), ฐานข้อมูล 50 GB, ไฟล์แนบ 200 GB, ส่งข้อมูลออกราว 200 GB/เดือน
