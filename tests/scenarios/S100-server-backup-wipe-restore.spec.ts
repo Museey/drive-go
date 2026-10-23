@@ -5,6 +5,8 @@ import { formatDiff, stateCounts } from '../support/state-diff.mjs';
 // Replaces S74 in the new system (tests/intentional-changes.json, decision Q6):
 // the data lives on the server, so the settings page shows the legacy app's
 // own wording for that ("ระบบเก็บข้อมูลของแอป") instead of IndexedDB.
+// Since task 3.2 (A7, F1) wiping the data keeps the document counters, so the
+// next documents never take a number issued before the wipe.
 // Everything else must still be what the legacy app did in S74: the same
 // pages, pop-ups and messages at every step and the same record counts,
 // read here from S74's goldens (recorded from the legacy app).
@@ -49,7 +51,9 @@ test('S100 ระบบใหม่: สร้างจุดสำรองบ�
   await page.getByRole('button', { name: 'ล้างข้อมูล', exact: true }).click();
   await expect(page.getByText('ล้างข้อมูลทั้งหมดออกจากระบบ?', { exact: true })).toBeHidden();
   await step('ล้างข้อมูลแล้ว');
-  expect(await counts()).toBe(legacyCounts('after-wipe'));
+  // Task 3.2: the 8 counters stay as they were; S74 had none left.
+  expect(await counts()).toBe(legacyCounts('after-wipe').replace('"DB.seq": "{0 keys}"', '"DB.seq": "{8 keys}"'));
+  expect((await app.state()).DB.seq).toEqual(before.DB.seq);
 
   await page.getByRole('button', { name: '00 Mr.DriveGo' }).click();
   await step('หน้าแรกหลังล้างข้อมูล');
