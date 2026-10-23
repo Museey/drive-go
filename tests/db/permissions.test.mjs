@@ -52,6 +52,9 @@ describe('Biz', () => {
     assert.equal(await check(shopId, '', owner, '', 'dgb.v22', upsert('DGB.shop', '', { ...dgb.shop, email: 'x@example.com' }), secret('DGB.shop', '')), null);
     assert.equal(await check(shopId, '', owner, '', 'garage.v22', upsert('DB.emp', emp.id, { ...emp, perms: null, dgbPass: '********' }), secret('DB.emp', emp.id, 'dgbPass')), null);
     assert.equal(refuseRemoveKey(owner, '', 'garage.v22'), null);
+    // The copy made before the whole data set is replaced stays its 90 days, even for the owner (task 3.2, F1).
+    assert.equal(refuseRemoveKey(owner, '', 'garage.v22.bak.2026-10-13'), null);
+    assert.equal(refuseRemoveKey(owner, '', 'garage.v22.bak.safety-2026-10-13T09-00-00-wipe'), 'garage.v22.bak.safety-2026-10-13T09-00-00-wipe');
   });
 
   test('พนักงานบันทึกงานของร้านได้ แต่แก้บัญชีร้าน สิทธิ์ รหัสผ่าน และลบพนักงานที่มีบัญชีไม่ได้', async () => {

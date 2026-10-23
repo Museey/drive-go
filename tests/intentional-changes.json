@@ -5,7 +5,7 @@
       "scenario": "S74-backup-wipe-restore.spec.ts",
       "by": "S100-server-backup-wipe-restore.spec.ts",
       "decision": "Q6, A7/F1 (task 3.2)",
-      "why": "The settings page says the data is kept by the app (host storage mode), not in IndexedDB on this device, and wiping the data keeps the document counters; every other step is checked against S74's goldens."
+      "why": "The settings page says the data is kept by the app (host storage mode), not in IndexedDB on this device; wiping and restoring ask for the shop's name, keep a copy first (listed with the backup points) and write the audit log, and wiping keeps the document counters; every other step is checked against S74's goldens."
     },
     {
       "scenario": "S00-login.spec.ts",
@@ -119,13 +119,13 @@
       "scenario": "S75-export-file-load-sample-import.spec.ts",
       "by": "S132-export-file-load-sample-import-counters-kept.spec.ts",
       "decision": "A7, F1 (task 3.2)",
-      "why": "Wiping the data and loading the sample data keep the shop's 8 document counters (S75 had none left); every step, message, screen and other record count is checked against S75's goldens, and importing the exported file brings back the same counters."
+      "why": "Wiping the data and loading the sample data keep the shop's 8 document counters (S75 had none left); wiping, loading the sample data and importing ask for the shop's name, keep a copy first and write the audit log; every step, message, screen and other record count is checked against S75's goldens, and importing the exported file brings back the same counters."
     },
     {
       "scenario": "S76-load-36-month-test-data.spec.ts",
       "by": "S133-load-36-month-test-data-counters-kept.spec.ts",
       "decision": "A7, F1 (task 3.2)",
-      "why": "The shop's 8 document counters stay through the wipe and the 36 months of test data (3,266 counters instead of 3,258); every step, the screen and every other record count is checked against S76's goldens."
+      "why": "The shop's 8 document counters stay through the wipe and the 36 months of test data (3,266 counters instead of 3,258); wiping and loading ask for the shop's name, keep a copy first and write the audit log; every step, the screen and every other record count is checked against S76's goldens."
     }
   ],
   "added": [
@@ -163,6 +163,11 @@
       "scenario": "S131-franchise-branch-code-in-document-numbers.spec.ts",
       "decision": "R1-ข (task 3.2)",
       "why": "A franchise branch's documents are numbered with the chain's branch code (B001-QT261000001) instead of MA, so two branches never issue the same number; numbers given before stay."
+    },
+    {
+      "scenario": "S134-wipe-needs-shop-name-copy-kept-and-restorable.spec.ts",
+      "decision": "F1 (task 3.2)",
+      "why": "Wiping the data needs the shop's exact name; cancelling changes nothing; the copy kept before the wipe is listed with the backup points, restores the data, and cannot be removed through the API; the audit log records the wipe and the restore."
     }
   ]
 }

@@ -423,6 +423,24 @@ describe('จุดสำรองและ key อื่น', () => {
     });
   });
 
+  test('สำรองก่อนล้าง/กู้คืน/นำเข้า (3.2, F1): ไม่ถูกเขียนทับ อยู่ในรายชื่อ key และที่เก่ากว่า 90 วันถูกลบเมื่อสำรองครั้งใหม่', async () => {
+    const { shopId } = await newShop('biz-trial', 'biz');
+    const key = 'garage.v22.bak.safety-2026-10-13T09-00-00-wipe';
+    await asApp(shopId, '', async c => {
+      const before = (await readMain(c, '', 'garage.v22')).json;
+      assert.equal(await makeBackup(c, '', key), true);
+      assert.equal((await c.query(`update records set data = '"เปลี่ยนแล้ว"' where shop_id = app_shop() and unit = 'DB.pkgCutsV'`)).rowCount, 1);
+      assert.equal(await makeBackup(c, '', key), true);
+      assert.equal(await readBackup(c, '', key), before);
+      await c.query("update backups set created_at = now() - interval '91 days' where shop_id = app_shop() and key = $1", [key]);
+      assert.equal(await makeBackup(c, '', 'garage.v22.bak.2026-10-13'), true);
+      assert.ok((await listKeys(c)).includes(key), 'a daily backup point leaves the copies alone');
+      assert.equal(await makeBackup(c, '', 'garage.v22.bak.safety-2026-10-13T09-05-00-import'), true);
+      assert.deepEqual((await listKeys(c)).filter(k => k.includes('.bak.')),
+        ['garage.v22.bak.2026-10-13', 'garage.v22.bak.safety-2026-10-13T09-05-00-import']);
+    });
+  });
+
   test('key อื่นเก็บทั้งก้อน และลบข้อมูลหลักทั้ง key ได้', async () => {
     const { shopId } = await newShop('biz-trial', 'biz');
     await asApp(shopId, '', async c => {

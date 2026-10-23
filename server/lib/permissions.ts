@@ -4,6 +4,7 @@
 import { appendFileSync } from 'node:fs';
 import type pg from 'pg';
 import type { Session } from './session.ts';
+import { isSafetyBackupKey } from './storage.ts';
 import { type Changes, rootOf } from './units.ts';
 
 // Who is signed in, as the legacy screens know them.
@@ -129,6 +130,8 @@ export async function refuseSave(c: pg.ClientBase, a: Actor, branch: string, key
 
 // Removing a whole data set (wipe, restore): its manager only.
 export function refuseRemoveKey(a: Actor, branch: string, key: string): string | null {
+  // The copies made before the whole data set is replaced stay their 90 days (task 3.2, F1).
+  if (isSafetyBackupKey(key)) return key;
   const shopManager = a.role === 'owner' || a.role === 'HQ';
   const root = rootOf(key.includes('.bak.') ? key.slice(0, key.indexOf('.bak.')) : key);
   if (!root) return null;

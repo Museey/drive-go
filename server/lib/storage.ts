@@ -16,6 +16,10 @@ export type Versions = Record<string, number>;
 export const vkey = (unit: string, key: string) => `${unit}|${key}`;
 
 export const isBackupKey = (k: string) => /^garage\.v22(::[^.]+)?\.bak\./.test(k);
+// The copy the app asks for before it wipes, restores, imports or replaces the
+// whole data set (task 3.2, decision F1): kept 90 days, never replaced or removed by the app.
+export const isSafetyBackupKey = (k: string) => isBackupKey(k) && k.includes('.bak.safety-');
+const SAFETY_DAYS = 90;
 const mainOfBackup = (k: string) => k.slice(0, k.indexOf('.bak.'));
 
 // Which branch a STORE key's data belongs to. Biz/ProX: one data set ('').
@@ -271,9 +275,13 @@ export async function branchOfKey(c: pg.ClientBase, key: string): Promise<string
 export async function makeBackup(c: pg.ClientBase, branch: string, key: string, session: Record<string, string> = {}): Promise<boolean> {
   const main = await readMain(c, branch, mainOfBackup(key), session);
   if (!main) return false;
+  const safety = isSafetyBackupKey(key);
+  if (safety) await c.query(
+    `delete from backups where shop_id = app_shop() and branch_id = $1 and key like '%.bak.safety-%'
+        and created_at < now() - make_interval(days => $2)`, [branch, SAFETY_DAYS]);
   await c.query(
     `insert into backups (shop_id, branch_id, key, data) values (app_shop(), $1, $2, $3)
-     on conflict (shop_id, branch_id, key) do update set data = excluded.data, created_at = now()`,
+     on conflict (shop_id, branch_id, key) do ${safety ? 'nothing' : 'update set data = excluded.data, created_at = now()'}`,
     [branch, key, gzipSync(Buffer.from(main.json))]);
   return true;
 }

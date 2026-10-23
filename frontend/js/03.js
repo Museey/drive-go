@@ -106,9 +106,31 @@ async function autoBackup(prevJson){
   if(!['host','idb'].includes(STORAGE_MODE)) return;
   try{
     await STORE.set(KEY+'.bak.'+day,prevJson);
-    const list=(await STORE.keys()).filter(k=>String(k).startsWith(KEY+'.bak.')).sort();
+    const list=(await STORE.keys()).filter(k=>String(k).startsWith(KEY+'.bak.')&&!isSafetyBak(k)).sort();
     while(list.length>BAK_KEEP) await STORE.del(list.shift());
   }catch(e){}
+}
+/* DriveGo new system (task 3.2, decision F1): before the whole shop's data is wiped, restored, imported or replaced by
+   sample data, a copy is kept (KEY.bak.safety-<date>T<time>-<kind>, 90 days on the server). The shop sees it in the
+   restore list and can restore it; the daily backups never trim it. */
+const SAFETY_KIND={wipe:'สำรองก่อนล้างข้อมูล',restore:'สำรองก่อนกู้คืน',import:'สำรองก่อนนำเข้าไฟล์',sample:'สำรองก่อนโหลดข้อมูลตัวอย่าง',demo36:'สำรองก่อนโหลดข้อมูลทดสอบ'};
+const isSafetyBak=k=>String(k).includes('.bak.safety-');
+function bakLabel(day){
+  const m=/^safety-(\d{4}-\d\d-\d\d)T(\d\d)-(\d\d)-\d\d-(\w+)$/.exec(day);
+  return m?(SAFETY_KIND[m[4]]||'สำรองอัตโนมัติ')+' '+thDate(m[1])+' '+m[2]+':'+m[3]:thDate(day);
+}
+/* The steps around replacing the whole data set (F1): the owner of the shop types its name to confirm, the copy is
+   made, then o.run replaces the data (false = nothing changed) and the audit log records it. */
+async function guardWholeData(o){
+  const name=String((DB.shop&&DB.shop.name)||'').trim();
+  if(!await askP(Object.assign({input:true,placeholder:'พิมพ์ชื่อร้าน '+name+' เพื่อยืนยัน',match:name},o.ask))) return false;
+  if(['host','idb'].includes(STORAGE_MODE)){
+    const d=new Date(),p=x=>String(x).padStart(2,'0');
+    try{ await STORE.set(KEY+'.bak.safety-'+iso(d)+'T'+p(d.getHours())+'-'+p(d.getMinutes())+'-'+p(d.getSeconds())+'-'+o.kind,JSON.stringify(DB)); }catch(e){}
+  }
+  if(await o.run()===false) return false;
+  logAudit('data',{id:'',no:''},o.act,o.note+' (ระบบสำรองข้อมูลไว้ก่อนแล้ว)'); save();
+  return true;
 }
 async function listBackups(){
   const list=(await STORE.keys()).filter(k=>String(k).startsWith(KEY+'.bak.')).sort().reverse();
@@ -242,11 +264,15 @@ function askConfirm(o){
   const nbEl=$('#askNo'); if(nbEl) nbEl.style.display=o.noHide?'none':'';
   const inp=$('#askInput');
   if(inp){ inp.style.display=o.input?'block':'none'; inp.value=o.value||''; inp.placeholder=o.placeholder||''; }
+  /* DriveGo new system (task 3.2, decision F1): o.match — the yes button works only once the box holds exactly that text */
+  const yb=$('#askYes'); if(yb) yb.disabled=!!o.match;
+  if(inp) inp.oninput=o.match?()=>{ if(yb) yb.disabled=inp.value.trim()!==o.match; }:null;
   askCb=o.onYes||null; askCbNo=o.onNo||null;
   openModal('mAsk');
   if(o.input&&inp) setTimeout(()=>inp.focus(),80);
 }
 function askClose(ok){
+  if(ok&&$('#askYes').disabled) return;   /* Enter in the box of a popup that needs o.match */
   closeModal('mAsk');
   const cb=askCb, nb=askCbNo; askCb=null; askCbNo=null;
   if(ok){ if(typeof cb==='function') cb(); }
@@ -4552,7 +4578,7 @@ async function renderStoreBox(){
     +`<br>ขนาดข้อมูลปัจจุบันประมาณ <b>${(JSON.stringify(DB).length/1024/1024).toFixed(2)} MB</b>`;
   const sel=$('#bakList'); if(!sel) return;
   const list=await listBackups();
-  sel.innerHTML=list.length?list.map(b=>`<option value="${esc(b.key)}">${thDate(b.day)}</option>`).join('')
+  sel.innerHTML=list.length?list.map(b=>`<option value="${esc(b.key)}">${esc(bakLabel(b.day))}</option>`).join('')
     :'<option value="">— ยังไม่มีจุดสำรองอัตโนมัติ —</option>';
 }
 async function backupNow(){
@@ -4564,26 +4590,38 @@ async function backupNow(){
 async function restoreBackup(){
   if(!can('doc.backup')) return toast('บัญชีนี้ไม่มีสิทธิกู้คืนข้อมูล');
   const key=$('#bakList').value; if(!key) return toast('ยังไม่มีจุดสำรองให้กู้คืน');
-  if(!await askP({title:'กู้คืนข้อมูล',text:'กู้คืนข้อมูลจากจุดสำรอง '+thDate(String(key).replace(KEY+'.bak.',''))+' ?\nข้อมูลปัจจุบันจะถูกแทนที่ทั้งหมด',yes:'กู้คืน',no:'ยังไม่กู้คืน'})) return;
-  try{
-    const v=await STORE.get(key); if(!v) return toast('อ่านจุดสำรองไม่สำเร็จ');
-    await STORE.set(KEY+'.bak.before-restore',JSON.stringify(DB));
-    DB=Object.assign(DB,JSON.parse(v)); await save(true); boot(); renderStoreBox();
-    toast('กู้คืนข้อมูลเรียบร้อยแล้ว');
-  }catch(e){ toast('กู้คืนไม่สำเร็จ: '+e.message); }
+  const label=bakLabel(String(key).replace(KEY+'.bak.',''));
+  await guardWholeData({kind:'restore',act:'restore',note:'กู้คืนข้อมูลจากจุดสำรอง '+label,
+    ask:{title:'กู้คืนข้อมูล',text:'กู้คืนข้อมูลจากจุดสำรอง '+label+' ?\nข้อมูลปัจจุบันจะถูกแทนที่ทั้งหมด',yes:'กู้คืน',no:'ยังไม่กู้คืน'},
+    run:async()=>{
+      try{
+        const v=await STORE.get(key); if(!v){ toast('อ่านจุดสำรองไม่สำเร็จ'); return false; }
+        await STORE.set(KEY+'.bak.before-restore',JSON.stringify(DB));
+        DB=Object.assign(DB,JSON.parse(v)); await save(true); boot(); renderStoreBox();
+        toast('กู้คืนข้อมูลเรียบร้อยแล้ว');
+      }catch(e){ toast('กู้คืนไม่สำเร็จ: '+e.message); return false; }
+    }});
 }
 function exportData(){ if(!can('doc.export')) return toast('บัญชีนี้ไม่มีสิทธิส่งออกข้อมูล');
   const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='garage-backup-'+iso()+'.json';a.click();toast('ส่งออกไฟล์สำรองแล้ว'); }
 function importData(inp){ if(!can('doc.import')){ if(inp) inp.value=''; return toast('บัญชีนี้ไม่มีสิทธินำเข้าข้อมูล'); } const f=inp.files[0]; if(!f) return; const rd=new FileReader();
-  rd.onload=()=>{try{DB=Object.assign(DB,JSON.parse(rd.result));save();boot();toast('นำเข้าข้อมูลเรียบร้อย');}catch(e){toast('ไฟล์ไม่ถูกต้อง อ่านข้อมูลไม่ได้')}};
+  rd.onload=()=>{let v;try{v=JSON.parse(rd.result);}catch(e){return toast('ไฟล์ไม่ถูกต้อง อ่านข้อมูลไม่ได้');}
+    guardWholeData({kind:'import',act:'import',note:'นำเข้าข้อมูลจากไฟล์ '+f.name,
+      ask:{title:'นำเข้าข้อมูล',text:'นำเข้าข้อมูลจากไฟล์ '+f.name+' ?\nข้อมูลปัจจุบันจะถูกแทนที่ทั้งหมด',yes:'นำเข้า',no:'ยังไม่นำเข้า'},
+      run:()=>{try{DB=Object.assign(DB,v);save();boot();toast('นำเข้าข้อมูลเรียบร้อย');}catch(e){toast('ไฟล์ไม่ถูกต้อง อ่านข้อมูลไม่ได้');return false;}}});};
   rd.readAsText(f); inp.value=''; }
 async function wipe(){ if(!can('doc.wipe')) return toast('บัญชีนี้ไม่มีสิทธิล้างข้อมูล');
-  if(!await askP({title:'ล้างข้อมูลทั้งหมด',text:'ล้างข้อมูลทั้งหมดออกจากระบบ?',yes:'ล้างข้อมูล',no:'ไม่ล้าง'})) return;
+  await guardWholeData({kind:'wipe',act:'wipe',note:'ล้างข้อมูลทั้งหมด',
+    ask:{title:'ล้างข้อมูลทั้งหมด',text:'ล้างข้อมูลทั้งหมดออกจากระบบ?',yes:'ล้างข้อมูล',no:'ไม่ล้าง'},run:()=>{
   DB={stock:[],cust:[],vendors:[],purchases:[],quotes:[],receipts:[],moves:[],crm:[],emp:[],curEmp:'',
     expenses:[],assets:[],capital:[],claims:[],issues:[],stockCounts:[],billings:[],invoices:[],cats:[],catsOff:[],units:[],coa:DB.coa,map:DB.map,audit:[],hr:[],warns:[],seq:{},shop:DB.shop};
-  Q=null;R=null;G=null;IS=null;SC=null;BN=null;IV=null;save();boot();toast('ล้างข้อมูลแล้ว'); }
+  Q=null;R=null;G=null;IS=null;SC=null;BN=null;IV=null;save();boot();toast('ล้างข้อมูลแล้ว'); }}); }
 function seedDemo(){
+  return guardWholeData({kind:'sample',act:'demo',note:'โหลดข้อมูลตัวอย่าง',
+    ask:{title:'โหลดข้อมูลตัวอย่าง',text:'โหลดข้อมูลตัวอย่าง?\nข้อมูลปัจจุบันจะถูกแทนที่ทั้งหมด',yes:'โหลดข้อมูล',no:'ไม่โหลด'},run:seedDemoNow});
+}
+function seedDemoNow(){
   const today=new Date(), old=new Date(); old.setMonth(old.getMonth()-9);
   const lastMo=new Date(); lastMo.setMonth(lastMo.getMonth()-1);
   const sid=()=>uid();
@@ -4955,6 +4993,10 @@ function seedDemo(){
    สินทรัพย์/เงินทุน/สต๊อก/เคลม/เบิกภายใน/ตรวจนับ/บัญชี/HR/ตรวจสอบย้อนกลับ
    ========================================================== */
 function seedDemo36(){
+  return guardWholeData({kind:'demo36',act:'demo',note:'โหลดข้อมูลทดสอบ 36 เดือน',
+    ask:{title:'โหลดข้อมูลทดสอบ 36 เดือน',text:'โหลดข้อมูลทดสอบ 36 เดือน?\nข้อมูลปัจจุบันจะถูกแทนที่ทั้งหมด',yes:'โหลดข้อมูล',no:'ไม่โหลด'},run:seedDemo36Now});
+}
+function seedDemo36Now(){
   /* ---------- เครื่องมือสุ่มแบบกำหนดผลได้ (ผลเหมือนเดิมทุกครั้งที่กด) ---------- */
   let _s=20260815;
   const rnd=()=>{_s=(_s*1664525+1013904223)>>>0; return _s/4294967296;};
@@ -8479,12 +8521,13 @@ function postGR(g){
 const AUD_KIND={hr:'บันทึกงานบุคคล',warn:'ใบเตือนพนักงาน',quote:'ใบเสนอราคา / อนุมัติซ่อม',receipt:'ใบเสร็จ / ใบกำกับภาษี',gr:'ใบรับสินค้า / ซื้อสินค้า',claim:'ใบเคลมสินค้า',
   issue:'ใบเบิกของภายใน',count:'ใบตรวจนับสินค้า',billing:'ใบวางบิล',invoice:'ใบแจ้งหนี้',
   expense:'ค่าใช้จ่ายกิจการ',asset:'ทะเบียนสินทรัพย์',capital:'เงินลงทุน / เงินสด',stock:'สต๊อกอะไหล่',crm:'นัดหมายลูกค้า',
-  cust:'ข้อมูลลูกค้า',vendor:'ข้อมูลผู้ขาย',emp:'ข้อมูลพนักงานและสิทธิใช้งาน'};
+  cust:'ข้อมูลลูกค้า',vendor:'ข้อมูลผู้ขาย',emp:'ข้อมูลพนักงานและสิทธิใช้งาน',data:'ข้อมูลทั้งร้าน'};
 const AUD_ACT={open:'เปิดดูเอกสาร',save:'บันทึก / แก้ไข',print:'สั่งพิมพ์เอกสาร',send:'ส่งขออนุมัติ',
   approve:'อนุมัติเอกสาร',reject:'ไม่อนุมัติ / ตีกลับ',post:'รับสินค้าเข้าสต๊อก',deduct:'ตัดสต๊อกตามใบอนุมัติซ่อม',
   pay:'บันทึกรับ / จ่ายเงิน',bill:'ออกใบเสร็จจากเอกสารนี้',del:'ลบเอกสาร',deduct2:'ตัดสต๊อกส่งเคลม',
   deduct3:'ตัดสต๊อกตามใบเบิกของภายใน',adjust:'ปรับยอดจากตรวจนับสินค้า',
-  done:'บันทึกว่าติดตามแล้ว',undone:'ย้อนสถานะการติดตาม',payvoid:'ยกเลิกรายการชำระ (ตัดยอดผิด)'};
+  done:'บันทึกว่าติดตามแล้ว',undone:'ย้อนสถานะการติดตาม',payvoid:'ยกเลิกรายการชำระ (ตัดยอดผิด)',
+  wipe:'ล้างข้อมูลทั้งหมด',restore:'กู้คืนข้อมูล',import:'นำเข้าข้อมูล',demo:'โหลดข้อมูลตัวอย่าง'};
 const AUD_CLS={approve:'g',reject:'r',del:'r',print:'b',save:'a',post:'g',deduct:'a',pay:'g',done:'g',undone:'a',deduct3:'a',adjust:'a',payvoid:'r'};
 function nowTs(){ return new Date().toISOString(); }
 function thDateTime(ts){ if(!ts) return '-'; const d=new Date(ts); if(isNaN(d)) return ts;
