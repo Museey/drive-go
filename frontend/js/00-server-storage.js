@@ -166,6 +166,32 @@
     const parsed = JSON.parse(layout);
     return parsed === "D" ? one(`${root}.`) : build(parsed, root);
   }
+  function eachRecord(storeKey, value, fn) {
+    const root = rootOf(storeKey);
+    if (!root || !isObject(value)) return;
+    const walk = (obj, path) => {
+      for (const [field, v] of Object.entries(obj)) {
+        const unit = `${path}.${field}`, rule = RULES[unit];
+        if (rule === SESSION) continue;
+        if (rule === GROUP && isObject(v)) walk(v, unit);
+        else if ((rule === LIST || rule === BY_CODE) && Array.isArray(v) && v.every(isObject)) {
+          const list = v, keys = listKeys(list, rule === LIST ? "id" : "code");
+          list.forEach((_, i) => fn(unit, keys[i], () => list[i], (x) => {
+            list[i] = x;
+          }));
+        } else if (rule === MAP && isObject(v)) {
+          for (const k of Object.keys(v)) fn(unit, k, () => v[k], (x) => {
+            v[k] = x;
+          });
+        } else {
+          fn(unit, "", () => obj[field], (x) => {
+            obj[field] = x;
+          });
+        }
+      }
+    };
+    walk(value, root);
+  }
   function diff(before, after) {
     const changes = { upsert: [], remove: [], order: {} };
     if (before.layout !== after.layout) changes.layout = after.layout;
@@ -185,6 +211,86 @@
     return changes;
   }
 
+  // server/lib/numbers.ts
+  var COUNTERS = "DB.seq";
+  var escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  var around = (inner) => new RegExp(`(?<![A-Za-z0-9])(?:${inner})(?!\\d)`, "g");
+  var numberOf = (base, seq) => base + String(seq).padStart(5, "0");
+  var seqOf = (base, no) => Number(no.slice(base.length));
+  function numbersIn(text, base) {
+    return new Set(text.match(around(`${escape(base)}\\d{5,}`)) || []);
+  }
+  function baseOf(seq, no) {
+    return Object.keys(seq).find((k) => no.startsWith(k) && /^\d{5,}$/.test(no.slice(k.length)) && seqOf(k, no) === seq[k]);
+  }
+  function claimsIn(issued2, value) {
+    const out = {};
+    for (const base of new Set(issued2.map((x) => x.base))) {
+      const there = numbersIn(value, base);
+      const nos = [...new Set(issued2.filter((x) => x.base === base && there.has(x.no)).map((x) => x.no))];
+      if (nos.length) out[base] = nos.sort((a, b) => seqOf(base, a) - seqOf(base, b));
+    }
+    return out;
+  }
+  function shiftLater(later, counters) {
+    const renumbered = [], out = [];
+    for (const [base, last] of counters) {
+      const mine = [...new Set(later.filter((x) => x.base === base).map((x) => x.no))].sort((a, b) => seqOf(base, a) - seqOf(base, b));
+      if (mine.some((no) => seqOf(base, no) <= last)) {
+        mine.forEach((no, i) => renumbered.push([no, numberOf(base, last + 1 + i)]));
+        out.push([base, last + mine.length]);
+      } else {
+        out.push([base, Math.max(last, ...mine.map((no) => seqOf(base, no)))]);
+      }
+    }
+    return { renumbered, counters: out };
+  }
+  function renumberText(text, renumbered) {
+    if (!renumbered.length) return text;
+    const to = new Map(renumbered);
+    return text.replace(around(renumbered.map(([from]) => escape(from)).join("|")), (m) => to.get(m) ?? m);
+  }
+  function renumberValue(value, renumbered) {
+    if (!renumbered.length) return value;
+    if (typeof value === "string") return renumberText(value, renumbered);
+    const seen = /* @__PURE__ */ new WeakSet();
+    const walk = (o) => {
+      if (seen.has(o)) return;
+      seen.add(o);
+      for (const k of Object.keys(o)) {
+        const v = o[k];
+        if (typeof v === "string") {
+          const r = renumberText(v, renumbered);
+          if (r !== v) o[k] = r;
+        } else if (v && typeof v === "object") walk(v);
+      }
+    };
+    if (value && typeof value === "object") walk(value);
+    return value;
+  }
+  function setCounters(db, counters) {
+    const seq = db?.seq;
+    if (!counters.length || !seq || typeof seq !== "object") return;
+    for (const [base, value] of counters) seq[base] = value;
+  }
+  var rowKey = (r) => `${r.unit}\0${r.key}`;
+  function rowsToRenumber(sent, saved, now) {
+    const wrote = new Set(saved.upsert.map(rowKey));
+    const was = new Map(sent.rows.map((r) => [rowKey(r), r.data]));
+    return new Set(now.rows.filter((r) => wrote.has(rowKey(r)) || was.get(rowKey(r)) !== r.data).map(rowKey));
+  }
+  var isRow = (rows, unit, key) => rows.has(rowKey({ unit, key }));
+  function correctSplit(storeKey, s, rows, renumbered, counters) {
+    const out = s.rows.map((r) => renumbered.length && rows.has(rowKey(r)) ? { ...r, data: renumberText(r.data, renumbered) } : r);
+    const at = new Map(out.map((r, i) => [rowKey(r), i]));
+    for (const [base, value] of counters) {
+      const i = at.get(rowKey({ unit: COUNTERS, key: base }));
+      if (i !== void 0) out[i] = { ...out[i], data: String(value) };
+      else out.push({ unit: COUNTERS, key: base, data: String(value) });
+    }
+    return assemble(storeKey, s.layout, out, { session: s.session, secrets: s.secrets });
+  }
+
   // server/client/storage.ts
   var API = "/api/storage";
   var fetch0 = window.fetch.bind(window);
@@ -195,7 +301,9 @@
     signedOut: "หมดเวลาการเข้าระบบ กรุณาเข้าสู่ระบบใหม่",
     notAllowed: "บันทึกไม่สำเร็จ — บัญชีนี้ไม่มีสิทธิ์แก้ข้อมูลส่วนนี้ กดตกลงเพื่อโหลดข้อมูลล่าสุด",
     // task T10, owner 2026-10-19
-    lockedOut: "กรอกรหัสผิดหลายครั้ง กรุณารอ 15 นาทีแล้วลองใหม่"
+    lockedOut: "กรอกรหัสผิดหลายครั้ง กรุณารอ 15 นาทีแล้วลองใหม่",
+    // task 3.2, decision R1-ก: the number a document got when the one it showed was taken
+    renumbered: (r) => `บันทึกแล้ว เอกสารได้เลขที่ ${r.map((x) => x[1]).join(", ")} เพราะเลขที่ ${r.map((x) => x[0]).join(", ")} ถูกใช้ไปแล้ว`
   };
   var SHOP = decodeURIComponent(location.pathname.split("/")[1] || "");
   var signedIn = null;
@@ -284,10 +392,11 @@
     if (changes.layout !== void 0) known(root, key);
     for (const r2 of changes.upsert) known(r2.unit, r2.key);
     for (const r2 of changes.remove) known(r2.unit, r2.key);
+    const numbers = claimsIn(issuedFor(key), value);
     const r = await send(url(key), {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ base, changes, session: next.session, secrets })
+      body: JSON.stringify({ base, changes, session: next.session, secrets, numbers })
     }, true);
     if (r.status === 409) return mustReload(MESSAGES.conflict, `conflict ${key}: ${JSON.stringify((await r.json()).conflicts)}`);
     if (r.status === 401) return mustReload(MESSAGES.signedOut, `signed out while saving ${key}`);
@@ -296,15 +405,54 @@
       problems.push(`save ${key}: ${r.status} ${await r.text()}`);
       return;
     }
-    const { versions } = await r.json();
-    Object.assign(m.base, versions);
+    const { versions, renumbered = [], counters = [] } = await r.json();
     for (const x of changes.remove) delete m.base[vk(x.unit, x.key)];
-    m.sent = value;
-    m.last = next;
+    Object.assign(m.base, versions);
+    const claimed = new Set(Object.values(numbers).flat());
+    const later = issuedFor(key).filter((x) => !claimed.has(x.no));
+    if (!renumbered.length && !counters.length) {
+      issued.set(key, later);
+      m.sent = value;
+      m.last = next;
+      return;
+    }
+    m.sent = correctSplit(key, next, rowsToRenumber(next, changes, next), renumbered, counters);
+    m.last = split(key, m.sent);
+    const shift = shiftLater(later, counters);
+    const all = [...renumbered, ...shift.renumbered];
+    const moved = new Map(shift.renumbered);
+    issued.set(key, later.map((x) => ({ base: x.base, no: moved.get(x.no) ?? x.no })));
+    if (m.value === value) m.value = m.sent;
+    else {
+      const now = split(key, m.value);
+      m.value = correctSplit(key, now, rowsToRenumber(next, changes, now), all, shift.counters);
+    }
+    if (typeof KEY !== "undefined" && KEY === key && typeof DB !== "undefined") {
+      const rows = rowsToRenumber(next, changes, split(key, JSON.stringify(DB)));
+      if (all.length) eachRecord(key, DB, (unit, k, get, set) => {
+        if (isRow(rows, unit, k)) set(renumberValue(get(), all));
+      });
+      setCounters(DB, shift.counters);
+    }
+    if (renumbered.length && typeof window.toast === "function") setTimeout(() => window.toast(MESSAGES.renumbered(renumbered)), 0);
   }
   var scriptsLoaded = new Promise((resolve) => {
     if (document.readyState !== "loading") resolve();
     else document.addEventListener("DOMContentLoaded", () => resolve(), { once: true });
+  });
+  var issued = /* @__PURE__ */ new Map();
+  var issuedFor = (key) => issued.get(key) ?? [];
+  scriptsLoaded.then(() => {
+    const w = window;
+    const docNo = w.docNo;
+    if (typeof docNo !== "function") return;
+    w.docNo = function(...args) {
+      const no = docNo.apply(this, args);
+      const seq = typeof DB !== "undefined" && DB?.seq || null;
+      const base = typeof no === "string" && seq ? baseOf(seq, no) : void 0;
+      if (base && typeof KEY !== "undefined") issued.set(KEY, [...issuedFor(KEY), { base, no }]);
+      return no;
+    };
   });
   var storage = {
     async get(key) {

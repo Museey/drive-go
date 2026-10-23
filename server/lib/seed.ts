@@ -41,7 +41,7 @@ export async function createShop(db: pg.Pool | pg.ClientBase, shop: NewShop): Pr
       const s = split(key, value, { keepSecrets: shop.keepSecrets });
       secrets.push(...s.secrets.map(x => ({ ...x, storeKey: key })));
       const branch = branchOf(shop.pkg, key, fr?.branches);
-      const r = await writeMain(c, branch, key, {}, { layout: s.layout, upsert: s.rows, remove: [], order: {} });
+      const r = await writeMain(c, branch, key, {}, { layout: s.layout, upsert: s.rows, remove: [], order: {} }, null, { log: false });
       if (!r.ok) throw new Error(`seeding ${key}: ${r.conflicts.join(', ')}`);
       await storeSecrets(c, branch, s.secrets);
     }

@@ -11,7 +11,8 @@ import { startTempPostgres } from '../../tools/pg-temp.mjs';
 import { migrate } from '../../server/db/migrate.ts';
 import { withShop } from '../../server/lib/db.ts';
 import { createShop, readFixture } from '../../server/lib/seed.ts';
-import { branchOf, inScope, listKeys, makeBackup, readBackup, readBlob, readMain, removeKey, writeBlob, writeMain } from '../../server/lib/storage.ts';
+import { claimsIn, correctSplit, rowsToRenumber } from '../../server/lib/numbers.ts';
+import { branchOf, inScope, listKeys, makeBackup, readBackup, readBlob, readMain, removeKey, saveMain, writeBlob, writeMain } from '../../server/lib/storage.ts';
 import { assemble, diff, rootOf, split } from '../../server/lib/units.ts';
 
 let db, ownerPool, appPool;
@@ -126,6 +127,34 @@ describe('บันทึก (T5)', () => {
     }
     return { ...r, changes };
   }
+  // The same, as window.storage does it since task 3.2: with the numbers the
+  // app issued (view.issued), then taking the server's corrections into its own data.
+  async function saveNumbered(view) {
+    const text = JSON.stringify(view.db), next = split(view.key, text);
+    const changes = diff(view.last, next);
+    const numbers = claimsIn(view.issued || [], text);
+    const r = await asApp(view.shopId, '', c => saveMain(c, '', view.key, view.base, changes, numbers));
+    if (r.ok) {
+      for (const x of changes.remove) delete view.base[`${x.unit}|${x.key}`];
+      Object.assign(view.base, r.versions);
+      const claimed = new Set(Object.values(numbers).flat());
+      view.issued = (view.issued || []).filter(x => !claimed.has(x.no));
+      const sent = correctSplit(view.key, next, rowsToRenumber(next, changes, next), r.renumbered, r.counters);
+      view.db = JSON.parse(sent);
+      view.last = split(view.key, sent);
+    }
+    return { ...r, changes, numbers };
+  }
+  // A new receipt numbered the way the legacy app does it (19.js docNo).
+  function newReceipt(view, id) {
+    const base = 'MA-RE2610', i = (view.db.seq[base] || 0) + 1;
+    view.db.seq[base] = i;
+    const no = base + String(i).padStart(5, '0');
+    (view.issued ||= []).push({ base, no });
+    view.db.receipts.push({ id, no });
+    view.db.audit.push({ id: `log-${id}`, kind: 'receipt', doc: no, note: `ออกใบเสร็จ ${no}` });
+    return no;
+  }
 
   test('แก้ เพิ่ม ลบ แล้วอ่านกลับได้ข้อมูลใหม่ และส่งเฉพาะแถวที่เปลี่ยน', async () => {
     const { shopId } = await newShop('biz-trial', 'biz');
@@ -165,7 +194,7 @@ describe('บันทึก (T5)', () => {
     assert.notEqual(now.db.cust[0].name, 'B แก้ลูกค้าด้วย');
   });
 
-  test('ตัวนับเลขเอกสารเดียวกัน: คนที่สองถูกปฏิเสธ คนละตัวนับไม่ชนกัน', async () => {
+  test('ตัวนับเลขเอกสารเดียวกัน (ก่อนเลขออกที่ server): คนที่สองถูกปฏิเสธ คนละตัวนับไม่ชนกัน', async () => {
     const { shopId } = await newShop('biz-trial', 'biz');
     const a = await open(shopId), b = await open(shopId), c = await open(shopId);
     a.db.seq['MA-RE2610'] = (a.db.seq['MA-RE2610'] || 0) + 1;
@@ -174,6 +203,119 @@ describe('บันทึก (T5)', () => {
     assert.ok((await save(a)).ok);
     assert.equal((await save(b)).ok, false);
     assert.ok((await save(c)).ok);
+  });
+
+  test('สองเครื่องออกเลขเดียวกัน: เครื่องที่บันทึกทีหลังได้เลขถัดไป ทุกที่ที่เขียนเลขนั้นในการบันทึกเดียวกัน (3.2, R1-ก)', async () => {
+    const { shopId } = await newShop('biz-trial', 'biz');
+    const a = await open(shopId), b = await open(shopId), c = await open(shopId);
+    assert.equal(newReceipt(a, 'ra'), 'MA-RE261000004');
+    assert.equal(newReceipt(b, 'rb'), 'MA-RE261000004');
+    c.db.seq['MA-QT2610'] += 1;
+    c.db.quotes.push({ id: 'qc', no: 'MA-QT261000005' });
+    c.issued = [{ base: 'MA-QT2610', no: 'MA-QT261000005' }];
+    const ra = await saveNumbered(a);
+    assert.ok(ra.ok);
+    assert.deepEqual([ra.numbers, ra.renumbered, ra.counters], [{ 'MA-RE2610': ['MA-RE261000004'] }, [], []]);
+    const rb = await saveNumbered(b);
+    assert.ok(rb.ok);
+    assert.deepEqual(rb.renumbered, [['MA-RE261000004', 'MA-RE261000005']]);
+    assert.deepEqual(rb.counters, [['MA-RE2610', 5]]);
+    assert.ok((await saveNumbered(c)).ok);
+    // The second browser's data now holds what the server saved; it carries on from there.
+    assert.equal(b.db.receipts.at(-1).no, 'MA-RE261000005');
+    assert.equal(b.db.audit.at(-1).note, 'ออกใบเสร็จ MA-RE261000005');
+    assert.equal(newReceipt(b, 'rb2'), 'MA-RE261000006');
+    assert.ok((await saveNumbered(b)).ok);
+    const now = await open(shopId);
+    assert.deepEqual(now.db.receipts.slice(-3).map(r => [r.id, r.no]), [['ra', 'MA-RE261000004'], ['rb', 'MA-RE261000005'], ['rb2', 'MA-RE261000006']]);
+    assert.deepEqual(now.db.audit.slice(-3).map(x => x.doc), ['MA-RE261000004', 'MA-RE261000005', 'MA-RE261000006']);
+    assert.equal(now.db.seq['MA-RE2610'], 6);
+    assert.equal(now.db.seq['MA-QT2610'], 5);
+  });
+
+  test('สองเครื่องบันทึกพร้อมกันจริง ๆ: ทุกเลขไม่ซ้ำ ไม่มีใครถูกปฏิเสธ (3.2)', async () => {
+    const { shopId } = await newShop('biz-trial', 'biz');
+    const views = await Promise.all([1, 2, 3, 4, 5, 6].map(() => open(shopId)));
+    views.forEach((v, i) => newReceipt(v, `r${i}`));
+    const results = await Promise.all(views.map(saveNumbered));
+    assert.ok(results.every(r => r.ok));
+    const now = await open(shopId);
+    const nos = now.db.receipts.filter(r => /^r\d$/.test(r.id)).map(r => r.no).sort();
+    assert.deepEqual(nos, ['MA-RE261000004', 'MA-RE261000005', 'MA-RE261000006', 'MA-RE261000007', 'MA-RE261000008', 'MA-RE261000009']);
+    assert.equal(now.db.seq['MA-RE2610'], 9);
+  });
+
+  test('ตัวนับไม่ย้อน: ล้างข้อมูล (ลบตัวนับ) หรือกู้คืนข้อมูลเก่า (ตัวนับต่ำกว่า) แล้วเลขถัดไปยังต่อจากเลขสุดท้ายที่เคยออก (3.2, A7, F1)', async () => {
+    const { shopId } = await newShop('biz-trial', 'biz');
+    const v = await open(shopId);
+    const order = Object.keys(v.db.seq);
+    const old = JSON.stringify(v.db);
+    newReceipt(v, 'r1'); newReceipt(v, 'r2');
+    assert.ok((await saveNumbered(v)).ok);
+
+    // Restore the data from before the two receipts: the counter is kept at 5.
+    v.db = JSON.parse(old);
+    let r = await saveNumbered(v);
+    assert.ok(r.ok);
+    assert.deepEqual(r.counters, [['MA-RE2610', 5]]);
+    assert.equal(v.db.seq['MA-RE2610'], 5);
+    assert.equal(newReceipt(v, 'r3'), 'MA-RE261000006');
+    assert.deepEqual((await saveNumbered(v)).renumbered, []);
+
+    // Wipe: every counter is removed by the app and kept by the server, in the same order.
+    v.db.seq = {};
+    v.db.receipts = [];
+    v.db.audit = [];
+    r = await saveNumbered(v);
+    assert.ok(r.ok);
+    assert.deepEqual(Object.keys(v.db.seq), order);
+    assert.equal(v.db.seq['MA-RE2610'], 6);
+    const back = await open(shopId);
+    assert.equal(JSON.stringify(back.db), JSON.stringify(v.db));
+
+    // A browser that still numbers from 1 after the wipe gets the next free number.
+    const w = await open(shopId);
+    w.db.seq = {};
+    assert.equal(newReceipt(w, 'r4'), 'MA-RE261000001');
+    r = await saveNumbered(w);
+    assert.deepEqual(r.renumbered, [['MA-RE261000001', 'MA-RE261000007']]);
+    assert.equal(w.db.receipts.at(-1).no, 'MA-RE261000007');
+    assert.equal(w.db.audit.at(-1).note, 'ออกใบเสร็จ MA-RE261000007');
+    assert.deepEqual(Object.keys(w.db.seq), ['MA-RE2610', ...order.filter(k => k !== 'MA-RE2610')]);
+    assert.equal(JSON.stringify((await open(shopId)).db), JSON.stringify(w.db));
+  });
+
+  test('เลขที่ที่ไม่ได้ออกในการบันทึกนี้ (พิมพ์อ้างถึง หรือของเอกสารเก่า) ไม่ถูกเปลี่ยน (3.2)', async () => {
+    const { shopId } = await newShop('biz-trial', 'biz');
+    const a = await open(shopId), b = await open(shopId);
+    newReceipt(a, 'ra');
+    assert.ok((await saveNumbered(a)).ok);
+    newReceipt(b, 'rb');
+    b.db.receipts[0].note = 'อ้างถึง MA-RE261000004 และ MA-RE261000001';
+    b.issued.push({ base: 'MA-RE2610', no: 'MA-RE261000009' });   // issued, but not in this save
+    const r = await saveNumbered(b);
+    assert.deepEqual(r.numbers, { 'MA-RE2610': ['MA-RE261000004'] });
+    const now = await open(shopId);
+    assert.equal(now.db.receipts.find(x => x.id === 'rb').no, 'MA-RE261000005');
+    assert.equal(now.db.receipts[0].note, 'อ้างถึง MA-RE261000005 และ MA-RE261000001');
+    assert.equal(now.db.seq['MA-RE2610'], 5);
+  });
+
+  test('เลขที่ออกแล้วแต่ตัวนับของเครื่องไม่ขยับ (ถูกแก้ระหว่างบันทึกหลังล้างข้อมูล): ยังได้เลขถัดไป ตัวนับขยับตาม และเลขเดียวกันในรายการเก่าไม่เปลี่ยน (3.2)', async () => {
+    const { shopId } = await newShop('biz-trial', 'biz');
+    const v = await open(shopId);
+    const old = v.db.audit.find(x => x.note.includes('MA-RE261000001'));
+    assert.ok(old);
+    v.db.receipts.push({ id: 'late', no: 'MA-RE261000001' });
+    v.issued = [{ base: 'MA-RE2610', no: 'MA-RE261000001' }];
+    const r = await saveNumbered(v);
+    assert.deepEqual(r.renumbered, [['MA-RE261000001', 'MA-RE261000004']]);
+    assert.deepEqual(r.counters, [['MA-RE2610', 4]]);
+    const now = await open(shopId);
+    assert.equal(now.db.receipts.at(-1).no, 'MA-RE261000004');
+    assert.equal(now.db.audit.find(x => x.id === old.id).note, old.note);
+    assert.equal(now.db.seq['MA-RE2610'], 4);
+    assert.equal(JSON.stringify(now.db), JSON.stringify(v.db));
   });
 
   test('ลบรายการที่คนอื่นเพิ่งแก้ หรือเพิ่ม id ที่คนอื่นเพิ่งเพิ่ม ถูกปฏิเสธ', async () => {
@@ -220,6 +362,43 @@ describe('บันทึก (T5)', () => {
       { upsert: [], remove: [{ unit: 'DGB.shop', key: '' }], order: {} },
       { upsert: [], remove: [], order: { 'FR.reqs': [] } },
     ]) await assert.rejects(asApp(shopId, 'B001', c => writeMain(c, 'B001', 'garage.v22', got.versions, changes)), e => e.status === 400);
+  });
+
+  test('ทุกการบันทึกเก็บประวัติของรายการที่เปลี่ยน พร้อมค่าก่อนและหลัง (3.1, R15)', async () => {
+    const { shopId } = await newShop('biz-trial', 'biz');
+    const v = await open(shopId);
+    const edited = v.db.receipts[0], was = JSON.stringify(edited);
+    edited.note = 'แก้แล้ว';
+    v.db.cust.push({ id: 'new-cust', name: 'ลูกค้าใหม่' });
+    const gone = v.db.cust.shift();
+    v.db.cust.reverse(); v.db.cust.reverse();   // touched but the same
+    assert.ok((await save(v)).ok);
+    const log = await asApp(shopId, '', c => c.query(
+      'select store_key, unit, key, op, version, before::text as before, after::text as after from change_log order by unit, key'));
+    assert.deepEqual(log.rows.map(r => [r.store_key, r.unit, r.key, r.op, r.version]), [
+      ['garage.v22', 'DB.cust', gone.id, 'delete', null],
+      ['garage.v22', 'DB.cust', 'new-cust', 'insert', 1],
+      ['garage.v22', 'DB.receipts', edited.id, 'update', 2],
+    ]);
+    const [removed, added, updated] = log.rows;
+    assert.deepEqual(JSON.parse(removed.before), gone);
+    assert.equal(removed.after, null);
+    assert.equal(added.before, null);
+    assert.deepEqual(JSON.parse(added.after), { id: 'new-cust', name: 'ลูกค้าใหม่' });
+    assert.equal(updated.before, was);
+    assert.equal(JSON.parse(updated.after).note, 'แก้แล้ว');
+  });
+
+  test('บันทึกที่ถูกปฏิเสธไม่เก็บประวัติ', async () => {
+    const { shopId } = await newShop('biz-trial', 'biz');
+    const a = await open(shopId), b = await open(shopId);
+    a.db.receipts[0].note = 'A';
+    assert.ok((await save(a)).ok);
+    b.db.receipts[0].note = 'B';
+    b.db.cust[0].name = 'B';
+    assert.equal((await save(b)).ok, false);
+    const units = await asApp(shopId, '', c => c.query('select unit from change_log'));
+    assert.deepEqual(units.rows.map(r => r.unit), ['DB.receipts']);
   });
 
   test('ช่องของคนที่เข้าระบบ (curEmp) ไม่ถูกบันทึกเป็นข้อมูลร้าน', async () => {

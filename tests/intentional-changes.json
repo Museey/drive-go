@@ -90,6 +90,30 @@
       "by": "S119-hq-turns-franchise-mode-off-and-on-own-data.spec.ts",
       "decision": "Q3",
       "why": "Turning the franchise mode off switches from HQ's own data to the first branch's (which the test copy showed); compared from B001's data the change is S98's. Every step, screen and other data change is checked against S98's goldens."
+    },
+    {
+      "scenario": "S80-accept-book-queue-to-quotation.spec.ts",
+      "by": "S127-book-queue-quotation-standard-number.spec.ts",
+      "decision": "3.2 (R1, A7)",
+      "why": "A quotation opened from a BOOK booking takes the next number of the shop's quotation counter (MA-QT261000005) instead of its own count of the day (QO.69-10-13-01); every step, message, data change and screen is checked against S80's goldens with that number, and the counter moves."
+    },
+    {
+      "scenario": "S81-quotation-from-symptom-report.spec.ts",
+      "by": "S128-symptom-report-quotations-standard-number.spec.ts",
+      "decision": "3.2 (R1, A7)",
+      "why": "Quotations opened from reported symptoms take the next numbers of the shop's quotation counter (MA-QT261000005, -06) instead of QO.69-10-13-01, -02; everything else is checked against S81's goldens with those numbers, and the counter moves."
+    },
+    {
+      "scenario": "S88-reset-prox-demo-data.spec.ts",
+      "by": "S129-reset-prox-demo-data-standard-number.spec.ts",
+      "decision": "3.2 (R1, A7)",
+      "why": "The two quotations opened from the same booking take the next numbers of the shop's quotation counter (MA-QT261000005, -06) instead of QO.69-10-13-01, -02; everything else, the confirmations included, is checked against S88's goldens with those numbers, and the counter moves."
+    },
+    {
+      "scenario": "S123-prox-online-accept-chain-bookings.spec.ts",
+      "by": "S130-prox-online-accept-chain-bookings-standard-number.spec.ts",
+      "decision": "3.2 (R1, A7)",
+      "why": "Quotations opened from the chain's bookings take the next numbers of the shop's quotation counter (MA-QT261000005, -06) instead of QO.69-10-13-01, -02; everything else is checked against S123's goldens with those numbers, and the counter moves."
     }
   ],
   "added": [
@@ -117,6 +141,16 @@
       "scenario": "S122-branch-direct-api-calls-refused.spec.ts",
       "decision": "T10, Q3",
       "why": "A branch account calling the storage API directly cannot reach other branches' or HQ's data, other accounts, other branches' requests or the chain's settings; a staff account cannot issue accounts."
+    },
+    {
+      "scenario": "S126-two-browsers-same-document-number.spec.ts",
+      "decision": "R1-ก (task 3.2)",
+      "why": "Two browsers number a quotation at the same time: the one saved second is saved too, with the next number everywhere that save wrote it, and the message says which number it got; nobody reloads."
+    },
+    {
+      "scenario": "S131-franchise-branch-code-in-document-numbers.spec.ts",
+      "decision": "R1-ข (task 3.2)",
+      "why": "A franchise branch's documents are numbered with the chain's branch code (B001-QT261000001) instead of MA, so two branches never issue the same number; numbers given before stay."
     }
   ]
 }

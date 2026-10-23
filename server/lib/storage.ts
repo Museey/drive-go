@@ -6,6 +6,7 @@
 // that RLS does not apply to (the owner opening a shop, tools/new-shop.mjs).
 import type pg from 'pg';
 import { gunzipSync, gzipSync } from 'node:zlib';
+import { COUNTERS, type Claims, type Counters, type Renumbered, numberOf, numbersIn, renumberText, seqOf } from './numbers.ts';
 import { type Changes, type Row, assemble, rootOf } from './units.ts';
 
 // Version of each row, keyed "<unit>|<key>"; the browser sends back the
@@ -57,9 +58,11 @@ export type WriteResult = { ok: true; versions: Versions } | { ok: false; confli
 // Applies one save. base: the versions the browser saw of every row it
 // changes or removes (missing = it thinks the row is new). All or nothing: on
 // any conflict nothing is written. A duplicate document number raises 23505,
-// which the caller also reports as a conflict.
+// which the caller also reports as a conflict. Every row written or removed is
+// recorded in change_log with its value before and after (task 3.1, R15),
+// except when a shop is opened with its starting data (log: false).
 export async function writeMain(c: pg.ClientBase, branch: string, storeKey: string, base: Versions, changes: Changes,
-  userId: string | null = null): Promise<WriteResult> {
+  userId: string | null = null, { log: keepLog = true }: { log?: boolean } = {}): Promise<WriteResult> {
   const root = layoutUnit(storeKey);
   // A save of one key may only touch that key's own units (DB.* for
   // garage.v22, FR.* for franchise.v22 …), never the layout row directly.
@@ -70,12 +73,13 @@ export async function writeMain(c: pg.ClientBase, branch: string, storeKey: stri
     : [{ unit: root, key: storeKey, data: changes.layout }, ...changes.upsert];
   const touched = [...upsert.map(r => [r.unit, r.key]), ...changes.remove.map(r => [r.unit, r.key])];
   const current = new Map<string, number>();
+  const before = new Map<string, string>();
   if (touched.length) {
-    const { rows } = await c.query<{ unit: string; key: string; version: number }>(
-      `select unit, key, version from records
+    const { rows } = await c.query<{ unit: string; key: string; version: number; data: string }>(
+      `select unit, key, version, data::text as data from records
         where shop_id = app_shop() and branch_id = $1 and (unit, key) in (select * from unnest($2::text[], $3::text[]))
         order by unit, key for update`, [branch, touched.map(t => t[0]), touched.map(t => t[1])]);
-    for (const r of rows) current.set(vkey(r.unit, r.key), r.version);
+    for (const r of rows) { current.set(vkey(r.unit, r.key), r.version); before.set(vkey(r.unit, r.key), r.data); }
   }
   const conflicts = touched.map(([u, k]) => vkey(u, k)).filter(k => current.get(k) !== base[k]);
   if (conflicts.length) return { ok: false, conflicts };
@@ -121,7 +125,121 @@ export async function writeMain(c: pg.ClientBase, branch: string, storeKey: stri
     await c.query('insert into write_log (shop_id, branch_id, user_id, units) values (app_shop(), $1, $2, $3)',
       [branch, userId, JSON.stringify({ key: storeKey, versions, removed: changes.remove.map(r => vkey(r.unit, r.key)) })]);
   }
+  // Rows written with the same value they had are not changes.
+  const log = [
+    ...upsert.filter(r => before.get(vkey(r.unit, r.key)) !== r.data).map(r => ({
+      unit: r.unit, key: r.key, op: current.has(vkey(r.unit, r.key)) ? 'update' : 'insert',
+      version: versions[vkey(r.unit, r.key)], before: before.get(vkey(r.unit, r.key)) ?? null, after: r.data })),
+    ...changes.remove.filter(r => current.has(vkey(r.unit, r.key))).map(r => ({
+      unit: r.unit, key: r.key, op: 'delete', version: null, before: before.get(vkey(r.unit, r.key))!, after: null })),
+  ];
+  if (keepLog && log.length) {
+    await c.query(
+      `insert into change_log (shop_id, branch_id, user_id, store_key, unit, key, op, version, before, after)
+       select app_shop(), $1, $2, $3, l.unit, l.key, l.op, l.version, l.before::json, l.after::json
+         from unnest($4::text[], $5::text[], $6::text[], $7::int[], $8::text[], $9::text[]) as l(unit, key, op, version, before, after)`,
+      [branch, userId, storeKey, log.map(l => l.unit), log.map(l => l.key), log.map(l => l.op), log.map(l => l.version ?? null),
+        log.map(l => l.before), log.map(l => l.after)]);
+  }
   return { ok: true, versions };
+}
+
+export type SaveResult = { ok: true; versions: Versions; renumbered: Renumbered; counters: Counters } | { ok: false; conflicts: string[] };
+
+// One save from the browser: its document numbers checked against the
+// shop's counters (task 3.2), then written (writeMain). claims: the numbers
+// the browser issued in this save, by counter (numbers.ts).
+export async function saveMain(c: pg.ClientBase, branch: string, storeKey: string, base: Versions, changes: Changes,
+  claims: Claims = {}, userId: string | null = null): Promise<SaveResult> {
+  const n = await issueNumbers(c, branch, storeKey, base, changes, claims);
+  const r = await writeMain(c, branch, storeKey, n.base, n.changes, userId);
+  return r.ok ? { ...r, renumbered: n.renumbered, counters: n.counters } : r;
+}
+
+// The counters (DB.seq rows) of the numbers a save issued, or that it writes
+// or removes, are the server's: each is locked for the rest of the
+// transaction (doc_counters), so saves of one counter run one after another,
+// and is saved as
+//   - the last number issued plus the numbers this save issued, renumbered
+//     to follow it, when one of them was issued already (by another browser,
+//     or before the data was wiped or an older backup restored);
+//   - otherwise the highest of the last number issued, what the browser
+//     wrote and the numbers it issued: never lower, never removed.
+// What the browser saw of the counter rows does not matter (no conflict on
+// them), only the numbers.
+async function issueNumbers(c: pg.ClientBase, branch: string, storeKey: string, base: Versions, changes: Changes, claims: Claims) {
+  const none = { base, changes, renumbered: [] as Renumbered, counters: [] as Counters };
+  if (rootOf(storeKey) !== 'DB') return none;
+  const written = new Map(changes.upsert.filter(r => r.unit === COUNTERS).map(r => [r.key, Number(r.data)]));
+  const removed = new Set(changes.remove.filter(r => r.unit === COUNTERS).map(r => r.key));
+  // Only numbers of the counter's own form that this save writes count.
+  const text = changes.upsert.map(r => r.data).join('\n');
+  const issued = new Map(Object.entries(claims).map(([key, nos]) => {
+    const there = numbersIn(text, key);
+    return [key, [...new Set(nos)].filter(no => there.has(no) && /^\d{5,}$/.test(no.slice(key.length)))
+      .sort((a, b) => seqOf(key, a) - seqOf(key, b))];
+  }).filter(([, nos]) => nos.length) as [string, string[]][]);
+  const keys = [...new Set([...written.keys(), ...removed, ...issued.keys()])].sort();
+  if (!keys.length) return none;
+
+  await c.query(
+    `insert into doc_counters (shop_id, branch_id, base, last)
+     select app_shop(), $1, k, 0 from unnest($2::text[]) as k on conflict do nothing`, [branch, keys]);
+  const locked = await c.query<{ base: string; last: number }>(
+    `select base, last from doc_counters where shop_id = app_shop() and branch_id = $1 and base = any($2) order by base for update`, [branch, keys]);
+  const rows = await c.query<{ key: string; version: number; data: string }>(
+    `select key, version, data::text as data from records where shop_id = app_shop() and branch_id = $1 and unit = $2 and key = any($3)`,
+    [branch, COUNTERS, keys]);
+  const current = new Map(rows.rows.map(r => [r.key, r]));
+  const lastOf = new Map(locked.rows.map(r => [r.base, Math.max(r.last, Number(current.get(r.base)?.data) || 0)]));
+
+  base = { ...base };
+  const renumbered: Renumbered = [], counters: Counters = [], readded: string[] = [];
+  const finals = new Map<string, number>(), rowsToWrite = new Map<string, number>();
+  for (const key of keys) {
+    const last = lastOf.get(key) ?? 0, nos = issued.get(key) || [], wrote = written.get(key);
+    // A counter neither side has (numbers of a counter the server never had a row for): left as it is.
+    if (!written.has(key) && !removed.has(key) && !current.has(key)) continue;
+    let final: number;
+    if (nos.some(no => seqOf(key, no) <= last)) {
+      nos.forEach((no, i) => renumbered.push([no, numberOf(key, last + 1 + i)]));
+      final = last + nos.length;
+    } else {
+      final = Math.max(last, wrote !== undefined && Number.isFinite(wrote) ? wrote : 0, ...nos.map(no => seqOf(key, no)));
+    }
+    if (removed.has(key) && final === 0) continue;   // nothing was ever issued from it
+    finals.set(key, final);
+    if (removed.has(key)) readded.push(key);
+    else if (written.has(key)) { if (wrote !== final) counters.push([key, final]); }
+    else if (Number(current.get(key)!.data) !== final) counters.push([key, final]);
+    else continue;
+    rowsToWrite.set(key, final);
+    const v = current.get(key)?.version;
+    if (v === undefined) delete base[vkey(COUNTERS, key)]; else base[vkey(COUNTERS, key)] = v;
+  }
+  // The browser sets the counters it removed again after the ones it has, so
+  // they come last, in the order the server had them.
+  const kept = readded.length ? (await c.query<{ key: string }>(
+    'select key from records where shop_id = app_shop() and branch_id = $1 and unit = $2 order by pos, key', [branch, COUNTERS])).rows.map(r => r.key) : [];
+  readded.sort((a, b) => kept.indexOf(a) - kept.indexOf(b));
+  for (const key of readded) counters.push([key, finals.get(key)!]);
+  if (finals.size) await c.query(
+    `update doc_counters d set last = u.last from unnest($2::text[], $3::int[]) as u(base, last)
+      where d.shop_id = app_shop() and d.branch_id = $1 and d.base = u.base and d.last <> u.last`, [branch, [...finals.keys()], [...finals.values()]]);
+
+  const upsert = changes.upsert.map(r => r.unit === COUNTERS && rowsToWrite.has(r.key) ? { ...r, data: String(rowsToWrite.get(r.key)) }
+    : renumbered.length ? { ...r, data: renumberText(r.data, renumbered) } : r);
+  for (const [key, final] of rowsToWrite) if (!written.has(key) && !readded.includes(key)) upsert.push({ unit: COUNTERS, key, data: String(final) });
+  for (const key of readded) upsert.push({ unit: COUNTERS, key, data: String(finals.get(key)) });
+  const remove = changes.remove.filter(r => !(r.unit === COUNTERS && finals.has(r.key)));
+  const order = { ...changes.order };
+  if (readded.length) {
+    const known = new Set(kept);
+    const keep = order[COUNTERS] ?? [...kept.filter(k => !removed.has(k)),
+      ...changes.upsert.filter(r => r.unit === COUNTERS && !known.has(r.key)).map(r => r.key)];
+    order[COUNTERS] = [...keep.filter(k => !readded.includes(k)), ...readded];
+  }
+  return { base, changes: { ...changes, upsert, remove, order }, renumbered, counters };
 }
 
 // Every STORE key the session can reach (like IndexedDB's keys(), which lists

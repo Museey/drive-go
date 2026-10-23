@@ -15,9 +15,15 @@ const golden = (scenario: string, file: string) => new URL(`../golden/${scenario
 
 type App = { settle(): Promise<void>; signature(): Promise<object>; layoutStable(): Promise<void>; screenshotStyle: string };
 
+// Document numbers the new system gives on purpose where the legacy app gave
+// others ([legacy number, new number], task 3.2): swapped into the replaced
+// scenario's step labels, messages and data changes before comparing.
+export type Numbers = [string, string][];
+const swap = (text: string, numbers: Numbers) => numbers.reduce((t, [from, to]) => t.split(from).join(to), text);
+
 // Walks the replaced scenario's flow.json step by step.
-export function legacySteps(scenario: string, app: App) {
-  const flow: { step: string }[] = JSON.parse(readFileSync(golden(scenario, 'flow.json'), 'utf8'));
+export function legacySteps(scenario: string, app: App, numbers: Numbers = []) {
+  const flow: { step: string }[] = JSON.parse(swap(readFileSync(golden(scenario, 'flow.json'), 'utf8'), numbers));
   let i = 0;
   return {
     // The next legacy step must have this label and look the same.
@@ -81,23 +87,28 @@ function paint(png: Buffer, boxes: { x: number; y: number; width: number; height
 
 // What an action changed in the data must be what the replaced scenario's
 // golden says (the same referee as golden.stateChange()).
-export function legacyStateChange(scenario: string, name: string): string {
-  return readFileSync(golden(scenario, `${name}-state.json`), 'utf8');
+export function legacyStateChange(scenario: string, name: string, numbers: Numbers = []): string {
+  return swap(readFileSync(golden(scenario, `${name}-state.json`), 'utf8'), numbers);
 }
 
 // The replaced scenario's goldens used the way the golden fixture is used:
 // every step, screen and data change must be the legacy one (a screen may
 // leave out what the new scenario checks itself, see sameScreen's mask).
-export function legacyGolden(scenario: string, { app, page, testInfo }: { app: App & { state(): Promise<object> }; page: Page; testInfo: TestInfo }) {
-  const steps = legacySteps(scenario, app);
+// numbers: see Numbers above; a data change may then also have `more`
+// changes the new system makes on purpose (a counter the legacy app did not move).
+export function legacyGolden(scenario: string, { app, page, testInfo }: { app: App & { state(): Promise<object> }; page: Page; testInfo: TestInfo },
+  { numbers = [] }: { numbers?: Numbers } = {}) {
+  const steps = legacySteps(scenario, app, numbers);
   return {
     step: steps.same,
     skip: steps.skip,
     done: steps.done,
     screen: (name: string, opts?: { mask?: Locator[] }) => sameScreen(page, app, testInfo, scenario, name, opts),
-    async stateChange(name: string, before: object) {
+    async stateChange(name: string, before: object, more: Record<string, unknown> = {}) {
       await app.settle();
-      expect(formatDiff(stateDiff(before, await app.state())), `data change ${name}`).toBe(legacyStateChange(scenario, name));
+      const actual = formatDiff(stateDiff(before, await app.state())), expected = legacyStateChange(scenario, name, numbers);
+      if (!Object.keys(more).length) expect(actual, `data change ${name}`).toBe(expected);
+      else expect(JSON.parse(actual), `data change ${name}`).toEqual({ ...JSON.parse(expected), ...more });
     },
   };
 }

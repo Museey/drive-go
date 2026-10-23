@@ -185,6 +185,31 @@ export function assemble(storeKey: string, layout: string, rows: Row[],
   return parsed === 'D' ? one(`${root}.`) : build(parsed, root);
 }
 
+// The records of a STORE key's live value (the legacy app's DB object), as
+// split() makes rows of them: for each, its unit and key, and its value to
+// read or replace in place. Session fields are not records.
+export function eachRecord(storeKey: string, value: unknown,
+  fn: (unit: string, key: string, get: () => unknown, set: (v: unknown) => void) => void): void {
+  const root = rootOf(storeKey);
+  if (!root || !isObject(value)) return;
+  const walk = (obj: Record<string, unknown>, path: string) => {
+    for (const [field, v] of Object.entries(obj)) {
+      const unit = `${path}.${field}`, rule = RULES[unit];
+      if (rule === SESSION) continue;
+      if (rule === GROUP && isObject(v)) walk(v, unit);
+      else if ((rule === LIST || rule === BY_CODE) && Array.isArray(v) && v.every(isObject)) {
+        const list = v as Record<string, unknown>[], keys = listKeys(list, rule === LIST ? 'id' : 'code');
+        list.forEach((_, i) => fn(unit, keys[i], () => list[i], x => { list[i] = x as Record<string, unknown>; }));
+      } else if (rule === MAP && isObject(v)) {
+        for (const k of Object.keys(v)) fn(unit, k, () => v[k], x => { v[k] = x; });
+      } else {
+        fn(unit, '', () => obj[field], x => { obj[field] = x; });
+      }
+    }
+  };
+  walk(value, root);
+}
+
 // What a save changed, row by row (design §4.1–4.2). New records of a unit
 // are listed in order and get positions after the existing ones; if the
 // existing records changed order, or a new one is not at the end, order gives

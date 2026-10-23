@@ -58,6 +58,21 @@ after(async () => {
 });
 
 describe('แยกข้อมูลระหว่างอู่', () => {
+  test('ทุกตารางที่มีข้อมูลของอู่ (มีคอลัมน์ shop_id) ผ่าน Row-Level Security และแยกสาขาด้วยถ้ามี branch_id', async () => {
+    const { rows } = await owner.query(`
+      select c.relname as t, c.relrowsecurity as rls, c.relforcerowsecurity as forced,
+             exists (select from information_schema.columns b where b.table_name = c.relname and b.column_name = 'branch_id') as branched,
+             exists (select from pg_policies p where p.tablename = c.relname and p.policyname = 'branch_only') as branch_policy
+        from pg_class c join information_schema.columns s on s.table_name = c.relname and s.column_name = 'shop_id'
+       where c.relkind = 'r' and c.relnamespace = 'public'::regnamespace order by 1`);
+    assert.ok(rows.length >= 9);
+    // sessions only: not forced for the tables' owner, which session_lookup() runs as (0001_core.sql).
+    for (const r of rows) {
+      assert.ok(r.rls && (r.forced || r.t === 'sessions'), `${r.t}: row level security`);
+      if (r.branched) assert.ok(r.branch_policy, `${r.t}: branch policy`);
+    }
+  });
+
   test('อู่ A เห็นเฉพาะข้อมูลของตัวเอง แม้จะค้นทั้งตารางหรือค้นด้วย id ของอู่ B', async () => {
     assert.deepEqual(await asApp('A', '', c => keys(c)), ['A/-/a1']);
     assert.equal((await asApp('A', '', c => c.query('select * from records where shop_id = $1', [shops.B]))).rowCount, 0);
@@ -105,7 +120,7 @@ describe('แยกข้อมูลระหว่างอู่', () => {
     await assert.rejects(asApp('A', '', c => c.query("update shops set status = 'suspended'")), /permission denied/);
   });
 
-  test('ตารางอื่นของอู่ก็แยกด้วย (บัญชี ชื่อเข้าระบบ session จุดสำรอง blob ประวัติการบันทึก)', async () => {
+  test('ตารางอื่นของอู่ก็แยกด้วย (บัญชี ชื่อเข้าระบบ session จุดสำรอง blob ประวัติการบันทึก ประวัติการเปลี่ยนแปลง ตัวนับเลขที่)', async () => {
     const uid = await asApp('B', '', async c => {
       const u = (await c.query("insert into users (shop_id, kind) values ($1, 'owner') returning id", [shops.B])).rows[0].id;
       await c.query("insert into logins (shop_id, login, user_id) values ($1, 'dg1688', $2)", [shops.B, u]);
@@ -113,15 +128,32 @@ describe('แยกข้อมูลระหว่างอู่', () => {
       await c.query("insert into blobs (shop_id, key, value) values ($1, 'dgb.guide.v22', '1')", [shops.B]);
       await c.query("insert into backups (shop_id, key, data) values ($1, 'garage.v22.bak.2026-10-13', '\\x00')", [shops.B]);
       await c.query("insert into write_log (shop_id, units) values ($1, '[]')", [shops.B]);
+      await c.query("insert into change_log (shop_id, store_key, unit, key, op, after) values ($1, 'garage.v22', 'DB.cust', 'b1', 'insert', '{}')", [shops.B]);
+      await c.query("insert into doc_counters (shop_id, base, last) values ($1, 'MA-SA2610', 9)", [shops.B]);
       return u;
     }, { commit: true });
     const seen = await asApp('A', '', async c => {
       const out = {};
-      for (const t of ['users', 'logins', 'sessions', 'blobs', 'backups', 'write_log']) out[t] = (await c.query(`select * from ${t}`)).rowCount;
+      for (const t of ['users', 'logins', 'sessions', 'blobs', 'backups', 'write_log', 'change_log', 'doc_counters']) out[t] = (await c.query(`select * from ${t}`)).rowCount;
       return out;
     });
-    assert.deepEqual(seen, { users: 0, logins: 0, sessions: 0, blobs: 0, backups: 0, write_log: 0 });
+    assert.deepEqual(seen, { users: 0, logins: 0, sessions: 0, blobs: 0, backups: 0, write_log: 0, change_log: 0, doc_counters: 0 });
     assert.ok(uid);
+  });
+
+  test('ประวัติการเปลี่ยนแปลง (3.1): แอปเพิ่มและอ่านได้ แต่แก้หรือลบไม่ได้ แม้เป็นของอู่ตัวเอง', async () => {
+    await asApp('A', '', c => c.query("insert into change_log (shop_id, store_key, unit, key, op, after) values ($1, 'garage.v22', 'DB.cust', 'a1', 'insert', '{}')", [shops.A]), { commit: true });
+    assert.equal((await asApp('A', '', c => c.query('select * from change_log'))).rowCount, 1);
+    await assert.rejects(asApp('A', '', c => c.query("update change_log set after = '{\"name\":\"แก้ประวัติ\"}'")), /permission denied/);
+    await assert.rejects(asApp('A', '', c => c.query('delete from change_log')), /permission denied/);
+  });
+
+  test('ตัวนับเลขที่ (3.2): แอปเพิ่มและเลื่อนขึ้นได้ แต่ลดหรือลบไม่ได้ แม้เป็นของอู่ตัวเอง', async () => {
+    await asApp('A', '', c => c.query("insert into doc_counters (shop_id, base, last) values ($1, 'MA-RE2610', 5)", [shops.A]), { commit: true });
+    await asApp('A', '', c => c.query("update doc_counters set last = 6 where base = 'MA-RE2610'"), { commit: true });
+    assert.equal((await asApp('A', '', c => c.query("select last from doc_counters where base = 'MA-RE2610'"))).rows[0].last, 6);
+    await assert.rejects(asApp('A', '', c => c.query("update doc_counters set last = 1 where base = 'MA-RE2610'")), /cannot go back from 6 to 1/);
+    await assert.rejects(asApp('A', '', c => c.query('delete from doc_counters')), /permission denied/);
   });
 });
 

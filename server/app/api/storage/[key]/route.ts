@@ -1,6 +1,7 @@
 // The legacy STORE, one key at a time (docs/PHASE2-DESIGN.md §4):
 //   GET     main data key: "<versions JSON>\n<stored JSON>"; backup point or other key: the stored text
-//   POST    main data key: one save, {base, changes, session, secrets} -> {versions} or 409 {conflicts}
+//   POST    main data key: one save, {base, changes, session, secrets, numbers} -> {versions, renumbered, counters} or 409 {conflicts}
+//           (numbers: the document numbers the save issued; renumbered, counters: what the server changed, task 3.2)
 //   PUT     backup point (made from the server's own data, body ignored) or other key (body = value)
 //   DELETE  any key
 // A key of a branch outside the session's scope (another branch, or HQ's own
@@ -8,9 +9,10 @@
 // removal the account may not make (lib/permissions.ts, task T10).
 import { inShop, json } from '@/lib/api';
 import { endStaleSessions, storeSecrets } from '@/lib/auth';
+import type { Claims } from '@/lib/numbers';
 import { actorOf, refuseRemoveKey, refuseSave, traceWrite } from '@/lib/permissions';
 import { saveSessionFields, sessionFields } from '@/lib/session';
-import { branchOfKey, inScope, isBackupKey, makeBackup, readBackup, readBlob, readMain, removeKey, writeBlob, writeMain } from '@/lib/storage';
+import { branchOfKey, inScope, isBackupKey, makeBackup, readBackup, readBlob, readMain, removeKey, saveMain, writeBlob } from '@/lib/storage';
 import { type Changes, rootOf } from '@/lib/units';
 
 export const dynamic = 'force-dynamic';
@@ -39,7 +41,7 @@ export async function POST(req: Request, ctx: Ctx) {
   const { key } = await ctx.params;
   if (!rootOf(key)) return json({ error: 'not a main data key' }, 400);
   const body = await req.json() as { base: Record<string, number>; changes: Changes; session?: Record<string, string>;
-    secrets?: { unit: string; key: string; field: string; value: string }[] };
+    secrets?: { unit: string; key: string; field: string; value: string }[]; numbers?: Claims };
   return inShop(req, async (c, s) => {
     const branch = await branchOfKey(c, key);
     if (!inScope(s.scope, branch)) return forbidden();
@@ -47,7 +49,7 @@ export async function POST(req: Request, ctx: Ctx) {
     traceWrite(actor, key, body.changes, body.secrets || []);
     const refused = await refuseSave(c, actor, branch, key, body.changes, body.secrets || []);
     if (refused) return json({ error: 'not allowed', what: refused }, 403);
-    const r = await writeMain(c, branch, key, body.base || {}, body.changes, s.userId);
+    const r = await saveMain(c, branch, key, body.base || {}, body.changes, body.numbers || {}, s.userId);
     if (!r.ok) return json({ conflicts: r.conflicts }, 409);
     if (body.session) await saveSessionFields(c, s, key, body.session);
     // New passwords become hashes; a save that touches accounts may end other
@@ -59,7 +61,7 @@ export async function POST(req: Request, ctx: Ctx) {
       const pkg = (await c.query<{ package: string }>('select package from shops where id = app_shop()')).rows[0].package;
       await endStaleSessions(c, pkg, s.tokenHash, changedPasswords);
     }
-    return json({ versions: r.versions });
+    return json({ versions: r.versions, renumbered: r.renumbered, counters: r.counters });
   });
 }
 

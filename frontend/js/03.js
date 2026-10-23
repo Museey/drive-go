@@ -10950,11 +10950,11 @@ function pxEnsureCust(j){
   try{ logAudit('cust',{id:c.id,no:c.name},'save','เพิ่มลูกค้าอัตโนมัติจาก DriveGo BOOK · '+j.plateL+' '+j.plateN); }catch(e){}
   return {c,isNew:true};
 }
+/* DriveGo new system (task 3.2): quotations opened from BOOK, symptom reports, SOS and the chain take the next number of
+   the shop's quotation counter like every other quotation (MA-QT2610…, issued on the server), not their own count of the
+   day (QO.69-10-13-01) that no counter knew about. */
 function pxQuoteNo(){
-  const t=new Date(), d=iso(t);
-  const base='QO.'+String(t.getFullYear()+543).slice(2)+'-'+d.slice(5,7)+'-'+d.slice(8,10)+'-';
-  let n=1; while(DB.quotes.some(q=>q.no===base+String(n).padStart(2,'0'))) n++;
-  return base+String(n).padStart(2,'0');
+  return docNo('QO');
 }
 /* ---- คิวจองจาก BOOK → สร้างใบเสนอราคาร่าง (เมนู 03) ---- */
 function pxAcceptBook(id){

@@ -46,7 +46,12 @@
  function within(id,fn){const prev=ctx();if(prev===id)return fn();swapStock(id);DB.curBranch=id;try{return fn();}finally{swapStock(prev);DB.curBranch=prev;}}
 
  /* ---------- numbers ---------- */
- window.docNoBase=function(prefix){const d=new Date();return cur().code+'-'+(TYPE[prefix]||String(prefix).slice(0,2))+String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,'0');};
+ /* DriveGo new system (task 3.2, decision R1-ข): in a franchise chain each branch's own data numbers with the chain's
+    branch code (B001-SA2610…) and HQ's own data with HQ; the legacy app numbered every branch's data MA-…, so two
+    branches issued the same numbers. Other internal branches of a data set keep their own code. */
+ const numCode=()=>{const c=cur();if(c.id!==MAIN||typeof FR==='undefined'||!FR||!FR.enabled)return c.code;
+  if(typeof HQKEY!=='undefined'&&KEY===HQKEY)return 'HQ';const b=(FR.branches||[]).find(x=>brKey(x)===KEY);return (b&&b.code)||c.code;};
+ window.docNoBase=function(prefix){const d=new Date();return numCode()+'-'+(TYPE[prefix]||String(prefix).slice(0,2))+String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,'0');};
  window.nextDocNo=function(prefix){ensure();const base=docNoBase(prefix);DB.seq=DB.seq||{};let i=(DB.seq[base]||0)+1;while(docNoTaken(base+pad6(i)))i++;return {base,i,no:base+pad6(i)};};
  const takenO=docNoTaken;docNoTaken=function(no){return takenO.apply(this,arguments)||(DB.transfers||[]).some(x=>x.no===no);};
  /* old numbers → new format, everywhere they are written (documents, references, moves, FIFO, audit, notes) */

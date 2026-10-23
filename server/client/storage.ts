@@ -18,7 +18,8 @@
 // server's /api/public) and nothing it writes is sent. Passwords never travel
 // with the data: the server sends a placeholder, and a password the user types
 // is split off and sent once, to be stored as a hash (design §3.2).
-import { type Split, SECRET_PLACEHOLDER, assemble, diff, rootOf, split } from '../lib/units.ts';
+import { type Counters, type Issued, type Renumbered, baseOf, claimsIn, correctSplit, isRow, renumberValue, rowsToRenumber, setCounters, shiftLater } from '../lib/numbers.ts';
+import { type Split, SECRET_PLACEHOLDER, assemble, diff, eachRecord, rootOf, split } from '../lib/units.ts';
 
 const API = '/api/storage';
 // The legacy app later wraps window.fetch to show its loading overlay on every
@@ -31,6 +32,8 @@ const MESSAGES = {   // decision Q5
   signedOut: 'หมดเวลาการเข้าระบบ กรุณาเข้าสู่ระบบใหม่',
   notAllowed: 'บันทึกไม่สำเร็จ — บัญชีนี้ไม่มีสิทธิ์แก้ข้อมูลส่วนนี้ กดตกลงเพื่อโหลดข้อมูลล่าสุด',   // task T10, owner 2026-10-19
   lockedOut: 'กรอกรหัสผิดหลายครั้ง กรุณารอ 15 นาทีแล้วลองใหม่',
+  // task 3.2, decision R1-ก: the number a document got when the one it showed was taken
+  renumbered: (r: Renumbered) => `บันทึกแล้ว เอกสารได้เลขที่ ${r.map(x => x[1]).join(', ')} เพราะเลขที่ ${r.map(x => x[0]).join(', ')} ถูกใช้ไปแล้ว`,
 };
 
 // The shop's address is /<shop code>/ (decision Q1).
@@ -67,6 +70,10 @@ function enqueue<T>(job: () => Promise<T>): Promise<T> {
 declare global {
   interface Window { toast?: (m: string) => void; askP?: (o: object) => Promise<boolean> }
 }
+// The legacy app's live data and the key it is stored under (frontend/js/03.js):
+// global bindings of its own scripts, not properties of window.
+declare const DB: unknown;
+declare const KEY: string;
 
 // Asks the user to reload, then reloads. Never resolves: nothing else may be
 // written on top of a refused save.
@@ -148,20 +155,47 @@ async function flush(key: string): Promise<void> {
   if (changes.layout !== undefined) known(root, key);
   for (const r of changes.upsert) known(r.unit, r.key);
   for (const r of changes.remove) known(r.unit, r.key);
+  const numbers = claimsIn(issuedFor(key), value);
   const r = await send(url(key), {
     method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ base, changes, session: next.session, secrets }),
+    body: JSON.stringify({ base, changes, session: next.session, secrets, numbers }),
   }, true);
   if (r.status === 409) return mustReload(MESSAGES.conflict, `conflict ${key}: ${JSON.stringify((await r.json()).conflicts)}`);
   if (r.status === 401) return mustReload(MESSAGES.signedOut, `signed out while saving ${key}`);
   // The server's permission checks refused it (task T10): the screen must not go on as if it were saved.
   if (r.status === 403) return mustReload(MESSAGES.notAllowed, `not allowed to save ${key}: ${await r.text()}`);
   if (!r.ok) { problems.push(`save ${key}: ${r.status} ${await r.text()}`); return; }
-  const { versions } = await r.json() as { versions: Record<string, number> };
-  Object.assign(m.base, versions);
+  const { versions, renumbered = [], counters = [] } = await r.json() as { versions: Record<string, number>; renumbered?: Renumbered; counters?: Counters };
   for (const x of changes.remove) delete m.base[vk(x.unit, x.key)];
-  m.sent = value;
-  m.last = next;
+  Object.assign(m.base, versions);
+  const claimed = new Set(Object.values(numbers).flat());
+  const later = issuedFor(key).filter(x => !claimed.has(x.no));
+  if (!renumbered.length && !counters.length) {
+    issued.set(key, later);
+    m.sent = value;
+    m.last = next;
+    return;
+  }
+  // The server gave documents other numbers, or kept counters higher than the
+  // app wrote (task 3.2): the app goes on from what was saved, in the rows
+  // that save wrote and the ones changed since (older rows keep their
+  // numbers). Numbers it issued since the save was sent move up after the
+  // corrected counters.
+  m.sent = correctSplit(key, next, rowsToRenumber(next, changes, next), renumbered, counters);
+  m.last = split(key, m.sent);
+  const shift = shiftLater(later, counters);
+  const all = [...renumbered, ...shift.renumbered];
+  const moved = new Map(shift.renumbered);
+  issued.set(key, later.map(x => ({ base: x.base, no: moved.get(x.no) ?? x.no })));
+  if (m.value === value) m.value = m.sent;
+  else { const now = split(key, m.value!); m.value = correctSplit(key, now, rowsToRenumber(next, changes, now), all, shift.counters); }
+  if (typeof KEY !== 'undefined' && KEY === key && typeof DB !== 'undefined') {
+    const rows = rowsToRenumber(next, changes, split(key, JSON.stringify(DB)));
+    if (all.length) eachRecord(key, DB, (unit, k, get, set) => { if (isRow(rows, unit, k)) set(renumberValue(get(), all)); });
+    setCounters(DB, shift.counters);
+  }
+  // After the app's own message for the save, if it shows one.
+  if (renumbered.length && typeof window.toast === 'function') setTimeout(() => window.toast!(MESSAGES.renumbered(renumbered)), 0);
 }
 
 // The legacy scripts keep wrapping the app's functions while the page loads.
@@ -172,6 +206,24 @@ async function flush(key: string): Promise<void> {
 const scriptsLoaded = new Promise<void>(resolve => {
   if (document.readyState !== 'loading') resolve();
   else document.addEventListener('DOMContentLoaded', () => resolve(), { once: true });
+});
+
+// Numbers the app issued (docNo, frontend/js/03.js and 19.js: the only place it
+// takes a number from a counter) that the server has not confirmed yet, by
+// main data key: they go with the save that first holds them (task 3.2).
+const issued = new Map<string, Issued[]>();
+const issuedFor = (key: string) => issued.get(key) ?? [];
+scriptsLoaded.then(() => {
+  const w = window as unknown as { docNo?: (this: unknown, ...a: unknown[]) => unknown };
+  const docNo = w.docNo;
+  if (typeof docNo !== 'function') return;
+  w.docNo = function (this: unknown, ...args: unknown[]) {
+    const no = docNo.apply(this, args);
+    const seq = (typeof DB !== 'undefined' && (DB as { seq?: Record<string, unknown> } | null)?.seq) || null;
+    const base = typeof no === 'string' && seq ? baseOf(seq, no) : undefined;
+    if (base && typeof KEY !== 'undefined') issued.set(KEY, [...issuedFor(KEY), { base, no: no as string }]);
+    return no;
+  };
 });
 
 const storage = {
