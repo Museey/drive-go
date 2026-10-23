@@ -153,6 +153,7 @@
   const c={id:uid(),no:docNo(PREFIX),date:iso(),src:q?'quote':'walkin',channel:q?'repair':(S.channel||'retail'),wh:whNow(),
    quoteId:q?q.id:'',quoteNo:q?q.no:'',custId:S.custId||'',vehIdx:S.vehIdx==null?-1:S.vehIdx,seller:S.seller||'',sellerName:S.seller?empName(S.seller,''):'',
    tier:S.tier||'B',items,disc:n(S.disc),vat:n(S.vat),note:S.note||'',remark:S.remark||'',ref:S.ref||'',lines:pick(lines),cancelled:false,printed:false};
+  {const why=S.noVatReason||(q&&q.noVatReason);if(why&&!c.vat)c.noVatReason=why;}   /* DriveGo new system (task 3.3, R4-ข) */
   c.moveRef=c.no;stampRec(c,null);
   const t=tot(c);c.total=t.gross;
   c.pay=pay?Object.assign({amount:t.gross},pay):null;c.paid=!!(pay&&pay.method!=='credit');
@@ -160,7 +161,7 @@
    logMove(s.id,'out',-n(it.qty),iso(),'ตัดสต็อก '+c.no+(q?' · ใบเสนอราคา '+q.no:' · '+CH[c.channel])+(it.kit?' · ชุด '+it.kit:''),c.no);});
   costs(c);L().push(c);
   if(q){q.deducted=true;q.stockCutId=c.id;q.status='ตัดสต็อกแล้ว';syncOpen(q);logAudit('quote',q,'deduct','ตัดสต็อก '+c.lines.length+' รายการ · ใบตัดสต็อก '+c.no);}
-  logAudit('stockcut',c,'cut','ตัดสต็อก '+c.lines.length+' รายการ'+(q?' · ใบเสนอราคา '+q.no:' · '+CH[c.channel])+(c.pay?' · '+payLabel(c.pay):''));
+  logAudit('stockcut',c,'cut','ตัดสต็อก '+c.lines.length+' รายการ'+(q?' · ใบเสนอราคา '+q.no:' · '+CH[c.channel])+(c.pay?' · '+payLabel(c.pay):'')+(c.noVatReason?' · ไม่คิด VAT: '+c.noVatReason:''));
   if(window.PKG_SALE&&PKG_SALE.on())PKG_SALE.onCreate(c,S,opts);   /* sale-flow.js: ledger record + first payment / credit; paid and pay become derived */
   save();refresh();
   return c;
@@ -584,7 +585,7 @@
   if(S.items.length&&!S.quoteId){toast('เอกสารนี้มีรายการอยู่แล้ว — กด “+ สร้างข้อมูลใหม่” ก่อนดึงใบเสนอราคา');return;}
   if(!isApproved(q)||q.cancelled||q.superseded)return toast('ใบเสนอราคา '+q.no+' ยังดึงไม่ได้ (ต้องอนุมัติแล้ว ยังไม่ยกเลิก)');
   const c=activeCut(q);if(c)return toast('ใบเสนอราคา '+q.no+' ตัดสต็อกแล้ว — ใบตัดสต็อก '+c.no);
-  Object.assign(S,{quoteId:q.id,quoteNo:q.no,channel:'repair',custId:q.custId,vehIdx:q.vehIdx,items:qItemsClean(q),disc:n(q.disc),vat:n(q.vat),tier:q.tier||'B',ref:q.no});
+  Object.assign(S,{quoteId:q.id,quoteNo:q.no,channel:'repair',custId:q.custId,vehIdx:q.vehIdx,items:qItemsClean(q),disc:n(q.disc),vat:n(q.vat),noVatReason:q.noVatReason,tier:q.tier||'B',ref:q.no});
   paint();toast('ดึงรายการจากใบเสนอราคา '+q.no+' แล้ว — รายการล็อกตามใบเสนอราคา');
  }
  /* extra HTML inside the "รายการ" cell of a sale line, after the product name. Any module may set
@@ -663,7 +664,7 @@
   if(e.target.id==='saChannel')S.channel=e.target.value;
   if(e.target.id==='saVeh')S.vehIdx=+e.target.value;
   if(e.target.id==='saWh')S.wh=e.target.value;
-  if(e.target.id==='saVat'){S.vat=n(e.target.value);recalc();}
+  if(e.target.id==='saVat')vatPick(e.target,S,v=>{S.vat=v;recalc();});   /* DriveGo new system (task 3.3, R4-ข) */
   if(e.target.id==='saTier'){S.tier=e.target.value;S.items.forEach(it=>{if(it.type==='part'&&it.stockId){const s=DB.stock.find(x=>x.id===it.stockId);if(s)it.price=priceByTier(s,S.tier);}});paint();}
   if(e.target.classList.contains('saQty')||e.target.classList.contains('saPrice'))paint();
  });
@@ -674,7 +675,7 @@
   if(a==='up'||a==='down'){const sc=M;sc.scrollTo?sc.scrollTo({top:a==='up'?0:sc.scrollHeight,behavior:'smooth'}):(sc.scrollTop=a==='up'?0:sc.scrollHeight);return;}
   if(a==='copy'&&W.cur){const c=W.cur;
    if(c.quoteId)return toast('ใบนี้มาจากใบเสนอราคา '+(c.quoteNo||'')+' — คัดลอกไม่ได้ (1 ใบเสนอราคา : 1 ใบตัดสต็อก) · แก้ไขที่ใบเสนอราคาด้วย “ฉบับแก้ไข”');
-   openNew();if(!W.S)return;Object.assign(W.S,{custId:c.custId,vehIdx:c.vehIdx,channel:c.channel||'retail',tier:c.tier||'B',items:plainItems(c.items),disc:n(c.disc),vat:n(c.vat),note:'',remark:'',ref:c.no});
+   openNew();if(!W.S)return;Object.assign(W.S,{custId:c.custId,vehIdx:c.vehIdx,channel:c.channel||'retail',tier:c.tier||'B',items:plainItems(c.items),disc:n(c.disc),vat:n(c.vat),noVatReason:c.noVatReason,note:'',remark:'',ref:c.no});
    paint();return toast('คัดลอกจาก '+c.no+' แล้ว — ตรวจรายการแล้วกดชำระเงิน');}
   if(a==='waiting')return openPick();
   if(a==='new')return openNew();

@@ -63,7 +63,8 @@
   if(!r||(!r.pkgSale&&!(r.adj&&r.adj.length)))return t;                 /* every legacy receipt: the original object, untouched */
   if(r.adj&&r.adj.length){
    let g=0;for(const a of r.adj){const v=n(a&&a.amt);if(v>0)g+=a.type==='down'?-v:v;}
-   if(g){const k=n(r.vat)>0?g/(1+n(r.vat)/100):g;t.adjGross=g;t.adjBase=k;t.base+=k;t.gross+=g;t.vat=t.gross-t.base;}
+   /* DriveGo new system (task 3.3, R4): the base and the VAT stay in satang */
+   if(g){const k=n(r.vat)>0?g/(1+n(r.vat)/100):g;t.adjGross=g;t.adjBase=k;t.base=round2(t.base+k);t.gross=round2(t.gross+g);t.vat=round2(t.gross-t.base);}
   }
   if(r.pkgSale){
    const e=r.whtExp||{},b=e.base==='all'?t.base:Math.min(n(t.labor),t.base);

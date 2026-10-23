@@ -126,6 +126,18 @@
       "by": "S133-load-36-month-test-data-counters-kept.spec.ts",
       "decision": "A7, F1 (task 3.2)",
       "why": "The shop's 8 document counters stay through the wipe and the 36 months of test data (3,266 counters instead of 3,258); wiping and loading ask for the shop's name, keep a copy first and write the audit log; every step, the screen and every other record count is checked against S76's goldens."
+    },
+    {
+      "scenario": "S14-issue-tax-invoice.spec.ts",
+      "by": "S135-tax-invoice-dated-on-sale-keeps-amounts.spec.ts",
+      "decision": "R4, R5-ก (task 3.3)",
+      "why": "A tax invoice is dated on the day of the sale (the day the sales tax report files it under) instead of the day it is issued, and keeps its own amounts (rate, base, VAT, total) and the day it was made; the register lists it among the invoices made today with that day under the sale date. Every step, message, the form and the rest of the data change are checked against S14's goldens."
+    },
+    {
+      "scenario": "S62-cancel-tax-invoice.spec.ts",
+      "by": "S136-cancel-tax-invoice-only-and-reissue.spec.ts",
+      "decision": "R6-ก (task 3.3)",
+      "why": "Cancelling a tax invoice cancels only the tax invoice: the bill, its payments and the stock stay as they are, and a new tax invoice can be issued in its place, dated on the day of the sale and recording which one it replaces; the sales tax report lists the new one. The steps up to the cancellation are checked against S62's goldens."
     }
   ],
   "added": [
@@ -168,6 +180,16 @@
       "scenario": "S134-wipe-needs-shop-name-copy-kept-and-restorable.spec.ts",
       "decision": "F1 (task 3.2)",
       "why": "Wiping the data needs the shop's exact name; cancelling changes nothing; the copy kept before the wipe is listed with the backup points, restores the data, and cannot be removed through the API; the audit log records the wipe and the restore."
+    },
+    {
+      "scenario": "S137-no-vat-needs-right-and-reason.spec.ts",
+      "decision": "R4-ข (task 3.3)",
+      "why": "In a VAT-registered shop, leaving VAT off a sale takes the right to the shop's tax settings and a reason; the document keeps the reason and the audit log records it; an account without that right is refused and the rate stays."
+    },
+    {
+      "scenario": "S138-vat-rounded-to-satang-per-document.spec.ts",
+      "decision": "R4 (task 3.3)",
+      "why": "The VAT of a document is rounded once to the satang on the document's total, halves going up (7% of 1,234.50 is 86.42, not 86.415 shown as 86.41), the total is the base plus that VAT, and the sales tax report lists the same amounts."
     }
   ]
 }

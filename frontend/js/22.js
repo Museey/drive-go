@@ -197,7 +197,7 @@
    return;
   }
   const r=DB.receipts.find(x=>x.id===d.id);if(!r||r.cancelled||hasTax(r))return toast('เอกสารนี้ออกใบกำกับภาษีไม่ได้แล้ว — เลือกใหม่');
-  r.issueTax=true;ensureDocNo(r,'taxDocs','taxNo','RT');if(typeof syncTaxLegacy==='function')syncTaxLegacy(r);
+  r.issueTax=true;ensureDocNo(r,'taxDocs','taxNo','RT');stampTaxDoc(r);if(typeof syncTaxLegacy==='function')syncTaxLegacy(r);
   const sf=SF(),cutNo=sf&&r.pkgSale?d.no:'';
   logAudit('receipt',r,'save','ออกใบกำกับภาษี '+r.taxNo+(cutNo?' ของใบตัดสต็อก '+cutNo:'')+' (หน้า '+(sf?'4.6':'4.3')+')');save();
   T.done={rid:r.id,no:r.taxNo,doc:d,src:cutNo?'ออกจากใบตัดสต็อก · '+cutNo:'ออกจาก'+(T.src==='repair'?(sf?'เอกสารเดิม':'งานซ่อม'):'ขายอะไหล่')+' · '+r.no};

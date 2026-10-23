@@ -150,6 +150,10 @@ async function save(localOnly){
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const n=v=>{const x=parseFloat(v);return isNaN(x)?0:x};
+/* DriveGo new system (task 3.3, decision R4): the VAT of each document is an amount in satang, rounded once on the
+   document's total, halves away from zero (the legacy app kept it unrounded and rounded only when showing it) */
+const round2=v=>{const x=n(v);return Math.sign(x)*Math.round(Number((Math.abs(x)*100).toPrecision(12)))/100;};
+const vatOf=(base,rate)=>round2(n(base)*n(rate)/100);
 const money=v=>n(v).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
 const money0=v=>Math.round(n(v)).toLocaleString('th-TH');
 /* จำนวน/ปริมาณ: แสดงไม่เกิน 2 ตำแหน่ง กันเศษทศนิยมยาวจากการคำนวณ */
@@ -264,15 +268,16 @@ function askConfirm(o){
   const nbEl=$('#askNo'); if(nbEl) nbEl.style.display=o.noHide?'none':'';
   const inp=$('#askInput');
   if(inp){ inp.style.display=o.input?'block':'none'; inp.value=o.value||''; inp.placeholder=o.placeholder||''; }
-  /* DriveGo new system (task 3.2, decision F1): o.match — the yes button works only once the box holds exactly that text */
-  const yb=$('#askYes'); if(yb) yb.disabled=!!o.match;
-  if(inp) inp.oninput=o.match?()=>{ if(yb) yb.disabled=inp.value.trim()!==o.match; }:null;
+  /* DriveGo new system (task 3.2, decision F1): o.match — the yes button works only once the box holds exactly that text;
+     (task 3.3, decision R4-ข) o.required — only once the box holds some text */
+  const yb=$('#askYes'), held=o.match||o.required; if(yb) yb.disabled=!!held;
+  if(inp) inp.oninput=held?()=>{ if(yb) yb.disabled=o.match?inp.value.trim()!==o.match:!inp.value.trim(); }:null;
   askCb=o.onYes||null; askCbNo=o.onNo||null;
   openModal('mAsk');
   if(o.input&&inp) setTimeout(()=>inp.focus(),80);
 }
 function askClose(ok){
-  if(ok&&$('#askYes').disabled) return;   /* Enter in the box of a popup that needs o.match */
+  if(ok&&$('#askYes').disabled) return;   /* Enter in the box of a popup that needs o.match / o.required */
   closeModal('mAsk');
   const cb=askCb, nb=askCbNo; askCb=null; askCbNo=null;
   if(ok){ if(typeof cb==='function') cb(); }
@@ -316,6 +321,18 @@ function ensureDocNo(r,historyField,noField,prefix){
   }
   return r[noField];
 }
+/* DriveGo new system (task 3.3, decisions R4, R5, R6-ก): a tax invoice keeps its own amounts from the moment it is
+   issued, is dated on the day of the sale (the day the sales tax report files it under; `issued` is the day it was
+   made), and one issued in place of a cancelled one records its number (`replaces`, as the legacy app's own reissue does) */
+function stampTaxDoc(r){
+  const docs=r.taxDocs||[], cur=docs[docs.length-1], prev=docs[docs.length-2];
+  if(!cur||cur.cancelled||cur.base!==undefined) return;
+  const t=receiptTotals(r);
+  cur.issued=cur.date; cur.date=r.date||cur.date; cur.rate=n(r.vat); cur.base=round2(t.base); cur.vat=round2(t.vat); cur.gross=round2(t.gross);
+  if(prev&&prev.cancelled) cur.replaces=prev.no;
+}
+/* what the sales tax report files a sale under: its valid tax invoice's own amounts, else the bill's */
+function saleTaxOf(r){ const d=(r.taxDocs||[]).slice(-1)[0]; return d&&!d.cancelled&&d.base!==undefined?{base:d.base,vat:d.vat}:receiptTotals(r); }
 async function toggleDocCancel(r,historyField,noField,legacyKind,label){
   r[historyField]=r[historyField]||[];
   const cur=r[historyField].length?r[historyField][r[historyField].length-1]:null;
@@ -450,7 +467,7 @@ function go(v){
    ========================================================== */
 function quoteTotals(q){
   const sub=(q.items||[]).reduce((a,it)=>a+n(it.qty)*n(it.price),0);
-  const base=Math.max(0,sub-n(q.disc)), vat=base*n(q.vat)/100;
+  const base=Math.max(0,sub-n(q.disc)), vat=vatOf(base,q.vat);
   return {sub,disc:n(q.disc),base,vat,total:base+vat,
     labor:(q.items||[]).filter(i=>i.type==='labor').reduce((a,it)=>a+n(it.qty)*n(it.price),0)};
 }
@@ -467,7 +484,7 @@ function cardFee(r,net){
 }
 function receiptTotals(r){
   const sub=(r.items||[]).reduce((a,it)=>a+n(it.qty)*n(it.price),0);
-  const disc=n(r.disc), base=Math.max(0,sub-disc), vat=base*n(r.vat)/100, gross=base+vat;
+  const disc=n(r.disc), base=Math.max(0,sub-disc), vat=vatOf(base,r.vat), gross=base+vat;
   const labor=(r.items||[]).filter(i=>i.type==='labor').reduce((a,it)=>a+n(it.qty)*n(it.price),0);
   const whtBaseAmt=r.whtBase==='labor'?labor:base, whtAmt=whtBaseAmt*n(r.wht)/100;
   const net=gross-whtAmt, fee=cardFee(r,net), cardBase=cardBaseAmt(r,net);
@@ -486,7 +503,7 @@ function grDiscFactor(g){
 function grUnitCost(g,it){ return Math.round(n(it.cost)*grDiscFactor(g)*100)/100; }
 function grTotals(g){
   const sub=(g.items||[]).reduce((a,it)=>a+n(it.qty)*n(it.cost),0);
-  const base=Math.max(0,sub-n(g.disc)), vat=base*n(g.vat)/100;
+  const base=Math.max(0,sub-n(g.disc)), vat=vatOf(base,g.vat);
   return {sub,disc:n(g.disc),base,vat,total:base+vat};
 }
 /* ใบเสร็จที่ถูกยกเลิกไม่นับ — ใบเสนอราคานั้นต้องกลับมาออกใบเสร็จใหม่ได้ */
@@ -2904,7 +2921,7 @@ $('#qTier').onchange=()=>{ if(pkgQLock(Q)) return toast(pkgQLockMsg(Q));
   Q.items.forEach(it=>{if(it.type==='part'&&it.stockId){const s=DB.stock.find(x=>x.id===it.stockId); if(s)it.price=priceByTier(s,Q.tier);}});
   renderQItems();};
 $('#qDisc').oninput=()=>{Q.disc=n($('#qDisc').value);calcQuote()};
-$('#qVat').onchange=()=>{Q.vat=n($('#qVat').value);calcQuote()};
+$('#qVat').onchange=()=>vatPick($('#qVat'),Q,v=>{Q.vat=v;calcQuote()});
 const QMIN_LINES=0;
 function blankQLine(type){ return {type:type||'part',code:'',oem:'',name:type==='labor'?'ค่าแรง':'',qty:1,price:0,stockId:'',warr:''}; }
 function qFilled(it){ return !!(it&&(String(it.code||'').trim()||String(it.name||'').trim()||n(it.price))); }
@@ -2972,10 +2989,10 @@ function saveQuote(){
   delete Q.previewNo;
   if(pkgQLock(Q)){ const orig=DB.quotes.find(x=>x.id===Q.id);
     if(orig) Q.items=JSON.parse(JSON.stringify(orig.items)); }
-  const i=DB.quotes.findIndex(x=>x.id===Q.id);
-  stampRec(Q,i>=0?DB.quotes[i]:null);
+  const i=DB.quotes.findIndex(x=>x.id===Q.id), was=i>=0?DB.quotes[i]:null;
+  stampRec(Q,was);
   if(i>=0) DB.quotes[i]=cleanQuote(Q); else DB.quotes.push(cleanQuote(Q));
-  logAudit('quote',Q,'save','ยอดรวม '+money(quoteTotals(Q).total)+' บาท'+(Q.copiedFrom?' · คัดลอกจาก '+Q.copiedFrom:''));
+  logAudit('quote',Q,'save','ยอดรวม '+money(quoteTotals(Q).total)+' บาท'+(Q.copiedFrom?' · คัดลอกจาก '+Q.copiedFrom:'')+noVatNote(Q,was));
   save(); refreshQuoteRefs(); refreshReceiptRefs();
   $('#qNo').textContent='เลขที่ '+Q.no+' · '+Q.status; renderQPrev();
   pkgSyncQuoteCopy();if(typeof pkgQuoteMarkSaved==="function")pkgQuoteMarkSaved();
@@ -3080,7 +3097,11 @@ function renderBrand(){
       ฟังก์ชันชุดนี้จึงคุมแค่ "เอกสารที่กำลังจะบันทึกใหม่" ไม่ย้อนไปแตะของเก่า
    ========================================================== */
 function isVatReg(){ return DB.shop.vatReg!==false; }
-function vatDefault(){ return isVatReg()?7:0; }
+/* DriveGo new system (task 3.3, decision R4): the VAT rate in one table, by the day it takes effect (a row is added when
+   the rate changes); a document keeps the rate it was made with (its own `vat`) */
+const VAT_RATES=[{from:'',rate:7}];
+function vatRateOn(d){ const day=String(d||iso()).slice(0,10); return VAT_RATES.reduce((a,x)=>x.from<=day&&x.from>=a.from?x:a,{from:'',rate:0}).rate; }
+function vatDefault(){ return isVatReg()?vatRateOn(iso()):0; }
 /* เคยออกใบกำกับภาษี / มีภาษีซื้อบันทึกไว้หรือยัง — ใช้ตัดสินว่าจะยังให้เข้าดูย้อนหลังได้ไหม */
 function hasVatHistory(){
   return (DB.receipts||[]).some(r=>r.taxNo)
@@ -3095,6 +3116,23 @@ function vatGuard(doc,label){
   toast('กิจการยังไม่ได้จดทะเบียนภาษีมูลค่าเพิ่ม — ระบบปรับ VAT ใน'+(label||'เอกสาร')+'เป็น 0 ให้แล้ว');
   return true;
 }
+/* DriveGo new system (task 3.3, decision R4-ข): in a VAT-registered shop, leaving VAT off a sales document takes the
+   right to the shop's tax settings and a reason, which the document keeps (noVatReason) and the audit log records when
+   it is saved. sel: the VAT box that changed; doc: the document in the form; apply(rate): what the box did before. */
+async function askNoVat(){
+  if(!can('doc.orgEdit')){ toast('บัญชีนี้ไม่มีสิทธิ์เลือกไม่คิด VAT'); return null; }
+  const why=await askPromptP({title:'ไม่คิด VAT',text:'เหตุผลที่ไม่คิด VAT',yes:'ตกลง',no:'ยกเลิก',required:true});
+  return why===null?null:String(why).trim()||null;
+}
+async function vatPick(sel,doc,apply){
+  const v=n(sel.value);
+  if(v||!isVatReg()||!n(doc.vat)){ if(v) delete doc.noVatReason; return apply(v); }
+  sel.value=String(doc.vat);   /* stays as it was until the reason is in */
+  const why=await askNoVat(); if(why===null) return;
+  doc.noVatReason=why; sel.value='0'; apply(0);
+}
+/* the audit note of a save: the reason, when VAT was left off by this save */
+function noVatNote(doc,was){ return doc.noVatReason&&!n(doc.vat)&&(!was||n(was.vat)||was.noVatReason!==doc.noVatReason)?' · ไม่คิด VAT: '+doc.noVatReason:''; }
 function wmark(){ const s=DB.shop;
   return s.logo?`<div class="wmark"><img src="${s.logo}" style="opacity:${(n(s.logoOp)||7)/100}"></div>`:''; }
 function orgSubName(){ const s=DB.shop;
@@ -3348,7 +3386,8 @@ async function issueTaxFromRegistry(){
 }
 function renderTaxOverview(){
   refreshTaxReceiptPicker();
-  const rows0=DB.receipts.flatMap(r=>(r.taxDocs||[]).map((d,i,arr)=>({r,d,isLatest:i===arr.length-1,date:d.date})));
+  /* the date filter goes by the day an invoice was made (task 3.3: it is dated on the day of the sale) */
+  const rows0=DB.receipts.flatMap(r=>(r.taxDocs||[]).map((d,i,arr)=>({r,d,isLatest:i===arr.length-1,date:d.issued||d.date})));
   $('#taxOvCount').textContent=rows0.length+' ใบ';
   $('#taxOvCancelCount').textContent='ยกเลิก '+rows0.filter(x=>x.d.cancelled).length+' ใบ';
   const q=($('#taxOvSearch').value||'').toLowerCase().trim();
@@ -3358,9 +3397,9 @@ function renderTaxOverview(){
   rows=sortRows('taxOvTbl',rows);   /* ⚠️ ต้องเรียงก่อนตัดแถว */
   rows=limitRows(rows,'taxOv');
   $('#taxOvTbl tbody').innerHTML=rows.map(x=>{
-    const c=findCust(x.r.custId), t=receiptTotals(x.r);
+    const c=findCust(x.r.custId), t=x.d.gross!==undefined?{gross:x.d.gross}:receiptTotals(x.r);
     return `<tr${x.d.cancelled?' class="cancelrow"':''}><td class="mono" style="font-size:12.5px"><span class="docno" onclick="openReceiptById('${x.r.id}')">${esc(x.d.no)}</span></td><td class="mono click" style="font-size:12.5px" onclick="openReceiptById('${x.r.id}')">${esc(x.r.no)}</td>
-      <td class="ctr">${thDate(x.d.date)}</td><td>${esc(custName(c)||'-')}</td>
+      <td class="ctr">${thDate(x.d.date)}${x.d.issued&&x.d.issued!==x.d.date?'<div class="hint">ออก '+thDate(x.d.issued)+'</div>':''}</td><td>${esc(custName(c)||'-')}</td>
       <td class="num">${money(t.gross)}</td>
       <td class="ctr">${x.d.cancelled?'<span class="chip r" title="'+esc(x.d.cancelReason||'')+'">ยกเลิก</span>':'<span class="chip g">ปกติ</span>'}</td>
       ${byCell(x.r)}
@@ -3398,20 +3437,17 @@ async function toggleTaxCancel(id){
   const cur=(r.taxDocs||[]).length?r.taxDocs[r.taxDocs.length-1]:null;
   if(cur&&cur.cancelled) return toast('ใบกำกับภาษี '+cur.no+' ถูกยกเลิกแล้ว คืนสถานะไม่ได้');
   if(r.cancelled) return toast('เอกสาร '+r.no+' ถูกยกเลิกไปแล้ว');
-  if(!await askP({title:'ยกเลิกใบกำกับภาษี '+(cur?cur.no:r.taxNo),yes:'ยกเลิกใบกำกับภาษี',no:'ไม่ยกเลิก',
-    text:'เอกสารต้นทาง '+r.no+' จะถูกยกเลิกไปด้วยโดยอัตโนมัติ\nหากต้องออกใหม่ ต้องเริ่มจากใบเสนอราคาใบใหม่'})) return;
+  /* DriveGo new system (task 3.3, decision R6-ก): only the tax invoice is cancelled (a wrong name or tax ID); the bill,
+     its payments and the stock stay as they are, and a new tax invoice can be issued in its place */
+  const no=cur?cur.no:r.taxNo;
+  if(!await askP({title:'ยกเลิกใบกำกับภาษี '+no,yes:'ยกเลิกใบกำกับภาษี',no:'ไม่ยกเลิก',
+    text:'ยกเลิกเฉพาะใบกำกับภาษี '+no+' บิล การรับเงิน และสต๊อกไม่เปลี่ยน\nออกใบกำกับภาษีใบใหม่แทนได้'})) return;
   if(!await toggleDocCancel(r,'taxDocs','taxNo','tax','ใบกำกับภาษี')) return;
-  syncTaxLegacy(r);
-  /* ใบกำกับภาษีกับเอกสารต้นทางผูกกัน 1:1 ยกเลิกฝั่งไหนต้องยกเลิกอีกฝั่งเสมอ */
-  const inBn=DB.billings.find(b=>!b.cancelled&&(b.receiptIds||[]).includes(r.id));
-  if(inBn) toast('หมายเหตุ: เอกสารนี้อยู่ในใบวางบิล '+inBn.no+' ควรตรวจสอบใบวางบิลด้วย');
-  r.cancelled=true; r.cancelReason='ยกเลิกตามใบกำกับภาษี '+(cur?cur.no:r.taxNo); r.cancelDate=iso();
-  r.paid=false; r.paidDate='';
-  logAudit('receipt',r,'del','ยกเลิกเอกสารตามการยกเลิกใบกำกับภาษี');
+  syncTaxLegacy(r); r.issueTax=false; r.taxNo='';   /* the cancelled number stays in taxDocs */
   save(); renderTaxOverview(); renderDocOverview(); renderHome();
-  if(R&&R.id===id){ R.cancelled=true; R.taxCancelled=r.taxCancelled;
+  if(R&&R.id===id){ R.issueTax=false; R.taxNo=''; R.taxCancelled=r.taxCancelled;
     R.taxCancelReason=r.taxCancelReason; R.taxCancelDate=r.taxCancelDate; fillReceiptForm(); }
-  toast('ยกเลิกใบกำกับภาษีและเอกสาร '+r.no+' แล้ว — ต้องเริ่มจากใบเสนอราคาใบใหม่');
+  toast('ยกเลิกใบกำกับภาษี '+no+' แล้ว — ออกใบกำกับภาษีใบใหม่แทนได้');
 }
 /* พิมพ์ใบกำกับภาษีโดยตรงจากทะเบียน 4.3 (ต้นฉบับ + สำเนา)
    รองรับเลขที่ในประวัติด้วย จึงส่งเลขที่มาระบุ ไม่ยึด r.taxNo ล่าสุดเสมอ */
@@ -3724,7 +3760,7 @@ function refreshReceiptRefs(){
 function loadFromQuote(q){
   R.quoteId=q.id; R.ref=q.no; R.custId=q.custId; R.vehIdx=q.vehIdx;
   R.items=JSON.parse(JSON.stringify(qItemsClean(q))).map(it=>Object.assign({warr:''},it));
-  R.disc=n(q.disc); R.vat=n(q.vat);
+  R.disc=n(q.disc); R.vat=n(q.vat); if(q.noVatReason&&!R.vat) R.noVatReason=q.noVatReason;
   /* มีค่าแรง/ค่าบริการในใบเสนอราคา → ตั้งหักภาษี ณ ที่จ่าย 3% เฉพาะฐานค่าแรงให้อัตโนมัติ
      (calcReceipt อ่านค่าจาก DOM จึงต้องเซ็ตช่องก่อนเรียก) */
   const hasLabor=R.items.some(it=>it.type==='labor'&&n(it.qty)*n(it.price)>0);
@@ -3772,7 +3808,8 @@ async function billFromQuote(id){ const q=findQuote(id); if(!q) return;
   if(!await readyQuoteInline(q)) return;
   logAudit('quote',q,'bill','เปิดใบเสร็จจากเอกสารนี้'); newReceipt(); loadFromQuote(q); $('#rSrc').value=q.id; if(typeof rSrcPicker!=='undefined'&&rSrcPicker) rSrcPicker.sync(); go('receipt'); }
 ['rDate','rDisc','rBy','rNote','pBank','pWhen','rWarr'].forEach(id=>$('#'+id).oninput=calcReceipt);
-['rVat','rWht','rWhtBase'].forEach(id=>$('#'+id).onchange=calcReceipt);
+['rWht','rWhtBase'].forEach(id=>$('#'+id).onchange=calcReceipt);
+$('#rVat').onchange=()=>vatPick($('#rVat'),R,()=>calcReceipt());
 ['pCash','pTrans'].forEach(id=>$('#'+id).onchange=autoPaidSync);
 $('#pCredit').onchange=autoPaidSync;
 /* ══ สถานะ "รับชำระครบแล้ว" คำนวณจากยอดเงินที่กรอกจริง ไม่ให้กดเอง ══
@@ -4006,7 +4043,7 @@ async function saveReceipt(){
     if(Math.abs(netNow-allocated)>=0.01) return toast('ยอดที่แบ่งชำระ (เงินสด+โอน+บัตร+เช็ค) รวม '+money(allocated)+' บาท ไม่เท่ากับยอดสุทธิ '+money(netNow)+' บาท กรุณาแก้ไขให้ครบก่อนบันทึก');
   }
   if(!R.no) R.no=docNo('RE');
-  if(R.issueTax) ensureDocNo(R,'taxDocs','taxNo','RT');
+  if(R.issueTax){ ensureDocNo(R,'taxDocs','taxNo','RT'); stampTaxDoc(R); }
   if(R.paid&&!R.paidDate) R.paidDate=iso();
   if(R.deducted){ const orig=DB.receipts.find(x=>x.id===R.id);
     if(orig) R.items=JSON.parse(JSON.stringify(orig.items)); }
@@ -4019,12 +4056,12 @@ async function saveReceipt(){
     R.deducted=true;
     logAudit('receipt',R,'deduct','ตัดสต๊อกขายหน้าร้าน '+parts.length+' รายการ');
   }
-  const i=DB.receipts.findIndex(x=>x.id===R.id);
-  stampRec(R,i>=0?DB.receipts[i]:null);
+  const i=DB.receipts.findIndex(x=>x.id===R.id), was=i>=0?DB.receipts[i]:null;
+  stampRec(R,was);
   const rc=JSON.parse(JSON.stringify(R)); rc.items=rItemsClean(R);
   if(i>=0) DB.receipts[i]=rc; else DB.receipts.push(rc);
   const q=findQuote(R.quoteId); if(q) q.status='ส่งมอบรถ / ออกใบเสร็จแล้ว';
-  logAudit('receipt',R,'save','รับชำระสุทธิ '+money(receiptTotals(R).net)+' บาท'+(R.taxNo?' · ใบกำกับภาษี '+R.taxNo:''));
+  logAudit('receipt',R,'save','รับชำระสุทธิ '+money(receiptTotals(R).net)+' บาท'+(R.taxNo?' · ใบกำกับภาษี '+R.taxNo:'')+noVatNote(R,was));
   save(); refreshReceiptRefs(); refreshQuoteRefs(); renderStock(); calcReceipt();
   $('#rTaxNo').value=R.taxNo||''; $('#rNo').textContent='เลขที่ '+R.no+(R.taxNo?' · ใบกำกับภาษี '+R.taxNo:'');
   renderRPrev(); renderApvBars(); rFormSig=receiptSig(); syncSaveBtn(); syncReceiptCancelUI(); renderDocOverview();
@@ -6688,7 +6725,7 @@ let acctPane='health';
 function acctY(){ return n($('#acctYear').value)||new Date().getFullYear(); }
 function acctM(){ return $('#acctMonth').value||iso().slice(0,7); }
 function inYear(d,y){ return String(d||'').slice(0,4)===String(y); }
-function expTotals(x){ const base=n(x.base), vat=base*n(x.vat)/100, wht=base*n(x.wht)/100;
+function expTotals(x){ const base=n(x.base), vat=vatOf(base,x.vat), wht=base*n(x.wht)/100;
   return {base,vat,wht,gross:base+vat,net:base+vat-wht}; }
 function cogsOf(r){ if(typeof pkgFifoCogs==='function') return pkgFifoCogs(r); return (r.items||[]).filter(i=>i.type!=='labor').reduce((a,i)=>{
   const st=DB.stock.find(x=>x.id===i.stockId)||DB.stock.find(x=>x.code===i.code);
@@ -7577,7 +7614,7 @@ function renderTaxSaleRows(all){
   const slice=all?rows:rows.slice(from,from+per);
   $('#taxSaleTag').textContent=rows.length+' ฉบับ · ภาษีขาย '+money(TAXSALE_VAT)
     +(!all&&pages>1?' · หน้า '+TAXSALE_PAGE+'/'+pages:'');
-  $('#taxSaleTbl tbody').innerHTML=slice.map((r,i)=>{const c=findCust(r.custId), t=receiptTotals(r);
+  $('#taxSaleTbl tbody').innerHTML=slice.map((r,i)=>{const c=findCust(r.custId), t=saleTaxOf(r);
     return `<tr><td class="ctr">${from+i+1}</td><td class="ctr">${thDate(r.date)}</td>
       <td class="mono" style="font-size:12px">${esc(r.taxNo||r.no)}</td><td>${esc(custName(c)||'-')}</td>
       <td class="mono" style="font-size:12px">${esc((c&&c.tax)||'-')}</td>
@@ -7619,12 +7656,12 @@ function renderTax(){
   const pu=DB.purchases.filter(p=>ym(p.date)===mo&&n(p.vat)>0&&!p.cancelled);
   const ex=DB.expenses.filter(x=>ym(x.date)===mo&&n(x.vat)>0);
   const asx=DB.assets.filter(a=>ym(a.date)===mo&&n(a.vat)>0);
-  const saleBase=rc.reduce((a,r)=>a+receiptTotals(r).base,0), saleVat=rc.reduce((a,r)=>a+receiptTotals(r).vat,0);
+  const saleBase=rc.reduce((a,r)=>a+saleTaxOf(r).base,0), saleVat=rc.reduce((a,r)=>a+saleTaxOf(r).vat,0);
   /* inv = เลขที่ใบกำกับภาษีของผู้ขาย (ไม่ใช่เลขที่เอกสารของเรา) — เก็บดิบไว้ตรวจว่าครบไหม
      ขอคืนภาษีซื้อได้ต่อเมื่อมีใบกำกับตัวจริง จึงต้องเตือนถ้าช่องนี้ว่าง */
   const buyRows=[...pu.map(p=>({date:p.date,no:p.inv||p.no,inv:p.inv||'',ref:p.no||'',src:'ใบรับสินค้า',srcGo:'buy',name:(findVen(p.vendorId)||{}).name||'-',tax:(findVen(p.vendorId)||{}).tax||'',base:grTotals(p).base,vat:grTotals(p).vat})),
     ...ex.map(x=>({date:x.date,no:x.inv||x.no,inv:x.inv||'',ref:x.no||'',src:'ค่าใช้จ่ายกิจการ',srcGo:'acct',name:x.payee||x.desc,tax:x.tax,base:expTotals(x).base,vat:expTotals(x).vat})),
-    ...asx.map(a=>({date:a.date,no:a.inv||a.no,inv:a.inv||'',ref:a.no||'',src:'ทะเบียนสินทรัพย์',srcGo:'acct',name:a.vendor||a.name,tax:'',base:n(a.cost),vat:n(a.cost)*n(a.vat)/100}))]
+    ...asx.map(a=>({date:a.date,no:a.inv||a.no,inv:a.inv||'',ref:a.no||'',src:'ทะเบียนสินทรัพย์',srcGo:'acct',name:a.vendor||a.name,tax:'',base:n(a.cost),vat:vatOf(a.cost,a.vat)}))]
     .sort((a,b)=>a.date.localeCompare(b.date));
   const buyBase=buyRows.reduce((a,r)=>a+r.base,0), buyVat=buyRows.reduce((a,r)=>a+r.vat,0);
   const whtOutRows=DB.expenses.filter(x=>ym(x.date)===mo&&n(x.wht)>0);
