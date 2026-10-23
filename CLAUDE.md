@@ -4,7 +4,8 @@
 
 - แผนทั้งหมด: [docs/PLAN.md](docs/PLAN.md)
 - ข้อค้นพบและข้อตัดสินใจ: [docs/NOTES.md](docs/NOTES.md)
-- **เฟสปัจจุบัน: เฟส 2 (หลังบ้านและฐานข้อมูล)** งานย่อยอยู่ใน PLAN.md, แบบที่อนุมัติแล้วอยู่ใน [docs/PHASE2-DESIGN.md](docs/PHASE2-DESIGN.md)
+- **เฟสปัจจุบัน: เฟส 3 (ย้าย logic สำคัญไปทำที่ server)** งานย่อยอยู่ใน PLAN.md, คำตอบของเจ้าของโปรเจกต์อยู่ใน [docs/PHASE3-QUESTIONS.md](docs/PHASE3-QUESTIONS.md)
+  (เฟส 2 เสร็จแล้ว ยกเว้น T12 server ทดสอบที่รอเลือกผู้ให้บริการ แบบของเฟส 2 อยู่ใน [docs/PHASE2-DESIGN.md](docs/PHASE2-DESIGN.md))
 
 ## โครงสร้าง
 
