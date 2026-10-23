@@ -8,7 +8,7 @@ import type { Locator, Page, TestInfo } from '@playwright/test';
 import { getComparator } from 'playwright-core/lib/utils';
 import { PNG } from 'playwright-core/lib/utilsBundle';
 import { expect } from './test';
-import { formatDiff, stateDiff } from './state-diff.mjs';
+import { formatDiff, stateCounts, stateDiff } from './state-diff.mjs';
 
 const compare = getComparator('image/png');
 const golden = (scenario: string, file: string) => new URL(`../golden/${scenario}/${file}`, import.meta.url);
@@ -104,6 +104,13 @@ export function legacyGolden(scenario: string, { app, page, testInfo }: { app: A
     skip: steps.skip,
     done: steps.done,
     screen: (name: string, opts?: { mask?: Locator[] }) => sameScreen(page, app, testInfo, scenario, name, opts),
+    // Record counts after an action that replaces the whole data set, as
+    // golden.counts() takes them; `more`: counts the new system has on purpose.
+    async counts(name: string, more: Record<string, unknown> = {}) {
+      await app.settle();
+      const expected = { ...JSON.parse(readFileSync(golden(scenario, `${name}-counts.json`), 'utf8')), ...more };
+      expect(formatDiff(stateCounts(await app.state())), `record counts ${name}`).toBe(formatDiff(expected));
+    },
     async stateChange(name: string, before: object, more: Record<string, unknown> = {}) {
       await app.settle();
       const actual = formatDiff(stateDiff(before, await app.state())), expected = legacyStateChange(scenario, name, numbers);

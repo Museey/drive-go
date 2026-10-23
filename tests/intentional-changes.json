@@ -114,6 +114,18 @@
       "by": "S130-prox-online-accept-chain-bookings-standard-number.spec.ts",
       "decision": "3.2 (R1, A7)",
       "why": "Quotations opened from the chain's bookings take the next numbers of the shop's quotation counter (MA-QT261000005, -06) instead of QO.69-10-13-01, -02; everything else is checked against S123's goldens with those numbers, and the counter moves."
+    },
+    {
+      "scenario": "S75-export-file-load-sample-import.spec.ts",
+      "by": "S132-export-file-load-sample-import-counters-kept.spec.ts",
+      "decision": "A7, F1 (task 3.2)",
+      "why": "Wiping the data and loading the sample data keep the shop's 8 document counters (S75 had none left); every step, message, screen and other record count is checked against S75's goldens, and importing the exported file brings back the same counters."
+    },
+    {
+      "scenario": "S76-load-36-month-test-data.spec.ts",
+      "by": "S133-load-36-month-test-data-counters-kept.spec.ts",
+      "decision": "A7, F1 (task 3.2)",
+      "why": "The shop's 8 document counters stay through the wipe and the 36 months of test data (3,266 counters instead of 3,258); every step, the screen and every other record count is checked against S76's goldens."
     }
   ],
   "added": [
