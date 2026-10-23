@@ -98,8 +98,14 @@ export function legacyApp(page, { dataset = 'biz-trial', url = LEGACY_URL, resto
       }
     },
 
-    // Lets deferred renders and saves finish before the next step.
-    settle() {
+    // Lets deferred renders and saves finish before the next step. In the new
+    // system a save waits for the server, and the app's code after it (a
+    // redraw, a message) runs once the answer is in; the legacy app's own
+    // storage answered at once. A save the server refused never ends (the app
+    // asks to reload), hence the time limit.
+    async settle() {
+      await page.evaluate(() => window.storage?.idle &&
+        Promise.race([window.storage.idle(), new Promise(resolve => setTimeout(resolve, 15_000))])).catch(() => {});
       return waitForStableState(page, { quietMs: 800 });
     },
 

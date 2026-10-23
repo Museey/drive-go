@@ -43,6 +43,10 @@ test('S65 บันทึกการซื้อสินทรัพย์ถ�
   await page.getByRole('button', { name: 'ดูทะเบียนและค่าเสื่อมราคา' }).click();
   // ตารางทะเบียนแบ่งเป็นสองส่วน (คอลัมน์ซ้ายตรึงไว้) จึงพบแถวเดียวกันสองครั้ง
   const reg = page.getByRole('row').filter({ hasText: 'เครื่องปรับอากาศห้องรับรองลูกค้า 18,000 BTU' }).filter({ visible: true }).first();
+  // The register sizes its columns (and so its row heights) a moment after
+  // drawing: scroll once that is done, or the row lands somewhere else.
+  await reg.waitFor();
+  await app.layoutStable();
   await reg.scrollIntoViewIfNeeded();
   await golden.step('ทะเบียนสินทรัพย์และค่าเสื่อมราคา');
   await golden.screen('asset-register');
