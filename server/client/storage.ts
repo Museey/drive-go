@@ -32,7 +32,7 @@ const MESSAGES = {   // decision Q5
   signedOut: 'หมดเวลาการเข้าระบบ กรุณาเข้าสู่ระบบใหม่',
   notAllowed: 'บันทึกไม่สำเร็จ — บัญชีนี้ไม่มีสิทธิ์แก้ข้อมูลส่วนนี้ กดตกลงเพื่อโหลดข้อมูลล่าสุด',   // task T10, owner 2026-10-19
   lockedOut: 'กรอกรหัสผิดหลายครั้ง กรุณารอ 15 นาทีแล้วลองใหม่',
-  // task 3.2, decision R1-ก: the number a document got when the one it showed was taken
+  // task 3.2, decision R1-ก, owner 2026-10-23: the number a document got when the one it showed was taken
   renumbered: (r: Renumbered) => `บันทึกแล้ว เอกสารได้เลขที่ ${r.map(x => x[1]).join(', ')} เพราะเลขที่ ${r.map(x => x[0]).join(', ')} ถูกใช้ไปแล้ว`,
 };
 
