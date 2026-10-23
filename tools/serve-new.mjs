@@ -35,12 +35,19 @@ export async function startNewSystem({ port = PORT, build = true, dev = false, q
   const ownerUrl = pg ? pg.url : process.env.MIGRATE_DATABASE_URL || null;
   if (ownerUrl) await migrate(ownerUrl);
   const appUrl = process.env.DATABASE_URL || pg.url.replace('//drivego@', '//drivego_app@');
+  // Quiet runs keep the last of Next.js's output, to say why it did not start.
   const next = spawn(process.execPath, [nextBin, dev ? 'dev' : 'start', '-p', String(port), '-H', '127.0.0.1'],
-    { cwd: serverDir, env: { ...process.env, DATABASE_URL: appUrl }, stdio: quiet ? 'ignore' : 'inherit' });
+    { cwd: serverDir, env: { ...process.env, DATABASE_URL: appUrl }, stdio: quiet ? ['ignore', 'pipe', 'pipe'] : 'inherit' });
+  let said = '';
+  for (const out of [next.stdout, next.stderr]) out?.on('data', d => { said = (said + d).slice(-4000); });
   const exited = new Promise(r => next.once('exit', r));
   for (let i = 0; ; i++) {
-    try { if ((await fetch(`http://127.0.0.1:${port}/api/health`)).ok) break; } catch {}
-    if (next.exitCode !== null || i > 600) { next.kill('SIGTERM'); if (pg) await pg.stop(); throw new Error('the new system did not start'); }
+    try { if ((await fetch(`http://127.0.0.1:${port}/api/health`, { signal: AbortSignal.timeout(2000) })).ok) break; } catch {}
+    if (next.exitCode !== null || i > 600) {
+      next.kill('SIGTERM'); if (pg) await pg.stop();
+      throw new Error(`the new system did not start on port ${port} (${next.exitCode !== null ? `exit code ${next.exitCode}` : 'no answer in 60 s'})` +
+        (said ? `; Next.js said:\n${said}` : ''));
+    }
     await new Promise(r => setTimeout(r, 100));
   }
   let stopping;
