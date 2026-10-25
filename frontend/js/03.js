@@ -3117,10 +3117,11 @@ function vatGuard(doc,label){
   return true;
 }
 /* DriveGo new system (task 3.3, decision R4-ข): in a VAT-registered shop, leaving VAT off a sales document takes the
-   right to the shop's tax settings and a reason, which the document keeps (noVatReason) and the audit log records when
-   it is saved. sel: the VAT box that changed; doc: the document in the form; apply(rate): what the box did before. */
+   right "เลือกไม่คิด VAT (ต้องใส่เหตุผล)" (doc.noVat, 14.js) and a reason, which the document keeps (noVatReason) and the
+   audit log records when it is saved. sel: the VAT box that changed; doc: the document in the form; apply(rate): what
+   the box did before. */
 async function askNoVat(){
-  if(!can('doc.orgEdit')){ toast('บัญชีนี้ไม่มีสิทธิ์เลือกไม่คิด VAT'); return null; }
+  if(!can('doc.noVat')){ toast('บัญชีนี้ไม่มีสิทธิ์เลือกไม่คิด VAT'); return null; }
   const why=await askPromptP({title:'ไม่คิด VAT',text:'เหตุผลที่ไม่คิด VAT',yes:'ตกลง',no:'ยกเลิก',required:true});
   return why===null?null:String(why).trim()||null;
 }

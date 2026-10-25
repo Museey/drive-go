@@ -138,6 +138,18 @@
       "by": "S136-cancel-tax-invoice-only-and-reissue.spec.ts",
       "decision": "R6-ก (task 3.3)",
       "why": "Cancelling a tax invoice cancels only the tax invoice: the bill, its payments and the stock stay as they are, and a new tax invoice can be issued in its place, dated on the day of the sale and recording which one it replaces; the sales tax report lists the new one. The steps up to the cancellation are checked against S62's goldens."
+    },
+    {
+      "scenario": "S44-add-employee-tech-preset.spec.ts",
+      "by": "S139-add-employee-tech-preset-tax-rights.spec.ts",
+      "decision": "T3, T10, T12 (task 3.3)",
+      "why": "The staff form has three new rights under การเงิน (เลือกไม่คิด VAT (ต้องใส่เหตุผล), ปิดงวดภาษี, ออกใบลดหนี้), off in the mechanic set, so the new employee's record holds them (off) and the audit line counts 15/68 rights instead of 15/65; every step, message, screen and the rest of the data change are S44's."
+    },
+    {
+      "scenario": "S59-delete-employee.spec.ts",
+      "by": "S140-delete-employee-tax-rights.spec.ts",
+      "decision": "T3, T10, T12 (task 3.3)",
+      "why": "An employee added now holds the three new tax rights (off): the staff list shows her rights as 10/68 instead of 10/65 (that cell is masked and checked) and the record the delete removes has them; every step, message, the rest of each screen and the rest of the data changes are S59's."
     }
   ],
   "added": [

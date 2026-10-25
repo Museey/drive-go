@@ -9,11 +9,15 @@
 (()=>{
  if(typeof PERM_DOC==='undefined'||typeof permBoxes!=='function')return;
  if(!PERM_DOC.some(([k])=>k==='discount'))PERM_DOC.push(['discount','ให้ส่วนลดในเอกสาร (ใบเสนอราคา · ใบเสร็จ · ขายหน้าร้าน)']);
+ /* DriveGo new system (task 3.3, decisions R4-ข, T3, T10, T12): three tax rights under "การเงิน", which no staff member has
+    until the owner ticks them (existing staff get nothing, the manager set leaves them off) */
+ const TAX=[['noVat','เลือกไม่คิด VAT (ต้องใส่เหตุผล)'],['taxClose','ปิดงวดภาษี'],['creditNote','ออกใบลดหนี้']];
+ TAX.forEach(r=>{if(!PERM_DOC.some(([k])=>k===r[0]))PERM_DOC.push(r);});
  /* staff who exist already could give discounts: keep that */
  (DB.emp||[]).forEach(e=>{if(e.perms&&e.perms.doc&&e.perms.doc.discount===undefined)e.perms.doc.discount=true;});
  const ALWAYS=['code','oem','name','cat','qty','minmax','lastmove','loc','card','img'];
  const COST=[['stock','cost'],['stock','summary'],['doc','homeMoney']];
- const FIN=[['payRec','รับชำระจากลูกหนี้'],['payGr','จ่ายเงินเจ้าหนี้'],['fin','ดูสรุปการเงิน ภาษี และเงินเดือน'],['acctEdit','บันทึกค่าใช้จ่าย สินทรัพย์ และเงินลงทุน'],['coa','จัดการผังบัญชีและการผูกบัญชี']];
+ const FIN=[['payRec','รับชำระจากลูกหนี้'],['payGr','จ่ายเงินเจ้าหนี้'],['fin','ดูสรุปการเงิน ภาษี และเงินเดือน'],['acctEdit','บันทึกค่าใช้จ่าย สินทรัพย์ และเงินลงทุน'],['coa','จัดการผังบัญชีและการผูกบัญชี'],...TAX];
  const SYS=[['emp','ดูและแก้ไขพนักงานและสิทธิ์'],['orgEdit','ตั้งค่าองค์กร · ภาษี · อายุการใช้งาน'],['hrEdit','งานบุคคล การลา และใบเตือน'],['import','นำเข้าข้อมูลจากไฟล์'],['export','ส่งออกไฟล์สำรอง'],['backup','สำรองและกู้คืนข้อมูลทั้งระบบ'],['wipe','ล้างข้อมูลทั้งระบบ']];
  const pk=(g,k)=>document.querySelector(`.pk[data-g="${g}"][data-k="${k}"]`);
  const get=(g,k)=>!!pk(g,k)?.checked,set=(g,k,v)=>{const el=pk(g,k);if(el)el.checked=!!v;};
@@ -51,7 +55,7 @@
   const emp=editEmpId?DB.emp.find(x=>x.id===editEmpId):null;if(emp&&emp.perms&&(!emp.perms.doc||emp.perms.doc.discount===undefined))set('doc','discount',true);   /* unset = allowed (as before) */
   render();return out;};
  /* ready-made sets: owner-like and manager sets may give discounts, the others not */
- const ps=window.presetPerms;if(typeof ps==='function')window.presetPerms=function(kind){const p=ps.apply(this,arguments);if(p&&p.doc)p.doc.discount=(kind==='all'||kind==='mgr');return p;};
+ const ps=window.presetPerms;if(typeof ps==='function')window.presetPerms=function(kind){const p=ps.apply(this,arguments);if(p&&p.doc){p.doc.discount=(kind==='all'||kind==='mgr');if(kind==='mgr')TAX.forEach(([k])=>p.doc[k]=false);}return p;};
  const pp=window.permPreset;if(typeof pp==='function')window.permPreset=function(){const out=pp.apply(this,arguments);render();return out;};
  /* ---------- enforcement ---------- */
  /* staff saved before this key existed could give discounts: an unset key still allows, until the owner saves a choice */

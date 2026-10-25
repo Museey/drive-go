@@ -1,11 +1,12 @@
 import type { Page } from '@playwright/test';
 import { test, expect } from '../support/test';
 
-// New behaviour (task 3.3, decision R4-ข): in a VAT-registered shop, leaving
-// VAT off a sale ("ไม่มี" in the stock cut's VAT box, "ไม่คิด VAT" on a
-// quotation or receipt) takes the right to the shop's tax settings and a
-// reason. The document keeps the reason and the audit log records it. In the
-// legacy app anyone who could make the document could leave VAT off.
+// New behaviour (task 3.3, decisions R4-ข, T12): in a VAT-registered shop,
+// leaving VAT off a sale ("ไม่มี" in the stock cut's VAT box, "ไม่คิด VAT" on
+// a quotation or receipt) takes the right "เลือกไม่คิด VAT (ต้องใส่เหตุผล)",
+// which no staff member has until the owner ticks it, and a reason. The
+// document keeps the reason and the audit log records it. In the legacy app
+// anyone who could make the document could leave VAT off.
 const vatBox = (page: Page) => page.locator('span', { hasText: /^ภาษีมูลค่าเพิ่ม/ }).filter({ visible: true }).getByRole('combobox');
 // The question: a pop-up headed "ไม่คิด VAT" with a box for the reason.
 const reasonAsk = (page: Page) => page.locator('div.panel').filter({ has: page.getByRole('heading', { name: 'ไม่คิด VAT', exact: true }) });
@@ -25,7 +26,7 @@ async function newSaleOfTwoBrakePads(page: Page) {
   await expect(page.getByText('2,953.20').filter({ visible: true }).first()).toBeVisible();
 }
 
-test('S137 ระบบใหม่: ร้านที่จด VAT เลือกไม่คิด VAT ได้เฉพาะผู้มีสิทธิ์ตั้งค่าภาษี ต้องใส่เหตุผล เอกสารเก็บเหตุผล และลงประวัติการใช้งาน', async ({ app, page }) => {
+test('S137 ระบบใหม่: ร้านที่จด VAT เลือกไม่คิด VAT ได้เฉพาะผู้มีสิทธิ์ ต้องใส่เหตุผล เอกสารเก็บเหตุผล และลงประวัติการใช้งาน', async ({ app, page }) => {
   await app.loginAsOwner();
 
   // The owner gives the front desk (EMP005: may sell, may not change the shop's tax settings) a login.
@@ -111,4 +112,34 @@ test('S137 ระบบใหม่: ร้านที่จด VAT เลื�
   await expect(page.getByText('บัญชีนี้ไม่มีสิทธิ์เลือกไม่คิด VAT', { exact: true })).toBeVisible();
   await expect(vatBox(page)).toHaveValue('7');
   await expect(reasonAsk(page)).toBeHidden();
+
+  // The owner gives her the right "เลือกไม่คิด VAT (ต้องใส่เหตุผล)" (under การเงิน in the staff form): now she is asked for the reason.
+  await page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).first().click();
+  await page.getByText('ออกจากระบบ', { exact: true }).filter({ visible: true }).first().click();
+  await page.getByPlaceholder('กรอกรหัสผ่าน').waitFor();
+  await app.loginAsOwner();
+  await page.getByRole('button', { name: '09 งานบุคคล' }).click();
+  await page.getByRole('row').filter({ hasText: 'EMP005' }).getByRole('button', { name: 'แก้ไข / สิทธิ' }).click();
+  const right = page.getByRole('checkbox', { name: 'เลือกไม่คิด VAT (ต้องใส่เหตุผล)' });
+  await expect(right).not.toBeChecked();
+  await right.check();
+  await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).last().click();
+  await app.settle();
+  expect((await app.state()).DB.emp.find((e: any) => e.code === 'EMP005').perms.doc).toMatchObject({ noVat: true, taxClose: false, creditNote: false });
+  // Saving the staff form drops the person's login, as in the legacy app (NOTES.md, task 3.3): issue it again.
+  await page.getByRole('button', { name: '10 ตั้งค่าองค์กร' }).click();
+  await staff.getByRole('button', { name: '+ ออกบัญชี (ตั้งรหัสผ่าน)' }).click();
+  await page.locator('input:focus').waitFor();
+  await page.keyboard.type('5555');
+  await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).click();
+  await expect(staff).toContainText('ใช้งานได้');
+  await page.getByText('ออกจากระบบ', { exact: true }).filter({ visible: true }).first().click();
+  await page.getByPlaceholder('กรอกรหัสผ่าน').waitFor();
+  await app.login('092-111-2233', '5555');
+  await page.getByRole('button', { name: /^04 ใบเสร็จรับเงิน/ }).click();
+  await page.getByRole('button', { name: '+ สร้างข้อมูลใหม่' }).filter({ visible: true }).click();
+  await vatBox(page).selectOption('ไม่มี');
+  await expect(reasonAsk(page).getByText('เหตุผลที่ไม่คิด VAT', { exact: true })).toBeVisible();
+  await reasonAsk(page).getByRole('button', { name: 'ยกเลิก', exact: true }).click();
+  await expect(vatBox(page)).toHaveValue('7');
 });
