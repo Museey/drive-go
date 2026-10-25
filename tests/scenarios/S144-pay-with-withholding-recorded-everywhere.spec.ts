@@ -47,7 +47,7 @@ test('S144 ระบบใหม่: รับชำระจากลูกค�
   await expect(confirm).toBeHidden();
   await golden.step('หลังยืนยันบันทึกรับชำระ');
   const legacy = JSON.parse(legacyStateChange(S22, 'pay-with-wht'));
-  legacy['DB.audit'].added[0].note = 'รับชำระ 3,676.40 บาท (เงินโอน) · ลูกค้าหัก ณ ที่จ่าย 90.00 บาท · ชำระครบแล้ว';
+  legacy['DB.audit'].added[0].note = 'รับชำระ 3,676.40 บาท (เงินโอน) · ลูกค้าหัก ณ ที่จ่าย 90.00 บาท · ใบเสร็จ MA-RE261000004 · ชำระครบแล้ว';   // the receipt: task 3.5
   await golden.stateChange('pay-with-wht', before, { 'DB.audit': legacy['DB.audit'] });
   golden.done();
   await page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).first().click();

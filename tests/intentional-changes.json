@@ -180,6 +180,36 @@
       "by": "S148-pay-vendor-gets-payment-voucher.spec.ts",
       "decision": "R7-ข, answers of 2026-10-25 (task 3.4)",
       "why": "A vendor settlement gets one payment voucher MA-PV… on the payment of every goods receipt it pays, named in the audit line, and the settle window has a หัก ณ ที่จ่าย button beside ล้างที่เลือก. Every other step, screen and data change is checked against S31's goldens."
+    },
+    {
+      "scenario": "S01-pay-stock-cut-cash.spec.ts",
+      "by": "S151-pay-cash-gets-receipt-at-once.spec.ts",
+      "decision": "R2, R8, F3 and answers of 2026-10-25 (task 3.5)",
+      "why": "Money received in the sale window has its receipt at once (MA-RE261000004, named in the audit line and the message) and the receipt window opens to be printed instead of the done card. Every other step, screen and data change is checked against S01's goldens."
+    },
+    {
+      "scenario": "S20-partial-transfer-overdue-bill.spec.ts",
+      "by": "S152-pay-part-transfer-gets-receipt-at-once.spec.ts",
+      "decision": "R2, R8, F3 and answers of 2026-10-25 (task 3.5)",
+      "why": "A part payment has its receipt too (MA-RE261000004, 2,810.10 still owed on it) and the receipt window opens. Every other step, screen and data change is checked against S20's goldens."
+    },
+    {
+      "scenario": "S26-pay-by-credit-card-surcharge.spec.ts",
+      "by": "S153-pay-by-card-surcharge-on-receipt.spec.ts",
+      "decision": "R2, R8, F3 and answers of 2026-10-25 (task 3.5)",
+      "why": "The card payment has its receipt at once; the receipt shows the 3% surcharge on a line of its own (7,276.00 for the sale + 218.28 = 7,494.28 swiped, in words too) while the sale and its money stay 7,276.00. Every other step, screen and data change is checked against S26's goldens."
+    },
+    {
+      "scenario": "S21-pay-two-bills-split-cash-transfer.spec.ts",
+      "by": "S154-split-payment-each-bill-holds-its-share.spec.ts",
+      "decision": "R2, R8, F3 and answers of 2026-10-25 (task 3.5)",
+      "why": "One receiving of cash + transfer for two bills keeps one receipt but each bill's payment holds only its own share of the money (oldest bill first), so the daily report counts each method once; the audit lines name the receipt. Every other step, screen and data change is checked against S21's goldens."
+    },
+    {
+      "scenario": "S83-issue-coins-from-paid-receipts.spec.ts",
+      "by": "S155-coins-after-payment-with-receipt.spec.ts",
+      "decision": "R2, R8, F3 and answers of 2026-10-25 (task 3.5)",
+      "why": "The payment in the middle has its receipt at once and the receipt window opens instead of the done card; it is closed with the sale window to get back to the search. The Coins and every other step, screen and data change are checked against S83's goldens."
     }
   ],
   "added": [
@@ -257,6 +287,11 @@
       "scenario": "S150-withholding-certificate-and-pnd-by-payment-date.spec.ts",
       "decision": "R7-ก, answers of 2026-10-25 (task 3.4)",
       "why": "ภ.ง.ด.3 / 53 in the tax report count what was withheld by the day it was paid (paid expenses and vendor payments, not expenses still owed), each row with its form and ลำดับที่ and each form summed; the 50 ทวิ certificate follows the Revenue Department's form (copies 1 and 2, the payee's tax id and address, ลำดับที่, the income type, (1) หัก ณ ที่จ่าย), is issued only once paid, and keeps its number when the expense is saved again."
+    },
+    {
+      "scenario": "S156-every-receiving-has-receipt-card-fee-daily-report.spec.ts",
+      "decision": "R2, R8, F3 and answers of 2026-10-25 (task 3.5)",
+      "why": "A new sale paid at once has its receipt and an audit line for the money; the debtor settle window takes a card surcharge like the sale window (check card and receipt show it); with separate receipts each receipt holds its own bill's share of the methods; the daily report shows the day's card surcharges (not income) and money paid back by credit notes."
     }
   ]
 }

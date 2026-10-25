@@ -256,7 +256,10 @@
     let doc;
     if(pay.credit){close();doc=await S.saveSale(D,'credit',null,{credit:{days:n(pay.days),due:pay.due||''}});}
     else{const dr=draftOf(pay,got),er=S.payError(SC.tot(D).gross,dr,D);if(er)return toast(er);close();doc=await S.saveSale(D,'pay',dr);}
-    if(doc){RC=null;BACK=null;afterSave(doc);}}}));
+    if(!doc)return;RC=null;BACK=null;
+    /* DriveGo new system (task 3.5, R2 and the owner's answer of 2026-10-25): the money received has its receipt — open it to print */
+    const L=!pay.credit&&S.led(doc),p=L&&(L.payments||[]).slice(-1)[0],DX=window.PKG_SALE_DOCS;
+    if(p&&p.reNo&&DX){W.S=null;W.cur=doc;repaint();if(DX.redraw)DX.redraw();DX.openReceipt(doc.id,p.id);}else afterSave(doc);}}));
   if(panel())panel().classList.remove('pkg-sf-nocredit');stepUpdate();
  }
  /* รับชำระ on a saved sale */

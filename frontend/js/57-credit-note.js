@@ -59,6 +59,13 @@
  }
  /* money given back is not money received */
  const refunds=L=>all().filter(x=>done(x)&&x.ledId===L.id).reduce((a,x)=>a+n(x.money&&x.money.refund),0);
+ /* DriveGo new system (task 3.5): money paid back is cash going out — the year's cash (08 สุขภาพการเงิน, งบ) counts it on the day
+    the credit note took effect (its approval) */
+ const refundDay=x=>(x.apv&&x.apv.date)||x.date;
+ if(typeof finance==='function'){const fin0=finance;finance=function(y){const o=fin0.apply(this,arguments);if(!o)return o;
+  const r=r2(all().filter(x=>done(x)&&x.money&&n(x.money.refund)>0&&+String(refundDay(x)).slice(0,4)<=y).reduce((a,x)=>a+n(x.money.refund),0));
+  if(r>0){o.cash-=r;o.assetsTotal-=r;o.equity-=r;o.roi=o.ownerCap>0?o.np/o.ownerCap*100:(o.equity>0?o.np/o.equity*100:0);o.roa=o.assetsTotal>0?o.np/o.assetsTotal*100:0;}
+  return o;};}
  const pa0=paidAmtOf;paidAmtOf=function(d){const v=pa0.apply(this,arguments);return d&&d.pkgSale&&DB.creditNotes?v-refunds(d):v;};
  const tk0=docNoTaken;docNoTaken=function(no){return tk0.apply(this,arguments)||all().some(x=>x.no===no);};
 

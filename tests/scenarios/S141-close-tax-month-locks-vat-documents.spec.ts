@@ -57,8 +57,9 @@ test('S141 ระบบใหม่: ปิดงวดภาษีเดือ�
   await app.settle();
   db = (await app.state()).DB;
   expect(db.receipts.find((r: any) => r.no === 'MA-SA261000003').payments).toEqual([
-    expect.objectContaining({ date: '2026-11-02', amt: 9913.55, method: 'cash' })]);
-  await page.getByRole('button', { name: 'กลับไปยังหน้าค้นหาเอกสาร' }).click();
+    expect.objectContaining({ date: '2026-11-02', amt: 9913.55, method: 'cash', reNo: 'MA-RE261100001' })]);
+  await page.locator('#mSaleRcpt').getByRole('button', { name: 'ปิด', exact: true }).last().click();   // the receipt window (task 3.5, R2)
+  await page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).first().click();
 
   // An asset with VAT cannot be recorded in October any more.
   await page.getByRole('button', { name: '06 รายจ่าย / ซื้อสินค้า' }).click();

@@ -390,6 +390,9 @@
  const MONEY_ONLY=true;   /* phase 9a: money for a stock cut comes ONLY through its own window / 4.3 (cash) or the debtor settlement window (credit) */
  const CREDIT_LOCK=c=>'ใบตัดสต็อก '+c.no+' เป็นเงินเชื่อ — ตัดชำระที่หน้าลูกหนี้เท่านั้น';
  const mtxt=p=>(p.methods||[]).map(m=>(typeof PAY_METHOD_LABEL==='object'&&PAY_METHOD_LABEL[m.k])||m.k).join(' + ');
+ /* the audit line of a receiving */
+ function payNote(c,L,p){const s2=statOf(c,L);
+  return 'รับชำระ '+money(p.amt)+' บาท'+(mtxt(p)?' ('+mtxt(p)+')':'')+(p.wht?' · ลูกค้าหัก ณ ที่จ่าย '+money(p.wht.amt)+' บาท':'')+(p.reNo?' · ใบเสร็จ '+p.reNo:' · ยังไม่ออกใบเสร็จ')+(s2.k==='paid'?' · ชำระครบแล้ว':' · คงค้าง '+money(s2.rem)+' บาท');}
  /* receive money for a saved sale → one payment record = one receipt */
  function addPayment(x,d,o){
   const [c,L]=pair(x);o=o||{};
@@ -399,10 +402,9 @@
   if(s.k==='credit'&&(o.src||'sale')==='sale')return say(CREDIT_LOCK(c));
   const er=payError(s.rem,d,c);if(er)return say(er);
   const p=pushPay(c,L,d,o.src||'sale');
-  if(o.issue)stampPay(p,L,c);                                           /* "+ สร้างใบเสร็จรับเงิน" (4.3): receive and issue in one press */
+  stampPay(p,L,c);   /* DriveGo new system (task 3.5, R2): every receiving has its receipt at once (the legacy app: only with "+ สร้างใบเสร็จรับเงิน" of 4.3) */
   touchPair(c,L,{live:true});used();
-  const s2=statOf(c,L);
-  logAudit('stockcut',c,'pay','รับชำระ '+money(p.amt)+' บาท'+(mtxt(p)?' ('+mtxt(p)+')':'')+(p.wht?' · ลูกค้าหัก ณ ที่จ่าย '+money(p.wht.amt)+' บาท':'')+(p.reNo?' · ใบเสร็จ '+p.reNo:' · ยังไม่ออกใบเสร็จ')+(s2.k==='paid'?' · ชำระครบแล้ว':' · คงค้าง '+money(s2.rem)+' บาท'));
+  logAudit('stockcut',c,'pay',payNote(c,L,p));
   if(!o.hold){save();refresh();}
   return p;
  }
@@ -471,10 +473,13 @@
   if(!c.credit)c.credit=null;
   const L=newLed(c);DB.receipts.push(L);bump();
   issueTaxPair(c,L);
-  if(sale&&sale.mode==='pay'&&sale.pay)pushPay(c,L,sale.pay,'sale');
+  let p0=null;
+  /* DriveGo new system (task 3.5, R2): money received with the sale has its receipt at once, and is written to the audit log like any receiving */
+  if(sale&&sale.mode==='pay'&&sale.pay){p0=pushPay(c,L,sale.pay,'sale');stampPay(p0,L,c);}
   else if(!sale&&old&&!c.credit){const p=legacyPay(old,receiptTotals(L).gross,{src:'sale',date:c.date,by:old.by||meName(),payId:'SP'+uid(),br:BR()?BR().brOf(c):''});
    Object.assign(p,{createdAt:nowTs(),createdBy:DB.curEmp||'',createdByName:meName()});L.payments.push(p);}
   touchPair(c,L,{live:true});used();
+  if(p0)logAudit('stockcut',c,'pay',payNote(c,L,p0));
   return L;
  }
  /* บันทึกขาย · รอชำระ / ชำระเงิน / เงินเชื่อ — the payment is checked first: nothing is cut when it is wrong */

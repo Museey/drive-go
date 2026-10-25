@@ -32,11 +32,25 @@
    if(m.k==='cash')out.push(['เงินสด',n(m.given)>0?'รับมา '+money(m.given)+' บาท · ทอน '+money(m.change)+' บาท':'',m.amt]);
    else if(m.k==='trans'){const tl=(p.transLines||[]).filter(l=>n(l.amt)>0);
     if(tl.length)tl.forEach(l=>out.push(['เงินโอน',[l.bank,l.when,l.ref?'อ้างอิง '+l.ref:''].filter(Boolean).join(' · '),l.amt]));else out.push(['เงินโอน',[p.bank,p.ref].filter(Boolean).join(' · '),m.amt]);}
-   else if(m.k==='card')out.push(['บัตร'+(m.type==='debit'?'เดบิต':'เครดิต'),[m.bank,m.card4?'เลขท้าย '+m.card4:'',m.ref?'เลขอนุมัติ '+m.ref:'',n(m.fee)>0?'ค่าธรรมเนียม '+money(m.fee)+' บาท (ไม่รวมในยอดรับ)':''].filter(Boolean).join(' · '),m.amt]);
+   else if(m.k==='card')out.push(['บัตร'+(m.type==='debit'?'เดบิต':'เครดิต'),[m.bank,m.card4?'เลขท้าย '+m.card4:'',m.ref?'เลขอนุมัติ '+m.ref:''].filter(Boolean).join(' · '),r2(n(m.amt)+n(m.fee))]);   /* DriveGo (task 3.5, F3): what was swiped */
    else if(m.k==='check')out.push(['เช็ค',[m.bank,m.ref?'เลขที่ '+m.ref:'',m.chkDate?'ลงวันที่ '+thDate(m.chkDate):''].filter(Boolean).join(' · '),m.amt]);
    else out.push([PMT[m.k]||'ไม่ระบุวิธี','',m.amt]);});
   if(!out.length&&n(p.amt)>0)out.push(['ไม่ระบุวิธี',p.note||'',p.amt]);
   return out;};
+ /* DriveGo new system (task 3.5, R8-ข): each bill's payment holds only its own share of a settlement's methods (47.js) — a receipt
+    shared by several bills shows the methods of all of them, added up (transfer lines by their number, cards by card) */
+ function paidBy(I,p){
+  if(!I.shared)return p;const ms=[],ls=[],sum=q=>r2((q.methods||[]).reduce((a,m)=>a+n(m.amt),0));
+  if(I.parts.every(x=>Math.abs(sum(x.pay)-n(x.pay.payTotal))<0.01&&Math.abs(n(x.pay.amt)-n(x.pay.payTotal))>0.01))return p;   /* recorded before: every bill holds the whole settlement */
+  I.parts.forEach(x=>{const q=x.pay;(q.methods&&q.methods.length?q.methods:[{k:q.method,amt:q.amt,bank:q.bank,ref:q.ref,card4:q.card4,chkDate:q.chkDate}]).forEach(m=>{
+    const key=[m.k,m.bank,m.card4,m.ref,m.chkDate].join('|'),o=ms.find(z=>z.key===key);
+    if(o){o.amt=r2(o.amt+n(m.amt));if(n(m.fee))o.fee=r2(n(o.fee)+n(m.fee));}else ms.push(Object.assign({},m,{key,amt:r2(m.amt)}));});
+   (q.transLines||[]).forEach(l=>{const o=ls.find(z=>z.no===l.no&&z.bank===l.bank&&z.ref===l.ref);if(o)o.amt=r2(o.amt+n(l.amt));else ls.push(Object.assign({},l,{amt:r2(l.amt)}));});});
+  return Object.assign({},p,{methods:ms,transLines:ls});
+ }
+ /* a card surcharge (F3 = ก): not income — shown as its own line; the receipt's total is what the customer paid */
+ const feeOf=q=>r2((q.methods||[]).reduce((a,m)=>a+(m.k==='card'?n(m.fee):0),0));
+ const feeLbl=q=>{const cs=(q.methods||[]).filter(m=>m.k==='card'&&n(m.fee)>0);return 'ค่าธรรมเนียมบัตร'+(cs.every(m=>m.type==='debit')?'เดบิต':'เครดิต')+' '+[...new Set(cs.map(m=>n(m.pct)+'%'))].join(', ');};
  const STAMP={'ชำระแล้ว':'#16865c','ชำระบางส่วน':'#b54708','ยกเลิกแล้ว':'#b42318'};
  /* ---------- the A4 sheet ---------- */
  function sheetSaleReceipt(c,p,copy){
@@ -52,7 +66,7 @@
      ${its.map((it,i)=>`<tr><td style="text-align:center">${i+1}</td><td>${esc(it.code||'-')}</td><td>${esc(it.name||'')}${n(it.warr)>0?' <span style="color:#555">(ประกัน '+n(it.warr)+' เดือน)</span>':''}</td><td style="text-align:center">${qf(it.qty)}</td><td class="num">${money(it.price)}</td><td class="num">${money(n(it.qty)*n(it.price))}</td></tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:#777">— ไม่มีรายการ —</td></tr>'}
      ${right('รวมเป็นเงิน',money(t.sub))}${n(t.disc)>0?right('หักส่วนลด',money(t.disc)):''}${adj?right('ปรับเพิ่ม / ลด (รวม VAT)',(adj>0?'+':'−')+money(Math.abs(adj))):''}
      ${right('มูลค่าก่อนภาษี',money(t.base))}${right('ภาษีมูลค่าเพิ่ม '+n(L.vat)+'%',money(t.vat))}${right('ยอดขายรวม',money(t.gross),1)}</tbody></table>`;
-  const ml=methodLines(p),w=p.wht&&n(p.wht.amt)>0?p.wht:null;
+  const pb=paidBy(I,p),ml=methodLines(pb),fee=feeOf(pb),w=p.wht&&n(p.wht.amt)>0?p.wht:null;
   return sheetTop({title:'ใบเสร็จรับเงิน',en:'RECEIPT',copy:copy||'ต้นฉบับ',
     fields:[['เลขที่',esc(p.reNo||'-')],['วันที่รับเงิน',thDate(p.date)+(p.time?' '+esc(p.time):'')],I.shared?['รับชำระรวม',I.parts.length+' บิล']:['อ้างอิงใบตัดสต็อก',esc(c.no)],
      !I.shared&&S.invOk(L)?['ใบแจ้งหนี้เลขที่',esc(S.invOk(L).no)]:null,!I.shared&&tax?['ใบกำกับภาษีเลขที่',esc(tax)]:null,!I.shared&&v?['ทะเบียนรถ',esc(plateOf(v))]:null].filter(Boolean)})+`
@@ -63,10 +77,11 @@
   ${body}
   <div class="box"><span class="lbl">ชำระโดย</span>
    <table style="margin-top:4px">${ml.map(([k,d,a])=>`<tr><td style="border:0;width:110px"><b>${k}</b></td><td style="border:0">${esc(d)}</td><td style="border:0;text-align:right;width:120px">${money(a)}</td></tr>`).join('')}
-    <tr><td colspan="2" style="border:0;border-top:1px solid #999"><b>ยอดรับครั้งนี้</b></td><td style="border:0;border-top:1px solid #999;text-align:right"><b>${money(I.money)}</b></td></tr>
+    ${fee>0?`<tr><td colspan="2" style="border:0;border-top:1px solid #999">ยอดตามใบตัดสต็อก</td><td style="border:0;border-top:1px solid #999;text-align:right">${money(I.money)}</td></tr><tr><td colspan="2" style="border:0">${feeLbl(pb)}</td><td style="border:0;text-align:right">${money(fee)}</td></tr>`:''}
+    <tr><td colspan="2" style="border:0;border-top:1px solid #999"><b>ยอดรับครั้งนี้</b></td><td style="border:0;border-top:1px solid #999;text-align:right"><b>${money(r2(I.money+fee))}</b></td></tr>
     ${I.wht>0?`<tr><td colspan="2" style="border:0">ลูกค้าหักภาษี ณ ที่จ่าย${w?' '+n(w.rate)+'% ('+(w.base==='labor'?'ค่าบริการ':'ทั้งใบ')+' '+money(w.baseAmt)+')':''} — ${w&&w.got?'ได้รับหนังสือรับรองแล้ว':'รอหนังสือรับรองจากลูกค้า'}</td><td style="border:0;text-align:right">${money(I.wht)}</td></tr>`:''}
     ${!I.shared&&I.instal?`<tr><td colspan="2" style="border:0">รับไว้แล้วก่อนหน้า</td><td style="border:0;text-align:right">${money(I.prev)}</td></tr><tr><td colspan="2" style="border:0">รับสะสมถึงใบนี้</td><td style="border:0;text-align:right">${money(I.cum)}</td></tr><tr><td colspan="2" style="border:0"><b>คงค้าง</b></td><td style="border:0;text-align:right"><b>${money(I.rem)}</b></td></tr>`:''}</table>
-   <div style="text-align:center;margin-top:4px">(${bahtText(I.money)})</div>
+   <div style="text-align:center;margin-top:4px">(${bahtText(r2(I.money+fee))})</div>
    ${p.cancelled?`<div style="color:#b42318;margin-top:4px"><b>ยกเลิกแล้ว</b> — ${esc(p.cancelReason||'')} · ${thDate(p.cancelDate)} · ${esc(p.cancelBy||'')}</div>`:''}${p.note?`<div style="margin-top:4px">หมายเหตุ: ${esc(p.note)}</div>`:''}</div>
   <table style="margin-top:28px"><tr><td style="width:50%;text-align:center;border:0">.................................................<br>ผู้รับเงิน (${esc(String(p.by||'').replace(/^.*· /,''))})</td>
    <td style="text-align:center;border:0">.................................................<br>ผู้จ่ายเงิน</td></tr></table></div>`;
@@ -85,14 +100,15 @@
  (document.getElementById('pkg-app')||document.body).append(V);
  let cur=null;
  function paintRcpt(){
-  const f=cur&&find(cur.sale,cur.pay);if(!f)return;const {c,p}=f,I=info(c,p),cu=findCust(c.custId),ml=methodLines(p),cls={'ชำระแล้ว':'st-green','ชำระบางส่วน':'st-blue','ยกเลิกแล้ว':'st-red'}[I.stamp];
+  const f=cur&&find(cur.sale,cur.pay);if(!f)return;const {c,p}=f,I=info(c,p),cu=findCust(c.custId),pb=paidBy(I,p),ml=methodLines(pb),fee=feeOf(pb),cls={'ชำระแล้ว':'st-green','ชำระบางส่วน':'st-blue','ยกเลิกแล้ว':'st-red'}[I.stamp];
   $i('srTitle').textContent='ใบเสร็จรับเงิน '+(p.reNo||'');$i('srState').innerHTML='<span class="stbtn '+cls+'">'+I.stamp+'</span>';
   const row=(k,v)=>`<div><span>${k}</span><b data-no-translate>${v}</b></div>`;
   $i('srBody').innerHTML=`<div class="pkg-sr-grid">${row('วันที่รับเงิน',thDate(p.date)+(p.time?' '+esc(p.time):''))}${row('ผู้รับเงิน',esc(String(p.by||'-').replace(/^.*· /,'')))}
     ${row('ลูกค้า',esc(cu?custName(cu):'ลูกค้าทั่วไป (เงินสด)'))}${I.shared?row('ใบตัดสต็อก',I.parts.map(x=>esc(x.sale?x.sale.no:'')).join(', ')):row('ใบตัดสต็อก',esc(c.no))}
     ${S.invOk(I.L)&&!I.shared?row('ใบแจ้งหนี้',esc(S.invOk(I.L).no)):''}${row('บันทึกเมื่อ',(p.createdAt?thDateTime(p.createdAt):'-')+(p.createdByName?' · '+esc(String(p.createdByName).replace(/^.*· /,'')):''))}</div>
    <table class="tbl pkg-sr-tbl"><thead><tr><th>วิธีชำระ</th><th>รายละเอียด</th><th class="num">จำนวนเงิน</th></tr></thead><tbody>${ml.map(([k,d,a])=>`<tr><td>${k}</td><td data-no-translate>${esc(d)}</td><td class="num">${money(a)}</td></tr>`).join('')}
-    <tr class="tot"><td colspan="2"><b>ยอดรับครั้งนี้</b>${I.shared?' · รวม '+I.parts.length+' บิล':''}</td><td class="num"><b>${money(I.money)}</b></td></tr>
+    ${fee>0?`<tr><td colspan="2">ยอดตามใบตัดสต็อก</td><td class="num">${money(I.money)}</td></tr><tr><td colspan="2">${feeLbl(pb)}</td><td class="num">${money(fee)}</td></tr>`:''}
+    <tr class="tot"><td colspan="2"><b>ยอดรับครั้งนี้</b>${I.shared?' · รวม '+I.parts.length+' บิล':''}</td><td class="num"><b>${money(r2(I.money+fee))}</b></td></tr>
     ${I.wht>0?`<tr><td colspan="2">ลูกค้าหัก ณ ที่จ่าย — ${p.wht&&p.wht.got?'ได้รับหนังสือรับรองแล้ว'+(p.wht.gotDate?' ('+thDate(p.wht.gotDate)+')':''):'รอหนังสือรับรองจากลูกค้า'}${p.wht&&p.wht.img?' <button type="button" class="btn sm gh" data-sr="whtimg">ดูรูป</button>':''}</td><td class="num">${money(I.wht)}</td></tr>`:''}
     ${!I.shared&&I.instal?`<tr><td colspan="2">รับไว้แล้วก่อนหน้า</td><td class="num">${money(I.prev)}</td></tr><tr><td colspan="2">คงค้างหลังใบนี้</td><td class="num">${money(I.rem)}</td></tr>`:''}</tbody></table>
    ${window.PKG_SETTLE&&PKG_SETTLE.thumbs?PKG_SETTLE.thumbs(p):''}

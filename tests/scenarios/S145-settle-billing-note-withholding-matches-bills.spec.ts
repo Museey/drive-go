@@ -5,8 +5,9 @@ import { legacyGolden, legacyStateChange } from '../support/legacy-golden';
 // decision R7 "แก้ข้อ 4"): in the settle window the withholding table's
 // "คงค้าง" of MA-SA261000008 is the bill table's (2,683.50 after the 45.00
 // withheld; the legacy app showed 2,728.50 there), and the audit line of that
-// payment names the withholding. Every other step, message, screen and data
-// change is S25's.
+// payment names the withholding. Since task 3.5 the audit lines also name the
+// receipts and each bill's payment holds only its own share of the cash. Every
+// other step, message, screen and data change is S25's.
 const S25 = 'S25-settle-billing-note-with-withholding.spec.ts';
 
 test('S145 ระบบใหม่: รับชำระตามใบวางบิลด้วยเงินสด ลูกค้าหัก ณ ที่จ่าย ตารางหัก ณ ที่จ่ายแสดงยอดคงค้างเท่ากับตารางบิล และบันทึกการแก้ไขบอกยอดหัก', async ({ app, page }, testInfo) => {
@@ -47,8 +48,16 @@ test('S145 ระบบใหม่: รับชำระตามใบวา�
   await golden.step('หลังยืนยันบันทึกรับชำระ');
   const legacy = JSON.parse(legacyStateChange(S25, 'settle-billing-note'));
   expect(legacy['DB.audit'].added[1].no).toBe('MA-SA261000008');
-  legacy['DB.audit'].added[1].note = 'รับชำระ 2,683.50 บาท (เงินสด) · ลูกค้าหัก ณ ที่จ่าย 45.00 บาท · ชำระครบแล้ว';
-  await golden.stateChange('settle-billing-note', before, { 'DB.audit': legacy['DB.audit'] });
+  legacy['DB.audit'].added[1].note = 'รับชำระ 2,683.50 บาท (เงินสด) · ลูกค้าหัก ณ ที่จ่าย 45.00 บาท · ใบเสร็จ MA-RE261000005 · ชำระครบแล้ว';
+  // Task 3.5 (R2, R8-ข): each audit line names its receipt, and with separate receipts each bill's payment holds only its own
+  // share of the cash (the legacy app put the whole 3,304.10 on both, so each receipt printed "เงินสด 3,304.10").
+  legacy['DB.audit'].added[0].note = 'รับชำระ 620.60 บาท (เงินสด) · ใบเสร็จ MA-RE261000004 · ชำระครบแล้ว';
+  const p7 = legacy['DB.receipts[MA-SA261000007].payments'], p8 = legacy['DB.receipts[MA-SA261000008].payments'];
+  p7.added[0].methods = [{ k: 'cash', amt: 620.6 }];
+  p8.added[0].methods = [{ k: 'cash', amt: 2683.5 }];
+  await golden.stateChange('settle-billing-note', before, { 'DB.audit': legacy['DB.audit'],
+    'DB.receipts[MA-SA261000007].payments': p7, 'DB.receipts[MA-SA261000008].payments': p8,
+    'DB.stockCuts[MA-SA261000007].pay.received': [null, 620.6], 'DB.stockCuts[MA-SA261000008].pay.received': [null, 2683.5] });
 
   await page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).first().click();
   await page.getByRole('row').filter({ hasText: 'MA-BL261000001' }).filter({ visible: true })

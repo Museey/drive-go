@@ -90,6 +90,8 @@
  const newLine=(amt='')=>({id:'L'+(++LID),bank:'',amt,when:nowText(),ref:''});
  const newRow=k=>k==='trans'?{k,lines:[newLine()]}:{k,amt:'',bank:'',last4:'',appr:'',no:'',date:''};
  const rowAmt=r=>r.k==='trans'?r2(r.lines.reduce((a,x)=>a+num(x.amt),0)):r2(num(r.amt));
+ /* DriveGo new system (task 3.5, F3): a card surcharge the customer pays on top (not income; it covers the bank's fee) */
+ const cardFee=r=>S&&S.mode==='ar'&&r.k==='card'&&num(r.pct)>0?r2(rowAmt(r)*num(r.pct)/100):0;
  const hasPay=()=>S.rows.length>0;
  const got=()=>r2(S.rows.reduce((a,r)=>a+rowAmt(r),0));
  const tLines=()=>(S.rows.find(r=>r.k==='trans')||{lines:[]}).lines;
@@ -162,7 +164,7 @@
    <td class="r aft" data-aft="${es(x.id)}"></td></tr>`;}).join('');}
  function details(i){const r=S.rows[i],p='r.'+i+'.',l=lb();
   const fld=(lab,f,extra='',req=false)=>`<label class="f"><span>${lab}${req?' <b class="pkg-st-req">*</b>':''}</span><input type="text" data-f="${p+f}" value="${es(r[f])}" ${extra}></label>`;
-  if(r.k==='card')return `<div class="pkg-st-det">${fld(l.card,'bank','list="cardBankList" placeholder="เช่น กสิกรไทย / KTC / VISA"',true)}<div class="pkg-st-g2">${fld('เลข 4 ตัวท้ายบัตร','last4','maxlength="4" inputmode="numeric" placeholder="เช่น 1234"',true)}${fld('เลขที่อนุมัติ','appr','inputmode="numeric"')}</div></div>`;
+  if(r.k==='card')return `<div class="pkg-st-det">${fld(l.card,'bank','list="cardBankList" placeholder="เช่น กสิกรไทย / KTC / VISA"',true)}<div class="pkg-st-g2">${fld('เลข 4 ตัวท้ายบัตร','last4','maxlength="4" inputmode="numeric" placeholder="เช่น 1234"',true)}${fld('เลขที่อนุมัติ','appr','inputmode="numeric"')}</div>${S.mode==='ar'?`<div class="pkg-st-g2">${fld('ชาร์จเพิ่ม (%)','pct','inputmode="decimal" placeholder="0"')}</div><div class="hint" data-cardfee="${i}"></div>`:''}</div>`;
   if(r.k==='check')return `<div class="pkg-st-det">${fld(l.chk,'bank','list="cardBankList"',true)}<div class="pkg-st-g2">${fld('เลขที่เช็ค','no','inputmode="numeric"',true)}<label class="f"><span>วันที่หน้าเช็ค <b class="pkg-st-req">*</b></span><input type="date" data-f="${p}date" value="${es(r.date)}"></label></div></div>`;
   return '';}
  const mhead=k=>`<span class="mt">${sv(IC[k])}${MI[k][1]}</span>`;
@@ -259,6 +261,8 @@
    const cell=tr.querySelector('[data-aft]'),h=!on?'<span class="hint">—</span>':z?`<b class="gry">${fm(rest)}</b><span class="sub">${S.manual?'ไม่ได้ตัด':'ยังไม่ถึง'}</span>`:part?`<b class="amb">${fm(rest)}</b><span class="sub">ตัดบางส่วน</span>`:`<b class="ok">${sv(IC.ok)}ครบ</b>`;
    if(cell.__h!==h){cell.innerHTML=h;cell.__h=h;}});
   ['all','all2'].forEach(k=>{const a=q1(`[data-st="${k}"]`);if(!a)return;const n=sl.length;a.checked=list.length>0&&n===list.length;a.indeterminate=n>0&&n<list.length;a.disabled=!list.length;});
+  /* DriveGo new system (task 3.5, F3): what a card surcharge comes to */
+  S.rows.forEach((r,i)=>{const el=q1(`[data-cardfee="${i}"]`);if(!el)return;const f=cardFee(r),t=f>0?'ค่าธรรมเนียม '+money(f)+' บาท · ยอดที่ต้องรูดรวม '+money(r2(rowAmt(r)+f))+' บาท':'';if(el.textContent!==t)el.textContent=t;});
   /* tiles */
   METH.forEach(([k])=>{const btn=q1(`[data-act="tile"][data-k="${k}"]`),r=S.rows.find(x=>x.k===k);btn.classList.toggle('on',!!r);btn.setAttribute('aria-pressed',String(!!r));btn.disabled=!r&&S.rows.length>=MAXM;
    const cap=q1(`[data-tile="${k}"]`),a=r?rowAmt(r):0,h=!r?(S.rows.length>=MAXM?'ครบ 3 วิธี':'แตะเพื่อเพิ่ม'):a>0?fm(a)+(k==='trans'&&r.lines.length>1?'<br>'+r.lines.length+' รายการ':''):'ยังไม่ใส่ยอด';
@@ -290,12 +294,29 @@
   cfm.innerHTML=`<div class="card" role="dialog" aria-modal="true" aria-label="ตรวจก่อนบันทึก"><h3>ตรวจก่อนบันทึก · ${l.verb} ฿${fm(g)}</h3>
   <div class="who">${es(partyName())} · วันที่ ${thDate(S.date)} · ${es(S.rows.map(r=>MI[r.k][1]+' '+fm(rowAmt(r))).join(' + '))}</div>
   <div class="sum"><div><span>ยอดค้างของบิลที่เลือก ${list.length} ใบ</span><b>${fm(selOut())}</b></div><div><span>− ${l.recv}ครั้งนี้</span><b>${fm(g)}</b></div><div class="${af<=.004?'ok':'amb'}"><span>= คงค้างหลังชำระ</span><b>${fm(af)}</b></div></div>${PV()?PV().confirmLine(S,list):''}
+  ${S.rows.map(r=>cardFee(r)).some(f=>f>0)?`<div class="ex">${S.rows.filter(r=>cardFee(r)>0).map(r=>'ค่าธรรมเนียมบัตร '+num(r.pct)+'% ฿'+fm(cardFee(r))+' — ยอดที่ต้องรูดรวม ฿'+fm(r2(rowAmt(r)+cardFee(r)))).join(' · ')}</div>`:''}
   ${af>.004?`<div class="ex">เงิน ฿${fm(g)} ตัด<b>จากใบเก่าที่สุดก่อน</b> · ใบที่เงินไม่พอ<b>ตัดบางส่วน</b> ที่เหลือค้างต่อไว้รอ${l.verb}ครั้งหน้า · ใบที่เงินไปไม่ถึงยังค้างเท่าเดิม ไม่ถูกแตะ</div>`:''}
   ${tl.length?`<div class="tlist"><b>รายการโอน ${tl.length} รายการ</b>${tl.map((x,j)=>`<span>${es(lineTxt(x,j))}</span>`).join('')}</div>`:''}
   <div class="pl">${list.map((x,i)=>{const a=p[x.id]||0,t=planTxt(x,a);return `<div><i>${i+1}</i><span><b>${es(x.no)}</b> <i>${thDate(x.date)}</i></span><span class="${a<=.004?'no0':x.out-a<=.004?'ok':'pt'}">${t==='ตัดครบ'?sv(IC.ok):''}${t}</span></div>`;}).join('')}</div>
   <div class="bt"><button type="button" class="btn gh" data-cfm="back">กลับไปแก้</button><button type="button" class="btn grn" data-cfm="go">${l.cfm} ฿${fm(g)}</button></div></div>`;
   cfm.hidden=false;const go=cfm.querySelector('[data-cfm="go"]');if(go)go.focus();}
  cfm.addEventListener('click',e=>{const b=e.target.closest('[data-cfm]');if(b){cfm.hidden=true;if(b.dataset.cfm==='go')doSave();return;}if(e.target===cfm)cfm.hidden=true;});
+ /* DriveGo new system (task 3.5, R8-ข): the money of each method spread over the bills it pays — bills oldest first, methods (and
+    transfer lines) in the order entered — so each bill's payment holds only its own share and a report by method counts the money
+    once (the legacy app copied the whole settlement onto every bill); payTotal / payBills still tell the settlement's total. A card
+    surcharge goes with the card money it was charged on. */
+ function split(amts,methods,lines){
+  const left=methods.map(m=>r2(m.amt)),feeLeft=methods.map(m=>r2(num(m.fee))),lleft=lines.map(l=>r2(l.amt));
+  return amts.map(a=>{let need=r2(a);const ms=[],ls=[];
+   methods.forEach((m,i)=>{const take=r2(Math.min(left[i],need));if(!(take>0.004))return;left[i]=r2(left[i]-take);need=r2(need-take);const o=Object.assign({},m,{amt:take});
+    if(m.k==='trans'){let t=take,cnt=0;lines.forEach((l,j)=>{const tk=r2(Math.min(lleft[j],t));if(!(tk>0.004))return;lleft[j]=r2(lleft[j]-tk);t=r2(t-tk);ls.push(Object.assign({},l,{amt:tk}));cnt++;});o.lines=cnt;}
+    if(feeLeft[i]>0){const f=left[i]<=0.004?feeLeft[i]:r2(num(m.fee)*take/num(m.amt));o.fee=f;feeLeft[i]=r2(feeLeft[i]-f);}
+    ms.push(o);});
+   return {methods:ms,transLines:ls};});
+ }
+ /* the one-method fields of a payment: its largest method (first wins a tie) */
+ function mainOf(ms,ls){const m=ms.reduce((a,x)=>!a||x.amt>a.amt+.004?x:a,null)||{k:''},big=ls.reduce((a,x)=>!a||x.amt>a.amt+.004?x:a,null);
+  return {method:m.k,bank:m.k==='trans'?(big?big.bank:''):(m.bank||''),ref:m.k==='trans'?(big?big.ref:''):(m.ref||''),card4:m.k==='card'?(m.card4||''):'',chkDate:m.k==='check'?(m.chkDate||''):''};}
  function trySave(){if(!mayPay())return;const er=validate();if(er)return say(er);showConfirm();}
  function doSave(){
   if(!S||!mayPay())return;const er=validate();if(er)return say(er);
@@ -303,7 +324,7 @@
   const date=S.date||iso(),by=String(S.by||'').trim(),note=String(S.note||'').trim(),tl=tLines(),payId='ST'+uid(),b=Br();
   const methods=S.rows.map(r=>{const amt=rowAmt(r);
    if(r.k==='trans')return {k:'trans',amt,lines:tl.length};
-   if(r.k==='card')return {k:'card',amt,bank:String(r.bank).trim(),card4:String(r.last4).trim(),ref:String(r.appr).trim()};
+   if(r.k==='card'){const o={k:'card',amt,bank:String(r.bank).trim(),card4:String(r.last4).trim(),ref:String(r.appr).trim()};if(cardFee(r)>0){o.pct=num(r.pct);o.fee=cardFee(r);}return o;}
    if(r.k==='check')return {k:'check',amt,bank:String(r.bank).trim(),ref:String(r.no).trim(),chkDate:r.date||''};
    return {k:'cash',amt};});
   const transLines=tl.map((x,j)=>({no:j+1,bank:String(x.bank).trim(),amt:r2(num(x.amt)),when:String(x.when).trim(),ref:String(x.ref).trim(),slip:!!slipOf(x.id)}));
@@ -315,22 +336,25 @@
   const mtxt=methods.map(x=>mlabel(x.k)).join(' + '),br=b?(S.branch&&S.branch!=='all'?S.branch:b.ctx()):'';
   const lines=[],SF=mode==='ar'&&window.PKG_SALE&&PKG_SALE.on()&&window.PKG_SALE_PAY&&PKG_SALE_PAY.settleFields?PKG_SALE_PAY:null;
   const pv=PV(),pvNo=pv?pv.newNo():'';   /* DriveGo new system (task 3.4): one payment voucher for the whole settlement */
-  done.forEach(x=>{const d=x.d,amt=r2(p[x.id]);
+  const shares=split(done.map(x=>r2(p[x.id])),methods,transLines),logs=[];
+  done.forEach((x,bi)=>{const d=x.d,amt=r2(p[x.id]),sh=shares[bi],bb=Object.assign({},base,mainOf(sh.methods,sh.transLines)),mt=sh.methods.map(m=>mlabel(m.k)).join(' + ');
    d.payments=d.payments||[];
-   d.payments.push(Object.assign({id:uid(),amt},base,{payId,payTotal:g,payBills:done.length,methods,transLines,slipCount:slips.length,br},SF&&d.pkgSale?SF.settleFields(S,x,done):null,pv?pv.settleFields(S,x,pvNo):null));
+   const pay=Object.assign({id:uid(),amt},bb,{payId,payTotal:g,payBills:done.length,methods:sh.methods,transLines:sh.transLines,slipCount:slips.length,br},SF&&d.pkgSale?SF.settleFields(S,x,done):null,pv?pv.settleFields(S,x,pvNo):null);
+   d.payments.push(pay);
    const rem=x.total-paidAmtOf(d)-whtOf(x.id);   /* a vendor's withholding is in paidAmtOf already (58-payment-voucher.js) */
    if(rem<=0.005){
     d.paid=true;
     if(mode==='ar'){d.paidDate=date;}
-    else{d.payDate=date;d.payMethod=mm;d.payBank=base.bank;d.payRef=base.ref;d.payCard4=base.card4;d.chkDate=base.chkDate;d.payBy=by;d.payNote=note;}
+    else{d.payDate=date;d.payMethod=bb.method;d.payBank=bb.bank;d.payRef=bb.ref;d.payCard4=bb.card4;d.chkDate=bb.chkDate;d.payBy=by;d.payNote=note;}
    }
-   logAudit(mode==='ar'?(SF&&d.pkgSale&&PKG_SALE.saleOf(d)?'stockcut':'receipt'):'gr',(SF&&d.pkgSale&&PKG_SALE.saleOf(d))||d,'pay',
-    (mode==='ar'?'รับชำระ ':'จ่ายเจ้าหนี้ ')+money(amt)+' บาท ('+mtxt+')'+(whtOf(x.id)>0?' · ลูกค้าหัก ณ ที่จ่าย '+money(whtOf(x.id))+' บาท':'')   /* DriveGo new system (task 3.4, finding 4) */
-    +(whtAp(x.id)>0?' · หัก ณ ที่จ่าย '+money(whtAp(x.id))+' บาท':'')+(pvNo?' · ใบสำคัญจ่าย '+pvNo:'')
-    +(rem<=0.005?' · ชำระครบแล้ว':' · คงค้าง '+money(Math.max(0,rem))+' บาท'));
+   const head=(mode==='ar'?'รับชำระ ':'จ่ายเจ้าหนี้ ')+money(amt)+' บาท ('+mt+')'+(whtOf(x.id)>0?' · ลูกค้าหัก ณ ที่จ่าย '+money(whtOf(x.id))+' บาท':'')   /* DriveGo new system (task 3.4, finding 4) */
+    +(whtAp(x.id)>0?' · หัก ณ ที่จ่าย '+money(whtAp(x.id))+' บาท':'')+(pvNo?' · ใบสำคัญจ่าย '+pvNo:''),tail=rem<=0.005?' · ชำระครบแล้ว':' · คงค้าง '+money(Math.max(0,rem))+' บาท';
+   logAudit(mode==='ar'?(SF&&d.pkgSale&&PKG_SALE.saleOf(d)?'stockcut':'receipt'):'gr',(SF&&d.pkgSale&&PKG_SALE.saleOf(d))||d,'pay',head+tail);
+   logs.push({e:DB.audit[DB.audit.length-1],head,tail,pay});
    lines.push(x.no+(rem<=0.005?' ครบ':' ชำระบางส่วน · ค้างต่อ ฿'+fm(Math.max(0,r2(rem)))));
   });
   if(mode==='ar'&&window.PKG_SALE&&PKG_SALE.on())PKG_SALE.afterPay(done.map(x=>x.d));   /* sale-flow.js: receipt number + derived paid for a sale's ledger record */
+  logs.forEach(z=>{if(z.e&&z.pay.reNo)z.e.note=z.head+' · ใบเสร็จ '+z.pay.reNo+z.tail;});   /* DriveGo new system (task 3.5, R2): the receipt, as the sale window writes it */
   save();
   const res={cnt:done.length,amt:g,party:partyName(),date,by,verb:l.verb,payId,pvNo,
    meth:S.rows.map(r=>MI[r.k][1]+' '+fm(rowAmt(r))+(r.k==='trans'&&r.lines.length>1?' ['+r.lines.length+' รายการ]':'')).join(' + '),

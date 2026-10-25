@@ -164,19 +164,27 @@
  const costOf=c=>{const g=typeof pkgFifo==='object'&&pkgFifo.docCost?pkgFifo.docCost(c.moveRef):null;return g?n(g.cost):n(c.cost);};
  let DAY=iso();
  /* ---------- the numbers (pure) ---------- */
+ /* DriveGo new system (task 3.5, R8-ข): a settlement recorded before 3.5 holds the whole settlement's methods on every bill it paid —
+    count only the bill's share (the same mix of methods); payments recorded since hold their own share already (47.js) */
+ function ownMethods(p){const ms=p.methods&&p.methods.length?p.methods:[{k:p.method||'other',amt:p.amt}],t=r2(ms.reduce((a,m)=>a+n(m.amt),0));
+  if(n(p.payBills)>1&&t>0&&Math.abs(t-n(p.amt))>0.01){const f=n(p.amt)/t;return ms.map(m=>Object.assign({},m,{amt:r2(n(m.amt)*f),fee:r2(n(m.fee)*f)}));}
+  return ms;}
  function daily(day){
-  const sales=[],voids=[],revs=[],pays=[],payVoids=[],by={cash:0,trans:0,card:0,check:0,other:0};
+  const sales=[],voids=[],revs=[],pays=[],payVoids=[],refunds=[],by={cash:0,trans:0,card:0,check:0,other:0};let fee=0;
   SC.list().forEach(c=>{if(!c||!here(c))return;const L=S.led(c);if(!L)return;
    if(c.cancelled){if(String(c.cancelDate||'')===day&&c.date<day){const t=receiptTotals(L);voids.push({no:c.no,date:c.date,cust:custOf(c.custId),gross:t.gross,reason:c.cancelReason||''});}return;}
    if(c.superseded)return;
    if(c.revDate===day&&c.date<day)revs.push({no:c.no,date:c.date,gross:receiptTotals(L).gross});
    if(c.date===day){const t=receiptTotals(L),cost=costOf(c);sales.push({id:c.id,no:c.no,cust:custOf(c.custId),base:t.base,vat:t.vat,gross:t.gross,cost,profit:t.base-cost,state:S.state(c)});}});
   (DB.receipts||[]).forEach(L=>{if(!L||!L.pkgSale||!here(L))return;const c=S.saleOf(L);(L.payments||[]).forEach(p=>{if(!p)return;
-   if(!p.cancelled&&p.date===day){const ms=p.methods&&p.methods.length?p.methods:[{k:p.method||'other',amt:p.amt}];ms.forEach(m=>{const k=by[m.k]!==undefined?m.k:'other';by[k]+=n(m.amt);});
+   if(!p.cancelled&&p.date===day){const ms=ownMethods(p);ms.forEach(m=>{const k=by[m.k]!==undefined?m.k:'other';by[k]+=n(m.amt);if(m.k==='card')fee+=n(m.fee);});
     pays.push({id:c?c.id:'',pay:p.id,reNo:p.reNo||'',sale:c?c.no:L.no,saleDate:L.date,earlier:L.date<day,cust:custOf(L.custId),method:(p.methods||[]).map(m=>PMT[m.k]||m.k).join(' + ')||PMT[p.method]||'ไม่ระบุวิธี',amt:n(p.amt),wht:n(p.wht&&p.wht.amt),by:String(p.by||'').replace(/^.*· /,'')});}
    else if(p.cancelled&&String(p.cancelDate||'')===day&&p.date<day&&n(p.amt)>0)payVoids.push({reNo:p.reNo||'',sale:c?c.no:L.no,date:p.date,amt:n(p.amt),reason:p.cancelReason||''});});});
+  /* DriveGo new system (task 3.5): money paid back to customers by credit notes (57-credit-note.js) on the day it took effect */
+  (DB.creditNotes||[]).forEach(x=>{if(!x||!here(x)||!x.money||!(n(x.money.refund)>0)||!(x.apv&&x.apv.status==='approved'))return;
+   if(((x.apv&&x.apv.date)||x.date)===day)refunds.push({no:x.no,sale:x.saleNo,amt:n(x.money.refund),method:PMT[x.money.method]||x.money.method||''});});
   const sum=(a,k)=>r2(a.reduce((t,x)=>t+n(x[k]),0));
-  return {day,sales,voids,revs,pays,payVoids,by:Object.fromEntries(Object.entries(by).map(([k,v])=>[k,r2(v)])),
+  return {day,sales,voids,revs,pays,payVoids,refunds,fee:r2(fee),by:Object.fromEntries(Object.entries(by).map(([k,v])=>[k,r2(v)])),
    tot:{gross:sum(sales,'gross'),base:sum(sales,'base'),vat:sum(sales,'vat'),cost:sum(sales,'cost'),profit:sum(sales,'profit'),n:sales.length,money:sum(pays,'amt'),wht:sum(pays,'wht'),earlier:r2(pays.filter(x=>x.earlier).reduce((t,x)=>t+x.amt,0)),voidMoney:sum(payVoids,'amt')}};
  }
  /* sales still waiting for money (not credit): the home card = the 4.1 register with the status "รอชำระ / ชำระบางส่วน" (same N, same ฿) */
@@ -204,7 +212,8 @@
    <div class="pkg-sf-sum" id="sdSum1">${fig('ใบตัดสต็อก',T.n+' ใบ')}${fig('ยอดขายรวม',money(T.gross))}${fig('ก่อน VAT',money(T.base))}${cost?fig('ต้นทุนขาย',money(T.cost))+fig('กำไรขั้นต้น',money(T.profit),T.profit<0?'warn':''):''}</div>${sales}${notes}
    <h3>2 · เงินที่รับของวัน <small>นับตามวันที่รับเงิน — รวมเงินของใบตัดสต็อกวันก่อน</small></h3>
    <div class="pkg-sf-sum" id="sdSum2">${fig('รับเงินรวม',money(T.money))}${Object.keys(PMT).map(k=>fig(PMT[k],money(R.by[k]))).join('')}${R.by.other?fig('ไม่ระบุวิธี',money(R.by.other)):''}${fig('ของใบตัดสต็อกวันก่อน',money(T.earlier))}${T.voidMoney?fig('ยกเลิกของวันก่อน','−'+money(T.voidMoney),'warn'):''}${fig('เงินสุทธิของวัน',money(r2(T.money-T.voidMoney)))}</div>
-   <p class="hint">ลูกค้าหัก ณ ที่จ่ายวันนี้ <b>${money(T.wht)}</b> บาท — ไม่ใช่เงินที่รับ จึงแสดงแยก</p>${pays}${pv}`;
+   <p class="hint">ลูกค้าหัก ณ ที่จ่ายวันนี้ <b>${money(T.wht)}</b> บาท — ไม่ใช่เงินที่รับ จึงแสดงแยก</p>${R.fee>0?`<p class="hint">ค่าธรรมเนียมบัตรที่ลูกค้าจ่ายเพิ่มวันนี้ <b>${money(R.fee)}</b> บาท — ไม่ใช่รายได้ ใช้หักกับค่าธรรมเนียมที่ธนาคารเก็บ (ไม่รวมในยอดบัตรข้างบน)</p>`:''}${pays}${pv}
+   ${R.refunds.length?`<div class="pkg-sf-dnote"><b>คืนเงินลูกค้าตามใบลดหนี้</b> — จ่ายออกจากเงินของวันนี้<ul>${R.refunds.map(v=>`<li data-no-translate>${esc(v.no)} · ${esc(v.sale)} · −${money(v.amt)}${v.method?' ('+esc(v.method)+')':''}</li>`).join('')}</ul></div>`:''}`;
  }
  function render(){
   if(!on()){pane.innerHTML='';return;}
