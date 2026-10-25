@@ -32,7 +32,8 @@
     "stockCuts",
     "branches",
     "custClaims",
-    "transfers"
+    "transfers",
+    "creditNotes"
   ]) RULES[`DB.${f}`] = LIST;
   for (const f of ["queue", "inq", "sos", "learn"]) RULES[`DB.px.${f}`] = LIST;
   for (const f of ["lots", "allocs"]) RULES[`DB.fifo.${f}`] = LIST;

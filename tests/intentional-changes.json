@@ -207,6 +207,16 @@
       "scenario": "S141-close-tax-month-locks-vat-documents.spec.ts",
       "decision": "F2, T2, T3, T4, T5 (task 3.3)",
       "why": "The owner closes a month's VAT in the tax report: documents with VAT dated in it can no longer be cancelled or recorded, money is still received, a full tax invoice can still be issued for a sale of that month after a warning (the month's report keeps the number it was filed under and notes the late invoice), and the owner opens the month again with a reason; closing and opening are audited."
+    },
+    {
+      "scenario": "S142-credit-note-return-and-price-cut.spec.ts",
+      "decision": "F2, T6, T7, T8, T9 (task 3.3)",
+      "why": "The owner issues credit notes: goods returned from a paid sale go back into stock at the lot's cost and are paid back in cash; a price cut on an unpaid sale lowers what is owed. Each takes effect at once, prints with the original invoice, right value, difference, VAT and reason, lowers the sales tax of its own month while the sale's tax invoice stays as issued, and the sale can no longer be cancelled."
+    },
+    {
+      "scenario": "S143-credit-note-by-staff-waits-for-approval.spec.ts",
+      "decision": "T10 (task 3.3)",
+      "why": "A staff member with the right ออกใบลดหนี้ issues a credit note: it waits for approval and changes nothing; the owner approves it from the pending approvals and only then does it lower what the customer owes."
     }
   ]
 }
