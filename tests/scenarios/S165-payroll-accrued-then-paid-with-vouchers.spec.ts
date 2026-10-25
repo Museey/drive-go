@@ -24,6 +24,10 @@ test('S165 ระบบใหม่: บันทึกเงินเดือ�
   const golden = legacyGolden(S40, { app, page, testInfo });
   await app.loginAsOwner();
   await golden.step('หน้าแรก');
+  // The home page's social security panel is an estimate until the month is recorded, and says so.
+  const ssoTag = page.locator('#ssoHomeBox').getByText(/^11 คน/);
+  await expect(ssoTag).toHaveText('11 คน · ประมาณการ');
+  await expect(ssoTag).toHaveAttribute('title', 'ยังไม่ได้บันทึกเงินเดือนงวด ต.ค. 2569 (06.4 จ่ายเงินเดือน)');
 
   await page.getByText('รายจ่าย / ซื้อสินค้า', { exact: true }).filter({ visible: true }).click();
   await page.getByText('4 · จ่ายเงินเดือน', { exact: true }).filter({ visible: true }).click();
@@ -119,4 +123,10 @@ test('S165 ระบบใหม่: บันทึกเงินเดือ�
     '13/10/2569', 'ผู้รับเงิน']);
   await app.settle();
   expect((await app.state()).DB.audit.at(-1)).toMatchObject({ act: 'print', note: 'สลิปเงินเดือน งวด ต.ค. 2569 · EMP003' });
+
+  // Recorded: the home page shows the month's figures, no longer an estimate.
+  await page.getByRole('button', { name: '00 Mr.DriveGo' }).click();
+  await expect(ssoTag).toHaveText('11 คน');
+  await expect(page.locator('#ssoHomeBox').getByRole('row').filter({ hasText: 'รวมนำส่งสำนักงานประกันสังคม' }).getByRole('cell'))
+    .toHaveText(['รวมนำส่งสำนักงานประกันสังคม', '216,500.00', '8,800.00', '8,800.00', '17,600.00']);
 });

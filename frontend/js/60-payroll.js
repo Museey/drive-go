@@ -313,9 +313,10 @@
    try{const tb=$i('ssoTbl')&&$i('ssoTbl').tBodies[0],mo=($i('finMonth')||{}).value||thisMonth();if(!tb||!DB.emp.length)return out;
     const p=periodOf(mo),L=p?p.lines:rowsOf(mo),t=sum(L);
     tb.innerHTML=L.map(l=>`<tr><td>${esc(l.code)} · ${esc(l.name)}</td><td class="num">${money(l.gross)}</td><td class="num">${money(l.ssoEmp)}</td><td class="num">${money(l.ssoEr)}</td><td class="num">${money(l.ssoEmp+l.ssoEr)}</td></tr>`).join('')
-     +`<tr style="background:#f6f8f9"><td><b>รวมนำส่งสำนักงานประกันสังคม</b>${p?'':hint('ประมาณการ — ยังไม่ได้บันทึกเงินเดือน'+esc(lbl(mo)))}</td><td class="num"><b>${money(t.g)}</b></td>
+     +`<tr style="background:#f6f8f9"><td><b>รวมนำส่งสำนักงานประกันสังคม</b></td><td class="num"><b>${money(t.g)}</b></td>
       <td class="num"><b>${money(t.e)}</b></td><td class="num"><b>${money(t.r)}</b></td><td class="num"><b>${money(t.e+t.r)}</b></td></tr>`;
-    const tag=$i('ssoTag');if(tag)tag.textContent=L.length+' คน';
+    /* an estimate says so in the panel's tag: a line in the table would move everything below it */
+    const tag=$i('ssoTag');if(tag){tag.textContent=L.length+' คน'+(p?'':' · ประมาณการ');tag.title=p?'':'ยังไม่ได้บันทึกเงินเดือน'+lbl(mo)+' (06.4 จ่ายเงินเดือน)';}
    }catch(e){}
    return out;};}
 
