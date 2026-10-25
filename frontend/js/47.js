@@ -56,11 +56,14 @@
  /* open documents of this side, in the branches the account may use (read again after every save) */
  /* ระบบขายแบบใหม่ (sale-pay.js): withholding a juristic customer confirms for a bill in this settlement — it is not money, so it lowers what is left to pay */
  const whtOf=id=>S&&S.mode==='ar'&&S.wht&&S.wht[id]?num(S.wht[id].amt):0;
+ /* DriveGo new system (task 3.4, R7-ข): withholding from a vendor (58-payment-voucher.js) lowers what is left to pay the same way */
+ const PV=()=>S&&S.mode==='ap'&&window.PKG_PV?window.PKG_PV:null;
+ const whtAp=id=>PV()&&S.wht&&S.wht[id]?num(S.wht[id].amt):0;
  function reload(){
   const b=Br();PP.mode=S.mode;
   S.docs=ppOutDocs().map(x=>{const paid=r2(paidAmtOf(x.d)),br=b?b.brOf(x.d):'main';
    return {d:x.d,id:x.d.id,who:x.who||NONE,no:x.no,date:x.date||'',due:x.due||x.date||'',total:r2(x.total),paid,br,
-    cnt:(x.d.payments||[]).filter(p=>!p.cancelled&&num(p.amt)>0).length,raw:r2(Math.max(0,x.total-paid)),out:r2(Math.max(0,x.total-paid-whtOf(x.d.id))),inv:S.mode==='ap'?(x.d.inv||''):''};})
+    cnt:(x.d.payments||[]).filter(p=>!p.cancelled&&num(p.amt)>0).length,raw:r2(Math.max(0,x.total-paid)),out:r2(Math.max(0,x.total-paid-whtOf(x.d.id)-whtAp(x.d.id))),inv:S.mode==='ap'?(x.d.inv||''):''};})
    .filter(x=>x.out>.004&&(!b||b.access(x.br)));
   listParties();
  }
@@ -189,7 +192,7 @@
    <div class="sbtn"><button type="button" class="btn sm gh" data-act="viewslip">ดูเต็มจอ</button><button type="button" class="btn sm gh" data-act="repslip">เปลี่ยนรูป</button><button type="button" class="btn sm dgr" data-act="unslip">เอารูปออก</button></div></div>`;}
  function resultHTML(){const r=S.result;if(!r)return '';return `<div class="pkg-st-res"><button type="button" class="x" data-act="hideres" title="ซ่อนข้อความนี้" aria-label="ซ่อนข้อความนี้">✕</button>
   <div class="t">${sv(IC.ok)}บันทึกแล้ว · ตัดยอด ${r.cnt} ใบ · คงค้างเหลือ ฿${fm(r.left)}</div>
-  <div class="d">${es(r.party)} · ${r.verb} ฿${fm(r.amt)} (${es(r.meth)}) · วันที่ ${thDate(r.date)} · โดย ${es(r.by||'-')}</div>
+  <div class="d">${es(r.party)} · ${r.verb} ฿${fm(r.amt)} (${es(r.meth)}) · วันที่ ${thDate(r.date)} · โดย ${es(r.by||'-')}</div>${r.pvNo&&window.PKG_PV?window.PKG_PV.resultLine(r.pvNo):''}
   ${r.tl.map(t=>`<div class="d">${sv(IC.trans)}${es(t)}</div>`).join('')}<div class="d">${es(r.lines)}</div></div>`;}
  function branchField(){const b=Br();if(!b)return '';const acc=b.accessible();if(!acc.length)return '';
   return `<label class="f"><span>สาขา</span><select data-st="branch">${acc.map(x=>`<option value="${es(x.id)}"${x.id===S.branch?' selected':''}>${es(x.code+' · '+x.name)}</option>`).join('')}${acc.length>1?`<option value="all"${S.branch==='all'?' selected':''}>ทุกสาขา</option>`:''}</select></label>`;}
@@ -201,13 +204,13 @@
     <label class="f"><span>ผู้บันทึก</span><input type="text" data-st="by" value="${es(S.by)}"></label></div>
    <div class="pkg-st-obox"><span>ยอดเงินที่ค้างชำระ (ตามบิลที่เลือก)</span><b><span data-out="selout"></span><small>บาท</small></b></div>
    <div class="pkg-st-oline"><span>ค้างทั้งหมดของ${l.party}รายนี้ <b data-out="allsum"></b> (<span data-out="allcnt"></span> ใบ) → หลังชำระครั้งนี้เหลือ <b data-out="allafter"></b></span><span>· เลือก <b data-out="selcnt"></b> ใบ</span><span class="sp"></span>
-    <button type="button" class="btn sm gh d-clear" data-act="clear">ล้างที่เลือก</button></div>
+    <button type="button" class="btn sm gh d-clear" data-act="clear">ล้างที่เลือก</button>${PV()?PV().whtButton(S):''}</div>
    ${resultHTML()}
    <div class="pkg-st-manline" data-st="manline" hidden><span>${sv(IC.pen)}กำหนดยอดรายใบเอง</span><button type="button" class="pkg-st-link" data-act="automode">กลับไปตัดอัตโนมัติ (ใบเก่าก่อน)</button></div>
    <div class="pkg-st-selbar m-only"><label><input type="checkbox" data-st="all2" aria-label="เลือกทั้งหมด"><span>เลือกทั้งหมด (<span data-out="allcnt"></span> ใบ)</span></label><button type="button" class="btn sm gh" data-act="clear">ล้างที่เลือก</button></div>
    <div class="pkg-st-mhint m-only">ระบบตัดจากใบเก่าที่สุด (ล่างสุด) ขึ้นมา</div>
    <div class="pkg-st-tbox"><table class="pkg-st-tbl"><thead><tr><th class="ck"><input type="checkbox" data-st="all" aria-label="เลือกทั้งหมด"></th><th>${l.doc}</th><th>ครบกำหนด</th><th class="r">คงค้าง</th><th class="r">ชำระครั้งนี้</th><th class="r">เหลือ<wbr>หลังชำระ</th></tr></thead>
-   <tbody>${billRows()}</tbody></table></div>${S.mode==='ar'&&window.PKG_SALE_PAY&&PKG_SALE_PAY.settleExtra?PKG_SALE_PAY.settleExtra(S,selList(),'wht'):''}
+   <tbody>${billRows()}</tbody></table></div>${S.mode==='ar'&&window.PKG_SALE_PAY&&PKG_SALE_PAY.settleExtra?PKG_SALE_PAY.settleExtra(S,selList(),'wht'):''}${PV()?PV().settleExtra(S,selList()):''}
    <div class="hint pkg-st-foothint">ระบบตัดจากใบเก่าที่สุด (ล่างสุด) ขึ้นมา · แตะแถวเพื่อติ๊ก · อยากกำหนดยอดรายใบเอง แก้ช่อง “ชำระครั้งนี้” ได้ (ไม่เกินยอดคงค้าง)</div>
   </div>
   <div class="pkg-st-rc"><div class="pkg-st-rcs">
@@ -286,7 +289,7 @@
  function showConfirm(){const l=lb(),p=plan(),g=got(),list=selList().slice().reverse(),af=after(),tl=tLines();
   cfm.innerHTML=`<div class="card" role="dialog" aria-modal="true" aria-label="ตรวจก่อนบันทึก"><h3>ตรวจก่อนบันทึก · ${l.verb} ฿${fm(g)}</h3>
   <div class="who">${es(partyName())} · วันที่ ${thDate(S.date)} · ${es(S.rows.map(r=>MI[r.k][1]+' '+fm(rowAmt(r))).join(' + '))}</div>
-  <div class="sum"><div><span>ยอดค้างของบิลที่เลือก ${list.length} ใบ</span><b>${fm(selOut())}</b></div><div><span>− ${l.recv}ครั้งนี้</span><b>${fm(g)}</b></div><div class="${af<=.004?'ok':'amb'}"><span>= คงค้างหลังชำระ</span><b>${fm(af)}</b></div></div>
+  <div class="sum"><div><span>ยอดค้างของบิลที่เลือก ${list.length} ใบ</span><b>${fm(selOut())}</b></div><div><span>− ${l.recv}ครั้งนี้</span><b>${fm(g)}</b></div><div class="${af<=.004?'ok':'amb'}"><span>= คงค้างหลังชำระ</span><b>${fm(af)}</b></div></div>${PV()?PV().confirmLine(S,list):''}
   ${af>.004?`<div class="ex">เงิน ฿${fm(g)} ตัด<b>จากใบเก่าที่สุดก่อน</b> · ใบที่เงินไม่พอ<b>ตัดบางส่วน</b> ที่เหลือค้างต่อไว้รอ${l.verb}ครั้งหน้า · ใบที่เงินไปไม่ถึงยังค้างเท่าเดิม ไม่ถูกแตะ</div>`:''}
   ${tl.length?`<div class="tlist"><b>รายการโอน ${tl.length} รายการ</b>${tl.map((x,j)=>`<span>${es(lineTxt(x,j))}</span>`).join('')}</div>`:''}
   <div class="pl">${list.map((x,i)=>{const a=p[x.id]||0,t=planTxt(x,a);return `<div><i>${i+1}</i><span><b>${es(x.no)}</b> <i>${thDate(x.date)}</i></span><span class="${a<=.004?'no0':x.out-a<=.004?'ok':'pt'}">${t==='ตัดครบ'?sv(IC.ok):''}${t}</span></div>`;}).join('')}</div>
@@ -311,10 +314,11 @@
   const base={date,method:mm,by,note,bank:mm==='trans'?bigT.bank:(main.bank||''),ref:mm==='trans'?bigT.ref:(main.ref||''),card4:mm==='card'?main.card4:'',chkDate:mm==='check'?main.chkDate:''};
   const mtxt=methods.map(x=>mlabel(x.k)).join(' + '),br=b?(S.branch&&S.branch!=='all'?S.branch:b.ctx()):'';
   const lines=[],SF=mode==='ar'&&window.PKG_SALE&&PKG_SALE.on()&&window.PKG_SALE_PAY&&PKG_SALE_PAY.settleFields?PKG_SALE_PAY:null;
+  const pv=PV(),pvNo=pv?pv.newNo():'';   /* DriveGo new system (task 3.4): one payment voucher for the whole settlement */
   done.forEach(x=>{const d=x.d,amt=r2(p[x.id]);
    d.payments=d.payments||[];
-   d.payments.push(Object.assign({id:uid(),amt},base,{payId,payTotal:g,payBills:done.length,methods,transLines,slipCount:slips.length,br},SF&&d.pkgSale?SF.settleFields(S,x,done):null));
-   const rem=x.total-paidAmtOf(d)-whtOf(x.id);
+   d.payments.push(Object.assign({id:uid(),amt},base,{payId,payTotal:g,payBills:done.length,methods,transLines,slipCount:slips.length,br},SF&&d.pkgSale?SF.settleFields(S,x,done):null,pv?pv.settleFields(S,x,pvNo):null));
+   const rem=x.total-paidAmtOf(d)-whtOf(x.id);   /* a vendor's withholding is in paidAmtOf already (58-payment-voucher.js) */
    if(rem<=0.005){
     d.paid=true;
     if(mode==='ar'){d.paidDate=date;}
@@ -322,12 +326,13 @@
    }
    logAudit(mode==='ar'?(SF&&d.pkgSale&&PKG_SALE.saleOf(d)?'stockcut':'receipt'):'gr',(SF&&d.pkgSale&&PKG_SALE.saleOf(d))||d,'pay',
     (mode==='ar'?'รับชำระ ':'จ่ายเจ้าหนี้ ')+money(amt)+' บาท ('+mtxt+')'+(whtOf(x.id)>0?' · ลูกค้าหัก ณ ที่จ่าย '+money(whtOf(x.id))+' บาท':'')   /* DriveGo new system (task 3.4, finding 4) */
+    +(whtAp(x.id)>0?' · หัก ณ ที่จ่าย '+money(whtAp(x.id))+' บาท':'')+(pvNo?' · ใบสำคัญจ่าย '+pvNo:'')
     +(rem<=0.005?' · ชำระครบแล้ว':' · คงค้าง '+money(Math.max(0,rem))+' บาท'));
    lines.push(x.no+(rem<=0.005?' ครบ':' ชำระบางส่วน · ค้างต่อ ฿'+fm(Math.max(0,r2(rem)))));
   });
   if(mode==='ar'&&window.PKG_SALE&&PKG_SALE.on())PKG_SALE.afterPay(done.map(x=>x.d));   /* sale-flow.js: receipt number + derived paid for a sale's ledger record */
   save();
-  const res={cnt:done.length,amt:g,party:partyName(),date,by,verb:l.verb,payId,
+  const res={cnt:done.length,amt:g,party:partyName(),date,by,verb:l.verb,payId,pvNo,
    meth:S.rows.map(r=>MI[r.k][1]+' '+fm(rowAmt(r))+(r.k==='trans'&&r.lines.length>1?' ['+r.lines.length+' รายการ]':'')).join(' + '),
    tl:tl.map(lineTxt),lines:lines.join(' · ')+(slips.length?' · แนบสลิป '+slips.length+' รูป':'')};
   clearSel();S.wht={};S.note='';S.slips=[];S.slipIx=0;reload();

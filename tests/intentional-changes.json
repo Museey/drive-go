@@ -162,6 +162,24 @@
       "by": "S145-settle-billing-note-withholding-matches-bills.spec.ts",
       "decision": "R7 (fix finding 4) (task 3.4)",
       "why": "The settle window's withholding table gives MA-SA261000008's outstanding as the bill table does (2,683.50, not 2,728.50) and the payment's audit line names the 45.00 withheld. Every other step, screen and data change is checked against S25's goldens."
+    },
+    {
+      "scenario": "S43-record-other-expense-vat-wht.spec.ts",
+      "by": "S146-expense-paid-gets-payment-voucher.spec.ts",
+      "decision": "R7-ข, answers of 2026-10-25 (task 3.4)",
+      "why": "An expense saved as จ่ายแล้ว gets a payment voucher MA-PV… and its payment date, paying is written to the audit log, and the register shows the voucher number under the expense's; the voucher prints from the expense window, and saving the expense again keeps its voucher. Every other step, screen and data change is checked against S43's goldens."
+    },
+    {
+      "scenario": "S63-pay-outstanding-utility-expense.spec.ts",
+      "by": "S147-pay-outstanding-expense-gets-payment-voucher.spec.ts",
+      "decision": "R7-ข, answers of 2026-10-25 (task 3.4)",
+      "why": "Paying an outstanding expense gives it a payment voucher MA-PV… and writes the payment to the audit log (the legacy app wrote nothing); the list shows the voucher number under the expense's. Every other step, screen and data change is checked against S63's goldens."
+    },
+    {
+      "scenario": "S31-pay-vendor-credit-gr.spec.ts",
+      "by": "S148-pay-vendor-gets-payment-voucher.spec.ts",
+      "decision": "R7-ข, answers of 2026-10-25 (task 3.4)",
+      "why": "A vendor settlement gets one payment voucher MA-PV… on the payment of every goods receipt it pays, named in the audit line, and the settle window has a หัก ณ ที่จ่าย button beside ล้างที่เลือก. Every other step, screen and data change is checked against S31's goldens."
     }
   ],
   "added": [
@@ -229,6 +247,11 @@
       "scenario": "S143-credit-note-by-staff-waits-for-approval.spec.ts",
       "decision": "T10 (task 3.3)",
       "why": "A staff member with the right ออกใบลดหนี้ issues a credit note: it waits for approval and changes nothing; the owner approves it from the pending approvals and only then does it lower what the customer owes."
+    },
+    {
+      "scenario": "S149-pay-vendor-with-withholding.spec.ts",
+      "decision": "R7-ข-ก, answers of 2026-10-25 (task 3.4)",
+      "why": "A vendor payment withholds 1% (transport) on the goods receipt's base before VAT: what is withheld lowers what is paid and settles the bill, the payment voucher prints the withholding, and the payment history shows the withholding and the voucher."
     }
   ]
 }
