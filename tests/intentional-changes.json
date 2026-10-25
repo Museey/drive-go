@@ -202,6 +202,11 @@
       "scenario": "S138-vat-rounded-to-satang-per-document.spec.ts",
       "decision": "R4 (task 3.3)",
       "why": "The VAT of a document is rounded once to the satang on the document's total, halves going up (7% of 1,234.50 is 86.42, not 86.415 shown as 86.41), the total is the base plus that VAT, and the sales tax report lists the same amounts."
+    },
+    {
+      "scenario": "S141-close-tax-month-locks-vat-documents.spec.ts",
+      "decision": "F2, T2, T3, T4, T5 (task 3.3)",
+      "why": "The owner closes a month's VAT in the tax report: documents with VAT dated in it can no longer be cancelled or recorded, money is still received, a full tax invoice can still be issued for a sale of that month after a warning (the month's report keeps the number it was filed under and notes the late invoice), and the owner opens the month again with a reason; closing and opening are audited."
     }
   ]
 }

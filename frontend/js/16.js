@@ -434,6 +434,7 @@
  const adjRec=a=>({id:uid(),type:a.type,amt:r2(a.amt),reason:String(a.reason).trim(),note:String(a.note||'').trim(),date:today(),at:nowTs(),by:DB.curEmp||'',byName:meName()});
  function adjust(x,a){
   const [c,L]=pair(x);if(!on()||!c||!L)return say('ใบตัดสต็อกนี้ยังไม่อยู่ในระบบขายแบบใหม่');
+  if(window.PKG_TAX_PERIOD&&PKG_TAX_PERIOD.lockedDoc(c))return false;   /* DriveGo new system (task 3.3, T5): its VAT month is closed */
   if(!need('rcptCut','edit'))return false;
   const s=statOf(c,L);if(!['wait','part','credit'].includes(s.k))return say('ใบตัดสต็อก '+c.no+' '+(STATE[s.k]||'')+' — ปรับยอดไม่ได้');
   if(taxOf(L))return say(TAX_LOCK);
@@ -445,6 +446,7 @@
  }
  function adjDel(x,id){
   const [c,L]=pair(x);if(!on()||!c||!L)return false;
+  if(window.PKG_TAX_PERIOD&&PKG_TAX_PERIOD.lockedDoc(c))return false;   /* DriveGo new system (task 3.3, T5) */
   if(!need('rcptCut','edit'))return false;
   const rec=(c.adj||[]).find(a=>a.id===id);if(!rec)return false;
   const s=statOf(c,L);if(!['wait','part','credit'].includes(s.k))return say('ใบตัดสต็อก '+c.no+' '+(STATE[s.k]||'')+' — แก้รายการปรับยอดไม่ได้');
@@ -540,6 +542,7 @@
  const r2x=v=>Math.round(n(v)*1e6)/1e6;
  async function revise(x,E){
   const [c,L]=pair(x);if(!c)return false;
+  if(window.PKG_TAX_PERIOD&&PKG_TAX_PERIOD.lockedDoc(c))return false;   /* DriveGo new system (task 3.3, T5) */
   if(!need('rcptCut','edit'))return false;
   if(!can('doc.editPrice'))return say('บัญชีนี้ไม่มีสิทธิ์แก้ราคา — ทำฉบับแก้ไขไม่ได้');
   const P=revisePlan(c,E||{});if(!P.ok)return say(P.error);

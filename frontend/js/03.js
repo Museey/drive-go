@@ -324,15 +324,21 @@ function ensureDocNo(r,historyField,noField,prefix){
 /* DriveGo new system (task 3.3, decisions R4, R5, R6-ก): a tax invoice keeps its own amounts from the moment it is
    issued, is dated on the day of the sale (the day the sales tax report files it under; `issued` is the day it was
    made), and one issued in place of a cancelled one records its number (`replaces`, as the legacy app's own reissue does) */
+/* the sale as sold and invoiced: without the adjustments a credit note made to what is still owed (task 3.3, 57-credit-note.js);
+   tax invoices (full and short) and the sales tax report show this, the credit note is a document of its own */
+function soldAs(r){ return r&&(r.adj||[]).some(a=>a&&a.cn)?Object.assign({},r,{adj:r.adj.filter(a=>!(a&&a.cn))}):r; }
 function stampTaxDoc(r){
   const docs=r.taxDocs||[], cur=docs[docs.length-1], prev=docs[docs.length-2];
   if(!cur||cur.cancelled||cur.base!==undefined) return;
-  const t=receiptTotals(r);
+  const t=receiptTotals(soldAs(r));
   cur.issued=cur.date; cur.date=r.date||cur.date; cur.rate=n(r.vat); cur.base=round2(t.base); cur.vat=round2(t.vat); cur.gross=round2(t.gross);
   if(prev&&prev.cancelled) cur.replaces=prev.no;
 }
 /* what the sales tax report files a sale under: its valid tax invoice's own amounts, else the bill's */
-function saleTaxOf(r){ const d=(r.taxDocs||[]).slice(-1)[0]; return d&&!d.cancelled&&d.base!==undefined?{base:d.base,vat:d.vat}:receiptTotals(r); }
+/* the number a sale is filed under; a full invoice issued after its month was closed (task 3.3, T2) is only noted */
+function saleTaxNoHtml(r){ const d=(r.taxDocs||[]).slice(-1)[0];
+  return d&&!d.cancelled&&d.late?esc(r.no)+'<div class="hint">ออกใบเต็มรูปภายหลัง เลขที่ '+esc(d.no)+'</div>':esc(r.taxNo||r.no); }
+function saleTaxOf(r){ const d=(r.taxDocs||[]).slice(-1)[0]; return d&&!d.cancelled&&d.base!==undefined?{base:d.base,vat:d.vat}:receiptTotals(soldAs(r)); }
 async function toggleDocCancel(r,historyField,noField,legacyKind,label){
   r[historyField]=r[historyField]||[];
   const cur=r[historyField].length?r[historyField][r[historyField].length-1]:null;
@@ -3398,7 +3404,7 @@ function renderTaxOverview(){
   rows=sortRows('taxOvTbl',rows);   /* ⚠️ ต้องเรียงก่อนตัดแถว */
   rows=limitRows(rows,'taxOv');
   $('#taxOvTbl tbody').innerHTML=rows.map(x=>{
-    const c=findCust(x.r.custId), t=x.d.gross!==undefined?{gross:x.d.gross}:receiptTotals(x.r);
+    const c=findCust(x.r.custId), t=x.d.gross!==undefined?{gross:x.d.gross}:receiptTotals(soldAs(x.r));
     return `<tr${x.d.cancelled?' class="cancelrow"':''}><td class="mono" style="font-size:12.5px"><span class="docno" onclick="openReceiptById('${x.r.id}')">${esc(x.d.no)}</span></td><td class="mono click" style="font-size:12.5px" onclick="openReceiptById('${x.r.id}')">${esc(x.r.no)}</td>
       <td class="ctr">${thDate(x.d.date)}${x.d.issued&&x.d.issued!==x.d.date?'<div class="hint">ออก '+thDate(x.d.issued)+'</div>':''}</td><td>${esc(custName(c)||'-')}</td>
       <td class="num">${money(t.gross)}</td>
@@ -3456,7 +3462,7 @@ function printTaxDoc(id,no){
   const r=DB.receipts.find(x=>x.id===id); if(!r) return;
   if(!r.taxNo) return toast('ใบเสร็จนี้ยังไม่มีเลขที่ใบกำกับภาษี');
   const doc=(r.taxDocs||[]).slice().reverse().find(d=>d.no===no);
-  const rr=JSON.parse(JSON.stringify(r));
+  const rr=JSON.parse(JSON.stringify(soldAs(r)));
   /* ใบที่ถูกยกเลิกยังพิมพ์เก็บเป็นหลักฐานได้ แต่ประทับลายน้ำ "ยกเลิกแล้ว" กันนำไปใช้ซ้ำ */
   if(doc&&doc.cancelled){ rr.cancelled=true; toast('ใบกำกับภาษี '+no+' ถูกยกเลิกแล้ว — พิมพ์พร้อมลายน้ำ "ยกเลิกแล้ว"'); }
   if(no) rr.taxNo=no;
@@ -7623,7 +7629,7 @@ function renderTaxSaleRows(all){
     +(!all&&pages>1?' · หน้า '+TAXSALE_PAGE+'/'+pages:'');
   $('#taxSaleTbl tbody').innerHTML=slice.map((r,i)=>{const c=findCust(r.custId), t=saleTaxOf(r);
     return `<tr><td class="ctr">${from+i+1}</td><td class="ctr">${thDate(r.date)}</td>
-      <td class="mono" style="font-size:12px">${esc(r.taxNo||r.no)}</td><td>${esc(custName(c)||'-')}</td>
+      <td class="mono" style="font-size:12px">${saleTaxNoHtml(r)}</td><td>${esc(custName(c)||'-')}</td>
       <td class="mono" style="font-size:12px">${esc((c&&c.tax)||'-')}</td>
       <td class="num">${money(t.base)}</td><td class="num">${money(t.vat)}</td></tr>`}).join('')
     ||'<tr><td colspan="7" class="empty">งวดนี้ยังไม่มีใบกำกับภาษีขาย</td></tr>';

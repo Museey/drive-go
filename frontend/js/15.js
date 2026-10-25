@@ -177,6 +177,7 @@
  async function cancelCut(id){
   ensure();const c=L().find(x=>x.id===id);if(!c)return false;
   if(c.cancelled){toast('ใบตัดสต็อก '+c.no+' ถูกยกเลิกแล้ว');return false;}
+  if(window.PKG_TAX_PERIOD&&PKG_TAX_PERIOD.lockedDoc(c))return false;   /* DriveGo new system (task 3.3, T5): its VAT month is closed */
   if(c.src==='sale'){toast('ใบตัดสต็อกนี้มาจากบิลขายหน้าร้านเดิม '+(c.receiptNo||'')+' — ยกเลิกที่บิลนั้น ระบบจะคืนสต๊อกให้เอง');return false;}
   if(!need('cancel'))return false;
   if(typeof pkgOwnOk==='function'&&!pkgOwnOk('rcptCut',c)){toast('บัญชีนี้ยกเลิกได้เฉพาะใบตัดสต็อกที่ตนเองสร้าง');return false;}
@@ -915,6 +916,7 @@
  /* ---------- print ---------- */
  const markPrinted=c=>{c.printed=true;logAudit('stockcut',c,'print');save();refresh();};
  function printSlip(c){
+  if(typeof soldAs==='function')c=soldAs(c);   /* DriveGo new system (task 3.3): the short tax invoice stays as sold after a credit note */
   const cu=findCust(c.custId),t=tot(c),s=DB.shop||{};
   printDocs(`<div class="sheetpage" style="max-width:80mm;margin:0 auto;font-size:12px"><div style="text-align:center"><b style="font-size:14px">${esc(orgName())}</b><br>${esc(s.addr?addrLine(s.addr):'')}${s.tax?'<br>เลขประจำตัวผู้เสียภาษี '+esc(s.tax):''}
    <br><b>${t.vat>0?'ใบกำกับภาษีอย่างย่อ / ':''}ใบตัดสต็อกขายสินค้า</b></div><hr>
@@ -927,6 +929,7 @@
   markPrinted(c);
  }
  function printDoc(c){
+  if(typeof soldAs==='function')c=soldAs(c);
   const cu=findCust(c.custId),v=cu&&(cu.vehicles||[])[c.vehIdx],t=tot(c);
   printDocs(sheetTop({title:'ใบตัดสต็อกขายสินค้า',en:'STOCK ISSUE / SALE',copy:'ต้นฉบับ',stamp:c.cancelled?'ยกเลิกแล้ว':'',
    fields:[['เลขที่',esc(c.no)],['วันที่',thDate(c.date)],['ช่องทางการขาย',esc(CH[c.channel]||'')],['อ้างอิง',esc(c.quoteNo?'ใบเสนอราคา '+c.quoteNo:(c.ref||'-'))]]})
