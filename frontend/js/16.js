@@ -69,8 +69,8 @@
   if(r.pkgSale){
    const e=r.whtExp||{},b=e.base==='all'?t.base:Math.min(n(t.labor),t.base);
    t.whtExp=Math.min(Math.max(0,t.base),Math.max(0,b*n(e.rate)/100));
-   let w=0;for(const p of r.payments||[])if(p&&!p.cancelled&&p.wht)w+=n(p.wht.amt);
-   t.whtAmt=w;
+   let w=0,wb=0;for(const p of r.payments||[])if(p&&!p.cancelled&&p.wht){w+=n(p.wht.amt);wb+=n(p.wht.baseAmt);}
+   t.whtAmt=w;t.whtBaseAmt=round2(wb);   /* DriveGo new system (task 3.4, X1): the base the customer withheld on */
   }else{t.whtBaseAmt=r.whtBase==='labor'?t.labor:t.base;t.whtAmt=t.whtBaseAmt*n(r.wht)/100;}
   t.net=t.gross-t.whtAmt;
   if(typeof cardFee==='function'&&typeof cardBaseAmt==='function'){t.fee=cardFee(r,t.net);t.cardBase=cardBaseAmt(r,t.net);t.cardChargeAmt=Math.round((t.cardBase+t.fee)*100)/100;}
@@ -876,7 +876,7 @@
   if(!on())return rt0.apply(this,arguments);
   const real=DB.receipts,extra=[];
   (real||[]).forEach(r=>{if(!r||!r.pkgSale||r.cancelled)return;(r.payments||[]).forEach(p=>{if(p&&!p.cancelled&&p.wht&&n(p.wht.amt)>0)
-   extra.push({id:'WHT'+p.id,pkgSale:1,no:p.reNo||r.no,date:p.date,custId:r.custId,br:r.br,items:[],disc:0,vat:0,wht:n(p.wht.rate)||1,whtBase:p.wht.base,cancelled:false,paid:true,pay:{},payments:[{amt:0,wht:{amt:n(p.wht.amt)}}],taxDocs:[]});});});
+   extra.push({id:'WHT'+p.id,pkgSale:1,no:p.reNo||r.no,date:p.date,custId:r.custId,br:r.br,items:[],disc:0,vat:0,wht:n(p.wht.rate)||1,whtBase:p.wht.base,cancelled:false,paid:true,pay:{},payments:[{amt:0,wht:{amt:n(p.wht.amt),baseAmt:n(p.wht.baseAmt)}}],taxDocs:[]});});});
   if(!extra.length)return rt0.apply(this,arguments);
   DB.receipts=real.concat(extra);try{return rt0.apply(this,arguments);}finally{DB.receipts=real;IX=null;NOS=null;}};}
  /* registers 4.2 / 4.3 / 4.4 (drawn by sale-docs.js, tables from saleflow-build.py): sort keys and phone-card columns, numbered

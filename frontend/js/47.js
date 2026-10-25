@@ -321,7 +321,8 @@
     else{d.payDate=date;d.payMethod=mm;d.payBank=base.bank;d.payRef=base.ref;d.payCard4=base.card4;d.chkDate=base.chkDate;d.payBy=by;d.payNote=note;}
    }
    logAudit(mode==='ar'?(SF&&d.pkgSale&&PKG_SALE.saleOf(d)?'stockcut':'receipt'):'gr',(SF&&d.pkgSale&&PKG_SALE.saleOf(d))||d,'pay',
-    (mode==='ar'?'รับชำระ ':'จ่ายเจ้าหนี้ ')+money(amt)+' บาท ('+mtxt+')'+(rem<=0.005?' · ชำระครบแล้ว':' · คงค้าง '+money(Math.max(0,rem))+' บาท'));
+    (mode==='ar'?'รับชำระ ':'จ่ายเจ้าหนี้ ')+money(amt)+' บาท ('+mtxt+')'+(whtOf(x.id)>0?' · ลูกค้าหัก ณ ที่จ่าย '+money(whtOf(x.id))+' บาท':'')   /* DriveGo new system (task 3.4, finding 4) */
+    +(rem<=0.005?' · ชำระครบแล้ว':' · คงค้าง '+money(Math.max(0,rem))+' บาท'));
    lines.push(x.no+(rem<=0.005?' ครบ':' ชำระบางส่วน · ค้างต่อ ฿'+fm(Math.max(0,r2(rem)))));
   });
   if(mode==='ar'&&window.PKG_SALE&&PKG_SALE.on())PKG_SALE.afterPay(done.map(x=>x.d));   /* sale-flow.js: receipt number + derived paid for a sale's ledger record */
@@ -518,7 +519,10 @@
   const r=hist0.apply(this,arguments);
   try{const d=typeof phDoc==='function'?phDoc():null;if(!d)return r;
    const rows=document.querySelectorAll('#phTbl tbody tr');
-   (d.payments||[]).forEach((p,i)=>{if(!p||!p.payId||!rows[i]||!rows[i].cells[2])return;rows[i].cells[2].innerHTML=methodHTML(p);});}catch(e){}
+   (d.payments||[]).forEach((p,i)=>{if(!p||!p.payId||!rows[i]||!rows[i].cells[2])return;rows[i].cells[2].innerHTML=methodHTML(p);});
+   /* DriveGo new system (task 3.4, finding 4): what the customer withheld, under the money received (as the sale window shows it) */
+   (d.payments||[]).forEach((p,i)=>{if(!p||p.cancelled||!p.wht||!(num(p.wht.amt)>0)||!rows[i]||!rows[i].cells[1])return;
+    rows[i].cells[1].insertAdjacentHTML('beforeend','<div class="hint">หัก ณ ที่จ่าย '+money(p.wht.amt)+(p.wht.got?' · ได้รับหนังสือรับรองแล้ว':p.wht.got===false?' · รอหนังสือรับรอง':'')+'</div>');});}catch(e){}
   return r;};
  const PHM=$i('mPayHist');
  if(PHM)PHM.addEventListener('click',e=>{const th=e.target.closest('[data-st-slip]');

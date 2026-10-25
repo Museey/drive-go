@@ -1,0 +1,59 @@
+import { test, expect } from '../support/test';
+import { legacyGolden, legacyStateChange } from '../support/legacy-golden';
+
+// Replaces S25 in the new system (tests/intentional-changes.json, task 3.4,
+// decision R7 "แก้ข้อ 4"): in the settle window the withholding table's
+// "คงค้าง" of MA-SA261000008 is the bill table's (2,683.50 after the 45.00
+// withheld; the legacy app showed 2,728.50 there), and the audit line of that
+// payment names the withholding. Every other step, message, screen and data
+// change is S25's.
+const S25 = 'S25-settle-billing-note-with-withholding.spec.ts';
+
+test('S145 ระบบใหม่: รับชำระตามใบวางบิลด้วยเงินสด ลูกค้าหัก ณ ที่จ่าย ตารางหัก ณ ที่จ่ายแสดงยอดคงค้างเท่ากับตารางบิล และบันทึกการแก้ไขบอกยอดหัก', async ({ app, page }, testInfo) => {
+  const golden = legacyGolden(S25, { app, page, testInfo });
+  await app.loginAsOwner();
+  await golden.step('หน้าแรก');
+
+  await page.getByText('ใบเสร็จรับเงิน / ใบกำกับภาษี', { exact: true }).filter({ visible: true }).click();
+  await page.getByRole('button', { name: '4.5 ใบวางบิล' }).click();
+  await golden.step('4.5 ใบวางบิล');
+
+  await page.getByRole('row').filter({ hasText: 'MA-BL261000001' }).filter({ visible: true })
+    .getByRole('button', { name: 'ไปหน้าตัดชำระลูกหนี้' }).click();
+  await page.getByRole('spinbutton', { name: 'หัก ณ ที่จ่ายของ MA-SA261000008' }).waitFor();
+  await golden.step('หน้าตัดชำระลูกหนี้ของใบวางบิล MA-BL261000001');
+
+  await page.getByRole('button', { name: 'เงินสดเต็มจำนวน' }).filter({ visible: true }).click();
+  await page.getByRole('radio', { name: 'แยกใบเสร็จตามบิล' }).check();
+  await page.getByText('รับชำระ ฿3,304.10 · ตัดครบ 2 ใบ').filter({ visible: true }).waitFor();
+  await page.getByRole('button', { name: 'ยังไม่ได้รับ — ตามทีหลัง' }).scrollIntoViewIfNeeded();
+  await golden.step('เงินสดเต็มจำนวน 3,304.10 แยกใบเสร็จตามบิล');
+  // The withholding table's "คงค้าง" is what the bill table shows.
+  const whtRow = page.getByRole('row').filter({ has: page.getByRole('spinbutton', { name: 'หัก ณ ที่จ่ายของ MA-SA261000008' }) });
+  await expect(whtRow.getByRole('cell').nth(1)).toHaveText('2,683.50');
+  await expect(page.getByRole('row').filter({ hasText: 'MA-SA261000008' }).filter({ hasText: '07/11/2569' })).toContainText('2,683.50');
+  await expect(page.getByRole('row').filter({ has: page.getByRole('spinbutton', { name: 'หัก ณ ที่จ่ายของ MA-SA261000007' }) })
+    .getByRole('cell').nth(1)).toHaveText('620.60');
+  await golden.screen('settle-billing', { mask: [whtRow.getByRole('cell').nth(1)] });
+
+  await page.getByRole('button', { name: 'บันทึกรับชำระ' }).filter({ visible: true }).click();
+  const confirm = page.getByRole('button', { name: 'ยืนยันบันทึกรับชำระ ฿3,304.10' });
+  await confirm.waitFor();
+  await golden.step('ตรวจก่อนบันทึก');
+
+  const before = await app.state();
+  await confirm.click();
+  await expect(confirm).toBeHidden();
+  await golden.step('หลังยืนยันบันทึกรับชำระ');
+  const legacy = JSON.parse(legacyStateChange(S25, 'settle-billing-note'));
+  expect(legacy['DB.audit'].added[1].no).toBe('MA-SA261000008');
+  legacy['DB.audit'].added[1].note = 'รับชำระ 2,683.50 บาท (เงินสด) · ลูกค้าหัก ณ ที่จ่าย 45.00 บาท · ชำระครบแล้ว';
+  await golden.stateChange('settle-billing-note', before, { 'DB.audit': legacy['DB.audit'] });
+
+  await page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).first().click();
+  await page.getByRole('row').filter({ hasText: 'MA-BL261000001' }).filter({ visible: true })
+    .getByText('รับชำระแล้ว').waitFor();
+  await golden.step('กลับรายการใบวางบิล');
+  await golden.screen('billing-list-paid');
+  golden.done();
+});

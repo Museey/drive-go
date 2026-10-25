@@ -150,6 +150,18 @@
       "by": "S140-delete-employee-tax-rights.spec.ts",
       "decision": "T3, T10, T12 (task 3.3)",
       "why": "An employee added now holds the three new tax rights (off): the staff list shows her rights as 10/68 instead of 10/65 (that cell is masked and checked) and the record the delete removes has them; every step, message, the rest of each screen and the rest of the data changes are S59's."
+    },
+    {
+      "scenario": "S22-pay-with-withholding-tax.spec.ts",
+      "by": "S144-pay-with-withholding-recorded-everywhere.spec.ts",
+      "decision": "R7 (fix finding 4), X1 (task 3.4)",
+      "why": "What the customer withheld shows wherever the money shows: the settle window's withholding table gives the bill's outstanding as the bill table does (3,676.40, not 3,766.40), the payment's audit line names the 90.00 withheld, the payment history shows the withholding under the money received, and the tax report's \"ภาษีถูกหัก ณ ที่จ่าย\" table shows the base withheld on instead of 0.00. Every other step, screen and data change is checked against S22's goldens."
+    },
+    {
+      "scenario": "S25-settle-billing-note-with-withholding.spec.ts",
+      "by": "S145-settle-billing-note-withholding-matches-bills.spec.ts",
+      "decision": "R7 (fix finding 4) (task 3.4)",
+      "why": "The settle window's withholding table gives MA-SA261000008's outstanding as the bill table does (2,683.50, not 2,728.50) and the payment's audit line names the 45.00 withheld. Every other step, screen and data change is checked against S25's goldens."
     }
   ],
   "added": [
