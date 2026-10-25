@@ -4009,9 +4009,15 @@ function sheetReceipt(r,kind,copy){
       <span class="lbl">${kind==='RT'?'ผู้ซื้อ / ผู้รับบริการ':'ผู้จ่ายเงิน'}</span></div>
   </div>
   <div class="note">${kind==='RT'
-    ? 'เอกสารออกเป็นชุด ต้นฉบับ (ผู้ซื้อ) และสำเนา (ผู้ขาย) · ใบกำกับภาษีนี้ออกคู่กับใบเสร็จรับเงินเลขที่ '+esc(r.no||'-')
+    ? taxReplacesNote(r)+'เอกสารออกเป็นชุด ต้นฉบับ (ผู้ซื้อ) และสำเนา (ผู้ขาย) · ใบกำกับภาษีนี้ออกคู่กับใบเสร็จรับเงินเลขที่ '+esc(r.no||'-')
     : 'เอกสารออกเป็นชุด ต้นฉบับ (ลูกค้า) และสำเนา (อู่) · ผู้รับบริการที่หักภาษี ณ ที่จ่าย กรุณาส่งมอบหนังสือรับรองการหักภาษี ณ ที่จ่ายให้ผู้รับเงิน'}</div>
   ${apvFoot(r)}</div>`;
+}
+/* DriveGo new system (task 3.3, decision T1): a tax invoice issued in place of a cancelled one says which, when and why */
+function taxReplacesNote(r){
+  const docs=r.taxDocs||[], d=docs.find(x=>x.no===r.taxNo), old=d&&d.replaces&&docs.find(x=>x.no===d.replaces);
+  if(!old) return '';
+  return '<b>ออกแทนใบกำกับภาษีเลขที่ '+esc(old.no)+' ลงวันที่ '+thDate(old.date)+' ที่ยกเลิก'+(old.cancelReason?' เพราะ '+esc(old.cancelReason):'')+'</b><br>';
 }
 function receiptSheets(r){
   let h=sheetReceipt(r,'RE','ต้นฉบับ')+sheetReceipt(r,'RE','สำเนา');

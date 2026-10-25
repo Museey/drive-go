@@ -6,7 +6,7 @@ import { legacyGolden } from '../support/legacy-golden';
 // cancels only the tax invoice. The bill, its payments and the stock stay as
 // they are (S62 cancelled the bill too and said to start again from a new
 // quotation), and a new tax invoice can be issued in its place, dated on the
-// day of the sale and recording which one it replaces.
+// day of the sale, recording which one it replaces and printing it (T1).
 const S62 = 'S62-cancel-tax-invoice.spec.ts';
 
 test('S136 ระบบใหม่: ยกเลิกเฉพาะใบกำกับภาษี บิล เงิน และสต๊อกไม่เปลี่ยน แล้วออกใบกำกับภาษีใบใหม่แทนได้', async ({ app, page }, testInfo) => {
@@ -65,6 +65,13 @@ test('S136 ระบบใหม่: ยกเลิกเฉพาะใบก�
     issued: '2026-10-13', rate: 7, base: 2380, vat: 166.6, gross: 2546.6,
     replaces: 'MA-TX261000003' });
   expect(reissued.payments).toEqual(bill(start).payments);
+
+  // The printed invoice (original and copy) says which one it replaces, when that one was dated and why it was cancelled (T1).
+  await page.getByRole('button', { name: 'พิมพ์ใบกำกับภาษี (ต้นฉบับ + สำเนา)' }).click();
+  await page.emulateMedia({ media: 'print' });
+  await expect(page.getByText('ออกแทนใบกำกับภาษีเลขที่ MA-TX261000003 ลงวันที่ 13/10/2569 ที่ยกเลิก เพราะ ลูกค้าแจ้งว่าชื่อบริษัทในใบกำกับภาษีไม่ถูกต้อง', { exact: true })
+    .filter({ visible: true })).toHaveCount(2);
+  await page.emulateMedia({ media: 'screen' });
 
   await page.getByRole('button', { name: 'ปิดหน้าต่าง' }).filter({ visible: true }).click();
   await expect(taxRow).toContainText('ยกเลิก');
