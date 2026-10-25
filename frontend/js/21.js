@@ -209,6 +209,7 @@
    +(nostock.length?'\n· '+nostock.length+' รายการไม่มีในทะเบียนอะไหล่ — ไม่ตัดสต๊อก':'')
    +(short.length?'\n⚠ '+short.length+' รายการมีไม่พอ สต๊อกจะติดลบ ('+short.slice(0,3).map(l=>l.code).join(', ')+')':'')
    +'\n\nใบเคลมจะปิดเป็น "เปลี่ยนให้ลูกค้าแล้ว" และแก้รายการไม่ได้อีก ยืนยันหรือไม่?';
+  if(short.length&&window.PKG_STOCK_FIFO&&!PKG_STOCK_FIFO.negOk(short.length))return;   /* DriveGo new system (task 3.6, R9-ข) */
   if(!await askP({title:'เปลี่ยนสินค้าให้ลูกค้า · '+c.no,text:msg,yes:'เปลี่ยนสินค้า',no:'ยังไม่เปลี่ยน'}))return;
   if(window.PKG_EXPIRY&&!(await PKG_EXPIRY.guard(ok,{kind:'claim'})))return;   /* stock-expiry.js — expired lots: skip the lot / right-holder confirms / blocked. KEEP this one line just before stock is cut */
   ok.forEach(l=>{const s=DB.stock.find(x=>x.id===l.stockId);s.qty=n(s.qty)-n(l.qty);s.lastMove=iso();

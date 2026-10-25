@@ -1494,15 +1494,18 @@ function openStockMoveReport(){
   $('#mrFrom').value=''; $('#mrTo').value='';
   closeModal('mStockMenu'); openModal('mMoveRep'); renderMoveRep();
 }
+/* DriveGo new system (task 3.6, finding 9): what leaves shows minus whatever sign the flow stored; the unit cost is the FIFO one */
+const mvQty=m=>m.type==='out'?-Math.abs(n(m.qty)):m.type==='in'?Math.abs(n(m.qty)):n(m.qty);
+const mvCost=m=>{const v=window.PKG_STOCK_FIFO?PKG_STOCK_FIFO.moveCost(m):null;return v==null?'-':money(v);};
 function renderMoveRep(){
   const id=stockMenuId; if(!id) return;
   const from=$('#mrFrom').value, to=$('#mrTo').value;
   const mv=DB.moves.filter(m=>m.stockId===id&&(typeof PKG_BRANCH==='undefined'||PKG_BRANCH.here(m))&&(!from||m.date>=from)&&(!to||m.date<=to)).sort((a,b)=>b.date.localeCompare(a.date));
   $('#mMoveRepBody').innerHTML=mv.length?mv.map(m=>`<tr><td class="ctr">${thDate(m.date)}</td>
-    <td><span class="chip ${m.qty>=0?'g':'r'}">${m.type==='in'?'รับเข้า':m.type==='out'?'ตัดออก':'ปรับยอด'}</span></td>
+    <td><span class="chip ${mvQty(m)>=0?'g':'r'}">${m.type==='in'?'รับเข้า':m.type==='out'?'ตัดออก':'ปรับยอด'}</span></td>
     <td>${esc(m.ref)} ${m.refNo?'<span class="mono hint">'+esc(m.refNo)+'</span>':''}</td>
-    <td class="num">${m.qty>0?'+':''}${qf(m.qty)}</td></tr>`).join('')
-    :'<tr><td colspan="4" class="empty">ยังไม่มีความเคลื่อนไหวในช่วงที่เลือก</td></tr>';
+    <td class="num">${mvQty(m)>0?'+':''}${qf(mvQty(m))}</td><td class="num">${mvCost(m)}</td></tr>`).join('')
+    :'<tr><td colspan="5" class="empty">ยังไม่มีความเคลื่อนไหวในช่วงที่เลือก</td></tr>';
 }
 let imgStockId=null;
 function openImgModal(id){ if(!can('stock.img')) return toast('บัญชีนี้ไม่มีสิทธิอัปโหลด/แก้ไขรูปสินค้า');
@@ -1579,12 +1582,12 @@ function openCard(id){
         <td class="ctr">${thDate(p.date)}</td><td class="num">${qf(i.qty)}</td><td class="num">${money(i.cost)}</td></tr>`).join('')}).join('')
       :'<tr><td colspan="6" class="empty">ยังไม่มีประวัติการรับเข้าจากใบรับสินค้า</td></tr>'}</tbody></table>
     <div style="font-weight:600;font-size:12.5px;margin:14px 0 6px">ความเคลื่อนไหวทั้งหมด</div>
-    <table class="tbl"><thead><tr><th class="ctr">วันที่</th><th>ประเภท</th><th>อ้างอิง</th><th class="num">จำนวน</th></tr></thead>
+    <table class="tbl"><thead><tr><th class="ctr">วันที่</th><th>ประเภท</th><th>อ้างอิง</th><th class="num">จำนวน</th><th class="num">ทุนต่อหน่วย</th></tr></thead>
     <tbody>${mv.length?mv.map(m=>`<tr><td class="ctr">${thDate(m.date)}</td>
-      <td><span class="chip ${m.qty>=0?'g':'r'}">${m.type==='in'?'รับเข้า':m.type==='out'?'ตัดออก':'ปรับยอด'}</span></td>
+      <td><span class="chip ${mvQty(m)>=0?'g':'r'}">${m.type==='in'?'รับเข้า':m.type==='out'?'ตัดออก':'ปรับยอด'}</span></td>
       <td>${esc(m.ref)} ${m.refNo?'<span class="mono hint">'+esc(m.refNo)+'</span>':''}</td>
-      <td class="num">${m.qty>0?'+':''}${qf(m.qty)}</td></tr>`).join('')
-      :'<tr><td colspan="4" class="empty">ยังไม่มีความเคลื่อนไหว</td></tr>'}</tbody></table>`;
+      <td class="num">${mvQty(m)>0?'+':''}${qf(mvQty(m))}</td><td class="num">${mvCost(m)}</td></tr>`).join('')
+      :'<tr><td colspan="5" class="empty">ยังไม่มีความเคลื่อนไหว</td></tr>'}</tbody></table>`;
   openModal('mCard');
 }
 if($('#catBar')) $('#catBar').onchange=e=>setCat(e.target.value);
@@ -11714,6 +11717,7 @@ async function dcReceive(id){
       DB.stock.push(s);created++;
     }
     s.qty=(s.qty||0)+i.qty; s.lastMove=iso(); added+=i.qty;
+    logMove(s.id,'in',i.qty,iso(),'รับของจากคลังกลาง ProX · คำขอ #'+id,'DC-'+id,'',n(s.cost));   /* DriveGo new system (task 3.6, R11): a FIFO lot at the register cost */
     try{logAudit('stock',{id:s.id,no:s.code},'save','รับของจากศูนย์กระจายสินค้า HQ · คำขอ #'+id+' · +'+i.qty+' '+(i.unit||''));}catch(e){}
   });
   pxSave();

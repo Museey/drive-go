@@ -140,6 +140,7 @@
   const reason=await askPromptP({title:'ยกเลิกใบโอน '+t.no,text:'ระบุเหตุผลที่ยกเลิก (จำเป็น)\nสินค้าทุกรายการจะถูกส่งกลับสาขาต้นทาง',yes:'ยกเลิกและส่งกลับ',no:'ไม่ยกเลิก'});
   if(reason===null)return false;if(!String(reason).trim()){toast('ต้องระบุเหตุผลที่ยกเลิก');return false;}
   const to=BR.get(t.to),lack=BR.within(t.to,()=>t.lines.filter(l=>{const s=DB.stock.find(x=>x.id===l.stockId);return s&&n(s.qty)<n(l.qty);}).length);
+  if(lack&&window.PKG_STOCK_FIFO&&!PKG_STOCK_FIFO.negOk(lack))return false;   /* DriveGo new system (task 3.6, R9-ข) */
   if(lack&&!await askP({title:'สาขาปลายทางมีของไม่พอ',text:'สินค้า '+lack+' รายการในสาขาปลายทางถูกใช้ไปแล้วบางส่วน\nยกเลิกต่อไปสต๊อกสาขาปลายทางจะติดลบ ยืนยันหรือไม่?',yes:'ยืนยันยกเลิก',no:'ไม่ยกเลิก'}))return false;
   BR.within(t.to,()=>t.lines.forEach(l=>{const s=DB.stock.find(x=>x.id===l.stockId);if(!s)return;s.qty=n(s.qty)-l.qty;s.lastMove=iso();logMove(s.id,'out',-l.qty,iso(),'ยกเลิกใบโอน '+t.no+' · ส่งคืนสาขาต้นทาง',t.no);}));
   t.lines.forEach(l=>{const s=DB.stock.find(x=>x.id===l.stockId);if(!s)return;s.qty=n(s.qty)+l.qty;s.lastMove=iso();logMove(s.id,'in',l.qty,iso(),'ยกเลิกใบโอน '+t.no+' · รับคืนจากสาขา '+(to?to.code:''),t.no,'',l.cost);});

@@ -920,15 +920,16 @@ async function frReqReceive(id){
   if(r.branchId!==frCurBranchId()) return toast('ใบเบิกนี้เป็นของสาขาอื่น');
   const ok=await askP({title:'ยืนยันรับของ',text:'ยืนยันรับสินค้าตามใบเบิก '+r.no+' เข้าสต๊อกสาขา? ระบบจะเพิ่มยอดคงคลังและบันทึกการเคลื่อนไหว (ตรวจย้อนได้ในบัตรสินค้า)',yes:'รับของเข้าสต๊อก',no:'ยกเลิก'});
   if(!ok) return;
+  const nc=window.PKG_STOCK_FIFO?await PKG_STOCK_FIFO.newCosts(r.items):{}; if(!nc) return;   /* DriveGo new system (task 3.6, R11): the cost of an item new to the branch */
   let cIn=0,cNew=0;
   r.items.forEach(i=>{
     const q=n(i.apQty); if(q<=0) return;
     let s=DB.stock.find(x=>String(x.code).toLowerCase()===String(i.code).toLowerCase());
-    if(!s){ s={id:uid(),code:i.code,oem:'',name:i.name,cat:'อื่น ๆ',unit:i.unit||'ชิ้น',cost:0,pa:0,pb:0,pc:0,
+    if(!s){ s={id:uid(),code:i.code,oem:'',name:i.name,cat:'อื่น ๆ',unit:i.unit||'ชิ้น',cost:n(nc[String(i.code).toLowerCase()]),pa:0,pb:0,pc:0,
         qty:0,min:0,max:0,stale:6,lastMove:iso(),warr:'',warrNote:'',zone:'',shelf:'',loc:''};
       DB.stock.push(s); cNew++; }
     s.qty=n(s.qty)+q; s.lastMove=iso();
-    logMove(s.id,'in',q,iso(),'รับสินค้าเติมสต๊อกจาก HQ (ใบเบิกแฟรนไชส์)',r.no);
+    logMove(s.id,'in',q,iso(),'รับสินค้าเติมสต๊อกจาก HQ (ใบเบิกแฟรนไชส์)',r.no,'',n(s.cost));   /* DriveGo new system (task 3.6, R11): at the branch's register cost */
     cIn+=q;
   });
   r.status='received'; r.log.push({d:iso(),t:'สาขายืนยันรับของเข้าสต๊อก',by:frWho()});

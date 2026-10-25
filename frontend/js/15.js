@@ -144,7 +144,9 @@
   const lines=pkgStockLines(items);
   if(!lines.length&&!q){toast('ไม่มีรายการสินค้าในสต๊อก');return null;}
   const want=new Map();lines.forEach(it=>want.set(it.stockId,(want.get(it.stockId)||0)+n(it.qty)));
-  const short=[...want].filter(([id,v])=>{const s=DB.stock.find(x=>x.id===id);return s&&v>n(s.qty);}).length;
+  const back=window.PKG_STOCK_FIFO?PKG_STOCK_FIFO.countBack(S):null;   /* DriveGo new system (task 3.6, R10-ก): a stock count's shortage sold to whoever is responsible comes back first */
+  const short=[...want].filter(([id,v])=>{const s=DB.stock.find(x=>x.id===id);return s&&v>n(s.qty)+(back?n(back.get(id)):0);}).length;
+  if(lines.length&&short&&window.PKG_STOCK_FIFO&&!PKG_STOCK_FIFO.negOk(short))return null;   /* DriveGo new system (task 3.6, R9-ข): negative stock for the owner and approvers only */
   if(lines.length&&(short||opts.confirm)&&!await askP({title:opts.title||(short?'สต๊อกไม่พอ':'ยืนยันตัดสต็อก'),
    msg:lineTable(lines,want)+(short?'<p class="pkg-cut-warn">⚠ อะไหล่ '+short+' รายการมีไม่พอ — ตัดแล้วสต๊อกจะติดลบ (ตัวเลขติดลบคือสัญญาณว่าต้องไปตามของเข้าระบบ)</p>':'')
     +'<p style="margin:8px 0 0">บันทึกแล้วระบบจะตัดสต๊อกทันที — ยืนยันหรือไม่?</p>',
@@ -157,6 +159,7 @@
   c.moveRef=c.no;stampRec(c,null);
   const t=tot(c);c.total=t.gross;
   c.pay=pay?Object.assign({amount:t.gross},pay):null;c.paid=!!(pay&&pay.method!=='credit');
+  if(window.PKG_STOCK_FIFO)PKG_STOCK_FIFO.cutFromCount(c,S);   /* DriveGo new system (task 3.6, R10-ก) */
   c.lines.forEach(it=>{const s=DB.stock.find(x=>x.id===it.stockId);if(!s)return;s.qty=n(s.qty)-n(it.qty);s.lastMove=iso();
    logMove(s.id,'out',-n(it.qty),iso(),'ตัดสต็อก '+c.no+(q?' · ใบเสนอราคา '+q.no:' · '+CH[c.channel])+(it.kit?' · ชุด '+it.kit:''),c.no);});
   costs(c);L().push(c);
@@ -191,6 +194,7 @@
   const q=c.quoteId?findQuote(c.quoteId):null;costs(c);
   c.lines.forEach(it=>{const s=DB.stock.find(x=>x.id===it.stockId);if(!s)return;s.qty=n(s.qty)+n(it.qty);s.lastMove=iso();
    logMove(s.id,'in',n(it.qty),iso(),'คืนสต๊อก · ยกเลิกใบตัดสต็อก '+c.no+(q?' · ใบเสนอราคา '+q.no:''),c.moveRef);});
+  if(window.PKG_STOCK_FIFO)PKG_STOCK_FIFO.uncutFromCount(c);   /* DriveGo new system (task 3.6, R10-ก): what was sold of a count's shortage is short again */
   Object.assign(c,{cancelled:true,cancelReason:String(reason).trim(),cancelDate:iso(),cancelAt:nowTs(),cancelBy:DB.curEmp||'',cancelByName:meName()});
   if(q){q.deducted=false;q.stockCutId='';q.status='ยกเลิกตัดสต็อกแล้ว';syncOpen(q);logAudit('quote',q,'restock','คืนสต๊อก · ยกเลิกใบตัดสต็อก '+c.no+' — '+c.cancelReason);}
   logAudit('stockcut',c,'restock','ยกเลิกใบตัดสต็อก · คืนสต๊อก '+c.lines.length+' รายการ — '+c.cancelReason);
@@ -969,5 +973,5 @@
   try{renderQuoteOverview();}catch(e){}
  })();
  window.PKG_STOCK_CUT={done,layoutMig,list:L,ensure,activeCut,activeBills,bills,saleBills,waiting,cutQuote,createDoc,cancelCut,open:openSaved,openNew,billFromSale,
-  render:()=>pkgRenderCuts(),qLines,tot,state:W,printSlip,printDoc,legacyRetail:()=>legacyRetail&&legacyRetail()};
+  render:()=>pkgRenderCuts(),qLines,tot,state:W,paint,printSlip,printDoc,legacyRetail:()=>legacyRetail&&legacyRetail()};
 })();

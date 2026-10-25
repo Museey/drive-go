@@ -553,6 +553,7 @@
   const P=revisePlan(c,E||{});if(!P.ok)return say(P.error);
   if(P.same)return say('ยังไม่ได้แก้ไขอะไร — ฉบับแก้ไขต้องต่างจากฉบับเดิม');
   const more=P.moves.filter(m=>m.d>0),short=more.filter(m=>m.short).length;
+  if(short&&window.PKG_STOCK_FIFO&&!PKG_STOCK_FIFO.negOk(short))return false;   /* DriveGo new system (task 3.6, R9-ข) */
   if(short&&!await askP({title:'สต๊อกไม่พอ',msg:'<p>ฉบับแก้ไขตัดสต็อกเพิ่ม '+more.length+' รายการ · มี '+short+' รายการที่ของไม่พอ — ตัดแล้วสต๊อกจะติดลบ</p><p style="margin:8px 0 0">ยืนยันหรือไม่?</p>',yes:'ตัดสต็อก (ยอมติดลบ)',no:'ยังไม่ตัด'}))return false;
   if(more.length&&window.PKG_EXPIRY&&typeof PKG_EXPIRY.guardSale==='function'&&!(await PKG_EXPIRY.guardSale(more.map(m=>({stockId:m.stockId,code:m.code,name:m.name,unit:m.unit,qty:m.d,kit:''})))))return false;
   const nw=Object.assign(clone(c),{id:uid(),no:P.no,baseNo:P.base,revN:P.revN,revOf:c.id,revRoot:c.revRoot||c.id,items:P.items,lines:P.lines,disc:P.disc,vat:P.vat,date:c.date,revDate:today(),

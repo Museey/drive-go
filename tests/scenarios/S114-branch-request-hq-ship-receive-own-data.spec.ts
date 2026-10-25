@@ -1,5 +1,5 @@
 import { test, expect } from '../support/test';
-import { legacyGolden } from '../support/legacy-golden';
+import { legacyGolden, legacyStateChange } from '../support/legacy-golden';
 import { hqOwnData } from '../support/hq-own-data';
 import type { Page } from '@playwright/test';
 
@@ -10,6 +10,9 @@ test.use({ dataset: 'franchise-trial' });
 // licence line and its own badges (tests/support/hq-own-data.ts); its stock
 // import still copies the first branch's register. Every step, data change,
 // branch screen and the rest of every HQ screen are still S92's.
+// Task 3.6 (decision R11): the branch's stock moves of the receipt keep the
+// branch's register cost (EN-501 95, OI-801 980 — the cost of their FIFO lots)
+// instead of 0.
 const S92 = 'S92-branch-request-hq-ship-receive.spec.ts';
 
 async function signOut(page: Page) {
@@ -109,6 +112,10 @@ test('S114 ระบบใหม่: สาขาขอเบิกอะไห�
   await expect(myReq).toContainText('รับของเข้าสต๊อกแล้ว');
   await golden.step('รับของเข้าสต๊อกสาขาแล้ว');
   await golden.screen('branch-received');
-  await golden.stateChange('receive', beforeReceive);
+  const legacy = JSON.parse(legacyStateChange(S92, 'receive'));
+  const moves = legacy['DB.moves'];
+  moves.added[0].cost = 95;
+  moves.added[1].cost = 980;
+  await golden.stateChange('receive', beforeReceive, { 'DB.moves': moves });
   golden.done();
 });

@@ -58,8 +58,8 @@
     {
       "scenario": "S92-branch-request-hq-ship-receive.spec.ts",
       "by": "S114-branch-request-hq-ship-receive-own-data.spec.ts",
-      "decision": "Q3",
-      "why": "HQ works on its own data set (HQ's screens: chain's name, HQ's licence line, HQ's own badges). Every step, data change, branch screen and the rest of each HQ screen is checked against S92's goldens."
+      "decision": "Q3; R11 (task 3.6)",
+      "why": "HQ works on its own data set (HQ's screens: chain's name, HQ's licence line, HQ's own badges). Every step, data change, branch screen and the rest of each HQ screen is checked against S92's goldens. Task 3.6 (R11): the branch's stock moves of the receipt keep the branch's register cost (95 and 980) instead of 0."
     },
     {
       "scenario": "S93-hq-rejects-branch-request.spec.ts",
@@ -210,6 +210,30 @@
       "by": "S155-coins-after-payment-with-receipt.spec.ts",
       "decision": "R2, R8, F3 and answers of 2026-10-25 (task 3.5)",
       "why": "The payment in the middle has its receipt at once and the receipt window opens instead of the done card; it is closed with the sale window to get back to the search. The Coins and every other step, screen and data change are checked against S83's goldens."
+    },
+    {
+      "scenario": "S30-buy-goods-credit-receive.spec.ts",
+      "by": "S157-goods-receipt-register-cost-average.spec.ts",
+      "decision": "R9–R11, F4 and answers of 2026-10-25 (task 3.6)",
+      "why": "The register cost of the brake pads becomes the average cost of what is left (856.90), not the last purchase price (870). Every step, screen and other data change is checked against S30's goldens."
+    },
+    {
+      "scenario": "S33-internal-issue.spec.ts",
+      "by": "S158-internal-issue-expense-category.spec.ts",
+      "decision": "R9–R11, F4 and answers of 2026-10-25 (task 3.6)",
+      "why": "The issue form has the expense category next to the department (kept as expCat) and, once stock is cut, says what the issue booked at FIFO cost. Every step, data change and the rest of each screen is checked against S33's goldens."
+    },
+    {
+      "scenario": "S36-issue-across-fifo-lots.spec.ts",
+      "by": "S159-issue-across-fifo-lots-expense-average-cost.spec.ts",
+      "decision": "R9–R11, F4 and answers of 2026-10-25 (task 3.6)",
+      "why": "As S158, and the register cost follows the average of what is left (856.90 after the goods receipt, 870 after the issue). Every step, data change and the rest of each screen is checked against S36's goldens."
+    },
+    {
+      "scenario": "S125-prox-online-central-stock-request-receive.spec.ts",
+      "by": "S162-prox-central-receive-fifo-lots.spec.ts",
+      "decision": "R9–R11, F4 and answers of 2026-10-25 (task 3.6)",
+      "why": "Goods received from the chain's central warehouse get stock moves and FIFO lots at the register cost. Every step, screen and other data change is checked against S125's goldens."
     }
   ],
   "added": [
@@ -292,6 +316,21 @@
       "scenario": "S156-every-receiving-has-receipt-card-fee-daily-report.spec.ts",
       "decision": "R2, R8, F3 and answers of 2026-10-25 (task 3.5)",
       "why": "A new sale paid at once has its receipt and an audit line for the money; the debtor settle window takes a card surcharge like the sale window (check card and receipt show it); with separate receipts each receipt holds its own bill's share of the methods; the daily report shows the day's card surcharges (not income) and money paid back by credit notes."
+    },
+    {
+      "scenario": "S160-negative-stock-approvers-only.spec.ts",
+      "decision": "R9–R11, F4 and answers of 2026-10-25 (task 3.6)",
+      "why": "Selling more than is in stock takes the owner or a staff member with an approval right; others are refused and nothing is saved. The provisional cost is corrected when goods arrive and the register cost is the average of what is left."
+    },
+    {
+      "scenario": "S161-count-shortage-surplus-issue-in-accounts.spec.ts",
+      "decision": "R9–R11, F4 and answers of 2026-10-25 (task 3.6)",
+      "why": "A stock count's shortage and surplus and an internal issue reach the profit-and-loss at FIFO cost, read from the documents; a shortage can be sold to whoever is responsible without cutting stock twice; the move report shows what leaves as minus with its FIFO unit cost."
+    },
+    {
+      "scenario": "S163-franchise-new-item-from-hq-asks-cost.spec.ts",
+      "decision": "R9–R11, F4 and answers of 2026-10-25 (task 3.6)",
+      "why": "An item a franchise branch receives from the central warehouse for the first time asks its unit cost, which becomes its register cost, FIFO lot and stock move cost."
     }
   ]
 }
