@@ -157,7 +157,7 @@
   lab.style.gridColumn='';const L=document.createElement('label');L.className='f';
   L.innerHTML='<span>หมวดค่าใช้จ่าย</span><select id="isExpCat">'+EXP_CATS.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')+'</select>';
   lab.after(L);
-  const tbl=$i('isItems'),wrap=tbl&&(tbl.closest('.scroll')||tbl);if(wrap){const box=document.createElement('div');box.id='pkgIsBook';box.className='hint';box.style.cssText='margin:8px 0 0;display:none';wrap.after(box);}
+  const li=$i('isLineInfo');if(li){const box=document.createElement('span');box.id='pkgIsBook';box.className='hint';box.style.cssText='margin-left:12px;display:none';li.after(box);}   /* on the line of "กรอกแล้ว …": nothing below moves */
  })();
  if(typeof fillIssueForm==='function'){const o=fillIssueForm;
   window.fillIssueForm=function(){const out=o.apply(this,arguments);

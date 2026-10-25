@@ -234,6 +234,12 @@
       "by": "S162-prox-central-receive-fifo-lots.spec.ts",
       "decision": "R9–R11, F4 and answers of 2026-10-25 (task 3.6)",
       "why": "Goods received from the chain's central warehouse get stock moves and FIFO lots at the register cost. Every step, screen and other data change is checked against S125's goldens."
+    },
+    {
+      "scenario": "S66-cancel-internal-issue.spec.ts",
+      "by": "S164-cancel-internal-issue-books-nothing.spec.ts",
+      "decision": "R9–R11, F4 and answers of 2026-10-25 (task 3.6)",
+      "why": "The issue form has the expense category next to the department; the cancelled issue keeps it (no longer editable) and books nothing. Every step, data change and the rest of each screen is checked against S66's goldens."
     }
   ],
   "added": [

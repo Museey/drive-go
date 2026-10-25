@@ -148,7 +148,10 @@ test('S161 ระบบใหม่: ของขาด/เกินจากก
 
   // The move report of the brake fluid: the issue leaves as minus, at its FIFO unit cost.
   await go(page, /^07 สต๊อกอะไหล่/, '└ ทะเบียนอะไหล่');
-  await page.locator('.codechip', { hasText: 'BR-025' }).filter({ visible: true }).first().click();
+  const find = page.getByPlaceholder('ค้นหา รหัสอู่ / OEM / ชื่อสินค้า / แบรนด์').filter({ visible: true });
+  await find.fill('BR-025');
+  await find.press('Enter');
+  await page.getByRole('row').filter({ hasText: 'BR-025' }).filter({ visible: true }).getByText('BR-025', { exact: true }).first().click();
   await page.getByRole('button', { name: '⋯ เพิ่มเติม' }).filter({ visible: true }).click();
   await page.getByRole('button', { name: 'รายงานการเคลื่อนไหวสินค้า' }).click();
   const issueMove = page.locator('#mMoveRepBody').getByRole('row').filter({ hasText: 'MA-WD261000001' });

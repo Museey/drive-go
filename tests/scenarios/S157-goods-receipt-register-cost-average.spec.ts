@@ -4,7 +4,8 @@ import { legacyGolden } from '../support/legacy-golden';
 // Replaces S30 in the new system (tests/intentional-changes.json, task 3.6, decision F4 = R10-ง ค):
 // the register cost of what is received becomes the average cost of what is left, not the last
 // purchase price — brake pads: 19 left at 850 and 10 received at 870 → 24,850 / 29 = 856.90
-// (the legacy app: 870). Every step, screen and other data change is S30's.
+// (the legacy app: 870), which the approved lines compare with. Every step, screen and other
+// data change is S30's.
 const S30 = 'S30-buy-goods-credit-receive.spec.ts';
 
 test('S157 ระบบใหม่: ซื้อสินค้าเงินเชื่อและรับเข้าสต๊อก ทุนในทะเบียนเป็นทุนเฉลี่ยของที่เหลือ', async ({ app, page }, testInfo) => {
@@ -46,7 +47,12 @@ test('S157 ระบบใหม่: ซื้อสินค้าเงิน�
   await golden.step('หลังกดอนุมัติเอกสาร');
   // The lot of 10 is at 870 as before; the register cost is the average of the 29 left.
   await golden.stateChange('approve-gr', before, { 'DB.stock[BR-001].cost': [850, 856.9] });
-  await golden.screen('gr-approved');
+  // The approved lines compare with the register: "เดิมในระบบ 856.90 ↑ 13.10" (the legacy app: 870.00),
+  // which widens the cost column; the table is checked by its text, the rest of the screen is S30's.
+  const items = page.getByRole('table').filter({ hasText: 'ราคาทุน/หน่วย' }).filter({ visible: true });
+  await expect(items.getByRole('row').filter({ hasText: 'BR-001' })).toContainText('เดิมในระบบ 856.90 ↑ 13.10');
+  await expect(items.getByRole('row').filter({ hasText: 'SU-350' })).toContainText('เดิมในระบบ 650.00');
+  await golden.screen('gr-approved', { mask: [items] });
 
   await page.getByRole('button', { name: 'ตกลง' }).click();
   await golden.step('ปิดหน้าต่างแจ้งอนุมัติ');

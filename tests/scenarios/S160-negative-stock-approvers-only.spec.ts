@@ -39,6 +39,16 @@ test('S160 ระบบใหม่: ขายเกินของที่ม�
     await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).click();
     await expect(staff).toContainText('ใช้งานได้');
   }
+  // The front desk's table of rights lets her open 04.1 and cut stock, but the fixture's older
+  // rights do not let her pick products (sub.rcptRetail); saving her form as it is brings them in line.
+  await page.getByRole('button', { name: '09 งานบุคคล' }).click();
+  await page.getByRole('row').filter({ hasText: 'EMP005' }).getByRole('button', { name: 'แก้ไข / สิทธิ' }).click();
+  await expect(page.getByRole('checkbox', { name: '04.1 · ตัดสต็อกสินค้า · เข้าดู' })).toBeChecked();
+  await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).last().click();
+  await app.settle();
+  const emp5 = (await app.state()).DB.emp.find((e: any) => e.code === 'EMP005');
+  expect(emp5.perms.sub.rcptRetail).toBe(true);
+  expect(Object.values(emp5.perms.apv).some(Boolean)).toBe(false);
   await signOut(page);
 
   // The front desk sells 25 brake pads; 19 are in stock: refused, nothing is cut or saved.
@@ -64,7 +74,7 @@ test('S160 ระบบใหม่: ขายเกินของที่ม�
   await app.settle();
   const sold = (await app.state()).DB;
   const sale = sold.stockCuts.find((c: any) => !start.stockCuts.some((b: any) => b.id === c.id));
-  expect(sale).toMatchObject({ no: 'MA-SA261000015', sellerName: 'ศักดิ์ชัย มั่นคง' });
+  expect(sale).toMatchObject({ no: 'MA-SA261000015', sellerName: 'ศักดิ์ชัย มั่นคง (หัวหน้าช่าง)' });
   expect(brakePads(sold)).toMatchObject({ qty: -6, cost: 850 });
   const allocs = (db: any) => db.fifo.allocs.filter((a: any) => a.refNo === 'MA-SA261000015')
     .map((a: any) => ({ qty: a.qty - a.back, cost: a.cost, pending: a.pending }));
