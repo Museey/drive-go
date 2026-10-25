@@ -32,7 +32,7 @@ test('S172 ระบบใหม่: เงินได้ประจำนั�
   expect((await app.state()).DB.emp.find((e: any) => e.code === 'EMP003')).toMatchObject({ salary: 12000, regular: 1000 });
 
   // October: EMP003's base is 13,000 (650); EMP001 has 3,500 overtime and 2,000 bonus, not in his base.
-  await go(page, /^06 รายจ่าย/, '4 · จ่ายเงินเดือน');
+  await go(page, /^06 รายจ่าย/, '└ 4 · จ่ายเงินเดือน');
   const row = (code: string) => page.locator('#payTbl').getByRole('row').filter({ hasText: code });
   await expect(row('EMP003').getByRole('cell').nth(3)).toHaveText('12,000.00+ เงินได้ประจำ 1,000.00');
   await expect(row('EMP003').getByRole('cell').nth(7)).toHaveText('650.00');
@@ -71,7 +71,7 @@ test('S172 ระบบใหม่: เงินได้ประจำนั�
   await expect(taxPay.getByRole('row').filter({ hasText: 'รวม 11 คน' })).toContainText('223,000.00');
 
   // Cancelled (paid already) with a reason: the expenses go, the month can be recorded again.
-  await go(page, /^06 รายจ่าย/, '4 · จ่ายเงินเดือน');
+  await go(page, /^06 รายจ่าย/, '└ 4 · จ่ายเงินเดือน');
   await page.getByRole('button', { name: 'ยกเลิกงวดนี้' }).click();
   const cancel = asked(page, 'ยกเลิกเงินเดือน งวด ต.ค. 2569');
   await expect(cancel.getByText(/รายจ่าย MA-EX261000003 และ MA-EX261000004 ของงวดนี้จะถูกยกเลิก รวมการจ่ายที่บันทึกไว้ \(MA-PV261000001\) แล้วบันทึกงวดใหม่ได้/)).toBeVisible();
@@ -93,7 +93,7 @@ test('S172 ระบบใหม่: เงินได้ประจำนั�
   await expect(sumRow('เงินสมทบประกันสังคมนำส่ง').getByRole('cell').last()).toHaveText('0.00');
   await expect(taxPay.getByText('ยังไม่ได้บันทึกเงินเดือนงวด ต.ค. 2569 (06.4 จ่ายเงินเดือน)', { exact: true })).toBeVisible();
 
-  await go(page, /^06 รายจ่าย/, '4 · จ่ายเงินเดือน');
+  await go(page, /^06 รายจ่าย/, '└ 4 · จ่ายเงินเดือน');
   await page.getByRole('button', { name: 'บันทึกจ่ายเงินเดือนงวดนี้' }).click();
   await asked(page, 'บันทึกเงินเดือน งวด ต.ค. 2569').getByRole('button', { name: 'บันทึก', exact: true }).click();
   await expect(page.getByText(/^บันทึกแล้ว · รายจ่าย MA-EX261000005 \(เงินเดือน\) และ MA-EX261000006 \(นายจ้างสมทบ\)$/)).toBeVisible();
@@ -114,11 +114,11 @@ test('S172 ระบบใหม่: เงินได้ประจำนั�
   await page.getByText('ออกจากระบบ', { exact: true }).filter({ visible: true }).first().click();
   await page.getByPlaceholder('กรอกรหัสผ่าน').waitFor();
   await app.login('081-888-9900', '9999');
-  await go(page, /^06 รายจ่าย/, '4 · จ่ายเงินเดือน');
+  await go(page, /^06 รายจ่าย/, '└ 4 · จ่ายเงินเดือน');
   await expect(page.getByText(/^บันทึกแล้ว · รายจ่าย MA-EX261000005/)).toBeVisible();
   for (const name of ['จ่ายเงินเดือน', 'นำส่งประกันสังคม', 'ยกเลิกงวดนี้'])
     await expect(page.getByRole('button', { name, exact: true })).toHaveCount(0);
-  const month = page.getByLabel('งวดเดือน');
+  const month = page.getByRole('textbox', { name: 'งวดเดือน' }).filter({ visible: true });
   await month.fill('2026-11');
   await month.dispatchEvent('change');
   await expect(page.getByText(/^ยังไม่ได้บันทึกงวด พ\.ย\. 2569/)).toBeVisible();
