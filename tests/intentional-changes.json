@@ -252,6 +252,11 @@
       "scenario": "S149-pay-vendor-with-withholding.spec.ts",
       "decision": "R7-ข-ก, answers of 2026-10-25 (task 3.4)",
       "why": "A vendor payment withholds 1% (transport) on the goods receipt's base before VAT: what is withheld lowers what is paid and settles the bill, the payment voucher prints the withholding, and the payment history shows the withholding and the voucher."
+    },
+    {
+      "scenario": "S150-withholding-certificate-and-pnd-by-payment-date.spec.ts",
+      "decision": "R7-ก, answers of 2026-10-25 (task 3.4)",
+      "why": "ภ.ง.ด.3 / 53 in the tax report count what was withheld by the day it was paid (paid expenses and vendor payments, not expenses still owed), each row with its form and ลำดับที่ and each form summed; the 50 ทวิ certificate follows the Revenue Department's form (copies 1 and 2, the payee's tax id and address, ลำดับที่, the income type, (1) หัก ณ ที่จ่าย), is issued only once paid, and keeps its number when the expense is saved again."
     }
   ]
 }

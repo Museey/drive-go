@@ -254,15 +254,30 @@
  };
  /* 4.4 · เราหักผู้ขาย */
  const formOf=x=>x.whtForm||((/บริษัท|จำกัด|ห้างหุ้นส่วน|หจก|บจก|มหาชน/.test(String(x.payee||''))||/^0/.test(String(x.tax||'').replace(/\D/g,'')))?'53':'3');
+ /* DriveGo new system (task 3.4, R7-ก, answers of 2026-10-25): what we withheld — from expenses and from vendor payments
+    (58-payment-voucher.js) — dated on the day it was paid (ภ.ง.ด.3 / 53 count by payment date). One row per payment: an
+    expense (key: its id) or a vendor payment (key: GR:<goods receipt id>:<payment id>; its certificate fields sit on the payment). */
+ const venOf=id=>(DB.vendors||[]).find(v=>v.id===id)||null;
+ function whtOutAll(){
+  const out=(DB.expenses||[]).filter(x=>x&&n(x.wht)>0).map(x=>({id:x.id,x,doc:x,kind:'expense',paid:!!x.paid,br:x.br,createdByName:x.createdByName,createdAt:x.createdAt,date:x.paid?(x.payDate||x.date):x.date,no:x.no||'',payee:x.payee||'',tax:x.tax||'',addr:null,desc:x.desc||x.cat||'',base:n(expTotals(x).base),rate:n(x.wht),amt:n(expTotals(x).wht),form:formOf(x),cert:x.whtCertNo||'',remit:!!(x.whtRemit&&x.whtRemit.done)}));
+  (DB.purchases||[]).forEach(g=>{if(!g||g.cancelled)return;const v=venOf(g.vendorId);(g.payments||[]).forEach(p=>{if(!p||p.cancelled||!p.wht||!(n(p.wht.amt)>0))return;
+   out.push({id:'GR:'+g.id+':'+p.id,x:p,doc:g,kind:'gr',paid:true,br:p.br||g.br,createdByName:p.by||'',createdAt:'',date:p.date,no:p.pvNo||g.no||'',payee:(v&&v.name)||'',tax:(v&&v.tax)||'',addr:v&&v.addr,desc:'ค่าสินค้าตามใบรับสินค้า '+(g.no||''),base:n(p.wht.baseAmt),rate:n(p.wht.rate),amt:n(p.wht.amt),form:p.whtForm||p.wht.form||'3',cert:p.whtCertNo||'',remit:!!(p.whtRemit&&p.whtRemit.done)});});});
+  return out;
+ }
+ /* a month's ภ.ง.ด.3 / 53 (paid only), in the order of its attachment — payment date, then document number; seq = ลำดับที่ */
+ function whtOutMonth(mo){const rows=whtOutAll().filter(v=>v.paid&&String(v.date).slice(0,7)===mo)
+  .sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.no).localeCompare(String(b.no)));
+  const k={};rows.forEach(v=>{k[v.form]=(k[v.form]||0)+1;v.seq=k[v.form];});return rows;}
+ const seqOf=v=>{const r=whtOutMonth(String(v.date).slice(0,7)).find(z=>z.id===v.id);return r?r.seq:0;};
+ window.PKG_WHT_OUT={all:whtOutAll,month:whtOutMonth};
  function whtVen(){
   const q=qOf('swhtOut'),st=stOf('swhtOut');
-  return (DB.expenses||[]).filter(x=>x&&n(x.wht)>0).map(x=>({id:x.id,x,br:x.br,createdByName:x.createdByName,createdAt:x.createdAt,date:x.date,no:x.no||'',payee:x.payee||'',tax:x.tax||'',desc:x.desc||x.cat||'',base:n(expTotals(x).base),rate:n(x.wht),amt:n(expTotals(x).wht),form:formOf(x),cert:x.whtCertNo||'',remit:!!(x.whtRemit&&x.whtRemit.done)}))
-   .filter(v=>(st==='wait'?!v.remit:st==='got'?v.remit:true)&&hit(q,[v.no,v.payee,v.tax,v.cert,v.desc])).sort(byDate);
+  return whtOutAll().filter(v=>(st==='wait'?!v.remit:st==='got'?v.remit:true)&&hit(q,[v.no,v.payee,v.tax,v.cert,v.desc])).sort(byDate);
  }
  window.pkgRenderWhtOut=function(){
-  const mo=iso().slice(0,7),due=(DB.expenses||[]).filter(x=>x&&n(x.wht)>0&&here(x)&&String(x.date).slice(0,7)===mo&&!(x.whtRemit&&x.whtRemit.done));
-  if($i('swhtOutDue'))$i('swhtOutDue').textContent='ต้องนำส่งของเดือนนี้ ฿'+money(due.reduce((a,x)=>a+n(expTotals(x).wht),0))+' · '+due.length+' รายการที่ยังไม่นำส่ง';
-  return std('swhtOut','swhtOutTbl',whtVen(),'รายการ',v=>`<tr data-x="${esc(v.x.id)}"><td class="ctr">${thDate(v.date)}</td><td class="mono" data-no-translate data-xv="${esc(v.no)}" data-xv2="${esc(v.cert)}">${esc(v.no)}${v.cert?`<div class="hint pkg-sf-sub" title="เลขที่หนังสือรับรอง (50 ทวิ)">50 ทวิ ${esc(v.cert)}</div>`:''}</td><td data-no-translate>${esc(v.payee||'-')}${v.tax?'<div class="hint">'+esc(v.tax)+'</div>':''}</td><td data-no-translate>${esc(v.desc)}</td><td class="num" data-xv="${money(v.base)}" data-xv2="${v.rate}%">${money(v.base)}<div class="hint pkg-sf-sub"><span>อัตรา</span> ${v.rate}%</div></td><td class="num"><b>${money(v.amt)}</b></td>
+  const mo=iso().slice(0,7),due=whtOutAll().filter(v=>v.paid&&here(v.doc)&&String(v.date).slice(0,7)===mo&&!v.remit);
+  if($i('swhtOutDue'))$i('swhtOutDue').textContent='ต้องนำส่งของเดือนนี้ ฿'+money(due.reduce((a,v)=>a+v.amt,0))+' · '+due.length+' รายการที่ยังไม่นำส่ง';
+  return std('swhtOut','swhtOutTbl',whtVen(),'รายการ',v=>`<tr data-x="${esc(v.id)}"><td class="ctr">${thDate(v.date)}</td><td class="mono" data-no-translate data-xv="${esc(v.no)}" data-xv2="${esc(v.cert)}">${esc(v.no)}${v.cert?`<div class="hint pkg-sf-sub" title="เลขที่หนังสือรับรอง (50 ทวิ)">50 ทวิ ${esc(v.cert)}</div>`:''}</td><td data-no-translate>${esc(v.payee||'-')}${v.tax?'<div class="hint">'+esc(v.tax)+'</div>':''}</td><td data-no-translate>${esc(v.desc)}</td><td class="num" data-xv="${money(v.base)}" data-xv2="${v.rate}%">${money(v.base)}<div class="hint pkg-sf-sub"><span>อัตรา</span> ${v.rate}%</div></td><td class="num"><b>${money(v.amt)}</b></td>
      <td class="ctr" data-xv="ภ.ง.ด.${v.form}"><select data-rv="form" aria-label="แบบ ภ.ง.ด."${mayFin()?'':' disabled'}><option value="3"${v.form==='3'?' selected':''}>ภ.ง.ด.3</option><option value="53"${v.form==='53'?' selected':''}>ภ.ง.ด.53</option></select></td>
      <td class="ctr" data-xv="${v.remit?'นำส่งแล้ว'+(v.x.whtRemit.date?' '+thDate(v.x.whtRemit.date):''):'ยังไม่นำส่ง'}"><input type="checkbox" data-rv="remit" aria-label="นำส่งแล้ว"${v.remit?' checked':''}${mayFin()?'':' disabled'}><div class="hint pkg-sf-sub">${v.remit?(v.x.whtRemit.date?thDate(v.x.whtRemit.date):'นำส่งแล้ว'):'ยังไม่นำส่ง'}</div></td><td class="ctr">${mayPrint()?'<button type="button" class="btn sm gh" data-rv="print">พิมพ์ 50 ทวิ</button>':''}</td></tr>`);
  };
@@ -355,28 +370,53 @@
   printDocs(ps.map(p=>D.sheetSaleReceipt(c,p,'ต้นฉบับ')+D.sheetSaleReceipt(c,p,'สำเนา')).join(''));
  }
  /* our own certificate for a vendor: the number is issued on the first print */
- const takenO=docNoTaken;docNoTaken=function(no){return takenO.apply(this,arguments)||(DB.expenses||[]).some(x=>x&&x.whtCertNo===no);};
- function sheetWhtCert(x){
-  const s=DB.shop||{},t=expTotals(x);
-  return sheetTop({title:'หนังสือรับรองการหักภาษี ณ ที่จ่าย',en:'WITHHOLDING TAX CERTIFICATE (50 TAWI)',copy:'ฉบับที่ 1',tsmall:true,fields:[['เลขที่',esc(x.whtCertNo||'')],['วันที่จ่ายเงิน',thDate(x.payDate||x.date)],['แบบที่นำส่ง','ภ.ง.ด.'+formOf(x)],['อ้างอิง',esc(x.no||'')]]})+`
-  <table><tr><td style="width:50%;vertical-align:top"><span class="lbl">ผู้มีหน้าที่หักภาษี ณ ที่จ่าย</span><br><b>${esc(typeof orgName==='function'?orgName():(s.name||''))}</b><br>${esc(s.addr?addrLine(s.addr):'')}<br>เลขประจำตัวผู้เสียภาษี ${esc(s.tax||'-')}</td>
-   <td style="vertical-align:top"><span class="lbl">ผู้ถูกหักภาษี ณ ที่จ่าย</span><br><b>${esc(x.payee||'-')}</b><br>เลขประจำตัวผู้เสียภาษี ${esc(x.tax||'-')}</td></tr></table>
-  <table style="margin-top:7px"><thead><tr><th>ประเภทเงินได้ที่จ่าย</th><th style="width:110px">วันที่จ่าย</th><th style="width:120px">จำนวนเงินที่จ่าย</th><th style="width:70px">อัตรา</th><th style="width:120px">ภาษีที่หักไว้</th></tr></thead><tbody>
-   <tr><td>${esc(x.desc||x.cat||'-')}</td><td style="text-align:center">${thDate(x.payDate||x.date)}</td><td class="num">${money(t.base)}</td><td style="text-align:center">${n(x.wht)}%</td><td class="num">${money(t.wht)}</td></tr>
-   <tr><td colspan="2" style="text-align:right"><b>รวม</b></td><td class="num"><b>${money(t.base)}</b></td><td></td><td class="num"><b>${money(t.wht)}</b></td></tr><tr><td colspan="5" style="text-align:center">(${bahtText(t.wht)})</td></tr></tbody></table>
-  <table style="margin-top:28px"><tr><td style="width:50%;border:0"></td><td style="text-align:center;border:0">.................................................<br>ผู้จ่ายเงิน / ผู้หักภาษี<br>วันที่ ${thDate(iso())}</td></tr></table></div>`;
+ const takenO=docNoTaken;docNoTaken=function(no){return takenO.apply(this,arguments)||(DB.expenses||[]).some(x=>x&&x.whtCertNo===no)
+  ||(DB.purchases||[]).some(g=>(g.payments||[]).some(p=>p&&p.whtCertNo===no));};
+ /* DriveGo new system (task 3.4, R7-ก, answers of 2026-10-25): the certificate on the Revenue Department's form — หนังสือรับรอง
+    การหักภาษี ณ ที่จ่าย ตามมาตรา 50 ทวิ: copy 1 and copy 2; both parties with their tax id and address (the payee's from the
+    vendor's record, an expense's when its payee is a vendor); ลำดับที่ in the month's ภ.ง.ด.3 / 53 (whtOutMonth) and which
+    form is ticked; the income type — 5, payments under the Revenue Department's orders under section 3 เตรส: transport 1%,
+    advertising 2%, services / contract work 3%, rent 5%; the date paid, the amount paid and the tax withheld (also in
+    words); "(1) หัก ณ ที่จ่าย" ticked; dated on the day paid. To be checked by the shop's accountant. */
+ const INCOME={1:'ค่าขนส่ง',2:'ค่าโฆษณา',3:'ค่าบริการ / ค่าจ้างทำของ',5:'ค่าเช่า'};
+ const COPY={1:'ฉบับที่ 1 (สำหรับผู้ถูกหักภาษี ณ ที่จ่าย ใช้แนบพร้อมกับแบบแสดงรายการภาษี)',2:'ฉบับที่ 2 (สำหรับผู้ถูกหักภาษี ณ ที่จ่าย เก็บไว้เป็นหลักฐาน)'};
+ const FORMS=[['1','ภ.ง.ด.1ก'],['2','ภ.ง.ด.1ก พิเศษ'],['3','ภ.ง.ด.2'],['4','ภ.ง.ด.3'],['5','ภ.ง.ด.2ก'],['6','ภ.ง.ด.3ก'],['7','ภ.ง.ด.53']];
+ const tickBox=on=>`<span style="display:inline-block;width:11px;height:11px;border:1px solid #000;text-align:center;line-height:10px;font-size:10px;vertical-align:middle;margin-right:2px">${on?'✓':''}</span>`;
+ const DOTS='.................................................';
+ function sheetWhtCert(v,copy){
+  const s=DB.shop||{},vn=v.addr?null:(DB.vendors||[]).find(z=>String(z.name||'').trim()===String(v.payee||'').trim()),addr=v.addr||(vn&&vn.addr),tax=v.tax||(vn&&vn.tax)||'',seq=seqOf(v);
+  const tick=k=>(k==='4'&&v.form==='3')||(k==='7'&&v.form==='53'),blank=t=>`<tr><td>${t}</td><td></td><td></td><td></td></tr>`;
+  return `<div class="sheetpage"><div style="text-align:right;font-size:11px">${COPY[copy]}</div>
+  <div style="text-align:center;margin:2px 0 4px"><b style="font-size:16px">หนังสือรับรองการหักภาษี ณ ที่จ่าย</b><br>ตามมาตรา 50 ทวิ แห่งประมวลรัษฎากร</div>
+  <div style="text-align:right">เล่มที่ ........ เลขที่ <b>${esc(v.x.whtCertNo||'')}</b></div>
+  <table><tr><td><span class="lbl">ผู้มีหน้าที่หักภาษี ณ ที่จ่าย</span> ชื่อ <b>${esc(typeof orgName==='function'?orgName():(s.name||''))}</b><br>เลขประจำตัวผู้เสียภาษีอากร (13 หลัก) <b>${esc(s.tax||'-')}</b><br>ที่อยู่ ${esc(s.addr?(typeof s.addr==='string'?s.addr:addrLine(s.addr)):'-')}</td></tr>
+   <tr><td><span class="lbl">ผู้ถูกหักภาษี ณ ที่จ่าย</span> ชื่อ <b>${esc(v.payee||'-')}</b><br>เลขประจำตัวผู้เสียภาษีอากร (13 หลัก) <b>${esc(tax||'-')}</b><br>ที่อยู่ ${addr?esc(addrLine(addr)):DOTS+DOTS}</td></tr>
+   <tr><td>ลำดับที่ <b>${seq||'........'}</b> ในแบบ &nbsp;${FORMS.map(([k,t])=>tickBox(tick(k))+'('+k+') '+t).join(' &nbsp;')}</td></tr></table>
+  <table style="margin-top:7px"><thead><tr><th>ประเภทเงินได้พึงประเมินที่จ่าย</th><th style="width:105px">วัน เดือน หรือปีภาษี ที่จ่าย</th><th style="width:110px">จำนวนเงินที่จ่าย</th><th style="width:110px">ภาษีที่หัก และนำส่งไว้</th></tr></thead><tbody>
+   ${blank('1. เงินเดือน ค่าจ้าง เบี้ยเลี้ยง โบนัส ฯลฯ ตามมาตรา 40 (1)')}${blank('2. ค่าธรรมเนียม ค่านายหน้า ฯลฯ ตามมาตรา 40 (2)')}${blank('3. ค่าแห่งลิขสิทธิ์ ฯลฯ ตามมาตรา 40 (3)')}
+   ${blank('4. (ก) ดอกเบี้ย ฯลฯ ตามมาตรา 40 (4) (ก)')}${blank('&nbsp;&nbsp;&nbsp;&nbsp;(ข) เงินปันผล เงินส่วนแบ่งกำไร ฯลฯ ตามมาตรา 40 (4) (ข)')}
+   <tr><td>5. การจ่ายเงินได้ที่ต้องหักภาษี ณ ที่จ่าย ตามคำสั่งกรมสรรพากรที่ออกตามมาตรา 3 เตรส เช่น รางวัล ส่วนลดหรือประโยชน์ใด ๆ เนื่องจากการส่งเสริมการขาย รางวัลในการประกวด การแข่งขัน การชิงโชค ค่าแสดงของนักแสดงสาธารณะ ค่าจ้างทำของ ค่าโฆษณา ค่าเช่า ค่าขนส่ง ค่าบริการ ค่าเบี้ยประกันวินาศภัย ฯลฯ
+    <br><b>${esc(INCOME[v.rate]||v.desc)} ${v.rate}%</b></td><td style="text-align:center">${thDate(v.date)}</td><td class="num">${money(v.base)}</td><td class="num">${money(v.amt)}</td></tr>
+   ${blank('6. อื่น ๆ (ระบุ) ................................')}
+   <tr><td colspan="2" style="text-align:right"><b>รวมเงินที่จ่ายและภาษีที่หักนำส่ง</b></td><td class="num"><b>${money(v.base)}</b></td><td class="num"><b>${money(v.amt)}</b></td></tr>
+   <tr><td colspan="4">รวมเงินภาษีที่หักนำส่ง (ตัวอักษร) <b>(${bahtText(v.amt)})</b></td></tr></tbody></table>
+  <div class="box">เงินที่จ่ายเข้า กบข. / กสจ. / กองทุนสงเคราะห์ครูโรงเรียนเอกชน ........ บาท &nbsp; กองทุนประกันสังคม ........ บาท &nbsp; กองทุนสำรองเลี้ยงชีพ ........ บาท</div>
+  <div class="box">ผู้จ่ายเงิน &nbsp;${tickBox(true)}(1) หัก ณ ที่จ่าย &nbsp; ${tickBox(false)}(2) ออกให้ตลอดไป &nbsp; ${tickBox(false)}(3) ออกให้ครั้งเดียว &nbsp; ${tickBox(false)}(4) อื่น ๆ (ระบุ) ..........</div>
+  <table style="margin-top:6px"><tr><td style="width:45%;vertical-align:top;font-size:11px"><b>คำเตือน</b> ผู้มีหน้าที่ออกหนังสือรับรองการหักภาษี ณ ที่จ่าย ฝ่าฝืนไม่ปฏิบัติตามมาตรา 50 ทวิ แห่งประมวลรัษฎากร ต้องรับโทษทางอาญาตามมาตรา 35 แห่งประมวลรัษฎากร</td>
+   <td style="text-align:center">ขอรับรองว่าข้อความและตัวเลขดังกล่าวข้างต้นถูกต้องตรงกับความจริงทุกประการ<br><br>ลงชื่อ ${DOTS} ผู้จ่ายเงิน<br>${thDate(v.date)}<br><span class="lbl">(วัน เดือน ปี ที่ออกหนังสือรับรองฯ)</span></td></tr></table></div>`;
  }
  function printWhtCert(id){
-  const x=(DB.expenses||[]).find(z=>z.id===id);if(!x||!(n(x.wht)>0))return;if(!mayPrint())return toast('บัญชีนี้ไม่มีสิทธิ์พิมพ์เอกสารนี้');
-  if(!x.whtCertNo){x.whtCertNo=docNo('WH');x.whtForm=formOf(x);}
-  logAudit('expense',x,'print','หนังสือรับรองการหักภาษี ณ ที่จ่าย '+x.whtCertNo);save();printDocs(sheetWhtCert(x));if(typeof rOvPane!=='undefined'&&rOvPane==='wht')draw('wht');
+  const v=whtOutAll().find(z=>z.id===id);if(!v||!(v.amt>0))return;if(!mayPrint())return toast('บัญชีนี้ไม่มีสิทธิ์พิมพ์เอกสารนี้');
+  if(!v.paid)return toast('ยังไม่ได้จ่ายเงิน — ออก 50 ทวิ ได้หลังจ่าย');   /* tax is withheld when it is paid */
+  const x=v.x;if(!x.whtCertNo){x.whtCertNo=docNo('WH');x.whtForm=v.form;v.cert=x.whtCertNo;}
+  logAudit(v.kind,v.doc,'print','หนังสือรับรองการหักภาษี ณ ที่จ่าย '+x.whtCertNo);save();printDocs(sheetWhtCert(v,1)+sheetWhtCert(v,2));if(typeof rOvPane!=='undefined'&&rOvPane==='wht')draw('wht');
  }
  /* ---------- events of the three panes ---------- */
  MINE.forEach(k=>{const P=$i('rOv-'+k);
-  P.addEventListener('change',e=>{const t=e.target,tr=t.closest('tr[data-x]'),x=tr&&(DB.expenses||[]).find(z=>z.id===tr.dataset.x);if(!x||!t.dataset.rv)return;
+  P.addEventListener('change',e=>{const t=e.target,tr=t.closest('tr[data-x]'),v=tr&&whtOutAll().find(z=>z.id===tr.dataset.x),x=v&&v.x;if(!x||!t.dataset.rv)return;
    if(!mayFin()){toast('บัญชีนี้ไม่มีสิทธิ์แก้ไขรายการนี้');return pkgRenderWhtOut();}
    if(t.dataset.rv==='form')x.whtForm=t.value;if(t.dataset.rv==='remit')x.whtRemit=t.checked?{done:true,date:iso(),by:meName()}:{done:false,date:''};
-   logAudit('expense',x,'save',t.dataset.rv==='form'?'แบบนำส่ง ภ.ง.ด.'+x.whtForm:(t.checked?'นำส่งภาษีหัก ณ ที่จ่ายแล้ว':'ยกเลิกสถานะนำส่ง'));save();pkgRenderWhtOut();});
+   logAudit(v.kind,v.doc,'save',t.dataset.rv==='form'?'แบบนำส่ง ภ.ง.ด.'+x.whtForm:(t.checked?'นำส่งภาษีหัก ณ ที่จ่ายแล้ว':'ยกเลิกสถานะนำส่ง'));save();pkgRenderWhtOut();});
   P.addEventListener('click',e=>{const t=e.target;
    const tb=t.closest('[data-rtab]');if(tb)return whtTab(tb.dataset.rtab);
    const rv=t.closest('button[data-rv]');if(rv&&rv.dataset.rv==='print')return printWhtCert(rv.closest('tr').dataset.x);

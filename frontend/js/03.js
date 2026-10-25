@@ -7680,8 +7680,11 @@ function renderTax(){
     ...asx.map(a=>({date:a.date,no:a.inv||a.no,inv:a.inv||'',ref:a.no||'',src:'ทะเบียนสินทรัพย์',srcGo:'acct',name:a.vendor||a.name,tax:'',base:n(a.cost),vat:vatOf(a.cost,a.vat)}))]
     .sort((a,b)=>a.date.localeCompare(b.date));
   const buyBase=buyRows.reduce((a,r)=>a+r.base,0), buyVat=buyRows.reduce((a,r)=>a+r.vat,0);
-  const whtOutRows=DB.expenses.filter(x=>ym(x.date)===mo&&n(x.wht)>0);
-  const whtOut=whtOutRows.reduce((a,x)=>a+expTotals(x).wht,0);
+  /* DriveGo new system (task 3.4, answers of 2026-10-25): ภ.ง.ด.3 / 53 count what was withheld by the day it was paid —
+     paid expenses and vendor payments, in the order of the form's attachment (52.js PKG_WHT_OUT) */
+  const WO=window.PKG_WHT_OUT;
+  const whtOutRows=WO?WO.month(mo):DB.expenses.filter(x=>ym(x.date)===mo&&n(x.wht)>0);
+  const whtOut=WO?whtOutRows.reduce((a,v)=>a+v.amt,0):whtOutRows.reduce((a,x)=>a+expTotals(x).wht,0);
   const whtInRows=DB.receipts.filter(r=>ym(r.date)===mo&&n(r.wht)>0&&!r.cancelled);
   const whtIn=whtInRows.reduce((a,r)=>a+receiptTotals(r).whtAmt,0);
   const sso=ssoSummaryOf(mo), pay=empListOfMonth(mo).reduce((a,e)=>a+ssoOf(e).gross,0);
@@ -7726,11 +7729,16 @@ function renderTax(){
   TAXBUY_ROWS=buyRows; TAXBUY_VAT=buyVat;
   renderTaxBuyRows();
   $('#taxBuyTbl tfoot').innerHTML=`<tr><td colspan="5">รวม</td><td class="num">${money(buyBase)}</td><td class="num">${money(buyVat)}</td></tr>`;
-  $('#whtOutTbl tbody').innerHTML=whtOutRows.map(x=>{const t=expTotals(x);
+  $('#whtOutTbl tbody').innerHTML=(WO?whtOutRows.map(v=>`<tr><td class="ctr">${thDate(v.date)}</td><td>${esc(v.payee||v.desc)}<div class="hint">ภ.ง.ด.${v.form} ลำดับที่ ${v.seq} · ${esc(v.no)} · ${esc(v.desc)}</div></td>
+      <td class="num">${money(v.base)}</td><td class="ctr">${v.rate}%</td><td class="num">${money(v.amt)}</td></tr>`).join('')
+    :whtOutRows.map(x=>{const t=expTotals(x);
     return `<tr><td class="ctr">${thDate(x.date)}</td><td>${esc(x.payee||x.desc)}<div class="hint">${esc(x.cat)}</div></td>
-      <td class="num">${money(t.base)}</td><td class="ctr">${n(x.wht)}%</td><td class="num">${money(t.wht)}</td></tr>`}).join('')
+      <td class="num">${money(t.base)}</td><td class="ctr">${n(x.wht)}%</td><td class="num">${money(t.wht)}</td></tr>`}).join(''))
     ||'<tr><td colspan="5" class="empty">งวดนี้ไม่มีรายการที่ต้องหักภาษี ณ ที่จ่าย</td></tr>';
-  $('#whtOutTbl tfoot').innerHTML=`<tr><td colspan="4">รวมที่ต้องนำส่ง</td><td class="num">${money(whtOut)}</td></tr>`;
+  /* the two forms: how many payees (by tax id, else name), the income paid and the tax withheld */
+  const whtForms=WO?['3','53'].map(f=>{const r=whtOutRows.filter(v=>v.form===f);return {f,n:new Set(r.map(v=>v.tax||v.payee)).size,base:r.reduce((a,v)=>a+v.base,0),amt:r.reduce((a,v)=>a+v.amt,0)};}).filter(x=>x.n):[];
+  $('#whtOutTbl tfoot').innerHTML=whtForms.map(x=>`<tr><td colspan="2">ภ.ง.ด.${x.f} · ${x.n} ราย</td><td class="num">${money(x.base)}</td><td></td><td class="num">${money(x.amt)}</td></tr>`).join('')
+    +`<tr><td colspan="4">รวมที่ต้องนำส่ง</td><td class="num">${money(whtOut)}</td></tr>`;
   $('#whtInTbl tbody').innerHTML=whtInRows.map(r=>{const t=receiptTotals(r);
     return `<tr><td class="ctr">${thDate(r.date)}</td><td>${esc(custName(findCust(r.custId))||'-')}<div class="hint">${esc(r.no)}</div></td>
       <td class="num">${money(t.whtBaseAmt)}</td><td class="ctr">${n(r.wht)}%</td><td class="num">${money(t.whtAmt)}</td></tr>`}).join('')
