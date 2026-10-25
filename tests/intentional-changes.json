@@ -195,8 +195,8 @@
     },
     {
       "scenario": "S137-no-vat-needs-right-and-reason.spec.ts",
-      "decision": "R4-ข (task 3.3)",
-      "why": "In a VAT-registered shop, leaving VAT off a sale takes the right to the shop's tax settings and a reason; the document keeps the reason and the audit log records it; an account without that right is refused and the rate stays."
+      "decision": "R4-ข (task 3.3), staff login kept (owner 2026-10-25)",
+      "why": "In a VAT-registered shop, leaving VAT off a sale takes the right เลือกไม่คิด VAT (ต้องใส่เหตุผล) and a reason; the document keeps the reason and the audit log records it; an account without that right is refused and the rate stays; after the owner ticks the right and saves the staff form, the person's login still works (the legacy app dropped it)."
     },
     {
       "scenario": "S138-vat-rounded-to-satang-per-document.spec.ts",

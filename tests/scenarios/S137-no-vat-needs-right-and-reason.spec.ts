@@ -126,13 +126,10 @@ test('S137 ระบบใหม่: ร้านที่จด VAT เลื�
   await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).last().click();
   await app.settle();
   expect((await app.state()).DB.emp.find((e: any) => e.code === 'EMP005').perms.doc).toMatchObject({ noVat: true, taxClose: false, creditNote: false });
-  // Saving the staff form drops the person's login, as in the legacy app (NOTES.md, task 3.3): issue it again.
+  // Saving the staff form keeps her login (the legacy app dropped it; fixed with the owner's approval, 2026-10-25).
   await page.getByRole('button', { name: '10 ตั้งค่าองค์กร' }).click();
-  await staff.getByRole('button', { name: '+ ออกบัญชี (ตั้งรหัสผ่าน)' }).click();
-  await page.locator('input:focus').waitFor();
-  await page.keyboard.type('5555');
-  await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).click();
   await expect(staff).toContainText('ใช้งานได้');
+  await expect(staff.getByRole('button', { name: '+ ออกบัญชี (ตั้งรหัสผ่าน)' })).toHaveCount(0);
   await page.getByText('ออกจากระบบ', { exact: true }).filter({ visible: true }).first().click();
   await page.getByPlaceholder('กรอกรหัสผ่าน').waitFor();
   await app.login('092-111-2233', '5555');

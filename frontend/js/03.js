@@ -6491,6 +6491,9 @@ function saveEmp(){
   if(!rec.active&&!rec.leftDate) rec.leftDate=iso();
   if(rec.active){ rec.leftDate=''; rec.leftNote=''; }
   const oldEmp=editEmpId?DB.emp.find(x=>x.id===editEmpId):null;
+  /* DriveGo new system (owner 2026-10-25): the login issued on page 10 (its password and on/off) is not in this form,
+     so it is kept — the legacy app dropped it here and the person could no longer sign in */
+  if(oldEmp) ['dgbPass','dgbActive'].forEach(k=>{ if(oldEmp[k]!==undefined) rec[k]=oldEmp[k]; });
   stampRec(rec,oldEmp);
   if(editEmpId){const i=DB.emp.findIndex(x=>x.id===editEmpId);DB.emp[i]=rec} else DB.emp.push(rec);
   /* การแก้สิทธิ์ใช้งานต้องตามหาคนทำได้เสมอ — เป็นจุดที่อ่อนไหวที่สุดในระบบ */
