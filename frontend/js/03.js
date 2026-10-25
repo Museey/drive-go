@@ -6357,7 +6357,7 @@ function renderEmp(){
       <td class="ctr">${e.age||'-'}</td><td class="mono" style="font-size:12px">${esc(e.idcard||'-')}</td>
       <td>${esc(e.position||'-')}<div class="hint">${esc(e.edu||'')}${e.hospital?' · รพ. '+esc(e.hospital):''}</div></td>
       <td class="ctr" style="white-space:nowrap">${tenure(e.start)}</td><td class="num">${money(e.salary)}</td>
-      <td class="num">${money(x.gross)}<div class="hint">OT ${money(e.ot)} · พิเศษ ${money(e.bonus)}</div></td>
+      <td class="num">${money(x.gross)}<div class="hint">เงินได้ประจำ ${money(e.regular)}</div></td>
       <td class="ctr"><span class="chip ${permCount(e).split('/')[0]==='0'?'r':'b'}">${permCount(e)}</span></td>
       ${byCell(e)}
       <td class="ctr"><div style="display:inline-flex;flex-direction:column;align-items:stretch;gap:4px">

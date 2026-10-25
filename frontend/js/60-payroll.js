@@ -1,0 +1,366 @@
+/* DriveGo new system (task 3.7, decisions R12, R13, F5, X2 and the owner's answers 2026-10-25): payroll and social security.
+   · Social security (R12): the base is the month's wage — salary plus the employee's regular monthly income (a new
+     field "เงินได้ประจำ", e.regular), never overtime or bonuses — between 1,650 and the ceiling of the law, 5% each
+     side, rounded to the baht. The figures come from a table of the law by month (LAW: ceiling 15,000, from
+     Jan 2026 17,500, 2029 20,000, 2032 23,000). The shop may still set its own (R12 = ค): menu 10 asks first and
+     writes the audit log; its figures (DB.shop.ssoOwn) apply from the month they were set. The legacy fields
+     DB.shop.ssoRate … are no longer read and are left as they are.
+   · A payroll period (R13, F5): DB.payroll[] = { id, month, label, date, lines, totals, sso, payId, payNo, ssoId, ssoNo,
+     cancelled … }. Recording it writes the two legacy expenses (wages, the employer's contribution) dated the last day
+     of the month and unpaid (R13-ก) — or paid at once when asked; "จ่ายเงินเดือน" and "นำส่งประกันสังคม" pay them
+     later with a date and a method, each with its payment voucher (MA-PV, task 3.4). Overtime and bonuses are typed on
+     the payroll page for that month (R13-ข; the employee form no longer has them). Someone who starts or leaves in
+     the month gets salary ÷ 30 × the calendar days worked (R13-จ). A month already recorded cannot be recorded again:
+     cancelling it first (with a reason, even once paid) removes its two expenses and keeps the period, cancelled,
+     with their numbers (F5 = ค and the answer of 2026-10-25). Recording, paying and cancelling take the owner or the
+     right "บันทึกค่าใช้จ่าย" (doc.acctEdit). Each employee has a payslip (R13-ง).
+   · Reports (X2 and the answer of 2026-10-25 "เฉพาะงวดที่บันทึก"): the estimate from today's staff list is gone
+     (payrollMonthly). The profit-and-loss, cash and trial balance read the recorded periods (their expenses); the
+     health page says which months have none; the tax report's social security and ภ.ง.ด.1 base and its payroll
+     table are those of the recorded period of the month. */
+(function(){
+ if(typeof payrollRun!=='function'||typeof ssoOf!=='function'||typeof finance!=='function'||typeof PAY_CAT==='undefined')return;
+ const r2=v=>round2(v),$i=id=>document.getElementById(id),PCAT=PAY_CAT;
+ const thisMonth=()=>iso().slice(0,7);
+ const monthEnd=mo=>iso(new Date(+mo.slice(0,4),+mo.slice(5,7),0));
+ const monthName=mo=>TH_M[+mo.slice(5,7)-1]+' '+(+mo.slice(0,4)+543);
+ const lbl=mo=>'งวด '+monthName(mo);
+ const canPay=()=>!curEmp()||can('doc.acctEdit');
+ const NO_RIGHT='บัญชีนี้ไม่มีสิทธิ์บันทึกเงินเดือน (ต้องมีสิทธิ์บันทึกค่าใช้จ่าย)';
+
+ /* ---------- social security: the law by month, or the shop's own figures (R12 = ค) ---------- */
+ const LAW=[{from:'0000-01',rate:5,min:1650,max:15000},{from:'2026-01',rate:5,min:1650,max:17500},
+  {from:'2029-01',rate:5,min:1650,max:20000},{from:'2032-01',rate:5,min:1650,max:23000}];
+ const withCap=p=>({rate:n(p.rate),min:n(p.min),max:n(p.max),cap:p.cap!=null&&p.cap!==''?n(p.cap):Math.round(n(p.max)*n(p.rate)/100)});
+ const lawOf=mo=>Object.assign(withCap(LAW.filter(l=>l.from<=mo).pop()),{from:LAW.filter(l=>l.from<=mo).pop().from});
+ const own=()=>(DB.shop&&DB.shop.ssoOwn)||null;
+ function paramsOf(mo){const o=own();return o&&String(o.from||'')<=mo?Object.assign(withCap(o),{own:true}):lawOf(mo);}
+ const ssoAmt=(wage,P)=>{if(!(wage>0))return{base:0,amt:0};const base=Math.min(Math.max(wage,P.min),P.max);return{base,amt:Math.min(Math.round(base*P.rate/100),P.cap)};};
+
+ /* ---------- an employee's month ---------- */
+ const dayN=d=>Math.round(Date.parse(d+'T00:00:00Z')/864e5);
+ function daysOf(e,mo){const a=mo+'-01',b=monthEnd(mo),from=e.start&&e.start>a?e.start:a,to=e.leftDate&&e.leftDate<b?e.leftDate:b;
+  return from>to?null:{from,to,days:dayN(to)-dayN(from)+1,full:from===a&&to===b};}
+ function lineOf(e,mo,x){x=x||{};const d=daysOf(e,mo);if(!d)return null;const P=paramsOf(mo);
+  const part=v=>d.full?n(v):r2(n(v)/30*d.days);
+  const salary=part(e.salary),regular=part(e.regular),ot=r2(n(x.ot)),bonus=r2(n(x.bonus)),wage=r2(salary+regular),gross=r2(wage+ot+bonus),s=ssoAmt(wage,P);
+  return {empId:e.id,code:e.code,name:e.name,position:e.position||'',salaryRate:n(e.salary),regularRate:n(e.regular),
+   from:d.from,to:d.to,days:d.days,full:d.full,salary,regular,ot,bonus,gross,ssoBase:s.base,ssoEmp:s.amt,ssoEr:s.amt,net:r2(gross-s.amt)};}
+ const draft={};   /* month → { employee id → {ot, bonus} } typed on the payroll page, until the month is recorded */
+ const rowsOf=(mo,typed)=>empListOfMonth(mo).map(e=>lineOf(e,mo,typed?(draft[mo]||{})[e.id]:null)).filter(Boolean);
+ const sum=L=>L.reduce((a,l)=>({g:r2(a.g+l.gross),e:a.e+l.ssoEmp,r:a.r+l.ssoEr,n:r2(a.n+l.net)}),{g:0,e:0,r:0,n:0});
+
+ /* ---------- periods ---------- */
+ const periods=()=>Array.isArray(DB.payroll)?DB.payroll:[];
+ const periodOf=mo=>periods().find(p=>p&&p.month===mo&&!p.cancelled)||null;
+ const expOf=id=>(DB.expenses||[]).find(x=>x&&x.id===id)||null;
+ const periodOfExp=x=>x&&x.payroll?periods().find(p=>p.id===x.payroll)||null:null;
+
+ /* the legacy helpers, now on the recorded figures */
+ window.payrollMonthly=()=>0;   /* the estimate from today's staff list: no longer in any report */
+ window.ssoOf=function(e){if(!e||!(n(e.salary)>0||n(e.regular)>0))return {gross:0,base:0,emp:0,er:0};
+  const gross=r2(n(e.salary)+n(e.regular)),s=ssoAmt(gross,paramsOf(thisMonth()));return {gross,base:s.base,emp:s.amt,er:s.amt};};
+ window.ssoSummaryOf=function(mo){const p=periodOf(mo),t=p?{g:p.totals.gross,e:p.totals.emp,r:p.totals.er}:sum(rowsOf(mo));
+  return {gross:t.g,emp:t.e,er:t.r,total:t.e+t.r,recorded:!!p};};
+ /* social security still to remit (trial balance 2060): recorded periods whose contribution is not paid */
+ const owed=()=>periods().filter(p=>!p.cancelled).reduce((a,p)=>{const x=expOf(p.ssoId);return a+(x&&!x.paid?p.totals.emp+p.totals.er:0);},0);
+ window.ssoSummary=()=>({gross:0,emp:0,er:0,total:owed()});
+
+ /* ---------- the payroll page (06.4) ---------- */
+ const METHODS=['เงินโอน','เงินสด','เช็ค'];
+ function payAsk(o){return new Promise(res=>{
+  const msg=o.html+'<div class="grid g3" style="margin-top:10px">'
+   +(o.later?'<label class="f"><span>สถานะ</span><select id="pkgPayWhen"><option value="0">ค้างจ่าย (จ่ายทีหลัง)</option><option value="1">จ่ายแล้ว</option></select></label>':'')
+   +`<label class="f"><span>วันที่จ่าย</span><input type="date" id="pkgPayDate" value="${iso()}"></label>`
+   +`<label class="f"><span>วิธีจ่าย</span><select id="pkgPayMethod">${METHODS.map(m=>`<option>${m}</option>`).join('')}</select></label></div>`;
+  askConfirm({title:o.title,msg,yes:o.yes,no:'ยกเลิก',onNo:()=>res(null),onYes:()=>{const w=$i('pkgPayWhen');
+   res({paid:o.later?!!(w&&w.value==='1'):true,date:($i('pkgPayDate')||{}).value||iso(),method:($i('pkgPayMethod')||{}).value||METHODS[0]});}});});}
+ const sumHtml=(t,k)=>`<table class="tbl" style="margin-top:6px"><tbody>
+   <tr><td>พนักงาน</td><td class="num">${k} คน</td></tr><tr><td>รวมรายได้</td><td class="num">${money(t.g)}</td></tr>
+   <tr><td>หักประกันสังคม (ลูกจ้าง)</td><td class="num">${money(t.e)}</td></tr><tr><td><b>จ่ายสุทธิ</b></td><td class="num"><b>${money(t.n)}</b></td></tr>
+   <tr><td>นายจ้างสมทบ</td><td class="num">${money(t.r)}</td></tr><tr><td>รวมนำส่งประกันสังคม</td><td class="num">${money(t.e+t.r)}</td></tr></tbody></table>`;
+ function markPaid(x,a,head){const old=Object.assign({},x);Object.assign(x,{paid:true,payDate:a.date,method:a.method});
+  if(!x.pvNo)x.pvNo=window.PKG_PV?PKG_PV.newNo():docNo('PV');stampRec(x,old);
+  logAudit('expense',x,'pay',head+' ('+a.method+') · ใบสำคัญจ่าย '+x.pvNo);}
+ window.payrollRun=async function(){
+  if(!canPay())return toast(NO_RIGHT);
+  const mo=payMonthVal(),L=rowsOf(mo,true);if(!L.length)return toast('ยังไม่มีข้อมูลพนักงาน — เพิ่มที่เมนูตั้งค่าองค์กร');
+  const cur=periodOf(mo);if(cur)return toast(lbl(mo)+' บันทึกแล้ว ('+cur.payNo+') — ต้องยกเลิกงวดเดิมก่อนจึงจะบันทึกใหม่ได้');
+  const t=sum(L),d=monthEnd(mo);
+  const a=await payAsk({title:'บันทึกเงินเดือน '+lbl(mo),yes:'บันทึก',later:true,
+   html:`<p>ลงค่าใช้จ่ายวันที่ ${thDate(d)} (สิ้นงวด)</p>`+sumHtml(t,L.length)});
+  if(!a)return;
+  if(periodOf(mo))return toast(lbl(mo)+' บันทึกแล้ว — ต้องยกเลิกงวดเดิมก่อนจึงจะบันทึกใหม่ได้');
+  const pid=uid(),k=L.length;
+  const mk=(desc,base,note,part,payee)=>{const x={id:uid(),no:docNo('EX'),date:d,cat:PCAT,desc,payee,tax:'',inv:'',base,vat:0,wht:0,method:'',paid:false,note,payroll:pid,payPart:part};stampRec(x,null);return x;};
+  const e1=mk('จ่ายเงินเดือนและค่าล่วงเวลา '+lbl(mo),t.g,'หักประกันสังคมลูกจ้าง '+money(t.e)+' บาท · จ่ายสุทธิ '+money(t.n)+' บาท','pay','พนักงาน '+k+' คน');
+  const e2=mk('เงินสมทบประกันสังคมส่วนนายจ้าง '+lbl(mo),t.r,'นำส่งพร้อมส่วนลูกจ้าง รวม '+money(t.e+t.r)+' บาท','sso','สำนักงานประกันสังคม');
+  DB.expenses.push(e1,e2);
+  const p={id:pid,month:mo,label:lbl(mo),date:d,lines:L,totals:{n:k,gross:t.g,emp:t.e,er:t.r,net:t.n},sso:paramsOf(mo),
+   payId:e1.id,payNo:e1.no,ssoId:e2.id,ssoNo:e2.no,cancelled:false};
+  stampRec(p,null);DB.payroll=periods().concat(p);
+  logAudit('expense',e1,'save','บันทึกเงินเดือน '+lbl(mo)+' · '+k+' คน รวม '+money(t.g)+' บาท · หักประกันสังคม '+money(t.e)+' บาท · จ่ายสุทธิ '+money(t.n)+' บาท · นายจ้างสมทบ '+money(t.r)+' บาท'+(a.paid?'':' · ค้างจ่าย'));
+  if(a.paid)markPaid(e1,a,'จ่ายเงินเดือน '+lbl(mo)+' สุทธิ '+money(t.n)+' บาท');
+  delete draft[mo];save();window.renderPayroll();renderHome();
+  toast('บันทึกเงินเดือน '+lbl(mo)+' แล้ว · เงินเดือน '+money0(t.g)+' + สมทบนายจ้าง '+money0(t.r)+' บาท'+(a.paid?' · จ่ายแล้ว':' · ค้างจ่าย'));
+ };
+ async function paySalary(id){
+  if(!canPay())return toast(NO_RIGHT);const p=periods().find(x=>x.id===id),x=p&&expOf(p.payId);if(!x||x.paid||p.cancelled)return;
+  const a=await payAsk({title:'จ่ายเงินเดือน '+p.label,yes:'บันทึกการจ่าย',html:`<p>จ่ายสุทธิให้พนักงาน ${p.totals.n} คน <b>${money(p.totals.net)}</b> บาท
+   (รวมรายได้ ${money(p.totals.gross)} หักประกันสังคม ${money(p.totals.emp)})</p>`});
+  if(!a)return;markPaid(x,a,'จ่ายเงินเดือน '+p.label+' สุทธิ '+money(p.totals.net)+' บาท');save();window.renderPayroll();renderHome();
+  toast('บันทึกจ่ายเงินเดือน '+p.label+' แล้ว · ใบสำคัญจ่าย '+x.pvNo);}
+ async function paySso(id){
+  if(!canPay())return toast(NO_RIGHT);const p=periods().find(x=>x.id===id),x=p&&expOf(p.ssoId);if(!x||x.paid||p.cancelled)return;
+  const a=await payAsk({title:'นำส่งประกันสังคม '+p.label,yes:'บันทึกการนำส่ง',html:`<p>นำส่งสำนักงานประกันสังคม <b>${money(p.totals.emp+p.totals.er)}</b> บาท
+   (ลูกจ้าง ${money(p.totals.emp)} + นายจ้าง ${money(p.totals.er)}) ภายในวันที่ 15 ของเดือนถัดไป</p>`});
+  if(!a)return;markPaid(x,a,'นำส่งประกันสังคม '+p.label+' '+money(p.totals.emp+p.totals.er)+' บาท (ลูกจ้าง '+money(p.totals.emp)+' + นายจ้าง '+money(p.totals.er)+')');
+  save();window.renderPayroll();renderHome();toast('บันทึกนำส่งประกันสังคม '+p.label+' แล้ว · ใบสำคัญจ่าย '+x.pvNo);}
+ async function cancelPeriod(id){
+  if(!canPay())return toast(NO_RIGHT);const p=periods().find(x=>x.id===id);if(!p||p.cancelled)return;
+  const xs=[expOf(p.payId),expOf(p.ssoId)].filter(Boolean),paid=xs.filter(x=>x.paid);
+  const why=await askPromptP({title:'ยกเลิกเงินเดือน '+p.label,text:'ระบุเหตุผลที่ยกเลิก (จำเป็น)\nรายจ่าย '+xs.map(x=>x.no).join(' และ ')+' ของงวดนี้จะถูกยกเลิก'
+   +(paid.length?' รวมการจ่ายที่บันทึกไว้ ('+paid.map(x=>x.pvNo).filter(Boolean).join(', ')+')':'')+' แล้วบันทึกงวดใหม่ได้',yes:'ยกเลิกงวดนี้',no:'ไม่ยกเลิก',required:true});
+  if(why===null)return;if(!String(why).trim())return toast('ต้องระบุเหตุผลที่ยกเลิก');
+  p.cancelledDocs=xs.map(x=>({no:x.no,desc:x.desc,base:x.base,paid:!!x.paid,payDate:x.payDate||'',method:x.method||'',pvNo:x.pvNo||''}));
+  xs.forEach(x=>{const i=DB.expenses.indexOf(x);if(i>=0)DB.expenses.splice(i,1);});
+  Object.assign(p,{cancelled:true,cancelReason:String(why).trim(),cancelDate:iso(),cancelAt:nowTs(),cancelBy:DB.curEmp||'',cancelByName:meName()});
+  logAudit('expense',{id:p.payId,no:p.payNo},'del','ยกเลิกเงินเดือน '+p.label+' — '+p.cancelReason+' · '+p.cancelledDocs.map(c=>c.no+(c.paid?' (จ่ายแล้ว '+c.pvNo+')':'')).join(', '));
+  save();window.renderPayroll();renderHome();toast('ยกเลิกเงินเดือน '+p.label+' แล้ว — บันทึกงวดใหม่ได้');}
+
+ const hint=s=>`<div class="hint">${s}</div>`;
+ window.renderPayroll=function(){
+  const mo=payMonthVal(),p=periodOf(mo),L=p?p.lines:rowsOf(mo,true),t=p?{g:p.totals.gross,e:p.totals.emp,r:p.totals.er,n:p.totals.net}:sum(L),edit=!p&&canPay();
+  $i('payTag').textContent=lbl(mo)+' · '+L.length+' คน'+(p?' · บันทึกแล้ว':'');
+  const box=(l,k)=>edit?`<input type="number" min="0" step="0.01" class="pkg-pay-in" data-emp="${esc(l.empId)}" data-k="${k}" value="${n(l[k])||''}" placeholder="0" aria-label="${k==='ot'?'ค่าล่วงเวลา':'เงินพิเศษ'} ${esc(l.code)}" style="width:96px;text-align:right">`:money(l[k]);
+  $i('payTbl').tBodies[0].innerHTML=L.map(l=>`<tr><td class="mono">${esc(l.code)}</td>
+   <td>${esc(l.name)}${p?`<div><button type="button" class="btn sm gh" data-slip="${esc(l.empId)}">สลิปเงินเดือน</button></div>`:''}</td><td>${esc(l.position||'-')}</td>
+   <td class="num">${money(l.salary)}${l.full?'':hint(l.days+' วัน ('+thDate(l.from)+' – '+thDate(l.to)+')')}${l.regular?hint('+ เงินได้ประจำ '+money(l.regular)):''}</td>
+   <td class="num">${box(l,'ot')}</td><td class="num">${box(l,'bonus')}</td>
+   <td class="num"><b>${money(l.gross)}</b></td><td class="num">${money(l.ssoEmp)}</td><td class="num"><b>${money(l.net)}</b></td><td class="num">${money(l.ssoEr)}</td></tr>`).join('');
+  $i('payTbl').tFoot.innerHTML=`<tr><td colspan="6">รวม ${L.length} คน</td><td class="num"><b>${money(t.g)}</b></td>
+    <td class="num"><b>${money(t.e)}</b></td><td class="num"><b>${money(t.n)}</b></td><td class="num"><b>${money(t.r)}</b></td></tr>
+    <tr><td colspan="9" class="hint">ยอดที่ต้องนำส่งประกันสังคม (ลูกจ้าง ${money(t.e)} + นายจ้าง ${money(t.r)})</td><td class="num"><b>${money(t.e+t.r)}</b></td></tr>`;
+  $i('payEmpty').style.display=L.length?'none':'block';
+  state(mo,p);history();
+ };
+ /* under the table: what the month has (recorded or not, paid or not) and its actions */
+ function state(mo,p){let el=$i('pkgPayState');const tbl=$i('payTbl'),wrap=tbl&&(tbl.closest('.scroll')||tbl);if(!wrap)return;
+  if(!el){el=document.createElement('div');el.id='pkgPayState';el.className='pkg-pay-state';el.style.cssText='margin:10px 0 0;display:flex;flex-wrap:wrap;gap:8px;align-items:center';wrap.after(el);}
+  const P=paramsOf(mo),law=`ประกันสังคม ${P.rate}% ฐาน ${money0(P.min)} – ${money0(P.max)} บาท (หักสูงสุด ${money0(P.cap)} บาท)${P.own?' · ร้านตั้งเอง':''}`;
+  if(!p){el.innerHTML=`<span class="hint">ยังไม่ได้บันทึก${lbl(mo)} — กรอกค่าล่วงเวลาและเงินพิเศษของงวดนี้ (ถ้ามี) แล้วกด "บันทึกจ่ายเงินเดือนงวดนี้" · ${law}</span>`;return;}
+  const x1=expOf(p.payId),x2=expOf(p.ssoId),ok=canPay();
+  const part=(x,name,btn,act)=>x&&x.paid?`<span class="chip g">${name}แล้ว ${thDate(x.payDate||x.date)} (${esc(x.method||'-')}) · ใบสำคัญจ่าย <span data-no-translate>${esc(x.pvNo||'-')}</span></span>`
+   +(x.pvNo?` <button type="button" class="btn sm gh" data-pvp="${esc(x.pvNo)}">พิมพ์ใบสำคัญจ่าย</button>`:'')
+   :`<span class="chip a">${name==='จ่าย'?'เงินเดือนค้างจ่าย':'ประกันสังคมค้างนำส่ง'}</span>`+(ok?` <button type="button" class="btn sm pri" data-act="${act}">${btn}</button>`:'');
+  el.innerHTML=`<span class="hint">บันทึกแล้ว · รายจ่าย <span data-no-translate>${esc(p.payNo)}</span> (เงินเดือน) และ <span data-no-translate>${esc(p.ssoNo)}</span> (นายจ้างสมทบ)</span>`
+   +part(x1,'จ่าย','จ่ายเงินเดือน','pay')+part(x2,'นำส่ง','นำส่งประกันสังคม','sso')
+   +`<button type="button" class="btn sm gh" data-slip="*">พิมพ์สลิปเงินเดือนทุกคน</button>`+(ok?`<button type="button" class="btn sm dgr" data-act="cancel">ยกเลิกงวดนี้</button>`:'');
+  el.dataset.pid=p.id;}
+ /* the history: payroll expenses (also those recorded before task 3.7) and the cancelled periods */
+ function history(){
+  const tb=$i('payHistTbl')&&$i('payHistTbl').tBodies[0];if(!tb)return;
+  const hist=DB.expenses.filter(x=>x.cat===PCAT).sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.no).localeCompare(String(a.no)));
+  const gone=periods().filter(p=>p.cancelled).sort((a,b)=>String(b.cancelAt||'').localeCompare(String(a.cancelAt||'')));
+  tb.innerHTML=hist.map(x=>{const p=periodOfExp(x);return `<tr><td class="mono" style="font-size:12px">${esc(x.no)}${x.pvNo?hint('ใบสำคัญจ่าย '+esc(x.pvNo)):''}</td>
+    <td class="ctr">${thDate(x.paid&&x.payDate||x.date)}</td><td>${esc(x.desc)}${x.note?hint(esc(x.note)):''}</td>
+    <td class="num"><b>${money(x.payPart==='sso'&&p?p.totals.emp+p.totals.er:x.payPart==='pay'&&p?p.totals.net:expTotals(x).net)}</b></td>
+    <td class="ctr">${p?(x.paid?'<span class="chip g">จ่ายแล้ว</span>':`<button type="button" class="btn sm pri" data-pay="${esc(x.id)}">จ่าย</button>`):expStatusCell(x)}</td>
+    <td class="ctr">${p?`<button type="button" class="btn sm gh" data-month="${esc(p.month)}">เปิด${esc(p.label)}</button>`
+     :`<div style="display:inline-flex;flex-direction:column;align-items:stretch;gap:4px"><button class="btn sm gh" onclick="openExp('${x.id}')">แก้ไข</button>
+       <button class="btn sm dgr" onclick="delExp('${x.id}')">ลบ</button></div>`}</td></tr>`;}).join('')
+   +gone.map(p=>`<tr class="cancelrow"><td class="mono" style="font-size:12px">${(p.cancelledDocs||[]).map(c=>esc(c.no)).join('<br>')}</td>
+    <td class="ctr">${thDate(p.date)}</td><td>${esc(p.label)} · ยกเลิกแล้ว${hint('ยกเลิก '+thDate(p.cancelDate)+' โดย '+esc(p.cancelByName||'')+' — '+esc(p.cancelReason||''))}</td>
+    <td class="num">${money(p.totals.gross)}</td><td class="ctr"><span class="chip r">ยกเลิกแล้ว</span></td><td></td></tr>`).join('');
+  $i('payHistEmpty').style.display=hist.length+gone.length?'none':'block';
+  $i('payHistTag').textContent=(hist.length+gone.length)+' รายการ';}
+ const pane=$i('b-pay');
+ if(pane){
+  pane.addEventListener('change',e=>{const t=e.target;if(!t.classList||!t.classList.contains('pkg-pay-in'))return;
+   const mo=payMonthVal();if(periodOf(mo))return;const d=draft[mo]=draft[mo]||{},r=d[t.dataset.emp]=d[t.dataset.emp]||{};
+   r[t.dataset.k]=Math.max(0,n(t.value));window.renderPayroll();});
+  pane.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+   const st=$i('pkgPayState'),pid=st&&st.dataset.pid,mo=payMonthVal(),p=periodOf(mo);
+   if(b.dataset.act==='pay'&&pid)return paySalary(pid);
+   if(b.dataset.act==='sso'&&pid)return paySso(pid);
+   if(b.dataset.act==='cancel'&&pid)return cancelPeriod(pid);
+   if(b.dataset.pvp&&window.PKG_PV)return PKG_PV.print(b.dataset.pvp);
+   if(b.dataset.slip&&p)return printSlips(p,b.dataset.slip==='*'?null:b.dataset.slip);
+   if(b.dataset.pay){const x=expOf(b.dataset.pay),q=periodOfExp(x);if(q)return x.payPart==='sso'?paySso(q.id):paySalary(q.id);}
+   if(b.dataset.month){$i('payMonth').value=b.dataset.month;window.renderPayroll();}});}
+ const pm=$i('payMonth');if(pm)pm.onchange=()=>window.renderPayroll();
+
+ /* ---------- the printed sheet and the payslips ---------- */
+ window.printPayroll=function(){
+  const mo=payMonthVal(),p=periodOf(mo),L=p?p.lines:rowsOf(mo,true),t=p?{g:p.totals.gross,e:p.totals.emp,r:p.totals.er,n:p.totals.net}:sum(L);
+  printDocs(sheetTop({title:'ใบจ่ายเงินเดือนพนักงาน',en:'PAYROLL SHEET',copy:'เอกสารภายใน',
+    fields:[['งวดเดือน',monthName(mo)],['จำนวนพนักงาน',L.length+' คน'],['วันที่พิมพ์',thDate(iso())]]})+
+    `<table><thead><tr><th style="width:60px">รหัส</th><th>ชื่อ - นามสกุล</th><th style="width:95px">ตำแหน่ง</th>
+      <th style="width:70px">เงินเดือน</th><th style="width:60px">ล่วงเวลา</th><th style="width:60px">เงินพิเศษ</th>
+      <th style="width:74px">รวมรายได้</th><th style="width:66px">หัก ปกส.</th><th style="width:78px">จ่ายสุทธิ</th>
+      <th style="width:70px">ลงชื่อรับเงิน</th></tr></thead><tbody>
+      ${L.map(l=>`<tr><td>${esc(l.code)}</td><td>${esc(l.name)}</td><td>${esc(l.position||'-')}</td>
+        <td class="num">${money(r2(l.salary+l.regular))}${l.full?'':'<br><span class="lbl">'+l.days+' วัน</span>'}</td><td class="num">${money(l.ot)}</td><td class="num">${money(l.bonus)}</td>
+        <td class="num">${money(l.gross)}</td><td class="num">${money(l.ssoEmp)}</td><td class="num">${money(l.net)}</td><td></td></tr>`).join('')}
+      <tr><td colspan="6" style="text-align:right"><b>รวมทั้งสิ้น</b></td><td class="num"><b>${money(t.g)}</b></td>
+        <td class="num"><b>${money(t.e)}</b></td><td class="num"><b>${money(t.n)}</b></td><td></td></tr>
+      <tr><td colspan="9" style="text-align:right">เงินสมทบประกันสังคมส่วนนายจ้าง</td><td class="num">${money(t.r)}</td></tr>
+      <tr><td colspan="9" style="text-align:right"><b>รวมนำส่งสำนักงานประกันสังคม</b></td><td class="num"><b>${money(t.e+t.r)}</b></td></tr>
+      </tbody></table>
+    <div class="sign"><div><div class="line"></div>( ................................................. )<br><span class="lbl">ผู้จัดทำ</span></div>
+      <div><div class="line"></div>( ................................................. )<br><span class="lbl">ผู้อนุมัติจ่าย</span></div></div></div>`);};
+ function slip(p,l){const x=expOf(p.payId),e=(DB.emp||[]).find(z=>z.id===l.empId)||{};
+  const row=(t,v)=>`<tr><td>${t}</td><td class="num">${money(v)}</td></tr>`;
+  return sheetTop({title:'สลิปเงินเดือน',en:'PAY SLIP',copy:'สำหรับพนักงาน',fields:[['งวด',monthName(p.month)],['วันที่จ่าย',x&&x.paid?thDate(x.payDate||x.date):'-']]})+`
+  <table><tr><td><span class="lbl">พนักงาน</span><br><b>${esc(l.code)} · ${esc(l.name)}</b><br>${esc(l.position||'-')}</td>
+   <td><span class="lbl">เลขประจำตัวประชาชน</span><br>${esc(e.idcard||'-')}<br><span class="lbl">โรงพยาบาลประกันสังคม</span> ${esc(e.hospital||'-')}</td></tr></table>
+  <table style="margin-top:7px"><thead><tr><th>รายได้</th><th style="width:110px">จำนวนเงิน</th></tr></thead><tbody>
+   ${row('เงินเดือน'+(l.full?'':' ('+l.days+' วัน: '+thDate(l.from)+' – '+thDate(l.to)+' · อัตรา '+money(l.salaryRate)+' ÷ 30)'),l.salary)}
+   ${l.regular?row('เงินได้ประจำ',l.regular):''}${l.ot?row('ค่าล่วงเวลา',l.ot):''}${l.bonus?row('เงินพิเศษ',l.bonus):''}
+   <tr><td style="text-align:right"><b>รวมรายได้</b></td><td class="num"><b>${money(l.gross)}</b></td></tr></tbody></table>
+  <table style="margin-top:7px"><thead><tr><th>รายการหัก</th><th style="width:110px">จำนวนเงิน</th></tr></thead><tbody>
+   ${row('เงินสมทบประกันสังคม '+p.sso.rate+'% (ฐาน '+money(l.ssoBase)+')',l.ssoEmp)}
+   <tr><td style="text-align:right"><b>รวมรายการหัก</b></td><td class="num"><b>${money(l.ssoEmp)}</b></td></tr>
+   <tr><td style="text-align:right"><b>รับสุทธิ</b></td><td class="num"><b>${money(l.net)}</b></td></tr>
+   <tr><td colspan="2" style="text-align:center">(${bahtText(l.net)})</td></tr></tbody></table>
+  <div class="box"><span class="lbl">นายจ้างสมทบประกันสังคมให้</span> ${money(l.ssoEr)} บาท</div>
+  <div class="sign"><div><div class="line"></div>( ................................................. )<br><span class="lbl">ผู้จ่ายเงิน</span></div>
+   <div><div class="line"></div>( ${esc(l.name)} )<br><span class="lbl">ผู้รับเงิน</span></div></div></div>`;}
+ function printSlips(p,empId){const L=p.lines.filter(l=>!empId||l.empId===empId);if(!L.length)return;
+  logAudit('expense',{id:p.payId,no:p.payNo},'print','สลิปเงินเดือน '+p.label+(empId?' · '+L[0].code:' · ทุกคน '+L.length+' ใบ'));save();
+  printDocs(L.map(l=>slip(p,l)).join(''));}
+
+ /* the payroll expenses elsewhere (08 ค่าใช้จ่ายกิจการ): paid, edited and deleted only through their period */
+ const px0=window.payExp;window.payExp=function(id){const x=expOf(id),p=periodOfExp(x);if(!p)return px0.apply(this,arguments);
+  return x.payPart==='sso'?paySso(p.id):paySalary(p.id);};
+ const dx0=window.delExp;window.delExp=function(id){const x=expOf(id),p=periodOfExp(x);
+  if(p)return toast('รายจ่ายนี้เป็นของเงินเดือน '+p.label+' — ยกเลิกที่หน้า 06.4 จ่ายเงินเดือน');return dx0.apply(this,arguments);};
+ const sx0=window.saveExp;window.saveExp=function(){const x=typeof editExpId!=='undefined'&&editExpId?expOf(editExpId):null,p=periodOfExp(x);
+  if(p)return toast('รายจ่ายนี้เป็นของเงินเดือน '+p.label+' — แก้ไขที่หน้า 06.4 จ่ายเงินเดือน (ยกเลิกงวดแล้วบันทึกใหม่)');return sx0.apply(this,arguments);};
+ /* its payment voucher: what was paid, net of the employee's contribution (58-payment-voucher.js) */
+ function voucher(x){const p=periodOfExp(x);if(!p)return null;const T=p.totals;
+  return x.payPart==='sso'
+   ?{payee:'สำนักงานประกันสังคม',lines:[{text:'เงินสมทบประกันสังคมส่วนนายจ้าง '+p.label,ref:x.no,amt:T.er,wht:0,rate:0},
+     {text:'เงินสมทบประกันสังคมส่วนลูกจ้าง (หักจากเงินเดือน '+p.label+')',ref:p.payNo,amt:T.emp,wht:0,rate:0}],ded:[]}
+   :{payee:'พนักงาน '+T.n+' คน',lines:[{text:'เงินเดือนและค่าจ้าง '+p.label+' ('+T.n+' คน)',ref:x.no,amt:T.gross,wht:0,rate:0}],
+     ded:[{text:'หัก เงินสมทบประกันสังคม (ส่วนลูกจ้าง)',amt:T.emp}]};}
+
+ /* ---------- reports ---------- */
+ const payExps=y=>(DB.expenses||[]).filter(x=>x&&x.cat===PCAT&&(y==null||inYear(x.date,y)));
+ /* cash and payables: the salary is paid net; the employee's part leaves with the contribution */
+ function cashAdj(y){let c=0;periods().forEach(p=>{if(p.cancelled)return;const a=expOf(p.payId),b=expOf(p.ssoId);
+  if(!a||!b||+String(p.date).slice(0,4)>y)return;if(a.paid&&!b.paid)c+=p.totals.emp;else if(!a.paid&&b.paid)c-=p.totals.emp;});return c;}
+ const fin0=window.finance;
+ window.finance=function(y){const f=fin0.apply(this,arguments);if(!f)return f;
+  const pay=r2(payExps(y).reduce((a,x)=>a+expTotals(x).base,0)),c=cashAdj(y);
+  if(pay){f.payroll=pay;f.expBase=r2(f.expBase-pay);}   /* opex already holds them once: they are expenses */
+  if(c){f.cash+=c;f.ap+=c;f.assetsTotal=f.cash+f.ar+f.inv+f.nbv;f.liab=f.ap+f.loanOut;f.equity=f.assetsTotal-f.liab;
+   f.roi=f.ownerCap>0?f.np/f.ownerCap*100:(f.equity>0?f.np/f.equity*100:0);f.roa=f.assetsTotal>0?f.np/f.assetsTotal*100:0;}
+  return f;};
+ if(typeof expenseRank==='function'){const o=window.expenseRank;
+  window.expenseRank=function(){return (o.apply(this,arguments)||[]).filter(r=>r.label!==PCAT);};}   /* they are in "เงินเดือนและสวัสดิการพนักงาน" */
+ if(typeof trialBalance==='function'){const o=window.trialBalance;
+  window.trialBalance=function(y){const out=o.apply(this,arguments),M=DB.map||{},from=expAcc(PCAT),to=M.ssoEr||'6011';
+   const er=r2(payExps(y).filter(x=>x.payPart==='sso'||/^เงินสมทบประกันสังคมส่วนนายจ้าง/.test(String(x.desc||''))).reduce((a,x)=>a+expTotals(x).base,0));
+   if(er&&from!==to){const a=out.find(r=>r.code===from);if(a){a.debit=r2(a.debit-er);let b=out.find(r=>r.code===to);
+    if(!b){b={code:to,name:accName(to),type:((DB.coa||[]).find(z=>z.code===to)||{}).type||'',debit:0,credit:0};out.push(b);}b.debit=r2(b.debit+er);}}
+   return out.filter(r=>Math.abs(r.debit)>=0.005||Math.abs(r.credit)>=0.005).sort((a,b)=>a.code.localeCompare(b.code));};}
+ /* months of the year with staff and no recorded payroll (the health page says so) */
+ function unrecorded(y){const last=+String(y)===+thisMonth().slice(0,4)?+thisMonth().slice(5,7):(+y<+thisMonth().slice(0,4)?12:0),out=[];
+  for(let m=1;m<=last;m++){const mo=y+'-'+String(m).padStart(2,'0');if(!periodOf(mo)&&empListOfMonth(mo).length&&!payExps().some(x=>String(x.desc||'').includes(lbl(mo))))out.push(mo);}return out;}
+ if(typeof renderHealth==='function'){const o=window.renderHealth;
+  window.renderHealth=function(){const out=o.apply(this,arguments);
+   try{const y=acctY(),f=finance(y),tb=$i('cashTbl')&&$i('cashTbl').tBodies[0];
+    if(tb){const rows=[...tb.rows],at=t=>rows.find(r=>r.cells[0]&&r.cells[0].textContent.trim().startsWith(t));
+     const paidPay=r2((DB.expenses||[]).filter(x=>x.paid&&x.cat===PCAT).reduce((a,x)=>a+expTotals(x).net,0)-cashAdj(y));
+     const opx=at('จ่ายค่าใช้จ่ายดำเนินงาน'),pr=at('จ่ายเงินเดือนและประกันสังคม');
+     if(opx)opx.cells[1].textContent='-'+money((DB.expenses||[]).filter(x=>x.paid&&x.cat!==PCAT).reduce((a,x)=>a+expTotals(x).net,0));
+     if(pr){pr.cells[0].textContent='จ่ายเงินเดือนและประกันสังคม';pr.cells[1].textContent='-'+money(paidPay);}}
+    const miss=unrecorded(y),host=$i('cashTbl');let el=$i('pkgPayMissing');
+    if(host&&!el){el=document.createElement('p');el.id='pkgPayMissing';el.className='hint';el.style.margin='8px 0 0';(host.closest('.scroll')||host).after(el);}
+    if(el){el.style.display=miss.length?'':'none';el.textContent=miss.length?'ยังไม่ได้บันทึกเงินเดือน '+miss.length+' เดือน ('+monthName(miss[0])+(miss.length>1?' – '+monthName(miss[miss.length-1]):'')+') — งบและเงินสดยังไม่มีเงินเดือนของเดือนเหล่านั้น (บันทึกที่ 06.4 จ่ายเงินเดือน)':'';}
+   }catch(e){}
+   return out;};}
+ if(typeof renderFS==='function'){const o=window.renderFS;
+  window.renderFS=function(){const out=o.apply(this,arguments);
+   try{const y=acctY(),tb=$i('cfTbl')&&$i('cfTbl').tBodies[0];if(!tb)return out;const rows=[...tb.rows],at=t=>rows.find(r=>r.cells[0]&&r.cells[0].textContent.trim()===t);
+    const paid=DB.expenses.filter(x=>x.paid&&inYear(x.payDate||x.date,y)),pay=paid.filter(x=>x.cat===PCAT);
+    const a=at('เงินสดจ่ายค่าใช้จ่ายดำเนินงาน'),b=at('เงินสดจ่ายเงินเดือนและประกันสังคม');
+    if(a)a.cells[1].textContent=money(paid.filter(x=>x.cat!==PCAT).reduce((s,x)=>s+expTotals(x).net,0));
+    if(b)b.cells[1].textContent=money(r2(pay.reduce((s,x)=>s+expTotals(x).net,0)-cashAdj(y)));
+   }catch(e){}
+   return out;};}
+ /* the tax report (X2): the recorded period of the month, nothing when there is none */
+ if(typeof renderTax==='function'){const o=window.renderTax;
+  window.renderTax=function(){const out=o.apply(this,arguments);
+   try{const mo=acctM(),p=periodOf(mo),T=p?p.totals:{n:0,gross:0,emp:0,er:0},rate=p?p.sso.rate:paramsOf(mo).rate;
+    const st=$i('taxSumTbl')&&$i('taxSumTbl').tBodies[0];
+    if(st)[...st.rows].forEach(r=>{const t=r.cells[0]&&r.cells[0].textContent.trim();if(!t||!r.cells[1])return;
+     if(t.startsWith('เงินสมทบประกันสังคมนำส่ง'))r.cells[1].textContent=money(T.emp+T.er);
+     if(t.startsWith('ฐานเงินเดือนสำหรับ ภ.ง.ด.1'))r.cells[1].textContent=money(T.gross);});
+    const pt=$i('payrollTbl');if(pt){
+     const th=pt.tHead&&pt.tHead.rows[0];if(th&&th.cells[6]){th.cells[6].textContent='ลูกจ้าง '+rate+'%';th.cells[7].textContent='นายจ้าง '+rate+'%';}
+     pt.tBodies[0].innerHTML=p?p.lines.map(l=>`<tr><td>${esc(l.code)} · ${esc(l.name)}</td><td>${esc(l.position||'-')}</td>
+      <td class="num">${money(r2(l.salary+l.regular))}${l.full?'':hint(l.days+' วัน')}</td><td class="num">${money(l.ot)}</td><td class="num">${money(l.bonus)}</td>
+      <td class="num">${money(l.gross)}</td><td class="num">${money(l.ssoEmp)}</td><td class="num">${money(l.ssoEr)}</td><td class="num">${money(l.ssoEmp+l.ssoEr)}</td></tr>`).join('')
+      :`<tr><td colspan="9" class="empty">ยังไม่ได้บันทึกเงินเดือน${esc(lbl(mo))} (06.4 จ่ายเงินเดือน)</td></tr>`;
+     pt.tFoot.innerHTML=`<tr><td colspan="5">รวม ${T.n} คน</td><td class="num">${money(T.gross)}</td><td class="num">${money(T.emp)}</td><td class="num">${money(T.er)}</td><td class="num">${money(T.emp+T.er)}</td></tr>`;}
+   }catch(e){}
+   return out;};}
+ /* the home page's social security box: the month's recorded lines, else what it would be */
+ if(typeof renderHome==='function'){const o=window.renderHome;
+  window.renderHome=function(){const out=o.apply(this,arguments);
+   try{const tb=$i('ssoTbl')&&$i('ssoTbl').tBodies[0],mo=($i('finMonth')||{}).value||thisMonth();if(!tb||!DB.emp.length)return out;
+    const p=periodOf(mo),L=p?p.lines:rowsOf(mo),t=sum(L);
+    tb.innerHTML=L.map(l=>`<tr><td>${esc(l.code)} · ${esc(l.name)}</td><td class="num">${money(l.gross)}</td><td class="num">${money(l.ssoEmp)}</td><td class="num">${money(l.ssoEr)}</td><td class="num">${money(l.ssoEmp+l.ssoEr)}</td></tr>`).join('')
+     +`<tr style="background:#f6f8f9"><td><b>รวมนำส่งสำนักงานประกันสังคม</b>${p?'':hint('ประมาณการ — ยังไม่ได้บันทึกเงินเดือน'+esc(lbl(mo)))}</td><td class="num"><b>${money(t.g)}</b></td>
+      <td class="num"><b>${money(t.e)}</b></td><td class="num"><b>${money(t.r)}</b></td><td class="num"><b>${money(t.e+t.r)}</b></td></tr>`;
+    const tag=$i('ssoTag');if(tag)tag.textContent=L.length+' คน';
+   }catch(e){}
+   return out;};}
+
+ /* ---------- the employee form: regular monthly income instead of fixed overtime and bonus (R12, R13-ข) ---------- */
+ (function(){const sal=$i('eSalary'),lab=sal&&sal.closest('label');if(!lab||$i('eRegular'))return;
+  const L=document.createElement('label');L.className='f';L.innerHTML='<span>เงินได้ประจำ (บาท/เดือน)</span><input type="number" id="eRegular" value="0" min="0">';
+  lab.after(L);['eOt','eBonus'].forEach(id=>{const x=$i(id),l=x&&x.closest('label');if(l)l.style.display='none';});})();
+ if(typeof openEmp==='function'){const o=window.openEmp;window.openEmp=function(id){const out=o.apply(this,arguments);
+  const e=id?DB.emp.find(x=>x.id===id):null,el=$i('eRegular');if(el)el.value=n(e&&e.regular);return out;};}
+ let empSaving=null;
+ const sr0=window.stampRec;window.stampRec=function(rec,old){
+  if(empSaving&&rec&&typeof rec==='object'&&'salary' in rec&&'perms' in rec){const v=Math.max(0,n(empSaving.regular));if(v>0||(old&&old.regular!=null))rec.regular=v;}
+  return sr0.apply(this,arguments);};
+ if(typeof saveEmp==='function'){const o=window.saveEmp;window.saveEmp=function(){empSaving={regular:($i('eRegular')||{}).value};try{return o.apply(this,arguments);}finally{empSaving=null;}};}
+
+ /* ---------- menu 10: the law's figures, the shop's own with a warning and the audit log (R12 = ค) ---------- */
+ const F=['sSsoRate','sSsoCap','sSsoMin','sSsoMax'],K=['rate','cap','min','max'];
+ function fillSso(){const P=paramsOf(thisMonth()),L=lawOf(thisMonth());F.forEach((id,i)=>{const el=$i(id);if(el)el.value=P[K[i]];});
+  /* in the panel's header (beside its title): nothing below moves */
+  const head=$i('sSsoMax')&&$i('sSsoMax').closest('.panel'),h=head&&head.querySelector('header');if(!h)return;let el=$i('pkgSsoLaw');
+  if(!el){el=document.createElement('span');el.id='pkgSsoLaw';el.className='hint';el.style.marginLeft='12px';h.append(el);}
+  const o=own();el.textContent='ประกันสังคมตามกฎหมาย (ตั้งแต่ '+monthName(L.from==='0000-01'?thisMonth():L.from)+'): '+L.rate+'% · ฐาน '+money0(L.min)+' – '+money0(L.max)
+   +' · หักสูงสุด '+money0(L.cap)+' บาท — ระบบปรับให้เอง'
+   +(o?' · ตอนนี้ใช้ค่าที่ร้านตั้งเอง ('+o.rate+'% · ฐาน '+money0(o.min)+' – '+money0(o.max)+' · หักสูงสุด '+money0(withCap(o).cap)+') ตั้งแต่ '+monthName(o.from)+' โดย '+(o.by||'-'):'');}
+ if(typeof fillSetting==='function'){const o=window.fillSetting;window.fillSetting=function(){const out=o.apply(this,arguments);try{fillSso();}catch(e){}return out;};}
+ if(typeof saveSetting==='function'){const o=window.saveSetting;
+  window.saveSetting=async function(){
+   if(!can('doc.orgEdit'))return o.apply(this,arguments);
+   const mo=thisMonth(),v=withCap(Object.fromEntries(K.map((k,i)=>[k,n(($i(F[i])||{}).value)]))),P=paramsOf(mo),L=lawOf(mo);
+   const same=(a,b)=>K.every(k=>Math.abs(n(a[k])-n(b[k]))<0.005);let set;
+   if(!same(v,P)){if(same(v,L))set=null;
+    else{if(!await askP({title:'อัตราประกันสังคมต่างจากกฎหมาย',text:'ตามกฎหมาย: '+L.rate+'% ฐาน '+money0(L.min)+' – '+money0(L.max)+' บาท หักสูงสุด '+money0(L.cap)
+     +' บาท\nที่กรอก: '+v.rate+'% ฐาน '+money0(v.min)+' – '+money0(v.max)+' บาท หักสูงสุด '+money0(v.cap)+' บาท\nใช้ค่าที่กรอกกับเงินเดือนตั้งแต่งวด '+monthName(mo)+' เป็นต้นไป — ระบบจะไม่ปรับตามกฎหมายให้จนกว่าจะกลับไปใช้ค่าตามกฎหมาย',
+     yes:'ใช้ค่าที่ร้านตั้ง',no:'ไม่เปลี่ยน'})){fillSso();return;}
+     set=Object.assign({},v,{from:mo,at:nowTs(),by:meName()});}}
+   /* the legacy save writes the fields into DB.shop.sso…: give it the stored values, so nothing changes there */
+   const s=DB.shop||{},keep=[s.ssoRate||5,s.ssoCap||750,s.ssoMin||1650,s.ssoMax||15000];F.forEach((id,i)=>{const el=$i(id);if(el)el.value=keep[i];});
+   let out;try{out=await o.apply(this,arguments);}finally{fillSso();}
+   if(set!==undefined){if(set)DB.shop.ssoOwn=set;else delete DB.shop.ssoOwn;
+    logAudit('setting',{id:'sso',no:'ประกันสังคม'},'save',set?'ตั้งอัตราประกันสังคมเอง '+set.rate+'% ฐาน '+money0(set.min)+' – '+money0(set.max)+' หักสูงสุด '+money0(set.cap)
+     +' บาท ตั้งแต่ '+monthName(mo)+' (กฎหมาย: '+L.rate+'% ฐาน '+money0(L.min)+' – '+money0(L.max)+')':'กลับไปใช้อัตราประกันสังคมตามกฎหมาย');
+    save();fillSso();}
+   return out;};}
+ if(typeof AUD_KIND==='object'&&!AUD_KIND.setting)AUD_KIND.setting='ตั้งค่าองค์กร';
+ try{fillSso();}catch(e){}
+
+ window.PKG_PAYROLL={LAW,lawOf,paramsOf,lineOf,rowsOf,periodOf,periods,voucher,paySalary,paySso,cancelPeriod,printSlips};
+})();

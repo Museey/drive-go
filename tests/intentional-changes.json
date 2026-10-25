@@ -142,14 +142,14 @@
     {
       "scenario": "S44-add-employee-tech-preset.spec.ts",
       "by": "S139-add-employee-tech-preset-tax-rights.spec.ts",
-      "decision": "T3, T10, T12 (task 3.3)",
-      "why": "The staff form has three new rights under การเงิน (เลือกไม่คิด VAT (ต้องใส่เหตุผล), ปิดงวดภาษี, ออกใบลดหนี้), off in the mechanic set, so the new employee's record holds them (off) and the audit line counts 15/68 rights instead of 15/65; every step, message, screen and the rest of the data change are S44's."
+      "decision": "T3, T10, T12 (task 3.3); R12, R13 (task 3.7)",
+      "why": "The staff form has three new rights under การเงิน (เลือกไม่คิด VAT (ต้องใส่เหตุผล), ปิดงวดภาษี, ออกใบลดหนี้), off in the mechanic set, so the new employee's record holds them (off) and the audit line counts 15/68 rights instead of 15/65; every step, message, screen and the rest of the data change are S44's. Task 3.7: the form's salary row (regular income instead of fixed overtime and bonus) and the staff list behind it are checked by their fields; the new employee's payroll row is prorated (19 days) and checked by its text."
     },
     {
       "scenario": "S59-delete-employee.spec.ts",
       "by": "S140-delete-employee-tax-rights.spec.ts",
-      "decision": "T3, T10, T12 (task 3.3)",
-      "why": "An employee added now holds the three new tax rights (off): the staff list shows her rights as 10/68 instead of 10/65 (that cell is masked and checked) and the record the delete removes has them; every step, message, the rest of each screen and the rest of the data changes are S59's."
+      "decision": "T3, T10, T12 (task 3.3); R12, R13 (task 3.7)",
+      "why": "An employee added now holds the three new tax rights (off): the staff list shows her rights as 10/68 instead of 10/65 (that cell is masked and checked) and the record the delete removes has them; every step, message, the rest of each screen and the rest of the data changes are S59's. Task 3.7: the staff list's income column is salary + regular income, which changes every column's width, so the list is checked by its text and left out of the screens."
     },
     {
       "scenario": "S22-pay-with-withholding-tax.spec.ts",
@@ -240,6 +240,48 @@
       "by": "S164-cancel-internal-issue-books-nothing.spec.ts",
       "decision": "R9–R11, F4 and answers of 2026-10-25 (task 3.6)",
       "why": "The issue form has the expense category next to the department; the cancelled issue keeps it (no longer editable) and books nothing. Every step, data change and the rest of each screen is checked against S66's goldens."
+    },
+    {
+      "scenario": "S40-run-payroll-social-security.spec.ts",
+      "by": "S165-payroll-accrued-then-paid-with-vouchers.spec.ts",
+      "decision": "R12, R13, F5, X2 and answers of 2026-10-25 (task 3.7)",
+      "why": "Social security on salary (+ regular income) with the 2026 ceiling 17,500 (875); overtime and bonus typed per month; the month is recorded owed and paid later (salaries, then the contribution) with payment vouchers; a second recording is refused until the month is cancelled; payslips. The first steps are checked against S40's goldens."
+    },
+    {
+      "scenario": "S46-payroll-in-finance-health.spec.ts",
+      "by": "S166-payroll-in-finance-health-recorded-only.spec.ts",
+      "decision": "R12, R13, F5, X2 and answers of 2026-10-25 (task 3.7)",
+      "why": "The health page counts payroll once, from the recorded periods (no estimate from the staff list), and says which months have none. Every step is checked against S46's goldens; the two screens changed and are checked by their text."
+    },
+    {
+      "scenario": "S45-record-owner-capital-investment.spec.ts",
+      "by": "S167-capital-investment-cash-without-payroll-estimate.spec.ts",
+      "decision": "R12, R13, F5, X2 and answers of 2026-10-25 (task 3.7)",
+      "why": "Cash and equity no longer take off the payroll estimated from the staff list; those figures are checked by their text, every step, the rest of each screen and the data change against S45's goldens."
+    },
+    {
+      "scenario": "S55-shop-settings-logo-license.spec.ts",
+      "by": "S168-shop-settings-sso-law-figures.spec.ts",
+      "decision": "R12, R13, F5, X2 and answers of 2026-10-25 (task 3.7)",
+      "why": "The social security fields show the law's figures (17,500 / 875) with a line beside the panel's title; saving writes nothing new. Those are checked by their text, every step, the rest of each screen and every data change against S55's goldens."
+    },
+    {
+      "scenario": "S56-chart-of-accounts-add-edit-map.spec.ts",
+      "by": "S169-chart-of-accounts-add-edit-map-without-payroll-estimate.spec.ts",
+      "decision": "R12, R13, F5, X2 and answers of 2026-10-25 (task 3.7)",
+      "why": "The chart's balances (1010, 2060, 6010, 6011) no longer hold the payroll estimate; they are checked by their text, every step, the rest of each screen and every data change against S56's goldens."
+    },
+    {
+      "scenario": "S57-chart-of-accounts-delete-reset.spec.ts",
+      "by": "S170-chart-of-accounts-delete-reset-without-payroll-estimate.spec.ts",
+      "decision": "R12, R13, F5, X2 and answers of 2026-10-25 (task 3.7)",
+      "why": "As S169, against S57's goldens."
+    },
+    {
+      "scenario": "S58-delete-expense-asset-capital.spec.ts",
+      "by": "S171-delete-wrong-entries-cash-without-payroll-estimate.spec.ts",
+      "decision": "R12, R13, F5, X2 and answers of 2026-10-25 (task 3.7)",
+      "why": "Cash no longer takes off the payroll estimate (993,634 and 968,634); the cash, equity and assets figures are checked by their text, every step, the rest of each screen and every data change against S58's goldens."
     }
   ],
   "added": [
@@ -337,6 +379,16 @@
       "scenario": "S163-franchise-new-item-from-hq-asks-cost.spec.ts",
       "decision": "R9–R11, F4 and answers of 2026-10-25 (task 3.6)",
       "why": "An item a franchise branch receives from the central warehouse for the first time asks its unit cost, which becomes its register cost, FIFO lot and stock move cost."
+    },
+    {
+      "scenario": "S172-payroll-month-overtime-tax-report-cancel-rights.spec.ts",
+      "decision": "R12, R13, F5, X2 and answers of 2026-10-25 (task 3.7)",
+      "why": "Regular monthly income counts in the social security base, overtime and bonus are typed per month; a month recorded and paid at once; the tax report reads the recorded month; a paid month is cancelled with a reason and recorded again; an account without the expense right cannot record."
+    },
+    {
+      "scenario": "S173-shop-sets-own-social-security-figures.spec.ts",
+      "decision": "R12, R13, F5, X2 and answers of 2026-10-25 (task 3.7)",
+      "why": "The shop's own social security figures are asked first, kept from the month they are set, written to the audit log and used by the payroll; typing the law's figures again goes back to the law."
     }
   ]
 }

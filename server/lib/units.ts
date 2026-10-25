@@ -28,7 +28,7 @@ const LIST = 'L', BY_CODE = 'K', MAP = 'M', GROUP = 'G', SESSION = 'S';
 const RULES: Record<string, string> = {};
 for (const f of ['stock', 'cust', 'vendors', 'purchases', 'quotes', 'receipts', 'moves', 'crm', 'emp', 'expenses', 'assets',
   'capital', 'claims', 'invoices', 'audit', 'hr', 'warns', 'issues', 'stockCounts', 'billings', 'stockCuts', 'branches',
-  'custClaims', 'transfers', 'creditNotes']) RULES[`DB.${f}`] = LIST;
+  'custClaims', 'transfers', 'creditNotes', 'payroll']) RULES[`DB.${f}`] = LIST;
 for (const f of ['queue', 'inq', 'sos', 'learn']) RULES[`DB.px.${f}`] = LIST;
 for (const f of ['lots', 'allocs']) RULES[`DB.fifo.${f}`] = LIST;
 for (const f of ['branches', 'accounts', 'reqs', 'hqStock']) RULES[`FR.${f}`] = LIST;

@@ -127,7 +127,8 @@
  /* ---------- the printed voucher ---------- */
  function itemsOf(no){
   const exp=(DB.expenses||[]).filter(x=>x&&x.pvNo===no&&x.paid);
-  if(exp.length){const x=exp[0],t=expTotals(x),v=venNamed(x.payee);
+  if(exp.length){const x=exp[0],t=expTotals(x),v=venNamed(x.payee),P=window.PKG_PAYROLL?PKG_PAYROLL.voucher(x):null;   /* a payroll period's (task 3.7, 60-payroll.js) */
+   if(P)return {date:x.payDate||x.date,payee:P.payee,tax:'',addr:null,method:methodOf(x),by:x.updatedByName||x.createdByName||'',note:x.note||'',lines:P.lines,ded:P.ded,doc:x,kind:'expense'};
    return {date:x.payDate||x.date,payee:x.payee||'-',tax:x.tax||(v&&v.tax)||'',addr:v&&v.addr,method:methodOf(x),by:x.updatedByName||x.createdByName||'',note:x.note||'',
     lines:[{text:x.desc+(x.cat?' ('+x.cat+')':''),ref:[x.no,x.inv].filter(Boolean).join(' · '),amt:t.gross,wht:t.wht,rate:n(x.wht)}],doc:x,kind:'expense'};}
   const ps=[];(DB.purchases||[]).forEach(g=>(g.payments||[]).forEach(p=>{if(p&&p.pvNo===no&&!p.cancelled)ps.push({g,p});}));
@@ -136,13 +137,14 @@
    lines:ps.map(({g,p})=>({text:'ค่าสินค้าตามใบรับสินค้า'+(g.inv?' (ใบกำกับ / ใบส่งของ '+g.inv+')':''),ref:g.no||'',amt:r2(n(p.amt)+(p.wht?n(p.wht.amt):0)),wht:p.wht?n(p.wht.amt):0,rate:p.wht?n(p.wht.rate):0})),doc:g0,kind:'gr'};
  }
  function sheet(no,I){
-  const gross=r2(I.lines.reduce((a,l)=>a+l.amt,0)),wht=r2(I.lines.reduce((a,l)=>a+l.wht,0)),net=r2(gross-wht),rates=[...new Set(I.lines.filter(l=>l.wht>0).map(l=>l.rate+'%'))];
+  const gross=r2(I.lines.reduce((a,l)=>a+l.amt,0)),wht=r2(I.lines.reduce((a,l)=>a+l.wht,0)),ded=I.ded||[],net=r2(gross-wht-ded.reduce((a,d)=>a+n(d.amt),0)),rates=[...new Set(I.lines.filter(l=>l.wht>0).map(l=>l.rate+'%'))];
   return sheetTop({title:'ใบสำคัญจ่าย',en:'PAYMENT VOUCHER',fields:[['เลขที่',esc(no)],['วันที่จ่าย',thDate(I.date)]]})+`
   <table><tr><td style="vertical-align:top"><span class="lbl">จ่ายให้</span><br><b>${esc(I.payee)}</b>${I.addr?'<br>'+esc(addrLine(I.addr)):''}<br>เลขประจำตัวผู้เสียภาษี ${esc(I.tax||'-')}</td></tr></table>
   <table style="margin-top:7px"><thead><tr><th style="width:30px">ลำดับ</th><th>รายการ</th><th style="width:170px">เลขที่เอกสาร</th><th style="width:100px">จำนวนเงิน</th></tr></thead><tbody>
    ${I.lines.map((l,i)=>`<tr><td style="text-align:center">${i+1}</td><td>${esc(l.text)}</td><td>${esc(l.ref)}</td><td class="num">${money(l.amt)}</td></tr>`).join('')}
    <tr><td colspan="3" style="text-align:right">รวม</td><td class="num">${money(gross)}</td></tr>
    ${wht>0?`<tr><td colspan="3" style="text-align:right">หัก ภาษี ณ ที่จ่าย ${esc(rates.join(', '))}</td><td class="num">${money(wht)}</td></tr>`:''}
+   ${ded.map(d=>`<tr><td colspan="3" style="text-align:right">${esc(d.text)}</td><td class="num">${money(d.amt)}</td></tr>`).join('')}
    <tr><td colspan="3" style="text-align:right"><b>จ่ายจริง</b></td><td class="num"><b>${money(net)}</b></td></tr>
    <tr><td colspan="4" style="text-align:center">(${bahtText(net)})</td></tr></tbody></table>
   <div class="box"><span class="lbl">วิธีจ่าย</span><br><span>${esc(I.method||'-')}</span>${I.note?'<br><span class="lbl">หมายเหตุ</span> '+esc(I.note):''}</div>
