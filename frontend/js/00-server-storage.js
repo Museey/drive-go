@@ -647,12 +647,24 @@
       }
       if (changed.length || gone.length)
         emit("drivego:heard", { key: e.key, rows: changed, removed: gone, by: e.by, at: e.late ? e.at : (/* @__PURE__ */ new Date()).toISOString() });
-      if (!busy()) applyNow(e.key);
+      if (!busy()) await applyNow(e.key);
     }
-    function applyNow(key) {
+    async function applyNow(key) {
       const p = pending.get(key), m = d.mains.get(key);
-      if (!p || !m || !m.last) return;
+      if (!p || !m || !m.last) {
+        pending.delete(key);
+        return;
+      }
       pending.delete(key);
+      const units = Object.keys(p.order);
+      if (units.length && !p.replace) {
+        const r = await d.send(`/api/storage/${encodeURIComponent(key)}/rows`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ rows: [], ordered: units })
+        }, false);
+        if (r.ok) p.order = (await r.json()).order;
+      }
       const live2 = liveObject(key), ctx = ctxOf(live2);
       if (p.replace) {
         const s = split(key, p.replace.json);
@@ -670,11 +682,11 @@
           }
         }
         m.value = live2 ? JSON.stringify(live2) : m.sent;
-        emit("drivego:applied", { key, whole: true });
+        emit("drivego:applied", { key, whole: true, units: [] });
         return;
       }
-      const upsert = [...p.rows.values()].filter((r) => !!r);
-      const remove = [...p.rows].filter(([, r]) => !r).map(([k]) => ({ unit: unitOf(k), key: keyOf(k) }));
+      const upsert = [...p.rows.values()].filter((r) => !!r && r.version > (m.base[vk(r.unit, r.key)] ?? -1));
+      const remove = [...p.rows].filter(([k, r]) => !r && k in m.base).map(([k]) => ({ unit: unitOf(k), key: keyOf(k) }));
       if (live2 && !applyRows(key, live2, { upsert, remove, order: p.order }, forApp(ctx))) {
         void reread(key);
         return;
@@ -700,8 +712,11 @@
       }
       m.last = { ...m.last, rows: next };
       m.sent = assemble(key, m.last.layout, next, { session: m.last.session });
-      m.value = live2 ? JSON.stringify(live2) : m.sent;
-      emit("drivego:applied", { key });
+      if (m.value !== null) {
+        const v = JSON.parse(m.value);
+        m.value = applyRows(key, v, { upsert, remove, order: p.order }, forApp(ctxOf(v))) ? JSON.stringify(v) : m.sent;
+      }
+      emit("drivego:applied", { key, units: [.../* @__PURE__ */ new Set([...upsert.map((r) => r.unit), ...remove.map((r) => r.unit), ...Object.keys(p.order)])] });
     }
     async function reread(key) {
       const m = d.mains.get(key);
@@ -714,7 +729,7 @@
       m.cursor = Math.max(m.cursor ?? 0, fresh.cursor ?? 0);
       const changed = c.upsert.map((r) => vk(r.unit, r.key)), gone = c.remove.map((r) => vk(r.unit, r.key));
       if (changed.length || gone.length || c.layout !== void 0) emit("drivego:heard", { key, rows: changed, removed: gone, by: null, at: (/* @__PURE__ */ new Date()).toISOString() });
-      if (!busy()) applyNow(key);
+      if (!busy()) await applyNow(key);
     }
     const rereadAll = () => {
       for (const key of [...d.mains.keys()]) void d.enqueue(() => reread(key));
@@ -757,7 +772,9 @@
         if (source === es) {
           es.close();
           source = null;
-          setTimeout(connect, 2e3);
+          setTimeout(() => {
+            if (started) connect();
+          }, 2e3);
         }
       });
     }
@@ -785,9 +802,18 @@
         heardUpTo = cursor;
         quiet = 0;
         connect();
-        watch ?? (watch = setInterval(() => {
-          if (started && ++quiet >= QUIET_TICKS) showCover();
-        }, 1e3));
+        if (!watch) {
+          watch = setInterval(() => {
+            if (started && ++quiet >= QUIET_TICKS) showCover();
+          }, 1e3);
+          window.addEventListener("offline", () => {
+            source?.close();
+            source = null;
+          });
+          window.addEventListener("online", () => {
+            if (started && !source) connect();
+          });
+        }
       },
       stop() {
         started = false;
@@ -808,7 +834,7 @@
         },
         // Put what is pending into the app's data now (the screens are no longer busy, or the user asked for it).
         apply: () => d.enqueue(async () => {
-          for (const key of [...pending.keys()]) applyNow(key);
+          for (const key of [...pending.keys()]) await applyNow(key);
         }),
         pending: (key, unit, k) => pending.get(key)?.rows.has(vk(unit, k)) || !!pending.get(key)?.replace,
         get waiting() {

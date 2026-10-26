@@ -618,6 +618,56 @@
       "scenario": "S237-expired-shop-api-calls-refused.spec.ts",
       "decision": "A2, 15.1–15.4, 15.7 (task 3.15)",
       "why": "Direct API calls of an expired shop: reads, viewing's audit entries and backup points pass; every other change is refused with { error: 'expired' }."
+    },
+    {
+      "scenario": "S240-list-behind-follows-other-device-waits-for-open-window.spec.ts",
+      "decision": "Q8 and answer \"อื่น ๆ\" of 2026-10-26 (task 3.10)",
+      "why": "A list on the screen follows another device's save without a reload; while a window is open over it, it waits until the window is closed."
+    },
+    {
+      "scenario": "S241-open-quotation-edited-elsewhere-bar-loads-latest.spec.ts",
+      "decision": "R19-ก, answers 10.1 and 10.2 (task 3.10)",
+      "why": "A quotation open here is approved on another device: a bar under the window's heading says who and when (as the history shows them), and pressing it opens the latest."
+    },
+    {
+      "scenario": "S242-save-without-pressing-bar-refused-reload.spec.ts",
+      "decision": "answer 10.1, P1, Q5 (task 3.10)",
+      "why": "Saving a customer someone else changed meanwhile, without pressing the bar, is refused with the approved message and reloads; nothing is written over."
+    },
+    {
+      "scenario": "S243-open-employee-deleted-elsewhere-bar-closes.spec.ts",
+      "decision": "answer 10.3 (task 3.10)",
+      "why": "An employee open here is deleted on another device: the bar says who and when, and pressing it closes the window."
+    },
+    {
+      "scenario": "S244-offline-cover-typed-text-kept-catches-up.spec.ts",
+      "decision": "R19-ข, answer 10.4 (task 3.10)",
+      "why": "Without the server for about 8 seconds the screen is covered with the new message; what was typed stays, the cover goes when the server answers, and what was saved elsewhere meanwhile is there."
+    },
+    {
+      "scenario": "S245-other-device-wipes-whole-data-this-one-reloads.spec.ts",
+      "decision": "answer 10.5 (task 3.10)",
+      "why": "Another device wipes the whole data set: this one is told at once with the new message and reloads."
+    },
+    {
+      "scenario": "S246-rights-change-and-suspension-reach-signed-in-employee.spec.ts",
+      "decision": "answer 10.6, Q2 (task 3.10)",
+      "why": "Taking a menu away from a signed-in employee hides it at once; suspending the account signs their device out at once."
+    },
+    {
+      "scenario": "S247-working-branch-is-each-persons-own.spec.ts",
+      "decision": "answer 10.7 (task 3.10)",
+      "why": "The working branch is each person's: one device changing branch moves nobody else, and the server keeps the stock records with the main branch's quantities."
+    },
+    {
+      "scenario": "S248-settings-page-form-kept-save-after-other-refused.spec.ts",
+      "decision": "answers 10.1 and \"อื่น ๆ\" (task 3.10)",
+      "why": "Menu 10 is not redrawn while open: what was typed stays; saving over another device's change is refused with the approved message; off the page changes come in at once."
+    },
+    {
+      "scenario": "S249-employee-signs-in-at-home-branch.spec.ts",
+      "decision": "answer 10.7 (task 3.10)",
+      "why": "An employee signs in in their home branch (สาขาประจำ) whatever branch anybody else works in."
     }
   ]
 }

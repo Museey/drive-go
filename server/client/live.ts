@@ -110,14 +110,22 @@ export function createLive(d: LiveDeps) {
     for (const [u, k] of removed) if (!gone.includes(vk(u, k))) { p.rows.set(vk(u, k), null); gone.push(vk(u, k)); }
     if (changed.length || gone.length)
       emit('drivego:heard', { key: e.key, rows: changed, removed: gone, by: e.by, at: e.late ? e.at : new Date().toISOString() });
-    if (!busy()) applyNow(e.key);
+    if (!busy()) await applyNow(e.key);
   }
 
   // Puts what is pending for a key into the app's data and window.storage's copy. Runs as a step of the write queue.
-  function applyNow(key: string): void {
+  async function applyNow(key: string): Promise<void> {
     const p = pending.get(key), m = d.mains.get(key);
-    if (!p || !m || !m.last) return;
+    if (!p || !m || !m.last) { pending.delete(key); return; }
     pending.delete(key);
+    // A unit's order as the server has it now: the app may have saved records of it since the order was heard.
+    const units = Object.keys(p.order);
+    if (units.length && !p.replace) {
+      const r = await d.send(`/api/storage/${encodeURIComponent(key)}/rows`, {
+        method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ rows: [], ordered: units }),
+      }, false);
+      if (r.ok) p.order = (await r.json() as { order: Record<string, string[]> }).order;
+    }
     const live = liveObject(key), ctx = ctxOf(live);
     if (p.replace) {
       const s = split(key, p.replace.json);
@@ -135,11 +143,12 @@ export function createLive(d: LiveDeps) {
         }
       }
       m.value = live ? JSON.stringify(live) : m.sent;
-      emit('drivego:applied', { key, whole: true });
+      emit('drivego:applied', { key, whole: true, units: [] });
       return;
     }
-    const upsert = [...p.rows.values()].filter((r): r is Row & { version: number } => !!r);
-    const remove = [...p.rows].filter(([, r]) => !r).map(([k]) => ({ unit: unitOf(k), key: keyOf(k) }));
+    // A row the app saved again itself since it was heard is newer here: it stays as the app has it.
+    const upsert = [...p.rows.values()].filter((r): r is Row & { version: number } => !!r && r.version > (m.base[vk(r.unit, r.key)] ?? -1));
+    const remove = [...p.rows].filter(([k, r]) => !r && k in m.base).map(([k]) => ({ unit: unitOf(k), key: keyOf(k) }));
     if (live && !applyRows(key, live, { upsert, remove, order: p.order }, forApp(ctx))) { void reread(key); return; }
     // window.storage's copy of what the server holds, the same way.
     const rows = m.last.rows.slice();
@@ -160,8 +169,13 @@ export function createLive(d: LiveDeps) {
     }
     m.last = { ...m.last, rows: next };
     m.sent = assemble(key, m.last.layout, next, { session: m.last.session });
-    m.value = live ? JSON.stringify(live) : m.sent;
-    emit('drivego:applied', { key });
+    // What the app last wrote, with the same rows: not the live data, which may hold changes the app has not saved
+    // yet (opening a document adds an audit entry that goes with the next save).
+    if (m.value !== null) {
+      const v = JSON.parse(m.value) as Record<string, unknown>;
+      m.value = applyRows(key, v, { upsert, remove, order: p.order }, forApp(ctxOf(v))) ? JSON.stringify(v) : m.sent;
+    }
+    emit('drivego:applied', { key, units: [...new Set([...upsert.map(r => r.unit), ...remove.map(r => r.unit), ...Object.keys(p.order)])] });
   }
 
   // Reads a key whole again and keeps it pending as a replacement (layout changed, rights changed, too much missed).
@@ -176,7 +190,7 @@ export function createLive(d: LiveDeps) {
     m.cursor = Math.max(m.cursor ?? 0, fresh.cursor ?? 0);
     const changed = c.upsert.map(r => vk(r.unit, r.key)), gone = c.remove.map(r => vk(r.unit, r.key));
     if (changed.length || gone.length || c.layout !== undefined) emit('drivego:heard', { key, rows: changed, removed: gone, by: null, at: new Date().toISOString() });
-    if (!busy()) applyNow(key);
+    if (!busy()) await applyNow(key);
   }
   const rereadAll = () => { for (const key of [...d.mains.keys()]) void d.enqueue(() => reread(key)); };
 
@@ -197,7 +211,7 @@ export function createLive(d: LiveDeps) {
     es.addEventListener('rights', () => { alive(); reconnect(); rereadAll(); emit('drivego:rights', {}); });
     es.addEventListener('signedOut', () => { es.close(); source = null; void d.mustReload(SIGNED_OUT, 'session ended elsewhere'); });
     // Lost: try again with what was heard so far (the browser's own retry would ask from the start).
-    es.addEventListener('error', () => { if (source === es) { es.close(); source = null; setTimeout(connect, 2000); } });
+    es.addEventListener('error', () => { if (source === es) { es.close(); source = null; setTimeout(() => { if (started) connect(); }, 2000); } });
   }
   function reconnect(): void { if (source) { source.close(); source = null; } setTimeout(connect, 0); }
 
@@ -220,7 +234,12 @@ export function createLive(d: LiveDeps) {
       heardUpTo = cursor;
       quiet = 0;
       connect();
-      watch ??= setInterval(() => { if (started && ++quiet >= QUIET_TICKS) showCover(); }, 1000);
+      if (!watch) {
+        watch = setInterval(() => { if (started && ++quiet >= QUIET_TICKS) showCover(); }, 1000);
+        // The device itself lost its network (Wi-Fi off): an open stream may not notice for a while.
+        window.addEventListener('offline', () => { source?.close(); source = null; });
+        window.addEventListener('online', () => { if (started && !source) connect(); });
+      }
     },
     stop(): void { started = false; source?.close(); source = null; if (cover) { cover.remove(); cover = null; } },
     own(id: number | null | undefined): void { if (typeof id === 'number') own.add(id); },
@@ -228,7 +247,7 @@ export function createLive(d: LiveDeps) {
     api: {
       setBusy(fn: () => boolean) { busy = fn; },
       // Put what is pending into the app's data now (the screens are no longer busy, or the user asked for it).
-      apply: () => d.enqueue(async () => { for (const key of [...pending.keys()]) applyNow(key); }),
+      apply: () => d.enqueue(async () => { for (const key of [...pending.keys()]) await applyNow(key); }),
       pending: (key: string, unit: string, k: string) => pending.get(key)?.rows.has(vk(unit, k)) || !!pending.get(key)?.replace,
       get waiting() { return [...pending.values()].some(p => p.rows.size || p.replace || Object.keys(p.order).length); },
       get offline() { return !!cover; },

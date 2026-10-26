@@ -2,12 +2,14 @@ import { test, expect, type Page } from '../support/test';
 import { prepareContext } from '../support/browser.mjs';
 import { CONTEXT_OPTIONS, FIXED_NOW, TEST_SEED } from '../support/config.mjs';
 import { legacyApp } from '../support/legacy-app.mjs';
+import { heard } from '../support/live';
 
 // New behaviour (task 3.2, decision R1-ก): document numbers are issued on the
 // server. Two people in one shop write a quotation at the same time; both
 // forms take the next number, MA-QT261000005. The one saved first keeps it,
 // the one saved second is saved too, as MA-QT261000006, everywhere that save
-// wrote it, and the message says so. Nobody has to reload.
+// wrote it, and the message says so. Nobody has to reload, and each browser
+// then has both quotations (task 3.10).
 test('S126 ระบบใหม่: สองเครื่องออกใบเสนอราคาพร้อมกัน เครื่องที่บันทึกทีหลังได้เลขถัดไป ไม่มีเลขซ้ำ และไม่ต้องโหลดใหม่', async ({ app, page, browser }) => {
   await app.loginAsOwner();
   const otherContext = await browser.newContext(CONTEXT_OPTIONS);
@@ -29,14 +31,18 @@ test('S126 ระบบใหม่: สองเครื่องออกใ�
   await other.evaluate(() => (window as any).storage.idle());
 
   // The second browser carries on with what was saved: its list shows the
-  // real number, and its next quotation takes the number after it.
+  // real number, and its next quotation takes the number after it. Once its
+  // window is closed it also has the first browser's quotation, which it heard
+  // while the window was open (task 3.10).
   await other.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).first().click();
   await expect(other.getByText('MA-QT261000006', { exact: true }).filter({ visible: true })).toBeVisible();
-  const quotes = (s: any) => s.DB.quotes.filter((q: any) => q.no > 'MA-QT261000004').map((q: any) => [q.no, s.DB.cust.find((c: any) => c.id === q.custId)?.name]);
-  const audit = (s: any) => s.DB.audit.filter((x: any) => x.kind === 'quote' && x.no > 'MA-QT261000004').map((x: any) => x.no);
+  await expect(other.getByText('MA-QT261000005', { exact: true }).filter({ visible: true })).toBeVisible();
+  await heard(other);
+  const quotes = (s: any) => s.DB.quotes.filter((q: any) => q.no > 'MA-QT261000004').map((q: any) => [q.no, s.DB.cust.find((c: any) => c.id === q.custId)?.name]).sort();
+  const audit = (s: any) => s.DB.audit.filter((x: any) => x.kind === 'quote' && x.no > 'MA-QT261000004').map((x: any) => x.no).sort();
   const mine = await otherApp.state();
-  expect(quotes(mine)).toEqual([['MA-QT261000006', 'นภาพร บุญรอด']]);
-  expect(audit(mine)).toEqual(['MA-QT261000006']);
+  expect(quotes(mine)).toEqual([['MA-QT261000005', 'ปรีชา ทองสุข'], ['MA-QT261000006', 'นภาพร บุญรอด']]);
+  expect(audit(mine)).toEqual(['MA-QT261000005', 'MA-QT261000006']);
   expect(mine.DB.seq['MA-QT2610']).toBe(6);
   expect(await other.evaluate(() => (window as any).storage.problems)).toEqual([]);
   await otherContext.close();

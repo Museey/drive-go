@@ -64,15 +64,17 @@ export async function readMain(c: pg.ClientBase, branch: string, storeKey: strin
 }
 
 // Some rows of a STORE key as they are now, for a device that heard they changed (task 3.10): their data (with
-// what the person may not see left out, as readMain does) and versions, the rows of those that are gone, and the
-// full key order of the units asked for (ordered).
+// what the person may not see left out, as readMain does) and versions, in the order the key keeps them (new
+// records go last in that order), the rows of those that are gone, and the full key order of the units asked for
+// (ordered).
 export async function readRows(c: pg.ClientBase, branch: string, storeKey: string, keys: [string, string][], ordered: string[], masks: Mask[] = []):
   Promise<{ rows: (Row & { version: number })[]; gone: [string, string][]; order: Record<string, string[]> }> {
   const root = layoutUnit(storeKey);
   const own = keys.filter(([u, k]) => typeof u === 'string' && typeof k === 'string' && u.startsWith(root + '.'));
   const { rows } = own.length ? await c.query<Row & { version: number }>(
     `select unit, key, data::text as data, version from records
-      where shop_id = app_shop() and branch_id = $1 and (unit, key) in (select * from unnest($2::text[], $3::text[]))`,
+      where shop_id = app_shop() and branch_id = $1 and (unit, key) in (select * from unnest($2::text[], $3::text[]))
+      order by unit, pos, key`,
     [branch, own.map(k => k[0]), own.map(k => k[1])]) : { rows: [] };
   const found = new Set(rows.map(r => vkey(r.unit, r.key)));
   const order: Record<string, string[]> = {};
