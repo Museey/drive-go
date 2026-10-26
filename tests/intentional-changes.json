@@ -474,6 +474,16 @@
       "scenario": "S187-employee-api-calls-refused-money-tax-people-settings.spec.ts",
       "decision": "R14 and answers of 2026-10-26 (task 3.9, part 3)",
       "why": "The server refuses saves the screens would not allow for money, tax, people and settings and the rules of tasks 3.3–3.8 (closing a tax month, VAT left off, credit notes, payroll, expenses, cancelling a sale, an employee record, the organisation settings); nothing changes."
+    },
+    {
+      "scenario": "S192-vendor-payment-slip-kept-as-file.spec.ts",
+      "decision": "R19-ค (task 3.11)",
+      "why": "The slip picture of a vendor payment is kept by the server as a file and DB.paySlips holds its link instead of the picture."
+    },
+    {
+      "scenario": "S193-sale-payment-slip-and-wht-certificate-kept-as-files.spec.ts",
+      "decision": "R19-ค (task 3.11)",
+      "why": "The slip of a customer payment and the picture of a 50 ทวิ certificate received later are kept by the server as files; DB.paySlips and DB.whtDocs hold their links, and the certificate opens from its link."
     }
   ]
 }
