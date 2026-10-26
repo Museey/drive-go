@@ -2,6 +2,7 @@ import { test, expect } from '../support/test';
 import { legacyGolden } from '../support/legacy-golden';
 import { hiddenPasswords, hqOwnData } from '../support/hq-own-data';
 import type { Page } from '@playwright/test';
+import { FIXTURE_LINE, licenceLine, settingsLicence } from '../support/licence';
 
 test.use({ dataset: 'franchise-trial' });
 
@@ -91,13 +92,15 @@ test('S118 ระบบใหม่: แต่ละบทบาทในเค�
       - button /11 ตั้งค่าเพิ่มเติม/
   `);
   await golden.step('หัวหน้าสาขา B002 เข้าระบบ เห็นทุกเมนูยกเว้น HQ แต่ข้อมูลว่าง');
-  await golden.screen('b002-home');
+  // Task 3.15: the licence shown is the server's (tests/support/licence.ts), checked by its text and left out of the picture.
+  await expect(licenceLine(page)).toHaveText(FIXTURE_LINE);   // one date for the chain (15.7); the legacy new branch had a year from today
+  await golden.screen('b002-home', { mask: [licenceLine(page)] });
 
   await page.getByRole('button', { name: /10 ตั้งค่าองค์กร/ }).click();
   await expect(page.getByRole('heading', { name: '🟢 บัญชีเข้าระบบของพนักงาน (SHB) — สาขา B002 สาขาบางนา' })).toBeVisible();
   await expect(page.getByText('ยังไม่มีพนักงานในสาขา', { exact: false })).toBeVisible();
   await expect(page.getByText('สาขาแฟรนไชส์ — ส่วนนี้เห็นเฉพาะรหัส HQ')).toBeHidden();
   await golden.step('หัวหน้าสาขา B002 เปิดเมนู 10 เห็นเฉพาะแผงพนักงานของสาขาตัวเอง');
-  await golden.screen('b002-settings');
+  await golden.screen('b002-settings', { mask: [licenceLine(page), ...await settingsLicence(page)] });
   golden.done();
 });

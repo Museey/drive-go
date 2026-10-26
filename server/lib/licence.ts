@@ -130,7 +130,8 @@ async function storeKeyOf(c: pg.ClientBase, branch: string): Promise<string> {
 
 // What viewing writes, which a read-only shop must still be able to do: the legacy app logs opening, printing
 // and exporting a document in the audit log (logAudit, sent with the next save) and trims the log to its last
-// 3,000 entries above 4,000.
+// 3,000 entries above 4,000; printing a sale marks it printed. (Printing a quotation saves its form first:
+// 65-licence.js leaves that out for a read-only shop.)
 export const VIEW_ACTS = ['open', 'print', 'export'];
 const AUDIT_MAX = 4000, AUDIT_KEEP = 3000;
 
@@ -142,6 +143,22 @@ async function stored(c: pg.ClientBase, branch: string, unit: string, keys: stri
     'select key, data::text as data from records where shop_id = app_shop() and branch_id = $1 and unit = $2 and key = any($3)', [branch, unit, keys]);
   return new Map(rows.map(r => [r.key, r.data]));
 }
+async function hasData(c: pg.ClientBase, branch: string, key: string): Promise<boolean> {
+  const root = rootOf(key);
+  return !!root && !!(await c.query('select 1 from records where shop_id = app_shop() and branch_id = $1 and unit = $2 and key = $3', [branch, root, key])).rowCount;
+}
+// The top-level fields a new layout adds and drops, against the stored one ([field, kind] entries).
+async function layoutDiff(c: pg.ClientBase, branch: string, key: string, layout: string) {
+  const entries = (l: string): [string, unknown][] => { try { return JSON.parse(l); } catch { return []; } };
+  const { rows } = await c.query<{ data: string }>('select data::text as data from records where shop_id = app_shop() and branch_id = $1 and unit = $2 and key = $3', [branch, rootOf(key), key]);
+  const was = entries(rows[0]?.data ?? '[]'), now = entries(layout);
+  const text = (e: [string, unknown]) => JSON.stringify(e);
+  const old = new Set(was.map(text)), next = new Set(now.map(text));
+  return { added: now.filter(e => !old.has(text(e))), dropped: was.filter(e => !next.has(text(e))) };
+}
+// Settings the app adds with their starting value when a screen first needs them (a data set made before they
+// existed: HQ's own data, data of an older version): small, never records.
+const DEFAULT_MAX = 2000;
 async function shopStatus(c: pg.ClientBase): Promise<string> {
   return (await c.query<{ status: string }>('select status from shops where id = app_shop()')).rows[0]?.status ?? '';
 }
@@ -152,12 +169,30 @@ export async function refuseExpiredSave(c: pg.ClientBase, a: Actor, branch: stri
   if (await shopStatus(c) !== 'active') return { error: 'suspended', what: key };
   if (!expired(l)) return null;
   const no = (what: string): Refusal => ({ error: 'expired', what });
-  if (changes.layout !== undefined) return no(`${key}: layout`);
+  // A data set opened for the first time (a franchise HQ or branch head signing in before it has data): the
+  // app's empty starting data, without which it could not even show the shop.
+  if (changes.layout !== undefined && !await hasData(c, branch, key)) return null;
+  // The same fields in another order (the app puts its defaults first when it loads the data again) is no change,
+  // and neither is a field the app adds with its starting value: an empty list or map, or a small setting.
+  const fresh = new Set<string>();
+  if (changes.layout !== undefined) {
+    const { added, dropped } = await layoutDiff(c, branch, key, changes.layout);
+    const root = rootOf(key);
+    const starting = ([field, kind]: [string, unknown]) => {
+      const unit = `${root}.${field}`, rows = changes.upsert.filter(r => r.unit === unit || r.unit.startsWith(unit + '.'));
+      if (kind === 'D') return rows.length === 1 && rows[0].key === '' && rows[0].data.length <= DEFAULT_MAX;
+      return !rows.length;
+    };
+    const bad = [...dropped.map(e => '-' + JSON.stringify(e)), ...added.filter(e => !starting(e)).map(e => '+' + JSON.stringify(e))];
+    if (bad.length) return no(`${key}: layout ${bad.join(' ')}`);
+    for (const [field] of added) fresh.add(`${root}.${field}`);
+  }
   const ordered = Object.keys(changes.order);
   if (ordered.length) return no(ordered[0]);
 
   const units = [...new Set([...changes.upsert, ...changes.remove].map(r => r.unit))];
   for (const unit of units) {
+    if (fresh.has(unit)) continue;   // a field just added with its starting value (above)
     const up = changes.upsert.filter(r => r.unit === unit), rm = changes.remove.filter(r => r.unit === unit);
     const before = await stored(c, branch, unit, [...up, ...rm].map(r => r.key));
     for (const r of up) {
@@ -166,6 +201,7 @@ export async function refuseExpiredSave(c: pg.ClientBase, a: Actor, branch: stri
       const now = JSON.parse(r.data) as unknown;
       if (unit === 'DB.audit' && old === undefined && isObj(now) && VIEW_ACTS.includes(String(now.act))) continue;
       if (old !== undefined && isObj(now) && suspendsAccount(unit, JSON.parse(old), now)) continue;
+      if (old !== undefined && isObj(now) && marksPrinted(unit, JSON.parse(old), now)) continue;
       return no(`${unit}|${r.key}`);
     }
     if (rm.length) {
@@ -190,6 +226,12 @@ function suspendsAccount(unit: string, old: unknown, now: Rec): boolean {
   if (!field || now[field] !== false || old[field] === false) return false;
   const rest = (x: Rec) => JSON.stringify({ ...x, [field]: null });
   return rest(old) === rest(now);
+}
+
+// Printing a sale marks it printed (15.js markPrinted), and nothing else.
+function marksPrinted(unit: string, old: unknown, now: Rec): boolean {
+  if (unit !== 'DB.stockCuts' || !isObj(old) || now.printed !== true) return false;
+  return JSON.stringify({ ...old, printed: true }) === JSON.stringify(now);
 }
 
 function ownSecret(a: Actor, s: { unit: string; key: string }, root: string | null): boolean {

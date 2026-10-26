@@ -7,6 +7,7 @@
      so nothing else on the page moves); extendLic does nothing (15.1);
    · every save keeps the server's dates (a wipe, an import, the sample data and a new franchise branch bring
      their own; the server would put its own back anyway), and the screens show them meanwhile;
+   · after the last day, printing a saved quotation does not save its form first (the only print that does);
    · the owner panel's tag (05.js) follows the licence: a trial counts to its last day (not 15 days from the
      legacy trialStart), a paid or pilot licence reads "ใช้งานเต็ม ถึง …", one that ran out "หมดอายุทดลองใช้"
      (trial) or "หมดอายุการใช้งานแล้ว"; the demo button "เดโม: จำลองครบ 15 วัน" is gone (A1, 15.1). */
@@ -45,8 +46,16 @@
  if(typeof dgbRenderEmpPanel==='function'){const p0=window.dgbRenderEmpPanel;window.dgbRenderEmpPanel=function(){const r=p0.apply(this,arguments);
   try{const w=$i('dgbEmpWrap');
    w.querySelectorAll('button').forEach(b=>{if(/^dgbSimExpire\(/.test(b.getAttribute('onclick')||''))b.style.visibility='hidden';});
-   if(LIC&&LIC.readOnly&&LIC.kind!=='trial')w.querySelectorAll('header .tag').forEach(t=>{if(t.textContent==='หมดอายุทดลองใช้')t.textContent='หมดอายุการใช้งานแล้ว';});
+   const t=w.querySelector('header .tag');
+   if(t&&LIC&&LIC.end)t.textContent=LIC.kind==='trial'?(LIC.readOnly?'หมดอายุทดลองใช้':'ทดลองใช้ เหลือ '+dgbDaysLeft()+' วัน')
+    :(LIC.readOnly?'หมดอายุการใช้งานแล้ว':'ใช้งานเต็ม ถึง '+thDate(LIC.end));
   }catch(e){}return r;};}
+
+ /* a read-only shop prints a saved quotation without saving the form again first (the legacy print does) */
+ if(typeof printQuote==='function'){const q0=window.printQuote;window.printQuote=function(){
+  if(!(LIC&&LIC.readOnly)||typeof Q==='undefined'||!Q||!Q.no)return q0.apply(this,arguments);
+  if(typeof pkgPermNeed==='function'&&!pkgPermNeed('quote','print'))return;
+  logAudit('quote',Q,'print','ต้นฉบับ + สำเนา');save();printDocs(quoteSheets(Q));};}
 
  /* while signed in: now, and after each sign-in */
  const st=window.storage;

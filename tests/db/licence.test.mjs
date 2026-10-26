@@ -103,6 +103,10 @@ describe('หมดอายุแล้วอ่านอย่างเดี�
     assert.equal(await check(shopId, owner, 'garage.v22', upsert('DB.shop', '', { ...data.shop, licEnd: '2030-01-01' })), null);
     const emp = await withAccount(shopId, data);
     assert.equal(await check(shopId, owner, 'garage.v22', upsert('DB.emp', emp.id, { ...emp, dgbActive: false })), null);
+    const cut = data.stockCuts.find(c => !c.printed);   // printing a sale marks it printed
+    assert.equal(await check(shopId, owner, 'garage.v22', upsert('DB.stockCuts', cut.id, { ...cut, printed: true })), null);
+    assert.deepEqual(await check(shopId, owner, 'garage.v22', upsert('DB.stockCuts', cut.id, { ...cut, printed: true, note: 'x' })),
+      { error: 'expired', what: `DB.stockCuts|${cut.id}` });
     // An employee changes their own password, not someone else's.
     const self = { pkg: 'biz', role: 'emp', ref: emp.id, branch: '' };
     assert.equal(await check(shopId, self, 'garage.v22', none, [{ unit: 'DB.emp', key: emp.id, field: 'dgbPass' }]), null);
@@ -121,7 +125,16 @@ describe('หมดอายุแล้วอ่านอย่างเดี�
     await refused({ upsert: [], remove: [{ unit: 'DB.cust', key: cust.id }], order: {} }, `DB.cust|${cust.id}`);
     await refused(upsert('DB.shop', '', { ...data.shop, name: 'ชื่อใหม่' }), 'DB.shop|');
     await refused(upsert('DB.audit', 'n1', { id: 'n1', act: 'save', kind: 'receipt' }), 'DB.audit|n1');
-    await refused({ ...none, layout: '[]' }, 'garage.v22: layout');
+    await refused({ ...none, layout: '[]' }, 'garage.v22: layout ' + JSON.parse((await asApp(shopId, '', c => c.query("select data::text as d from records where unit = 'DB'"))).rows[0].d).map(e => '-' + JSON.stringify(e)).join(' '));
+    // The same fields in another order, and fields the app adds with their starting value: allowed.
+    const layout = JSON.parse((await asApp(shopId, '', c => c.query("select data::text as d from records where unit = 'DB'"))).rows[0].d);
+    assert.equal(await check(shopId, owner, 'garage.v22', { ...none, layout: JSON.stringify([...layout].reverse()) }), null);
+    const grown = JSON.stringify([...layout, ['newSetting', 'D'], ['newList', 'L']]);
+    assert.equal(await check(shopId, owner, 'garage.v22', { ...none, layout: grown, upsert: [{ unit: 'DB.newSetting', key: '', data: '{}' }] }), null);
+    assert.deepEqual(await check(shopId, owner, 'garage.v22', { ...none, layout: grown, upsert: [{ unit: 'DB.newSetting', key: '', data: '{}' }, { unit: 'DB.newList', key: 'x', data: '{}' }] }),
+      { error: 'expired', what: 'garage.v22: layout +["newList","L"]' });
+    assert.deepEqual(await check(shopId, owner, 'garage.v22', { ...none, layout: grown, upsert: [{ unit: 'DB.newSetting', key: '', data: JSON.stringify('x'.repeat(3000)) }] }),
+      { error: 'expired', what: 'garage.v22: layout +["newSetting","D"]' });
     await refused({ ...none, order: { 'DB.cust': [] } }, 'DB.cust');
     await refused(upsert('DB.emp', emp.id, { ...emp, dgbActive: false, salary: 1 }), `DB.emp|${emp.id}`);   // more than the switch
     await refused({ upsert: [], remove: [{ unit: 'DB.audit', key: data.audit[0].id }], order: {} }, `DB.audit|${data.audit[0].id}`);
@@ -131,6 +144,14 @@ describe('หมดอายุแล้วอ่านอย่างเดี�
     assert.deepEqual(await key('garage.v22.bak.safety-2026-10-13T09-00-00-wipe', 'DELETE'), { error: 'expired', what: 'garage.v22.bak.safety-2026-10-13T09-00-00-wipe' });
     assert.deepEqual(await key('garage.v22', 'DELETE'), { error: 'expired', what: 'garage.v22' });
     assert.deepEqual(await key('dgb.guide.v22', 'PUT'), { error: 'expired', what: 'dgb.guide.v22' });
+  });
+
+  test('หมดอายุแล้ว: ข้อมูลชุดที่ยังไม่มี (HQ หรือหัวหน้าสาขาเข้าระบบครั้งแรก) สร้างได้ ชุดที่มีแล้วเปลี่ยนโครงไม่ได้', async () => {
+    const { shopId } = await shop('franchise-trial', 'franchise', expiredLicence);
+    const hq = { pkg: 'franchise', role: 'HQ', ref: 'hq', branch: '' };
+    const first = { layout: '[["shop","D"]]', upsert: [{ unit: 'DB.shop', key: '', data: '{"name":"","licStart":"","licEnd":""}' }], remove: [], order: {} };
+    assert.equal(await check(shopId, hq, 'garage.v22::HQ', first, [], 'HQ'), null);
+    assert.equal((await check(shopId, hq, 'garage.v22', first, [], 'B001')).what.startsWith('garage.v22: layout -'), true);
   });
 
   test('ร้านที่ทีมงานระงับ บันทึกไม่ได้แม้ยังไม่หมดอายุ', async () => {

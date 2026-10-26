@@ -5,7 +5,7 @@ import pg from 'pg';
 import { createShop, readFixture } from '../../server/lib/seed.ts';
 import { withShop } from '../../server/lib/db.ts';
 import { readMain } from '../../server/lib/storage.ts';
-import { renew } from '../../server/lib/licence-admin.ts';
+import { close, renew } from '../../server/lib/licence-admin.ts';
 
 let pool, n = 0;
 
@@ -29,9 +29,13 @@ export async function readTestShop(code) {
   return main ? JSON.parse(main.json) : null;
 }
 
-// What DriveGo's staff do with tools/shop-admin.mjs renew (task 3.15), for the shop the page is open at.
+// What DriveGo's staff do with tools/shop-admin.mjs renew / close (task 3.15), for the shop the page is open at.
+const shopOfPage = page => decodeURIComponent(new URL(page.url()).pathname.split('/')[1]);
 export async function renewTestShop(page, years, paidOn) {
   pool ??= new pg.Pool({ connectionString: process.env.DRIVEGO_OWNER_DB, max: 2 });
-  const code = decodeURIComponent(new URL(page.url()).pathname.split('/')[1]);
-  return renew(pool, code, { years, paidOn, actor: 'test' });
+  return renew(pool, shopOfPage(page), { years, paidOn, actor: 'test' });
+}
+export async function closeTestShop(page, lastDay) {
+  pool ??= new pg.Pool({ connectionString: process.env.DRIVEGO_OWNER_DB, max: 2 });
+  return close(pool, shopOfPage(page), { lastDay, actor: 'test' });
 }

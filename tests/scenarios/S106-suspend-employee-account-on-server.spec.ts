@@ -1,6 +1,7 @@
 import { test, expect } from '../support/test';
 import { legacyStateChange, legacySteps, sameScreen } from '../support/legacy-golden';
 import { formatDiff, stateDiff } from '../support/state-diff.mjs';
+import { ownerPanelLicence } from '../support/licence';
 
 // Replaces S05 in the new system (tests/intentional-changes.json): the
 // refused sign-in happens on the server (T7) and the sign-in screen has no
@@ -31,7 +32,8 @@ test('S106 ระบบใหม่: เจ้าของร้านระง�
   await app.settle();
   expect(formatDiff(stateDiff(before, await app.state()))).toBe(legacyStateChange(S05, 'suspend-account'));
   await row.scrollIntoViewIfNeeded();
-  await sameScreen(page, app, testInfo, S05, 'account-suspended');
+  // Task 3.15: the licence shown is the server's (tests/support/licence.ts), checked by its text and left out of the picture.
+  await sameScreen(page, app, testInfo, S05, 'account-suspended', { mask: await ownerPanelLicence(page) });
 
   await page.getByText('ออกจากระบบ', { exact: true }).filter({ visible: true }).click();
   await page.getByPlaceholder('ชื่อผู้ใช้ อีเมล หรือเบอร์โทร').fill('092-111-2233');
