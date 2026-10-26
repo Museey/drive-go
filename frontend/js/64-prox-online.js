@@ -148,7 +148,7 @@
   if(!p||!p.chainRc||p.cancelled)return cancel0.apply(this,arguments);
   if(typeof pkgPermNeed==='function'&&!pkgPermNeed('rcptDoc','cancel'))return false;
   if(reason===undefined){
-   reason=await askPromptP({title:'ยกเลิกการรับชำระ '+money(p.amt)+' บาท',text:'ใบเสร็จ '+p.reNo+' ของใบตัดสต็อก '+c.no+' รับผ่านเครือ DriveGo ('+p.chainRc+') — สถานะจ่ายแล้วและ Coins ฝั่งเครือไม่ถูกยกเลิกตาม · ระบุเหตุผลที่ยกเลิก (จำเป็น)',yes:'ยกเลิกการรับชำระ',no:'ไม่ยกเลิก'});
+   reason=await askPromptP({title:'ยกเลิกการรับชำระ '+money(p.amt)+' บาท',text:'ใบเสร็จ '+p.reNo+' ของใบตัดสต็อก '+c.no+' รับผ่านเครือ DriveGo ('+p.chainRc+') — สถานะจ่ายแล้วและ Coins ฝั่งเครือไม่ถูกยกเลิกตาม · ระบุเหตุผลที่ยกเลิก (จำเป็น)',yes:'ยกเลิกการรับชำระ',no:'ไม่ยกเลิก',required:true});
    if(reason===null)return false;
   }
   return cancel0.call(this,x,payId,reason);

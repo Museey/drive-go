@@ -38,3 +38,17 @@ export async function jobWithSale(page: Page, app: App, id: number, quote: strin
 
 // The ledger record (DB.receipts) of a sale, from the app's data.
 export const ledgerOf = (state: any, sale: string) => state.DB.receipts.find((r: any) => r.pkgSale && r.no === sale);
+
+// As the owner (signed in, any menu): give employee `code` a sign-in with password `pass`, sign out, sign in as them.
+export async function signInAsEmployee(app: App & { login(u: string, p: string): Promise<void> }, page: Page, code: string, phone: string, pass: string) {
+  await page.getByRole('button', { name: '10 ตั้งค่าองค์กร' }).click();
+  const staff = page.getByRole('row').filter({ hasText: code });
+  await staff.getByRole('button', { name: '+ ออกบัญชี (ตั้งรหัสผ่าน)' }).click();
+  await page.locator('input:focus').waitFor();
+  await page.keyboard.type(pass);
+  await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).click();
+  await expect(staff).toContainText('ใช้งานได้');
+  await page.getByText('ออกจากระบบ', { exact: true }).filter({ visible: true }).first().click();
+  await page.getByPlaceholder('กรอกรหัสผ่าน').waitFor();
+  await app.login(phone, pass);
+}

@@ -112,8 +112,14 @@
     {
       "scenario": "S123-prox-online-accept-chain-bookings.spec.ts",
       "by": "S130-prox-online-accept-chain-bookings-standard-number.spec.ts",
-      "decision": "3.2 (R1, A7)",
-      "why": "Quotations opened from the chain's bookings take the next numbers of the shop's quotation counter (MA-QT261000005, -06) instead of QO.69-10-13-01, -02; everything else is checked against S123's goldens with those numbers, and the counter moves."
+      "decision": "3.2 (R1, A7); R18 = ข and answer 12.1 (task 3.12, finding 62)",
+      "why": "Quotations opened from the chain's bookings take the next numbers of the shop's quotation counter (MA-QT261000005, -06) instead of QO.69-10-13-01, -02; everything else is checked against S123's goldens with those numbers, and the counter moves. Task 3.12: the quotation of booking #102 is for the booked car (vehIdx 1, ธร 1085) and its car fields are left out of the screen; an accepted booking shows the amount of its job's sale (\"ยังไม่ตัดสต็อก\") in the read-only box that took a typed amount, left out of the queue's screen."
+    },
+    {
+      "scenario": "S124-prox-online-bill-pay-coins-disconnect.spec.ts",
+      "by": "S200-prox-online-job-paid-through-chain.spec.ts",
+      "decision": "R18 = ข, F8 = ก and answers 12.1–12.4 (task 3.12, finding 63)",
+      "why": "A chain booking's money belongs to the sale cut from its quotation: \"ออกใบเสร็จ\" sends that sale's outstanding amount (nothing typed, satang kept) and \"รับชำระ\" takes the money with the shop's normal payment step, giving the shop's receipt MA-RE261000004 with the chain's RC-201 as its reference (window and print); the chain gives the Coins, the shop's own scan gives none. Disconnecting is checked against S124's golden."
     },
     {
       "scenario": "S75-export-file-load-sample-import.spec.ts",
@@ -233,7 +239,7 @@
       "scenario": "S125-prox-online-central-stock-request-receive.spec.ts",
       "by": "S162-prox-central-receive-fifo-lots.spec.ts",
       "decision": "R9–R11, F4 and answers of 2026-10-25 (task 3.6)",
-      "why": "Goods received from the chain's central warehouse get stock moves and FIFO lots at the register cost. Every step, screen and other data change is checked against S125's goldens."
+      "why": "Goods received from the chain's central warehouse get stock moves and FIFO lots at the register cost; task 3.12 (answer 12.8): asking for stock writes an audit line. Every step, screen and other data change is checked against S125's goldens."
     },
     {
       "scenario": "S66-cancel-internal-issue.spec.ts",
@@ -462,6 +468,31 @@
       "scenario": "S187-employee-api-calls-refused-money-tax-people-settings.spec.ts",
       "decision": "R14 and answers of 2026-10-26 (task 3.9, part 3)",
       "why": "The server refuses saves the screens would not allow for money, tax, people and settings and the rules of tasks 3.3–3.8 (closing a tax month, VAT left off, credit notes, payroll, expenses, cancelling a sale, an employee record, the organisation settings); nothing changes."
+    },
+    {
+      "scenario": "S201-prox-online-typed-quantity-kept-chain-category.spec.ts",
+      "decision": "answer 12.8 (task 3.12, findings 64 and 65)",
+      "why": "A quantity typed in the central warehouse's table stays (and keeps the cursor) when the table is reloaded every 7 seconds; asking for stock writes an audit line; a new item received from the central warehouse gets the chain catalogue's category."
+    },
+    {
+      "scenario": "S202-prox-online-chain-unreachable-at-payment.spec.ts",
+      "decision": "answer 12.7 (task 3.12)",
+      "why": "When the chain cannot be reached at payment the shop's receipt is recorded first and \"ยังไม่ได้แจ้งเครือ ลองใหม่\" is shown; pressing \"รับชำระ\" again only tells the chain, with no second payment or receipt."
+    },
+    {
+      "scenario": "S203-prox-online-paid-in-shop-then-chain-cancel-warns.spec.ts",
+      "decision": "answers 12.3 and 12.6 (task 3.12)",
+      "why": "A sale paid in the shop before the chain hears of it: billing sends the whole amount and paying puts the chain's number on the existing receipt; cancelling that receipt requires a reason and warns that the chain's paid status and Coins stay."
+    },
+    {
+      "scenario": "S204-prox-online-rights-to-take-bill-and-pay.spec.ts",
+      "decision": "answer 12.5 (task 3.12)",
+      "why": "Taking a chain booking needs the right to create a quotation; billing and taking money through the chain need \"บันทึกรับชำระจากลูกหนี้\"; nothing reaches the chain or changes in the shop otherwise."
+    },
+    {
+      "scenario": "S205-prox-online-chain-costs-hidden-without-cost-right.spec.ts",
+      "decision": "answer 12.5, F7 = ก (task 3.12)",
+      "why": "Someone who may not see costs sees \"-\" for the chain catalogue's cost and the cost of the central warehouse requests."
     }
   ]
 }
