@@ -484,6 +484,21 @@
       "scenario": "S193-sale-payment-slip-and-wht-certificate-kept-as-files.spec.ts",
       "decision": "R19-ค (task 3.11)",
       "why": "The slip of a customer payment and the picture of a 50 ทวิ certificate received later are kept by the server as files; DB.paySlips and DB.whtDocs hold their links, and the certificate opens from its link."
+    },
+    {
+      "scenario": "S194-knowledge-file-too-large-refused.spec.ts",
+      "decision": "answer 11.4 (task 3.11)",
+      "why": "A knowledge-library file over 5 MB or a clip over 15 MB is refused with a message to make it smaller, where the legacy app kept only its name; the server refuses it too."
+    },
+    {
+      "scenario": "S195-file-space-full-slips-still-accepted.spec.ts",
+      "decision": "answers 11.2, 11.3 (task 3.11)",
+      "why": "Menu 10 shows the file space used out of 2 GB; once it is used up a product picture is refused when picked, while payment slips are still accepted."
+    },
+    {
+      "scenario": "S196-deleted-photo-restored-by-staff.spec.ts",
+      "decision": "R19-ค, answer 11.1 (task 3.11)",
+      "why": "A deleted file is kept 30 days and staff restore it with the server tool; the picture is back on the product with its link."
     }
   ]
 }
