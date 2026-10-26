@@ -499,6 +499,16 @@
       "scenario": "S196-deleted-photo-restored-by-staff.spec.ts",
       "decision": "R19-ค, answer 11.1 (task 3.11)",
       "why": "A deleted file is kept 30 days and staff restore it with the server tool; the picture is back on the product with its link."
+    },
+    {
+      "scenario": "S197-import-legacy-file-with-pictures.spec.ts",
+      "decision": "R19-ค, answer 11.5 (task 3.11)",
+      "why": "Importing a legacy backup file with pictures inside uploads them as files and keeps their links in the data (the logo stays inside); exporting again gives links."
+    },
+    {
+      "scenario": "S198-franchise-branch-files-stay-in-branch.spec.ts",
+      "decision": "answer 11.3, rule 8 (task 3.11)",
+      "why": "A franchise branch's files open for that branch and HQ only, not for another branch's account."
     }
   ]
 }
