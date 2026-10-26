@@ -11046,7 +11046,8 @@ function pxFindCust(pl,pn){
 }
 function pxEnsureCust(j){
   let c=pxFindCust(j.plateL,j.plateN);
-  if(c) return {c,isNew:false};
+  /* DriveGo new system (task 3.12, finding 62): the booked car, not always the customer's first one */
+  if(c) return {c,isNew:false,vehIdx:Math.max(0,(c.vehicles||[]).findIndex(v=>v.plateL===j.plateL&&String(v.plateN)===String(j.plateN)))};
   c={id:uid(),type:'person',tax:'',name:j.owner||('เจ้าของรถ '+j.plateL+' '+j.plateN),company:'',branch:'',tier:'C',stars:0,
     addr:{no:'',village:'',moo:'',soi:'',road:'',sub:'',dist:'',prov:j.prov||'',zip:''},
     tel:j.tel||'',tel2:'',
@@ -11055,7 +11056,7 @@ function pxEnsureCust(j){
   try{ stampRec(c,null); }catch(e){}
   DB.cust.push(c);
   try{ logAudit('cust',{id:c.id,no:c.name},'save','เพิ่มลูกค้าอัตโนมัติจาก DriveGo BOOK · '+j.plateL+' '+j.plateN); }catch(e){}
-  return {c,isNew:true};
+  return {c,isNew:true,vehIdx:0};
 }
 /* DriveGo new system (task 3.2): quotations opened from BOOK, symptom reports, SOS and the chain take the next number of
    the shop's quotation counter like every other quotation (MA-QT2610…, issued on the server), not their own count of the
@@ -11067,8 +11068,8 @@ function pxQuoteNo(){
 function pxAcceptBook(id){
   ensurePX();
   const j=DB.px.queue.find(x=>x.id===id); if(!j||j.st!=='wait')return;
-  const {c,isNew}=pxEnsureCust(j);
-  const q={id:uid(),no:pxQuoteNo(),date:iso(),jobIn:iso(),custId:c.id,vehIdx:0,mile:j.mile||'',
+  const {c,isNew,vehIdx}=pxEnsureCust(j);
+  const q={id:uid(),no:pxQuoteNo(),date:iso(),jobIn:iso(),custId:c.id,vehIdx,mile:j.mile||'',
     probs:[ j.sv||'งานจองจาก DriveGo BOOK','',''],finds:[],tier:c.tier||'C',items:[],disc:0,vat:DB.shop.vatReg!==false?7:0,
     tech:'',techName:'',byPos:'',byName:'',apPos:'',apName:'',status:'ร่าง',bookRef:'BOOK · นัด '+j.when};
   DB.quotes.push(q);
@@ -11190,9 +11191,9 @@ function renderPxBook(){
 function pxQuoteFromInq(id){
   ensurePX();
   const j=DB.px.inq.find(x=>x.id===id); if(!j||j.st!=='wait')return;
-  const {c,isNew}=pxEnsureCust(j);
+  const {c,isNew,vehIdx}=pxEnsureCust(j);
   const probs=[j.txt.slice(0,120),'',''];
-  const q={id:uid(),no:pxQuoteNo(),date:iso(),jobIn:iso(),custId:c.id,vehIdx:0,mile:j.mile||'',
+  const q={id:uid(),no:pxQuoteNo(),date:iso(),jobIn:iso(),custId:c.id,vehIdx,mile:j.mile||'',
     probs,finds:[],tier:c.tier||'C',items:[],disc:0,vat:DB.shop.vatReg!==false?7:0,
     tech:'',techName:'',byPos:'',byName:'',apPos:'',apName:'',status:'ร่าง',bookRef:'BOOK · ลูกค้าแจ้งอาการเอง'};
   DB.quotes.push(q);
@@ -11618,9 +11619,9 @@ async function pxNetAccept(id){
   const r=await pxNetApi('/api/accept/'+id,{method:'POST'});
   if(r.error){toast('✗ '+r.error);return}
   const [pl,pn]=String(bk.plate).split(' ');
-  const {c,isNew}=pxEnsureCust({plateL:pl||bk.plate,plateN:pn||'',prov:'',brand:(bk.car||'').split(' ')[0]||'',
+  const {c,isNew,vehIdx}=pxEnsureCust({plateL:pl||bk.plate,plateN:pn||'',prov:'',brand:(bk.car||'').split(' ')[0]||'',
     model:(bk.car||'').split(' ').slice(1).join(' '),owner:bk.owner,tel:'',mile:'',vin:'',engine:'',year:''});
-  const q={id:uid(),no:pxQuoteNo(),date:iso(),jobIn:iso(),custId:c.id,vehIdx:0,mile:'',
+  const q={id:uid(),no:pxQuoteNo(),date:iso(),jobIn:iso(),custId:c.id,vehIdx,mile:'',
     probs:[bk.service||'งานจองจากเครือ DriveGo','',''],finds:[],tier:c.tier||'C',items:[],disc:0,
     vat:DB.shop.vatReg!==false?7:0,tech:'',techName:'',byPos:'',byName:'',apPos:'',apName:'',
     status:'ร่าง',bookRef:'เครือ DriveGo · ใบจอง #'+bk.id};
@@ -11711,7 +11712,8 @@ async function dcReceive(id){
   (r.request.items||[]).forEach(i=>{
     let s=DB.stock.find(x=>x.code.toLowerCase()===i.code.toLowerCase());
     if(!s){
-      s={id:uid(),code:i.code,oem:'',name:i.name,cat:'ไส้กรอง',unit:i.unit||'ชิ้น',
+      s={id:uid(),code:i.code,oem:'',name:i.name,cat:(DCPROD.find(p=>p.id===i.product_id)||{}).cat||'ไส้กรอง',   /* DriveGo new system (task 3.12, 12.8): the chain catalogue's category */
+        unit:i.unit||'ชิ้น',
         cost:i.cost||0,pa:0,pb:0,pc:0,qty:0,min:2,max:50,stale:6,lastMove:iso(),warr:'',warrNote:'',zone:'',shelf:'',loc:''};
       try{stampRec(s,null)}catch(e){}
       DB.stock.push(s);created++;
