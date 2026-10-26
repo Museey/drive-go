@@ -471,7 +471,7 @@
     {
       "scenario": "S221-pdf-file-names-voucher-payslips-credit-note-draft.spec.ts",
       "decision": "F9 and answers 14.1–14.4 of 2026-10-26 (task 3.14)",
-      "why": "The PDF names of a payment voucher (the payee, cleaned of characters a file name may not hold and cut to 80 characters at a word's end), a credit note, one employee's pay slip (the period in place of a number), every employee's pay slips (\"ทุกคน\") and a goods receipt printed before it is saved (\"ร่าง\")."
+      "why": "The PDF names of a payment voucher (the payee, cleaned of characters a file name may not hold and cut to 80 characters at a word's end), a credit note, one employee's pay slip (the period in place of a number), every employee's pay slips (\"ทุกคน\") and a warning letter printed before it is saved (\"ร่าง\")."
     }
   ]
 }

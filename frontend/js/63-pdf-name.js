@@ -4,7 +4,7 @@
      the number is its "เลขที่" ("ร่าง" before it is saved), the party the customer, vendor, payee, employee or
      the destination branch (walk-in = "ลูกค้าทั่วไป", internal documents have none); "_ยกเลิก" when cancelled;
    · a document without a number (a pay slip): <type>_<period>_<party>;
-   · a report: <title>_<period or date>, dates as in the Excel files (yyyy-mm-dd, months yyyy-mm, years yyyy);
+   · a report: <title>_<period or date> (the whole title, "/" a space), dates as in the Excel files (yyyy-mm-dd, months yyyy-mm, years yyyy);
    · several documents in one print: <type>_<period or dates>_ทุกคน (every employee) or _<n> ใบ;
    · blank forms: แบบฟอร์มเปล่า_<type> or _<n> ชนิด.
    Browsers take the default PDF name from the page's title (Chrome turns the part after the last dot into the
@@ -43,7 +43,7 @@
    const c=sh.querySelector('div[style*="text-align:center"]'),b=c&&[...c.querySelectorAll('b')].pop();type=txt(b);
    const L=lines(sh),m=txt(sh).match(/เลขที่\s+([A-Z0-9][A-Z0-9\-\/]*)/);no=m?m[1]:'';
    const p=L.find(l=>/^ลูกค้า /.test(l));if(p)party=p.slice(7);}
-  type=type.split(' / ')[0].replace(/\s*\([^)]*\)/g,'');
+  const title=type.replace(/\s*\([^)]*\)/g,'');type=title.split(' / ')[0];
   if(!party){const l=[...sh.querySelectorAll('.lbl')].find(e=>PARTY.test(txt(e)));
    if(l){const b=[...l.parentElement.querySelectorAll('b')].find(b=>l.compareDocumentPosition(b)&Node.DOCUMENT_POSITION_FOLLOWING);party=txt(b);
     if(txt(l)==='พนักงาน')party=party.replace(/^\S+ · /,'');}}
@@ -54,7 +54,7 @@
   const per=period(f(/^(งวด|ช่วง)/)||'')||period((f(/^ปี/)||'').replace(/^/,'ปี '));
   const when=period(f(/^(ณ วันที่|วันที่)/)||'');
   const note=txt(sh.querySelector('.dnote'));
-  return {type,no,party,cancelled,per,when,F,note,blank:no!=null&&/^\.+$/.test(no)};
+  return {type,title,no,party,cancelled,per,when,F,note,blank:no!=null&&/^\.+$/.test(no)};
  }
  function bodyPeriod(sh){const c=sh.cloneNode(true);c.querySelectorAll('.brand').forEach(e=>e.remove());const s=txt(c);
   const m=s.match(/(?:เดือน|งวด)\s*([^\s]+\s*\d{4})/);if(m&&period(m[1]).length===7)return period(m[1]);
@@ -66,7 +66,7 @@
   if(a.blank){const k=[...new Set(R.map(r=>r.type))];return ['แบบฟอร์มเปล่า',k.length>1?k.length+' ชนิด':k[0]];}
   const today=typeof iso==='function'?iso():new Date().toISOString().slice(0,10);
   if(a.no==null&&!a.party){   /* a report */
-   const t=/^รายการเอกสาร/.test(a.note)?'รายการ'+a.type:a.type;
+   const t=(/^รายการเอกสาร/.test(a.note)?'รายการ':'')+a.title;
    return [t,a.per||bodyPeriod(S[0])||a.when||today];}
   const key=r=>a.no!=null?r.no:r.party,keys=[...new Set(R.map(key).filter(Boolean))];
   if(keys.length>1){   /* several documents */

@@ -29,14 +29,18 @@ async function printsAs(page: Page, click: () => Promise<void>, name: string, af
 }
 const OWN = 'ระบบบริหารงานอู่ซ่อมรถ';
 
+async function go(page: Page, menu: RegExp, item: string) {
+  const sub = page.getByRole('button', { name: item, exact: true });
+  if (!(await sub.isVisible())) await page.getByRole('button', { name: menu }).click();
+  await sub.click();
+}
 async function openSale(page: Page, no: string) {
-  await page.getByRole('button', { name: /^04 ใบเสร็จรับเงิน/ }).click();
-  await page.getByRole('button', { name: '└ 4.1 ตัดสต็อกสินค้า' }).click();
+  await go(page, /^04 ใบเสร็จรับเงิน/, '└ 4.1 ตัดสต็อกสินค้า');
   await page.getByRole('combobox', { name: 'ช่วงวันที่' }).filter({ visible: true }).selectOption('เลือกทั้งหมด');
   await page.getByText(no, { exact: true }).filter({ visible: true }).click();
   await expect(page.getByRole('heading', { name: 'ใบตัดสต็อกขายสินค้า ' + no })).toBeVisible();
 }
-const closeSale = (page: Page) => page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).first().click();
+const close = (page: Page) => page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).first().click();
 
 test('S220 ระบบใหม่: พิมพ์เอกสารและรายงานแล้วบันทึกเป็น PDF ได้ชื่อไฟล์ ประเภท_เลขที่_ลูกค้า หรือ ชื่อรายงาน_งวด แล้วชื่อหน้าต่างกลับเป็นเหมือนเดิม', async ({ app, page }) => {
   test.slow();
@@ -46,22 +50,21 @@ test('S220 ระบบใหม่: พิมพ์เอกสารและ�
 
   // A quotation: the heading "ใบเสนอราคา / ใบอนุมัติซ่อม" gives its first part.
   await page.getByRole('button', { name: /^03 ใบเสนอราคา/ }).click();
-  await page.getByRole('button', { name: 'MA-QT261000001', exact: true }).click();
-  await printsAs(page, () => page.getByRole('button', { name: 'พิมพ์ (ต้นฉบับ+สำเนา)' }).click(), 'ใบเสนอราคา_MA-QT261000001_สมชาย ใจดี.pdf');
-  await page.keyboard.press('Escape');
+  await page.getByText('MA-QT261000001', { exact: true }).filter({ visible: true }).first().click();
+  await printsAs(page, () => page.getByRole('button', { name: 'พิมพ์ใบเสนอราคา (ต้นฉบับ + สำเนา)' }).click(), 'ใบเสนอราคา_MA-QT261000001_สมชาย ใจดี.pdf');
+  await close(page);
 
   // A tax invoice from the list of 4.6.
-  await page.getByRole('button', { name: /^04 ใบเสร็จรับเงิน/ }).click();
-  await page.getByRole('button', { name: '└ 4.6 ใบกำกับภาษี' }).click();
+  await go(page, /^04 ใบเสร็จรับเงิน/, '└ 4.6 ใบกำกับภาษี');
   const tx = page.getByRole('row').filter({ hasText: 'MA-TX261000001' }).filter({ visible: true }).first();
   await printsAs(page, () => tx.getByRole('button', { name: 'พิมพ์', exact: true }).click(),
     'ใบกำกับภาษี_MA-TX261000001_บริษัท ขนส่งไทยรุ่งเรือง จำกัด.pdf');
 
   // A billing note to a customer whose name has dots: the name still ends with .pdf.
-  await page.getByRole('button', { name: '└ 4.5 ใบวางบิล' }).click();
-  await page.getByRole('button', { name: 'MA-BL261000001', exact: true }).click();
+  await go(page, /^04 ใบเสร็จรับเงิน/, '└ 4.5 ใบวางบิล');
+  await page.getByText('MA-BL261000001', { exact: true }).filter({ visible: true }).first().click();
   await printsAs(page, () => page.getByRole('button', { name: 'พิมพ์ใบวางบิล' }).click(), 'ใบวางบิล_MA-BL261000001_หจก. บางมดขนส่ง.pdf');
-  await page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).first().click();
+  await close(page);
 
   // The 80 mm stock cut of a walk-in sale with VAT: "ใบกำกับภาษีอย่างย่อ", the customer "ลูกค้าทั่วไป".
   await openSale(page, 'MA-SA261000001');
@@ -69,7 +72,7 @@ test('S220 ระบบใหม่: พิมพ์เอกสารและ�
     'ใบกำกับภาษีอย่างย่อ_MA-SA261000001_ลูกค้าทั่วไป.pdf');
   await printsAs(page, () => page.getByRole('button', { name: 'ใบตัดสต็อกขายสินค้า (A4)' }).click(),
     'ใบตัดสต็อกขายสินค้า_MA-SA261000001_ลูกค้าทั่วไป.pdf');
-  await closeSale(page);
+  await close(page);
 
   // A cancelled sale: "_ยกเลิก" at the end.
   await openSale(page, 'MA-SA261000012');
@@ -77,22 +80,20 @@ test('S220 ระบบใหม่: พิมพ์เอกสารและ�
     'ใบตัดสต็อกขายสินค้า_MA-SA261000012_ปรีชา ทองสุข_ยกเลิก.pdf');
   await printsAs(page, () => page.getByRole('button', { name: 'เอกสารอย่างย่อ', exact: true }).click(),
     'ใบกำกับภาษีอย่างย่อ_MA-SA261000012_ปรีชา ทองสุข_ยกเลิก.pdf');
-  await closeSale(page);
+  await close(page);
 
   // Reports: the title and the period they cover, or the day they are printed.
-  await page.getByRole('button', { name: /^08 บัญชี/ }).click();
-  await page.getByRole('button', { name: '└ ผังบัญชี' }).click();
+  await go(page, /^08 บัญชี/, '└ ผังบัญชี');
   await printsAs(page, () => page.getByRole('button', { name: 'พิมพ์งบทดลอง' }).click(), 'งบทดลอง_2026.pdf');
-  await page.getByRole('button', { name: '└ รายงานภาษี' }).click();
+  await go(page, /^08 บัญชี/, '└ รายงานภาษี');
   await printsAs(page, () => page.getByRole('button', { name: 'พิมพ์รายงานภาษีทั้งชุด' }).click(), 'รายงานภาษีขาย_2026-10.pdf');
   await page.getByRole('button', { name: /^03 ใบเสนอราคา/ }).click();
-  await printsAs(page, () => page.getByRole('button', { name: 'PDF' }).filter({ visible: true }).first().click(), 'ใบเสนอราคา อนุมัติซ่อม_2026-10-13.pdf');
+  await printsAs(page, () => page.getByRole('button', { name: 'PDF' }).filter({ visible: true }).first().click(), 'ใบเสนอราคา ใบอนุมัติซ่อม_2026-10-13.pdf');
 
   // A browser that does not say when printing is over: the name stays until the next print, which names its own
   // file, and the page's own title comes back after that one.
   await page.evaluate(() => { (window as any).__noAfterprint = true; });
-  await page.getByRole('button', { name: /^04 ใบเสร็จรับเงิน/ }).click();
-  await page.getByRole('button', { name: '└ 4.6 ใบกำกับภาษี' }).click();
+  await go(page, /^04 ใบเสร็จรับเงิน/, '└ 4.6 ใบกำกับภาษี');
   await printsAs(page, () => tx.getByRole('button', { name: 'พิมพ์', exact: true }).click(),
     'ใบกำกับภาษี_MA-TX261000001_บริษัท ขนส่งไทยรุ่งเรือง จำกัด.pdf', 'ใบกำกับภาษี_MA-TX261000001_บริษัท ขนส่งไทยรุ่งเรือง จำกัด.pdf');
   await page.evaluate(() => { (window as any).__noAfterprint = false; });
