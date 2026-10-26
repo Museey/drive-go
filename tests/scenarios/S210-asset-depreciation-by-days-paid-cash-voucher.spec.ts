@@ -79,10 +79,13 @@ test('S210 ระบบใหม่: ซื้อสินทรัพย์ 2 �
   const audit = legacy['DB.audit'].added;
   audit.push({ ...audit[0], id: '@DB.audit[MA-FA261000001#52]', act: 'pay', note: 'จ่ายเงิน 66,875.00 บาท (เงินสด / โอนทันที) · ใบสำคัญจ่าย MA-PV261000001' });
   await golden.stateChange('save-assets', before, { 'DB.assets': legacy['DB.assets'], 'DB.audit': legacy['DB.audit'], 'DB.seq.MA-PV2610': [null, 1] });
-  // S65's list, but for the vendor's name.
+  // S65's list, but for the vendor's name and the buttons: paid assets (all of them here) are cancelled, not deleted.
   const vendorCells = page.getByRole('row').filter({ visible: true }).filter({ hasText: 'TT-6910-0077' }).getByRole('cell').filter({ hasText: 'ร้านยางเจริญยนต์' });
   await expect(vendorCells).toHaveCount(2);
-  await golden.screen('asset-list', { mask: [vendorCells] });
+  const list = page.locator('#basTbl');
+  await expect(list.getByRole('button', { name: 'ลบ', exact: true })).toHaveCount(0);
+  await expect(list.getByRole('button', { name: 'ยกเลิก', exact: true })).toHaveCount(10);
+  await golden.screen('asset-list', { mask: [vendorCells, list.getByRole('button', { name: 'ยกเลิก', exact: true })] });
 
   await page.getByRole('button', { name: 'ดูทะเบียนและค่าเสื่อมราคา' }).click();
   const reg = page.getByRole('row').filter({ hasText: 'เครื่องปรับอากาศห้องรับรองลูกค้า 18,000 BTU' }).filter({ visible: true }).first();
