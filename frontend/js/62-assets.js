@@ -284,13 +284,13 @@
   if(lines.some(x=>n(x.cost)<=0))return toast('ราคาทุนของทุกรายการต้องมากกว่า 0');
   if(status==='sold'&&!out)return toast('สถานะจำหน่าย / ตัดออกแล้ว ต้องกรอกวันที่จำหน่าย — ค่าเสื่อมราคาหยุดที่วันนั้น');
   if(out&&out<date)return toast('วันที่จำหน่ายต้องไม่ก่อนวันที่ได้มา');
-  const vendorAsIs=legacy&&old.vendor===vname&&n(old.vat)===head.vat;
-  if((head.vat>0||term==='credit')&&!v&&!vendorAsIs)return toast('เลือกผู้ขายจากทะเบียนผู้ขาย — สินทรัพย์ที่มี VAT หรือซื้อเครดิตต้องมีผู้ขายในทะเบียน (05 ผู้ขาย)');
-  if(!v)delete head.vendorId;
   /* a closed tax month (56-tax-period.js): nothing that changes the tax of a purchase with VAT dated in it */
   const T=window.PKG_TAX_PERIOD;
   if(T){const changed=!old||TAXF.some(k=>String(old[k]??'')!==String(head[k]??''))||n(old.cost)!==n(lines[0].cost);
    if(changed&&((old&&n(old.vat)>0&&T.locked(old.date))||(head.vat>0&&T.locked(date))))return;}
+  const vendorAsIs=legacy&&old.vendor===vname&&n(old.vat)===head.vat;
+  if((head.vat>0||term==='credit')&&!v&&!vendorAsIs)return toast('เลือกผู้ขายจากทะเบียนผู้ขาย — สินทรัพย์ที่มี VAT หรือซื้อเครดิตต้องมีผู้ขายในทะเบียน (05 ผู้ขาย)');
+  if(!v)delete head.vendorId;
   let paid=null;
   if(old){
    const x=lines[0],rec=Object.assign({},old,head,{name:x.name.trim(),cat:x.cat,cost:n(x.cost),life:Math.max(1,n(x.life)),salvage:n(x.salvage),note:x.note.trim(),status,out});

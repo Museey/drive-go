@@ -11,7 +11,11 @@ const S57 = 'S57-chart-of-accounts-delete-reset.spec.ts';
 test('S170 ระบบใหม่: ผังบัญชี ลบบัญชี 6032 แล้วคืนค่าผังบัญชีมาตรฐาน ยอดคงเหลือไม่มีเงินเดือนประมาณการ', async ({ app, page }, testInfo) => {
   const golden = legacyGolden(S57, { app, page, testInfo });
   const bal = (code: string) => page.getByRole('row').filter({ has: page.getByRole('cell', { name: code, exact: true }) }).getByRole('cell').nth(3);
-  const payroll = () => ['1010', '2060', '6010', '6011'].map(bal);
+  // Task 3.13 (R17, answers 13.1, 13.7): depreciation by the day moves the accumulated depreciation (1221–1281) and
+  // the year's 6130; the input VAT of the asset bought in 2569 (the POS computer, 2,240.00) is in 1050.
+  const ASSETS: [string, string][] = [['1050', '2,240.00'], ['1221', '274,187.82'], ['1231', '58,569.84'], ['1261', '19,553.63'],
+    ['1271', '7,714.83'], ['1281', '41,187.98'], ['6130', '164,913.43']];
+  const payroll = () => ['1010', '2060', '6010', '6011', ...ASSETS.map(([c]) => c)].map(bal);
   await app.loginAsOwner();
   await golden.step('หน้าแรก');
 
@@ -30,6 +34,7 @@ test('S170 ระบบใหม่: ผังบัญชี ลบบัญช
   await golden.step('กดลบบัญชี 6032 ระบบถามยืนยัน (ไม่บอกว่ายังผูกกับหมวดค่าใช้จ่าย)');
   await expect(bal('1010')).toContainText('935,644');
   for (const code of ['2060', '6010', '6011']) await expect(bal(code)).toHaveText('-');
+  for (const [code, v] of ASSETS) await expect(bal(code)).toHaveText(v);
   await golden.screen('confirm-delete-account', { mask: payroll() });
 
   let before = await app.state();

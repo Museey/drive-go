@@ -6,6 +6,10 @@ import { legacyGolden } from '../support/legacy-golden';
 // (2,534,500, none of it recorded): 993,634 before deleting the scrap sale (legacy −1,540,866) and
 // 968,634 after (legacy −1,565,866). The cash, equity and assets figures are left out of the screens;
 // every step, the rest of each screen and every data change are S58's.
+// Task 3.13 (the owner's answer 13.4 of 2026-10-26): an asset recorded before is paid in cash and cannot be deleted,
+// it is cancelled with a reason instead ("ยกเลิก", not "ลบ"): the POS computer stays in the register as cancelled,
+// out of its sums ("รวม 7 รายการ") and of the cash it took (the same cash as deleting it, 993,634). Those two steps,
+// their data change and the register's screen (depreciation by the day) are checked here.
 const S58 = 'S58-delete-expense-asset-capital.spec.ts';
 
 test('S171 ระบบใหม่: ลบรายการบัญชีที่บันทึกผิด เงินสดคงเหลือไม่มีเงินเดือนประมาณการ', async ({ app, page }, testInfo) => {
@@ -34,20 +38,29 @@ test('S171 ระบบใหม่: ลบรายการบัญชีท�
 
   await page.getByRole('button', { name: '└ ทะเบียนสินทรัพย์', exact: true }).click();
   const pos = page.getByRole('row').filter({ hasText: 'คอมพิวเตอร์ POS หน้าร้านพร้อมเครื่องพิมพ์' })
-    .filter({ visible: true }).filter({ has: page.getByRole('button', { name: 'ลบ' }) });
+    .filter({ visible: true }).filter({ has: page.getByRole('button', { name: 'ยกเลิก' }) });
   await expect(pos).toContainText('MA-FA260400001');
+  await expect(pos.getByRole('button', { name: 'ลบ' })).toHaveCount(0);
   await expect(page.getByRole('row', { name: /^รวม 8 รายการ/ })).toBeVisible();
   await golden.step('หน้าทะเบียนสินทรัพย์ 8 รายการ');
-  await pos.getByRole('button', { name: 'ลบ' }).click();
-  await expect(page.getByText('ลบสินทรัพย์ MA-FA260400001 — คอมพิวเตอร์ POS หน้าร้านพร้อมเครื่องพิมพ์ ?')).toBeVisible();
-  await golden.step('กดลบคอมพิวเตอร์ POS ระบบถามยืนยัน');
+  await pos.getByRole('button', { name: 'ยกเลิก' }).click();
+  await expect(page.getByText('เหตุผลที่ยกเลิก — ยกเลิกทั้งใบซื้อ (1 รายการ)', { exact: true })).toBeVisible();
+  golden.skip('กดลบคอมพิวเตอร์ POS ระบบถามยืนยัน');
   before = await app.state();
-  await confirmDelete('ลบสินทรัพย์ MA-FA260400001').click();
+  await page.locator('div.panel').filter({ has: page.getByRole('heading', { name: 'ยกเลิกสินทรัพย์ MA-FA260400001', exact: true }) }).getByRole('textbox').fill('บันทึกผิด เครื่องนี้เช่ามา');
+  await page.getByRole('button', { name: 'ยกเลิกสินทรัพย์' }).click();
   await expect(pos).toHaveCount(0);
+  const cancelled = page.getByRole('row').filter({ hasText: 'คอมพิวเตอร์ POS หน้าร้านพร้อมเครื่องพิมพ์' }).filter({ visible: true }).first();
+  await expect(cancelled).toContainText('ยกเลิกแล้ว');
+  await expect(cancelled).toContainText('บันทึกผิด เครื่องนี้เช่ามา');
   await expect(page.getByRole('row', { name: /^รวม 7 รายการ/ })).toBeVisible();
-  await golden.step('หลังลบสินทรัพย์ เหลือ 7 รายการ');
-  await golden.stateChange('delete-asset', before);
-  await golden.screen('assets-after-delete');
+  await app.settle();
+  expect(await app.signature()).toMatchObject({ messages: ['ยกเลิกสินทรัพย์ MA-FA260400001 แล้ว'] });
+  golden.skip('หลังลบสินทรัพย์ เหลือ 7 รายการ');
+  const db = (await app.state()).DB;
+  expect(db.assets).toHaveLength(before.DB.assets.length);
+  expect(db.assets.find((a: any) => a.no === 'MA-FA260400001')).toMatchObject({ cancelled: true, cancelReason: 'บันทึกผิด เครื่องนี้เช่ามา', cancelDate: '2026-10-13' });
+  expect(db.audit.at(-1)).toMatchObject({ kind: 'asset', no: 'MA-FA260400001', act: 'cancel', note: 'ยกเลิกสินทรัพย์ คอมพิวเตอร์ POS หน้าร้านพร้อมเครื่องพิมพ์ · เหตุผล: บันทึกผิด เครื่องนี้เช่ามา' });
 
   await page.getByRole('button', { name: '└ เงินลงทุน / เงินสด', exact: true }).click();
   const scrap = page.getByRole('row').filter({ hasText: 'ขายเศษเหล็กและอะไหล่เก่า' }).filter({ visible: true });
