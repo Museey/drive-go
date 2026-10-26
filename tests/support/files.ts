@@ -42,9 +42,12 @@ async function inShopOf<T>(page: Page, fn: (c: pg.ClientBase) => Promise<T>): Pr
 export const staffRestore = (page: Page, id: string, branch = '') => inShopOf(page, c => restoreFile(c, branch, id));
 
 // The state of a file on the server: in use, deleted (restorable) or gone.
+// The tests connect as the database's superuser, which Row-Level Security does
+// not apply to, so every query names the shop: other test shops keep the same
+// picture under the same id.
 export const fileState = (page: Page, id: string) => inShopOf(page, async c =>
-  (await c.query<{ deleted: boolean }>('select deleted_at is not null as deleted from files where id = $1', [id])).rows[0]?.deleted === false ? 'in use'
-    : (await c.query('select 1 from files where id = $1', [id])).rowCount ? 'deleted' : 'gone');
+  (await c.query<{ deleted: boolean }>('select deleted_at is not null as deleted from files where shop_id = app_shop() and id = $1', [id])).rows[0]?.deleted === false ? 'in use'
+    : (await c.query('select 1 from files where shop_id = app_shop() and id = $1', [id])).rowCount ? 'deleted' : 'gone');
 
 // Fills the shop's space up to `free` bytes short of the 2 GB with one file the data does not refer to (a test's stand-in for 2 GB of pictures).
 export const fillSpace = (page: Page, free: number, branch = '') => inShopOf(page, c => c.query(
