@@ -130,7 +130,8 @@ export function createLive(d: LiveDeps) {
   // instead of quietly losing the app's change under theirs.
   function later(key: string, m: LiveMain, p: Pending): boolean {
     if (!m.waiting) return false;
-    if (!p.later) { p.later = true; void d.enqueue(() => { p.later = false; return applyNow(key); }); }
+    // (still waiting if the screens are busy by then: they put it in once they are not)
+    if (!p.later) { p.later = true; void d.enqueue(async () => { p.later = false; if (!busy()) await applyNow(key); }); }
     return true;
   }
 

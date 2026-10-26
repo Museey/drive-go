@@ -660,9 +660,9 @@
       if (!m.waiting) return false;
       if (!p.later) {
         p.later = true;
-        void d.enqueue(() => {
+        void d.enqueue(async () => {
           p.later = false;
-          return applyNow(key);
+          if (!busy()) await applyNow(key);
         });
       }
       return true;
