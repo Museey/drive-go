@@ -6,17 +6,19 @@
 //   DELETE  any key
 // A key of a branch outside the session's scope (another branch, or HQ's own
 // data for a branch account) answers 403 to every method; so does a save or a
-// removal the account may not make (lib/permissions.ts, task T10).
+// removal the account may not make (lib/permissions.ts, task T10), and any
+// change but viewing while the shop's licence has run out (lib/licence.ts, task 3.15).
 import { inShop, json } from '@/lib/api';
 import { endStaleSessions, storeSecrets } from '@/lib/auth';
 import type { Claims } from '@/lib/numbers';
 import { actorOf, refuseRemoveKey, refuseSave, rightsOf, traceWrite } from '@/lib/permissions';
 import { saveSessionFields, sessionFields } from '@/lib/session';
-import { branchOfKey, inScope, isBackupKey, isDataCopyKey, makeBackup, readBackup, readBlob, readMain, removeKey, restoreHidden, saveMain, writeBlob } from '@/lib/storage';
+import { branchOfKey, inScope, isBackupKey, isDataCopyKey, isSafetyBackupKey, makeBackup, readBackup, readBlob, readMain, removeKey, restoreHidden, saveMain, writeBlob } from '@/lib/storage';
 import { type Changes, rootOf } from '@/lib/units';
 import { masksFor } from '@/lib/visibility';
 import { fillCosts } from '@/lib/costing';
 import { refuseRules } from '@/lib/rules';
+import { licenceOf, pinData, refuseExpiredKey, refuseExpiredSave } from '@/lib/licence';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,6 +57,11 @@ export async function POST(req: Request, ctx: Ctx) {
     const branch = await branchOfKey(c, key);
     if (!inScope(s.scope, branch)) return forbidden();
     const actor = await actorOf(c, s);
+    // The licence's dates over whatever the browser sent; read-only after its last day (task 3.15).
+    const lic = await licenceOf(c);
+    body.changes = pinData(body.changes, lic);
+    const late = await refuseExpiredSave(c, actor, branch, key, body.changes, body.secrets || [], lic);
+    if (late) return json(late, 403);
     await traceWrite(c, actor, branch, key, body.changes, body.secrets || [], req.headers.get('x-drivego-test') || '');
     const refused = await refuseSave(c, actor, branch, key, body.changes, body.secrets || []);
     if (refused) return json({ error: 'not allowed', what: refused }, 403);
@@ -88,6 +95,8 @@ export async function PUT(req: Request, ctx: Ctx) {
   return inShop(req, async (c, s) => {
     const branch = await branchOfKey(c, key);
     if (!inScope(s.scope, branch)) return forbidden();
+    const late = await refuseExpiredKey(c, key, 'PUT', isBackupKey(key), isSafetyBackupKey(key), await licenceOf(c));
+    if (late) return json(late, 403);
     if (isBackupKey(key)) {
       const main = key.slice(0, key.indexOf('.bak.'));
       return (await makeBackup(c, branch, key, sessionFields(s, main))) ? json({ ok: true }) : missing();
@@ -104,6 +113,8 @@ export async function DELETE(req: Request, ctx: Ctx) {
     if (!inScope(s.scope, branch)) return forbidden();
     const refused = refuseRemoveKey(await actorOf(c, s), branch, key);
     if (refused) return json({ error: 'not allowed', what: refused }, 403);
+    const late = await refuseExpiredKey(c, key, 'DELETE', isBackupKey(key), isSafetyBackupKey(key), await licenceOf(c));
+    if (late) return json(late, 403);
     await removeKey(c, branch, key);
     return json({ ok: true });
   });

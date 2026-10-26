@@ -25,6 +25,7 @@ declare const STORAGE_MODE: string;   // the legacy app's storage mode, read in 
 
 // serverDB(): the shop's data as the server holds it (TARGET=new; task 3.9: an employee's browser holds less).
 type App = ReturnType<typeof legacyApp> & { serverDB(): Promise<any> };
+type TestLicence = { kind: 'trial' | 'pilot' | 'paid'; start: string; end: string };
 type Golden = {
   step(label: string): Promise<void>;
   screen(name: string): Promise<void>;
@@ -32,9 +33,11 @@ type Golden = {
   counts(name: string): Promise<void>;
 };
 
-export const test = base.extend<{ dataset: string; app: App; golden: Golden }>({
+export const test = base.extend<{ dataset: string; licence: TestLicence | undefined; app: App; golden: Golden }>({
   // Starting data put into the browser before the app first opens (tests/fixtures/<dataset>.json).
   dataset: ['biz-trial', { option: true }],
+  // TARGET=new: the shop's licence on the server (task 3.15); by default the fixture's own dates.
+  licence: [undefined, { option: true }],
 
   context: async ({ context }, use) => {
     await prepareContext(context, { seed: TEST_SEED, now: FIXED_NOW });
@@ -69,13 +72,13 @@ export const test = base.extend<{ dataset: string; app: App; golden: Golden }>({
   // new: the new system (Phase 2, server/); must match every golden too. Each
   // test opens a shop of its own from the dataset, and at the end the server
   // must hold exactly what the app last saved, with no save refused or lost.
-  app: async ({ page, context, dataset }, use, testInfo) => {
+  app: async ({ page, context, dataset, licence }, use, testInfo) => {
     if (TARGET === 'legacy') {
       const legacy = legacyApp(page, { dataset, url: LEGACY_URL });
       return use(Object.assign(legacy, { serverDB: async () => ((await legacy.state()) as any).DB }));
     }
     if (TARGET !== 'new') throw new Error(`No app adapter for TARGET=${TARGET}.`);
-    const shop = await openTestShop(dataset);
+    const shop = await openTestShop(dataset, licence);
     // Tells window.storage to also check the server's copy when signing out.
     await context.addInitScript(() => { (window as any).__drivegoTest = true; });
     // Working out the server's rules (DRIVEGO_WRITE_TRACE, lib/permissions.ts): which scenario made each save.

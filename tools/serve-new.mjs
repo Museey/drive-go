@@ -71,11 +71,14 @@ const DEMO_SHOPS = [
 async function openDemoShops(ownerUrl) {
   const { default: pg } = await import('pg');
   const { createShop, readFixture } = await import('../server/lib/seed.ts');
+  const { TRIAL_DAYS, addDays, today } = await import('../server/lib/licence.ts');
+  // A trial from today (task 3.15), not the fixtures' licence, which ends on a fixed day.
+  const licence = { kind: 'trial', start: today(), end: addDays(today(), TRIAL_DAYS) };
   const pool = new pg.Pool({ connectionString: ownerUrl, max: 1 });
   try {
     if ((await pool.query('select count(*)::int as n from shops')).rows[0].n) return [];
     for (const d of DEMO_SHOPS)
-      await createShop(pool, { code: d.code, pkg: d.pkg, data: readFixture(new URL(`../tests/fixtures/${d.dataset}.json`, import.meta.url)) });
+      await createShop(pool, { code: d.code, pkg: d.pkg, licence, data: readFixture(new URL(`../tests/fixtures/${d.dataset}.json`, import.meta.url)) });
     return DEMO_SHOPS;
   } finally {
     await pool.end();
