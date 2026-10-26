@@ -613,6 +613,13 @@
       if (!m || m.forbidden || !m.last || m.cursor !== void 0 && e.id <= m.cursor) return;
       if (e.whole) return d.mustReload(LIVE_MESSAGES.whole(e.whole), `whole data of ${e.key} replaced elsewhere (${e.whole})`);
       if (e.layout) return reread(e.key);
+      const whole2 = pending.get(e.key)?.replace;
+      if (whole2) {
+        whole2.stale = true;
+        emit("drivego:heard", { key: e.key, rows: e.rows.map(([u, k]) => vk(u, k)), removed: e.removed.map(([u, k]) => vk(u, k)), by: e.by, at: e.late ? e.at : (/* @__PURE__ */ new Date()).toISOString() });
+        if (!busy()) await applyNow(e.key);
+        return;
+      }
       const want = e.rows.filter(([u, k, v]) => known(m, e.key, vk(u, k)) < v).map(([u, k]) => [u, k]);
       const removed = e.removed.filter(([u, k]) => known(m, e.key, vk(u, k)) >= 0);
       const ordered = e.ordered;
@@ -649,13 +656,24 @@
         emit("drivego:heard", { key: e.key, rows: changed, removed: gone, by: e.by, at: e.late ? e.at : (/* @__PURE__ */ new Date()).toISOString() });
       if (!busy()) await applyNow(e.key);
     }
+    function later(key, m, p) {
+      if (!m.waiting) return false;
+      if (!p.later) {
+        p.later = true;
+        void d.enqueue(() => {
+          p.later = false;
+          return applyNow(key);
+        });
+      }
+      return true;
+    }
     async function applyNow(key) {
       const p = pending.get(key), m = d.mains.get(key);
       if (!p || !m || !m.last) {
         pending.delete(key);
         return;
       }
-      pending.delete(key);
+      if (later(key, m, p)) return;
       const units = Object.keys(p.order);
       if (units.length && !p.replace) {
         const r = await d.send(`/api/storage/${encodeURIComponent(key)}/rows`, {
@@ -665,6 +683,17 @@
         }, false);
         if (r.ok) p.order = (await r.json()).order;
       }
+      if (p.replace && (p.replace.stale || (m.sends ?? 0) !== p.replace.sends)) {
+        const sends = m.sends ?? 0, fresh = await d.read(key);
+        if (fresh.forbidden || fresh.value === null) {
+          pending.delete(key);
+          return;
+        }
+        p.replace = { json: fresh.value, versions: fresh.base, masks: fresh.masks, sends };
+        m.cursor = Math.max(m.cursor ?? 0, fresh.cursor ?? 0);
+      }
+      if (later(key, m, p)) return;
+      pending.delete(key);
       const live2 = liveObject(key), ctx = ctxOf(live2);
       if (p.replace) {
         const s = split(key, p.replace.json);
@@ -725,7 +754,7 @@
       if (fresh.forbidden || fresh.value === null) return;
       const s = split(key, fresh.value), was = m.last;
       const c = diff(was, s);
-      pending.set(key, { rows: /* @__PURE__ */ new Map(), order: {}, replace: { json: fresh.value, versions: fresh.base, masks: fresh.masks } });
+      pending.set(key, { rows: /* @__PURE__ */ new Map(), order: {}, replace: { json: fresh.value, versions: fresh.base, masks: fresh.masks, sends: m.sends ?? 0 } });
       m.cursor = Math.max(m.cursor ?? 0, fresh.cursor ?? 0);
       const changed = c.upsert.map((r) => vk(r.unit, r.key)), gone = c.remove.map((r) => vk(r.unit, r.key));
       if (changed.length || gone.length || c.layout !== void 0) emit("drivego:heard", { key, rows: changed, removed: gone, by: null, at: (/* @__PURE__ */ new Date()).toISOString() });
@@ -998,6 +1027,7 @@
     }
     const { versions, renumbered = [], counters = [], live: logId } = await r.json();
     live.own(logId);
+    m.sends = (m.sends ?? 0) + 1;
     for (const x of changes.remove) delete m.base[vk2(x.unit, x.key)];
     Object.assign(m.base, versions);
     const claimed = new Set(Object.values(numbers).flat());
@@ -1093,7 +1123,12 @@
         const m = mains.get(key) ?? { value: null, sent: null, last: null, base: {} };
         mains.set(key, m);
         m.value = value;
-        await enqueue(() => flush(key));
+        m.waiting = (m.waiting ?? 0) + 1;
+        try {
+          await enqueue(() => flush(key));
+        } finally {
+          m.waiting = (m.waiting ?? 1) - 1;
+        }
       } else {
         const backup = /\.bak\./.test(key);
         const safety = /^(.+?)\.bak\.safety-.*-([a-z]+)$/.exec(key);

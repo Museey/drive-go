@@ -19,6 +19,12 @@ export async function prepareContext(context, { seed, now }) {
     style.textContent = '#tabs .navchildren{transition:none!important}';
     document.head.append(style);
   }, { once: true }));
+  // What the new system's live updates put into the app (task 3.10), for the report of a screenshot that differs.
+  await context.addInitScript(() => {
+    const log = window.__drivegoLive = [];
+    for (const name of ['drivego:heard', 'drivego:applied', 'drivego:rights'])
+      window.addEventListener(name, e => { if (log.length < 100) log.push(`${name.slice(8)} ${JSON.stringify(e.detail).slice(0, 160)}`); });
+  });
   await context.route(/^https?:\/\/(?!127\.0\.0\.1[:/])/, route => {
     const hit = fonts[route.request().url()];
     if (!hit) return route.abort();

@@ -108,7 +108,21 @@ export const test = base.extend<{ dataset: string; licence: TestLicence | undefi
         // Park the pointer so hover effects never depend on the last click.
         await page.mouse.move(0, 0);
         await app.layoutStable();
-        await expect(page).toHaveScreenshot(`${name}.png`, { style: app.screenshotStyle });
+        try {
+          await expect(page).toHaveScreenshot(`${name}.png`, { style: app.screenshotStyle });
+        } catch (e) {
+          // For the job log (a CI run's files are not always reachable): the shown registers' column widths (they
+          // follow what was drawn before, frontend/js/25.js) and what the live updates put in.
+          console.log(`screen ${name}: ${JSON.stringify(await page.evaluate(() => ({
+            tables: [...document.querySelectorAll<HTMLTableElement>('table.pkg-reg')].filter(t => t.getBoundingClientRect().width).map(t => ({
+              id: t.id, width: Math.round(t.getBoundingClientRect().width), min: t.style.getPropertyValue('--pkg-minw'),
+              scroll: t.parentElement?.scrollLeft, cols: [...t.querySelectorAll<HTMLElement>(':scope > colgroup.pkg-cols > col')].map(c => c.style.width).join(','),
+              rows: [...(t.tBodies[0]?.rows ?? [])].filter(r => r.offsetHeight).map(r => r.offsetHeight).join(','),
+            })),
+            live: (window as any).__drivegoLive ?? [],
+          })).catch(() => null))}`);
+          throw e;
+        }
       },
       async stateChange(name, before) {
         await app.settle();

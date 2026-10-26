@@ -23,6 +23,8 @@ export interface LiveMain {
   value: string | null; sent: string | null; last: Split | null; base: Record<string, number>;
   forbidden?: boolean; masks?: Mask[];
   cursor?: number;   // saves up to this one are in the data it was read with
+  waiting?: number;  // the app's writes of the key whose save step is still in the queue
+  sends?: number;    // the app's saves of the key the server took
 }
 export interface LiveDeps {
   mains: Map<string, LiveMain>;
@@ -55,7 +57,9 @@ declare const KEY: string;
 interface Pending {
   rows: Map<string, (Row & { version: number }) | null>;   // null: removed
   order: Record<string, string[]>;
-  replace?: { json: string; versions: Record<string, number>; masks?: Mask[] };   // read again whole
+  // read again whole; stale: saved since (by others, or by the app: `sends`), read once more when it goes in
+  replace?: { json: string; versions: Record<string, number>; masks?: Mask[]; sends: number; stale?: boolean };
+  later?: boolean;   // put in after the app's own write that is waiting in the queue
 }
 
 export function createLive(d: LiveDeps) {
@@ -90,6 +94,14 @@ export function createLive(d: LiveDeps) {
     if (!m || m.forbidden || !m.last || (m.cursor !== undefined && e.id <= m.cursor)) return;
     if (e.whole) return d.mustReload(LIVE_MESSAGES.whole(e.whole), `whole data of ${e.key} replaced elsewhere (${e.whole})`);
     if (e.layout) return reread(e.key);
+    // Waiting to be read whole again (while the screens were busy): read again when it goes in, with this save too.
+    const whole = pending.get(e.key)?.replace;
+    if (whole) {
+      whole.stale = true;
+      emit('drivego:heard', { key: e.key, rows: e.rows.map(([u, k]) => vk(u, k)), removed: e.removed.map(([u, k]) => vk(u, k)), by: e.by, at: e.late ? e.at : new Date().toISOString() });
+      if (!busy()) await applyNow(e.key);
+      return;
+    }
     const want = e.rows.filter(([u, k, v]) => known(m, e.key, vk(u, k)) < v).map(([u, k]): [string, string] => [u, k]);
     const removed = e.removed.filter(([u, k]) => known(m, e.key, vk(u, k)) >= 0);
     const ordered = e.ordered;
@@ -113,11 +125,21 @@ export function createLive(d: LiveDeps) {
     if (!busy()) await applyNow(e.key);
   }
 
-  // Puts what is pending for a key into the app's data and window.storage's copy. Runs as a step of the write queue.
+  // The app wrote the key and its save is still to go (the step is queued after this one): what was heard goes in
+  // after it, so the save goes out as the app made it, and is refused if it changed a row someone else saved (P1/Q5)
+  // instead of quietly losing the app's change under theirs.
+  function later(key: string, m: LiveMain, p: Pending): boolean {
+    if (!m.waiting) return false;
+    if (!p.later) { p.later = true; void d.enqueue(() => { p.later = false; return applyNow(key); }); }
+    return true;
+  }
+
+  // Puts what is pending for a key into the app's data and window.storage's copy. Runs as a step of the write queue;
+  // the app's code may run while it waits for the server, so it looks at the app's writes again after every wait.
   async function applyNow(key: string): Promise<void> {
     const p = pending.get(key), m = d.mains.get(key);
     if (!p || !m || !m.last) { pending.delete(key); return; }
-    pending.delete(key);
+    if (later(key, m, p)) return;
     // A unit's order as the server has it now: the app may have saved records of it since the order was heard.
     const units = Object.keys(p.order);
     if (units.length && !p.replace) {
@@ -126,6 +148,16 @@ export function createLive(d: LiveDeps) {
       }, false);
       if (r.ok) p.order = (await r.json() as { order: Record<string, string[]> }).order;
     }
+    // Read whole before later saves of the key (it waited while the screens were busy): read again, or putting it in
+    // would undo the app's own saves in its data, and leave out the others'.
+    if (p.replace && (p.replace.stale || (m.sends ?? 0) !== p.replace.sends)) {
+      const sends = m.sends ?? 0, fresh = await d.read(key);
+      if (fresh.forbidden || fresh.value === null) { pending.delete(key); return; }
+      p.replace = { json: fresh.value, versions: fresh.base, masks: fresh.masks, sends };
+      m.cursor = Math.max(m.cursor ?? 0, fresh.cursor ?? 0);
+    }
+    if (later(key, m, p)) return;
+    pending.delete(key);
     const live = liveObject(key), ctx = ctxOf(live);
     if (p.replace) {
       const s = split(key, p.replace.json);
@@ -186,7 +218,7 @@ export function createLive(d: LiveDeps) {
     if (fresh.forbidden || fresh.value === null) return;
     const s = split(key, fresh.value), was = m.last;
     const c = diff(was, s);
-    pending.set(key, { rows: new Map(), order: {}, replace: { json: fresh.value, versions: fresh.base, masks: fresh.masks } });
+    pending.set(key, { rows: new Map(), order: {}, replace: { json: fresh.value, versions: fresh.base, masks: fresh.masks, sends: m.sends ?? 0 } });
     m.cursor = Math.max(m.cursor ?? 0, fresh.cursor ?? 0);
     const changed = c.upsert.map(r => vk(r.unit, r.key)), gone = c.remove.map(r => vk(r.unit, r.key));
     if (changed.length || gone.length || c.layout !== undefined) emit('drivego:heard', { key, rows: changed, removed: gone, by: null, at: new Date().toISOString() });

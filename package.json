@@ -5,7 +5,7 @@
   "scripts": {
     "test": "playwright test",
     "test:db": "node --test tests/db/*.test.mjs",
-    "test:unit": "node --test server/lib/*.test.ts",
+    "test:unit": "node --test server/lib/*.test.ts server/client/*.test.ts",
     "dev": "node tools/serve-new.mjs --dev",
     "build": "npm run build -w server",
     "typecheck": "npm run typecheck -w server",

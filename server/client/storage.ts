@@ -64,6 +64,8 @@ interface Main {
   masks?: Mask[];
   raw?: string | null;           // the app's write that `sent` was made from (they differ for the stock of another branch, 10.7)
   cursor?: number;               // other devices' saves up to this one are in the data as read (task 3.10)
+  waiting?: number;              // the app's writes whose save step is still in the queue (task 3.10)
+  sends?: number;                // the app's saves the server took (task 3.10)
 }
 const mains = new Map<string, Main>();
 const vk = (unit: string, key: string) => `${unit}|${key}`;
@@ -221,6 +223,7 @@ async function flush(key: string): Promise<void> {
   const { versions, renumbered = [], counters = [], live: logId } = await r.json() as
     { versions: Record<string, number>; renumbered?: Renumbered; counters?: Counters; live?: number | null };
   live.own(logId);
+  m.sends = (m.sends ?? 0) + 1;
   for (const x of changes.remove) delete m.base[vk(x.unit, x.key)];
   Object.assign(m.base, versions);
   const claimed = new Set(Object.values(numbers).flat());
@@ -323,7 +326,8 @@ const storage = {
       const m = mains.get(key) ?? { value: null, sent: null, last: null, base: {} };
       mains.set(key, m);
       m.value = value;
-      await enqueue(() => flush(key));
+      m.waiting = (m.waiting ?? 0) + 1;
+      try { await enqueue(() => flush(key)); } finally { m.waiting = (m.waiting ?? 1) - 1; }
     } else {
       // Backup points are copied on the server from its own data, so their
       // (whole-data) value is not uploaded.
