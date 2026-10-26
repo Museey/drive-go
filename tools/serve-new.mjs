@@ -8,6 +8,7 @@
 //                                   (NO_BUILD=1 reuses the last build)
 //   node tools/serve-new.mjs --dev  `next dev` instead (npm run dev): reloads on every change
 //
+// Attachments are kept in the database (FILE_STORE=postgres, task 3.11) unless FILE_STORE says otherwise.
 // With your own database, set DATABASE_URL (the app's role, drivego_app) and
 // MIGRATE_DATABASE_URL (the owner, to apply the schema; demo shops are only
 // opened in a database that has no shops yet).
@@ -37,7 +38,7 @@ export async function startNewSystem({ port = PORT, build = true, dev = false, q
   const appUrl = process.env.DATABASE_URL || pg.url.replace('//drivego@', '//drivego_app@');
   // Quiet runs keep the last of Next.js's output, to say why it did not start.
   const next = spawn(process.execPath, [nextBin, dev ? 'dev' : 'start', '-p', String(port), '-H', '127.0.0.1'],
-    { cwd: serverDir, env: { ...process.env, DATABASE_URL: appUrl }, stdio: quiet ? ['ignore', 'pipe', 'pipe'] : 'inherit' });
+    { cwd: serverDir, env: { ...process.env, DATABASE_URL: appUrl, FILE_STORE: process.env.FILE_STORE || 'postgres' }, stdio: quiet ? ['ignore', 'pipe', 'pipe'] : 'inherit' });
   let said = '';
   for (const out of [next.stdout, next.stderr]) out?.on('data', d => { said = (said + d).slice(-4000); });
   const exited = new Promise(r => next.once('exit', r));

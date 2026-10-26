@@ -300,6 +300,18 @@
       "by": "S180-employee-home-without-money-right.spec.ts",
       "decision": "R14-ข, finding 42 (approved) and answers of 2026-10-26 (task 3.9)",
       "why": "The employee without \"ดูยอดเงินและมูลค่าในหน้าแรก\" sees the home card of sales waiting for payment with its count and without the amount. Every step, data change and the rest of each screen are S04's."
+    },
+    {
+      "scenario": "S52-stock-item-photo-upload-delete.spec.ts",
+      "by": "S190-stock-photo-kept-as-file-link.spec.ts",
+      "decision": "R19-ค, answers 11.1–11.6 (task 3.11)",
+      "why": "The product picture is kept by the server as a file and the img field holds its link (/api/files/<SHA-256>) instead of the picture; every step and screen is checked against S52's goldens, and each data change is S52's with the link in place of the picture."
+    },
+    {
+      "scenario": "S86-knowledge-library-article-lifecycle.spec.ts",
+      "by": "S191-knowledge-article-file-kept-as-link.spec.ts",
+      "decision": "R19-ค, answers 11.1–11.6 (task 3.11)",
+      "why": "The file attached to a knowledge article is kept by the server and the article holds its link (/api/files/<SHA-256>) instead of the file; every step, screen and the confirm dialog are checked against S86's goldens, and each data change is S86's with the link in place of the file."
     }
   ],
   "added": [
@@ -462,6 +474,41 @@
       "scenario": "S187-employee-api-calls-refused-money-tax-people-settings.spec.ts",
       "decision": "R14 and answers of 2026-10-26 (task 3.9, part 3)",
       "why": "The server refuses saves the screens would not allow for money, tax, people and settings and the rules of tasks 3.3–3.8 (closing a tax month, VAT left off, credit notes, payroll, expenses, cancelling a sale, an employee record, the organisation settings); nothing changes."
+    },
+    {
+      "scenario": "S192-vendor-payment-slip-kept-as-file.spec.ts",
+      "decision": "R19-ค (task 3.11)",
+      "why": "The slip picture of a vendor payment is kept by the server as a file and DB.paySlips holds its link instead of the picture."
+    },
+    {
+      "scenario": "S193-sale-payment-slip-and-wht-certificate-kept-as-files.spec.ts",
+      "decision": "R19-ค (task 3.11)",
+      "why": "The slip of a customer payment and the picture of a 50 ทวิ certificate received later are kept by the server as files; DB.paySlips and DB.whtDocs hold their links, and the certificate opens from its link."
+    },
+    {
+      "scenario": "S194-knowledge-file-too-large-refused.spec.ts",
+      "decision": "answer 11.4 (task 3.11)",
+      "why": "A knowledge-library file over 5 MB or a clip over 15 MB is refused with a message to make it smaller, where the legacy app kept only its name; the server refuses it too."
+    },
+    {
+      "scenario": "S195-file-space-full-slips-still-accepted.spec.ts",
+      "decision": "answers 11.2, 11.3 (task 3.11)",
+      "why": "Menu 10 shows the file space used out of 2 GB; once it is used up a product picture is refused when picked, while payment slips are still accepted."
+    },
+    {
+      "scenario": "S196-deleted-photo-restored-by-staff.spec.ts",
+      "decision": "R19-ค, answer 11.1 (task 3.11)",
+      "why": "A deleted file is kept 30 days and staff restore it with the server tool; the picture is back on the product with its link."
+    },
+    {
+      "scenario": "S197-import-legacy-file-with-pictures.spec.ts",
+      "decision": "R19-ค, answer 11.5 (task 3.11)",
+      "why": "Importing a legacy backup file with pictures inside uploads them as files and keeps their links in the data (the logo stays inside); exporting again gives links."
+    },
+    {
+      "scenario": "S198-franchise-branch-files-stay-in-branch.spec.ts",
+      "decision": "answer 11.3, rule 8 (task 3.11)",
+      "why": "A franchise branch's files open for that branch and HQ only, not for another branch's account."
     }
   ]
 }

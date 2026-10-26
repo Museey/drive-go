@@ -233,3 +233,31 @@ describe('ห้ามซ้ำ', () => {
     await assert.rejects(add('A', '0812345678'), /logins_pkey/);
   });
 });
+
+describe('ไฟล์แนบ (งาน 3.11)', () => {
+  const ID = n => String(n).repeat(64).slice(0, 64);
+  const file = (c, shop, branch, id) => c.query(
+    "insert into files (shop_id, branch_id, id, mime, size, use) values ($1, $2, $3, 'image/png', 3, 'picture')", [shops[shop], branch, id])
+    .then(() => c.query("insert into file_bytes (shop_id, branch_id, id, data) values ($1, $2, $3, '\\x010203')", [shops[shop], branch, id]));
+  const ids = (c, table) => c.query(`select branch_id, id from ${table} order by branch_id`).then(r => r.rows.map(x => `${x.branch_id || '-'}/${x.id.slice(0, 1)}`));
+
+  before(async () => {
+    await asApp('A', '', c => file(c, 'A', '', ID(1)), { commit: true });
+    await asApp('B', '', c => file(c, 'B', '', ID(2)), { commit: true });
+    await asApp('F', '*', async c => { await file(c, 'F', 'B001', ID(3)); await file(c, 'F', 'B002', ID(4)); }, { commit: true });
+  });
+
+  test('อู่ A เปิดไฟล์ของอู่ B ด้วย id ไม่ได้ ทั้งรายการไฟล์และตัวไฟล์', async () => {
+    assert.deepEqual(await asApp('A', '', c => ids(c, 'files')), ['-/1']);
+    assert.deepEqual(await asApp('A', '', c => ids(c, 'file_bytes')), ['-/1']);
+    assert.equal((await asApp('A', '', c => c.query('select * from file_bytes where id = $1', [ID(2)]))).rowCount, 0);
+    await assert.rejects(asApp('A', '', c => file(c, 'B', '', ID(5))), /row-level security/);
+  });
+
+  test('สาขา B002 เปิดไฟล์ของ B001 ไม่ได้ HQ (*) เปิดได้ทุกสาขา', async () => {
+    assert.deepEqual(await asApp('F', 'B002', c => ids(c, 'file_bytes')), ['B002/4']);
+    assert.equal((await asApp('F', 'B002', c => c.query('select * from files where id = $1', [ID(3)]))).rowCount, 0);
+    assert.deepEqual(await asApp('F', '*', c => ids(c, 'file_bytes')), ['B001/3', 'B002/4']);
+    await assert.rejects(asApp('F', 'B002', c => file(c, 'F', 'B001', ID(6))), /row-level security/);
+  });
+});
