@@ -252,7 +252,7 @@
    if(cell)cell.textContent='รวม VAT '+money(r2(c+vatOf(c,$i('yVat').value)));}catch(e){}
   return r;};
 
- function refresh(){['renderAssets','renderBuyPane','renderHome'].forEach(f=>{try{if(typeof window[f]==='function')window[f]();}catch(e){}});
+ function refresh(){['renderAssets','renderBuyPane'].forEach(f=>{try{if(typeof window[f]==='function')window[f]();}catch(e){}});
   try{if(typeof acctPane!=='undefined'&&acctPane==='ap')renderAcctAP();}catch(e){}}
  const PAYF=['payments','paid','payDate','pvNo','payMethod'];
  function payNote(h,p){return 'จ่ายเงิน '+money(p.amt)+' บาท (เงินสด / โอนทันที) · ใบสำคัญจ่าย '+p.pvNo;}
