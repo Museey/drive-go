@@ -19,7 +19,7 @@ export async function jobWithSale(page: Page, app: App, id: number, quote: strin
   const row = bookingRow(page, id);
   await row.getByRole('button', { name: 'รับเข้าระบบ → เปิดใบเสนอราคา' }).click();
   await expect(row.getByText('รับแล้ว', { exact: true })).toBeVisible();
-  await expect(row).toContainText('ยังไม่ตัดสต็อก');
+  await expect(row.getByRole('textbox', { name: 'ยอดที่จะส่งเครือ' })).toHaveAttribute('placeholder', 'ยังไม่ตัดสต็อก');
   await page.getByRole('button', { name: /^03 ใบเสนอราคา/ }).click();
   await page.getByText(quote, { exact: true }).filter({ visible: true }).click();
   await page.getByRole('combobox', { name: 'ค้นหาสินค้าเร็ว' }).filter({ visible: true }).fill('EL-125');
@@ -33,7 +33,7 @@ export async function jobWithSale(page: Page, app: App, id: number, quote: strin
   await expect(page.getByText(`ใบตัดสต็อก ${sale} · รอชำระ · 1,840.40 บาท`)).toBeVisible();
   await page.getByRole('button', { name: 'กลับไปยังหน้าค้นหาเอกสาร' }).click();
   await page.getByRole('button', { name: /DriveGo ProX · Ecosystem/ }).click();
-  await expect(row).toContainText(`${sale} · 1,840.40`);
+  await expect(row.getByRole('textbox', { name: `ยอดของใบตัดสต็อก ${sale}` })).toHaveValue('1,840.40');
 }
 
 // The ledger record (DB.receipts) of a sale, from the app's data.

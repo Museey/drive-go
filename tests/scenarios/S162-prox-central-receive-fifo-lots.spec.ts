@@ -8,7 +8,7 @@ test.use({ dataset: 'prox-trial' });
 // finding 64): taking in the shipment from the chain's central warehouse records a stock move
 // and a FIFO lot for each item at the register cost — EN-501 12 at 95 (the shop's register
 // cost), the new DC-OF21 6 at 105 (the chain's cost it is created with). The legacy app only
-// added the quantity. Every step, screen and other data change is S125's.
+// added the quantity. Every step, screen and other data change is S125's (and, task 3.12, the request's audit line).
 const S125 = 'S125-prox-online-central-stock-request-receive.spec.ts';
 
 test('S162 ระบบใหม่: ProX ออนไลน์รับของจากคลังกลางของเครือเข้าสต๊อก ได้ล็อต FIFO และรายการเคลื่อนไหวตามทุนในทะเบียน', async ({ app, page }, testInfo) => {
@@ -48,7 +48,10 @@ test('S162 ระบบใหม่: ProX ออนไลน์รับขอ�
   await hondaRow.getByRole('button', { name: '🚚 ขอเติม' }).click();
   await expect(page.getByText('#502', { exact: true })).toBeVisible();
   await golden.step('ส่งคำขอเติม DC-OF21 10 ชิ้น');
-  await golden.stateChange('request', before);
+  // Task 3.12 (answer 12.8): the request has an audit line (the legacy app recorded nothing in the shop).
+  await golden.stateChange('request', before, { 'DB.audit': { added: [{ id: '@DB.audit[DC-502]', ts: '2026-10-13T02:00:00.000Z', user: '',
+    userName: 'เจ้าของกิจการ / ผู้ดูแลระบบ', kind: 'stock', docId: '', no: 'DC-502', act: 'save',
+    note: 'ขอเติมสต๊อกจากคลังกลาง ProX · คำขอ #502 · DC-OF21 × 10 ชิ้น' }] } });
 
   before = await app.state();
   await page.getByRole('button', { name: '📦 รับของเข้าสต๊อก (07)' }).click();

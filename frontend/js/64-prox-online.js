@@ -47,7 +47,8 @@
   $('#pxBookTbl tbody').innerHTML=rows.map(b=>{
    const s=S0[b.status]||S0.wait,j=b.status==='wait'?null:job(b.id);let act='';
    if(b.status==='wait')act='<button class="btn pri sm" onclick="pxNetAccept('+b.id+')">รับเข้าระบบ → เปิดใบเสนอราคา</button>';
-   if(b.status==='accepted')act=(j.c?'<span class="mono">'+esc(j.c.no)+' · '+money(due(j))+'</span>':'<span class="hint">ยังไม่ตัดสต็อก</span>')
+   /* in the box the legacy app had for typing the amount: what will be sent (12.1) */
+   if(b.status==='accepted')act='<input type="text" readonly tabindex="-1" class="mono" style="width:110px" aria-label="'+(j.c?'ยอดของใบตัดสต็อก '+esc(j.c.no):'ยอดที่จะส่งเครือ')+'" title="'+(j.c?esc(j.c.no):'')+'" '+(j.c?'value="'+money(due(j))+'"':'placeholder="ยังไม่ตัดสต็อก"')+'>'
     +' <button class="btn sm" onclick="pxNetBill('+b.id+')">🧾 ออกใบเสร็จ</button>';
    if(b.status==='billed')act='<span class="mono">'+b.rc_no+' · '+money(b.amount)+'</span>'+(j.p?'<br><span class="hint">ใบเสร็จ '+esc(j.p.reNo)+' · ยังไม่ได้แจ้งเครือ</span>':'')
     +' <button class="btn pri sm" onclick="pxNetPay('+b.id+')">💵 รับชำระ → Coins เครือ</button>';
@@ -170,7 +171,7 @@
    body:JSON.stringify({items:[{product_id:pid,qty:q}],note:'ขอเติมจากหน้าสต๊อก ProX'})});}finally{delete busy['d'+pid];}
   if(r.error){toast('✗ '+r.error);return}
   const p=DCPROD.find(x=>x.id===pid)||{},s=DB.stock.find(x=>String(x.code||'').toLowerCase()===String(p.code||'').toLowerCase());
-  logAudit('stock',s?{id:s.id,no:s.code}:{id:'',no:p.code||''},'save','ขอเติมสต๊อกจากคลังกลาง ProX · คำขอ #'+r.request.id+' · '+(p.code||'')+' × '+q+' '+(p.unit||''));save();
+  logAudit('stock',{id:s?s.id:'',no:'DC-'+r.request.id},'save','ขอเติมสต๊อกจากคลังกลาง ProX · คำขอ #'+r.request.id+' · '+(p.code||'')+' × '+q+' '+(p.unit||''));save();
   const now=$i('dcq'+pid);if(now)now.value='';
   toast('🚚 ส่งคำขอเติมสต๊อกถึงศูนย์กระจายสินค้า HQ แล้ว (#'+r.request.id+') — รออนุมัติ/จัดส่ง');
   dcPull();
