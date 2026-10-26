@@ -457,6 +457,11 @@
       "scenario": "S186-transfer-by-staff-without-cost.spec.ts",
       "decision": "R14-ข, F7 and answers of 2026-10-26 (task 3.9)",
       "why": "Someone who may not see costs gets none from the server; for a transfer between branches the server works out the costs their save needs (FIFO allocations, new lots, moves, the document's cost of goods, the register cost) the same as the legacy app does with every cost (compared with the legacy scenario's data change)."
+    },
+    {
+      "scenario": "S187-employee-api-calls-refused-money-tax-people-settings.spec.ts",
+      "decision": "R14 and answers of 2026-10-26 (task 3.9, part 3)",
+      "why": "The server refuses saves the screens would not allow for money, tax, people and settings and the rules of tasks 3.3–3.8 (closing a tax month, VAT left off, credit notes, payroll, expenses, cancelling a sale, an employee record, the organisation settings); nothing changes."
     }
   ]
 }

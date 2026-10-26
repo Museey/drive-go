@@ -16,6 +16,14 @@
 //   selling short         a sale, a revision or a customer claim that takes stock below zero: the owner or an approval right (59-stock-fifo.js)
 //   payroll               DB.payroll: the owner, or "บันทึกค่าใช้จ่าย" with the pay right (60-payroll.js); one period per month
 //                         that is not cancelled
+//   expenses, assets,     "บันทึกค่าใช้จ่าย สินทรัพย์ และเงินลงทุน" (doc.acctEdit), except marking an expense paid; payroll
+//   capital               expenses: the payroll's right
+//   cancelling            a sale, a receipt or a receiving, a billing note, a goods receipt or a vendor payment, a legacy
+//                         invoice: the right each screen checks where it is cancelled
+//   people                employees' records: "ดูและแก้ไขข้อมูลพนักงานและสิทธิใช้งาน" (doc.emp); leave and warnings: doc.hrEdit
+//   settings              the organisation's settings and branches: doc.orgEdit; the chart of accounts and its mapping: doc.coa
+// Costs are not here: whoever may not see them cannot change them either (visibility.ts puts the stored ones back).
+// Receiving and paying money keep the screens' own checks (not in the owner's list).
 // "The owner" is whoever the screens take as one: the shop's owner, Franchise HQ, a branch head, a staff account
 // that is not signed in as an employee.
 import type pg from 'pg';
@@ -72,6 +80,12 @@ class Save {
       ...up.map(r => ({ key: r.key, old: old.get(r.key), now: JSON.parse(r.data) as Rec })),
       ...rm.map(r => ({ key: r.key, old: old.get(r.key) })),
     ];
+  }
+  // How many records of a unit are stored.
+  async count(unit: string): Promise<number> {
+    const { rows } = await this.c.query<{ n: number }>(
+      'select count(*)::int as n from records where shop_id = app_shop() and branch_id = $1 and unit = $2', [this.branch, unit]);
+    return rows[0].n;
   }
   // A whole-value unit (DB.shop, DB.taxPeriods): stored and as the save leaves it.
   async whole(unit: string): Promise<{ old?: Rec; now?: Rec; touched: boolean }> {
@@ -212,10 +226,100 @@ async function payrollRules(s: Save, who: Who): Promise<string | null> {
   return null;
 }
 
+// Fields of a record that changed (all of them for a record added or removed).
+const changedFields = (t: Touch) => !t.old || !t.now ? ['(record)']
+  : [...new Set([...Object.keys(t.old), ...Object.keys(t.now)])].filter(f => !same(t.old![f], t.now![f]));
+
+// Expenses, assets and capital: "บันทึกค่าใช้จ่าย สินทรัพย์ และเงินลงทุน" (doc.acctEdit, 03.js saveExp / delExp / saveAsset /
+// delAsset / saveCap / delCap). Marking an expense paid has no right of its own on the screens (payExp, the
+// withholding certificate's number and remittance), so those fields stay open. Payroll expenses change only with
+// their period (60-payroll.js): the payroll's right.
+const EXP_PAYMENT = ['paid', 'payDate', 'method', 'pvNo', 'whtCertNo', 'whtForm', 'whtRemit', 'updatedBy', 'updatedByName', 'updatedAt'];
+async function moneyRules(s: Save, who: Who): Promise<string | null> {
+  if (who.owner) return null;
+  const payroll = who.can('doc.acctEdit') && (who.can('doc.fin') || who.can('doc.emp'));
+  if (s.units().has('DB.expenses')) for (const t of await s.touched('DB.expenses')) {
+    if (t.old?.payroll || t.now?.payroll) { if (!payroll) return `DB.expenses|${t.key}`; continue; }
+    if (!who.can('doc.acctEdit') && changedFields(t).some(f => !EXP_PAYMENT.includes(f))) return `DB.expenses|${t.key}`;
+  }
+  for (const unit of ['DB.assets', 'DB.capital']) if (s.units().has(unit) && !who.can('doc.acctEdit'))
+    for (const t of await s.touched(unit)) if (changedFields(t).length) return `${unit}|${t.key}`;
+  return null;
+}
+
+// Cancelling financial documents (the rights the screens check where each is cancelled, 03.js / 13.js / 15.js / 16.js):
+// receipts, billing notes, goods receipts "ยกเลิกเอกสาร" with "ลบเอกสาร" (doc.cancelDoc, doc.delDoc); a sale (stock cut)
+// and what goes with it, the sale's own cancel right (m.rcptCut_cancel); legacy invoices, cancelled or deleted;
+// a receiving cancelled (its receipt MA-RE), a vendor payment voided.
+async function cancelRules(s: Save, who: Who): Promise<string | null> {
+  if (who.owner) return null;
+  const docRight = who.can('doc.cancelDoc') && who.can('doc.delDoc'), cutRight = who.can('m.rcptCut_cancel');
+  const cancelled = (t: Touch) => !!t.now?.cancelled && !t.old?.cancelled && !!t.old;
+  const payCancelled = (t: Touch) => {
+    const was = new Map(((t.old?.payments as Rec[] | undefined) || []).map((p, i) => [String(p?.id ?? i), p]));
+    return ((t.now?.payments as Rec[] | undefined) || []).some((p, i) => p?.cancelled && was.has(String(p?.id ?? i)) && !was.get(String(p?.id ?? i))?.cancelled);
+  };
+  const rule: [string, (t: Touch) => boolean][] = [
+    ['DB.stockCuts', t => !cancelled(t) || cutRight || docRight],
+    ['DB.receipts', t => (!cancelled(t) || docRight || (!!t.old?.pkgSale && cutRight))
+      && (!payCancelled(t) || docRight || cutRight || ['doc.payRec', 'm.rcptDoc_cancel', 'm.rcptBilling_cancel'].some(k => who.can(k)))],
+    ['DB.billings', t => !cancelled(t) || docRight],
+    ['DB.purchases', t => (!cancelled(t) || docRight) && (!payCancelled(t) || who.can('doc.payGr'))],
+    ['DB.invoices', t => (!cancelled(t) || docRight) && (!!t.now || !t.old || who.can('doc.delDoc'))],
+  ];
+  for (const [unit, ok] of rule) if (s.units().has(unit)) for (const t of await s.touched(unit)) if (!ok(t)) return `${unit}|${t.key}: cancel`;
+  return null;
+}
+
+// People: employees' records "ดูและแก้ไขข้อมูลพนักงานและสิทธิใช้งาน" (doc.emp, saveEmp / delEmp; sign-in fields are
+// permissions.ts's; the 50 ทวิ number, the payroll's right); leave and warnings "งานบุคคล การลา และใบเตือน" (doc.hrEdit).
+const EMP_ACCOUNT = ['dgbPass', 'dgbActive', 'pin', 'perms'];
+async function peopleRules(s: Save, who: Who): Promise<string | null> {
+  if (who.owner) return null;
+  if (s.units().has('DB.emp')) for (const t of await s.touched('DB.emp')) {
+    const f = changedFields(t).filter(x => !EMP_ACCOUNT.includes(x) && x !== 'updatedBy' && x !== 'updatedByName' && x !== 'updatedAt');
+    if (f.includes('cert50') && !(who.can('doc.acctEdit') && (who.can('doc.fin') || who.can('doc.emp')))) return `DB.emp|${t.key}`;
+    if (f.some(x => x !== 'cert50') && !who.can('doc.emp')) return `DB.emp|${t.key}`;
+  }
+  for (const unit of ['DB.hr', 'DB.warns']) if (s.units().has(unit) && !who.can('doc.hrEdit'))
+    for (const t of await s.touched(unit)) if (changedFields(t).length) return `${unit}|${t.key}`;
+  return null;
+}
+
+// Settings: the organisation's settings "ตั้งค่าองค์กร · ภาษี · อายุการใช้งาน" (doc.orgEdit, saveSetting and the
+// social security figures, branches 19.js) and the chart of accounts and its mapping "จัดการผังบัญชีและการผูกบัญชี"
+// (doc.coa). Fields the screens write without a right are left out: the logo, the licence dates and, in a franchise,
+// what the chain copies into each branch when it opens (name, branch, phone, address). A chart or a branch list made
+// for the first time (the app fills in its defaults when there is none) goes through.
+const ORG_FIELDS = ['type', 'vatReg', 'person', 'company', 'tax', 'email', 'web', 'stale', 'warrM', 'warr', 'ssoRate', 'ssoMin',
+  'ssoMax', 'ssoCap', 'ssoOwn', 'banks', 'bank', 'logoHead', 'logoOp', 'name', 'branch', 'addr', 'tel'];
+const CHAIN_FIELDS = ['name', 'branch', 'addr', 'tel'];
+async function settingsRules(s: Save, who: Who, pkg: string): Promise<string | null> {
+  if (who.owner) return null;
+  if (!who.can('doc.orgEdit')) {
+    const shop = await s.whole('DB.shop');
+    if (shop.touched && shop.old && shop.now) {
+      const f = ORG_FIELDS.filter(x => !same(shop.old![x], shop.now![x]) && !(pkg === 'franchise' && CHAIN_FIELDS.includes(x)));
+      if (f.length) return `DB.shop: ${f.join(', ')}`;
+    }
+    if (s.units().has('DB.branches') && await s.count('DB.branches') > 0)
+      for (const t of await s.touched('DB.branches')) if (changedFields(t).length) return `DB.branches|${t.key}`;
+  }
+  if (!who.can('doc.coa') && (s.units().has('DB.coa') || s.units().has('DB.map'))) {
+    if (await s.count('DB.coa') > 0) {
+      for (const t of s.units().has('DB.coa') ? await s.touched('DB.coa') : []) if (changedFields(t).length) return `DB.coa|${t.key}`;
+      const map = await s.whole('DB.map');
+      if (map.touched && !same(map.old, map.now)) return 'DB.map';
+    }
+  }
+  return null;
+}
+
 export async function refuseRules(c: pg.ClientBase, a: Actor, branch: string, key: string, changes: Changes): Promise<string | null> {
   if (!/^garage\.v22/.test(key)) return null;
   const s = new Save(c, branch, changes), who = await whoOf(c, a);
-  for (const rule of [taxPeriodRules, creditNoteRules, noVatRules, shortRules, payrollRules]) {
+  for (const rule of [taxPeriodRules, creditNoteRules, noVatRules, shortRules, payrollRules, moneyRules, cancelRules, peopleRules,
+    (x: Save, w: Who) => settingsRules(x, w, a.pkg)]) {
     const r = await rule(s, who);
     if (r) return r;
   }

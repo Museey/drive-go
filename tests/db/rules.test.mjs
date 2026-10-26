@@ -158,3 +158,72 @@ describe('เงินเดือน (งาน 3.7–3.9)', () => {
     assert.equal(await check('owner', save(['DB.payroll', 'p1', period('p1', '2026-10', { cancelled: true })], ['DB.payroll', 'p2', period('p2', '2026-10')])), null);
   });
 });
+
+describe('ค่าใช้จ่าย สินทรัพย์ เงินลงทุน (งาน 3.9)', () => {
+  test('บันทึก แก้ ลบ ต้องมีสิทธิ์บันทึกค่าใช้จ่าย การจ่ายเงินไม่ต้อง ค่าใช้จ่ายของงวดเงินเดือนต้องมีสิทธิ์เงินเดือน', async () => {
+    const { DB, check } = await shop();
+    const x = DB.expenses[0], a = DB.assets[0], cap = DB.capital[0];
+    assert.equal(await check('EMP008', save(['DB.expenses', x.id, { ...x, base: 1 }])), `DB.expenses|${x.id}`);
+    assert.equal(await check('EMP008', save(['DB.expenses', 'x1', { ...x, id: 'x1', no: 'MA-EX261099999' }])), 'DB.expenses|x1');
+    assert.equal(await check('EMP008', save(['DB.expenses', x.id, undefined])), `DB.expenses|${x.id}`);
+    assert.equal(await check('EMP008', save(['DB.expenses', x.id, { ...x, paid: true, payDate: '2026-10-13', pvNo: 'MA-PV261000001' }])), null, 'paying');
+    assert.equal(await check('EMP002', save(['DB.expenses', x.id, { ...x, base: 1 }])), null);
+    const wage = { ...x, id: 'w1', no: 'MA-EX261099998', payroll: 'p1', payPart: 'pay' };
+    assert.equal(await check('EMP002', save(['DB.expenses', 'w1', wage])), null);
+    assert.equal(await check('EMP008', save(['DB.expenses', 'w1', wage])), 'DB.expenses|w1');
+    assert.equal(await check('EMP008', save(['DB.assets', a.id, { ...a, cost: 1 }])), `DB.assets|${a.id}`);
+    assert.equal(await check('EMP008', save(['DB.capital', cap.id, undefined])), `DB.capital|${cap.id}`);
+    assert.equal(await check('EMP002', save(['DB.capital', cap.id, undefined])), null);
+  });
+});
+
+describe('ยกเลิกเอกสารการเงิน (งาน 3.9)', () => {
+  test('ยกเลิกการขาย การรับเงิน ใบรับสินค้า ต้องมีสิทธิ์ยกเลิกของเอกสารนั้น', async () => {
+    const { DB, check } = await shop();
+    const cut = DB.stockCuts.find(x => x.no === 'MA-SA261000003');
+    assert.equal(await check('EMP008', save(['DB.stockCuts', cut.id, { ...cut, cancelled: true }])), `DB.stockCuts|${cut.id}: cancel`);
+    assert.equal(await check('EMP001', save(['DB.stockCuts', cut.id, { ...cut, cancelled: true }])), null);
+    const r = DB.receipts.find(x => (x.payments || []).length);
+    const voided = { ...r, payments: r.payments.map((p, i) => i ? p : { ...p, cancelled: true }) };
+    assert.equal(await check('EMP003', save(['DB.receipts', r.id, voided])), `DB.receipts|${r.id}: cancel`);
+    assert.equal(await check('EMP008', save(['DB.receipts', r.id, voided])), null, 'รับชำระได้ ยกเลิกการรับเงินได้');
+    assert.equal(await check('EMP003', save(['DB.receipts', r.id, { ...r, cancelled: true }])), `DB.receipts|${r.id}: cancel`);
+    assert.equal(await check('EMP004', save(['DB.receipts', r.id, { ...r, cancelled: true }])), null);
+    const gr = DB.purchases[0];
+    assert.equal(await check('EMP002', save(['DB.purchases', gr.id, { ...gr, cancelled: true }])), `DB.purchases|${gr.id}: cancel`);
+    assert.equal(await check('EMP004', save(['DB.purchases', gr.id, { ...gr, cancelled: true }])), null);
+  });
+});
+
+describe('ข้อมูลพนักงานและงานบุคคล (งาน 3.9)', () => {
+  test('แก้ข้อมูลพนักงานต้องมีสิทธิ์ดูและแก้ไขข้อมูลพนักงาน ใบลาและใบเตือนต้องมีสิทธิ์งานบุคคล', async () => {
+    const { DB, emp, check } = await shop();
+    const self = emp('EMP008'), other = emp('EMP001');
+    assert.equal(await check('EMP008', save(['DB.emp', self.id, { ...self, salary: 99999 }])), `DB.emp|${self.id}`);
+    assert.equal(await check('EMP008', save(['DB.emp', other.id, { ...other, position: 'ผู้จัดการ' }])), `DB.emp|${other.id}`);
+    assert.equal(await check('EMP008', save(['DB.emp', 'e1', { ...other, id: 'e1', code: 'EMP099' }])), 'DB.emp|e1');
+    assert.equal(await check('EMP004', save(['DB.emp', other.id, { ...other, salary: 30000 }])), null);
+    assert.equal(await check('EMP008', save(['DB.emp', other.id, { ...other, cert50: { 2026: 'MA-WH261000001' } }])), `DB.emp|${other.id}`);
+    assert.equal(await check('EMP002', save(['DB.emp', other.id, { ...other, cert50: { 2026: 'MA-WH261000001' } }])), null, 'พิมพ์ 50 ทวิ');
+    const h = DB.hr[0];
+    assert.equal(await check('EMP008', save(['DB.hr', h.id, { ...h, note: 'x' }])), `DB.hr|${h.id}`);
+    assert.equal(await check('EMP004', save(['DB.hr', h.id, { ...h, note: 'x' }])), null);
+  });
+});
+
+describe('ตั้งค่าองค์กรและผังบัญชี (งาน 3.9)', () => {
+  test('ตั้งค่าองค์กร สาขา ผังบัญชี ต้องมีสิทธิ์ของแต่ละเรื่อง', async () => {
+    const { DB, check } = await shop();
+    assert.equal(await check('EMP008', save(['DB.shop', '', { ...DB.shop, vatReg: false }])), 'DB.shop: vatReg');
+    assert.equal(await check('EMP008', save(['DB.shop', '', { ...DB.shop, ssoOwn: { from: '2026-10', max: 15000 } }])), 'DB.shop: ssoOwn');
+    assert.equal(await check('EMP008', save(['DB.shop', '', { ...DB.shop, logo: 'data:image/png;base64,' }])), null, 'logo');
+    assert.equal(await check('EMP004', save(['DB.shop', '', { ...DB.shop, vatReg: false }])), null);
+    const b = DB.branches[0];
+    assert.equal(await check('EMP008', save(['DB.branches', 'b2', { ...b, id: 'b2', code: 'BN' }])), 'DB.branches|b2');
+    assert.equal(await check('EMP004', save(['DB.branches', 'b2', { ...b, id: 'b2', code: 'BN' }])), null);
+    const acc = DB.coa[0];
+    assert.equal(await check('EMP008', save(['DB.coa', acc.code, { ...acc, name: 'x' }])), `DB.coa|${acc.code}`);
+    assert.equal(await check('EMP008', save(['DB.map', '', { ...DB.map, sale: '9999' }])), 'DB.map');
+    assert.equal(await check('EMP004', save(['DB.coa', acc.code, { ...acc, name: 'x' }])), null);
+  });
+});
