@@ -6,7 +6,7 @@ test.use({ dataset: 'prox-trial' });
 
 // Task 3.12 (answer 12.7): the chain cannot be reached when the money is taken. The shop's receipt is recorded first
 // (the money is in the shop's hands), then "ยังไม่ได้แจ้งเครือ ลองใหม่"; the booking's row says the chain has not
-// been told. Pressing "รับชำระ" again once the chain is back only tells the chain: no second payment step, no
+// been told (taking only part of the money through the chain is refused). Pressing "รับชำระ" again once the chain is back only tells the chain: no second payment step, no
 // second receipt, and the Coins go on the receipt already there.
 test('S202 ระบบใหม่: ProX ออนไลน์ ติดต่อเครือไม่ได้ตอนรับชำระ ร้านได้ใบเสร็จก่อน แล้วแจ้งเครือใหม่ได้โดยไม่รับเงินซ้ำ', async ({ app, page }) => {
   const chain = await chainServer(page, { accounts: [RANGSIT], queue: [{ id: 201, status: 'wait', ...HILUX }] });
@@ -21,6 +21,15 @@ test('S202 ระบบใหม่: ProX ออนไลน์ ติดต่�
 
   chain.state.down = true;
   await row.getByRole('button', { name: '💵 รับชำระ → Coins เครือ' }).click();
+  // Part of the money only: the chain would be told the booking is paid, so it is refused.
+  await page.getByRole('button', { name: 'โอน แตะเพื่อเพิ่ม' }).click();
+  await page.getByLabel('จำนวนเงิน').filter({ visible: true }).fill('1000');
+  await page.getByLabel('ธนาคาร / บัญชีที่รับโอน').filter({ visible: true }).selectOption({ index: 1 });
+  await page.getByRole('button', { name: 'บันทึกรับชำระ' }).click();
+  await expect(page.getByText('รับชำระผ่านเครือต้องรับเต็มยอดค้าง 1,840.40 บาท', { exact: true })).toBeVisible();
+  await app.settle();
+  expect(ledgerOf(await app.state(), 'MA-SA261000015').payments).toEqual([]);
+  await page.getByLabel('จำนวนเงิน').filter({ visible: true }).fill('');
   await page.getByRole('button', { name: 'ชำระเงินสดเต็มจำนวน' }).click();
   await page.getByRole('button', { name: 'บันทึกรับชำระ' }).click();
   await expect(page.getByRole('heading', { name: 'ใบเสร็จรับเงิน MA-RE261000004' })).toBeVisible();

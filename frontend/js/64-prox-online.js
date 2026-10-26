@@ -23,6 +23,7 @@
  const REF='เครือ DriveGo · ใบจอง #';
  const NOT_TOLD='ยังไม่ได้แจ้งเครือ ลองใหม่';
  const busy={};
+ const say=m=>{toast(m);return false;};
 
  /* the shop's side of a chain booking: its quotation, the sale cut from it, the payment that carries the chain's number */
  function job(id){
@@ -118,6 +119,9 @@
  S.addPayment=function(x,d,o){
   const P=PENDING,c=x&&typeof x==='object'?x:SC.list().find(s=>s.id===x);
   if(!P||!c||c.id!==P.sale)return add0.apply(this,arguments);
+  /* the chain is told the booking is paid: the whole outstanding amount, not a part of it */
+  const st=S.stat(c),got=d&&Array.isArray(d.methods)&&d.methods.length?d.methods.reduce((a,m)=>a+n(m.amt),0):n(d&&d.amt);
+  if(r2(got+n(d&&d.wht&&d.wht.amt))<st.rem-0.005)return say('รับชำระผ่านเครือต้องรับเต็มยอดค้าง '+money(st.rem)+' บาท');
   const p=add0.call(this,x,d,Object.assign({},o,{src:'chain',hold:true}));
   if(!p)return p;
   PENDING=null;
