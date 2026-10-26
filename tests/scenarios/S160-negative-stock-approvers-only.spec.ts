@@ -39,8 +39,8 @@ test('S160 ระบบใหม่: ขายเกินของที่ม�
     await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).click();
     await expect(staff).toContainText('ใช้งานได้');
   }
-  // The front desk's table of rights lets her open 04.1 and cut stock, but the fixture's older
-  // rights do not let her pick products (sub.rcptRetail); saving her form as it is brings them in line.
+  // The front desk's table of rights lets them open 04.1 and cut stock, but the fixture's older
+  // rights do not let them pick products (sub.rcptRetail); saving their form as it is brings them in line.
   await page.getByRole('button', { name: '09 งานบุคคล' }).click();
   await page.getByRole('row').filter({ hasText: 'EMP005' }).getByRole('button', { name: 'แก้ไข / สิทธิ' }).click();
   await expect(page.getByRole('checkbox', { name: '04.1 · ตัดสต็อกสินค้า · เข้าดู' })).toBeChecked();

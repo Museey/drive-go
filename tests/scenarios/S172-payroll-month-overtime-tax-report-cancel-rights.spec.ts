@@ -42,9 +42,9 @@ test('S172 ระบบใหม่: เงินได้ประจำนั�
   await row('EMP001').getByLabel('เงินพิเศษ EMP001').press('Tab');
   await expect(row('EMP001').getByRole('cell').nth(6)).toHaveText('30,500.00');
   await expect(row('EMP001').getByRole('cell').nth(7)).toHaveText('875.00');
-  await expect(row('EMP001').getByRole('cell').nth(8)).toHaveText('29,625.00');
+  await expect(row('EMP001').getByRole('cell').nth(9)).toHaveText('29,625.00');
   const total = page.locator('#payTbl').getByRole('row').filter({ hasText: 'รวม 11 คน' });
-  await expect(total.getByRole('cell')).toHaveText(['รวม 11 คน', '223,000.00', '8,850.00', '214,150.00', '8,850.00']);
+  await expect(total.getByRole('cell')).toHaveText(['รวม 11 คน', '223,000.00', '8,850.00', '0.00', '214,150.00', '8,850.00']);
 
   // Recorded and paid at once, in cash.
   await page.getByRole('button', { name: 'บันทึกจ่ายเงินเดือนงวดนี้' }).click();
@@ -67,7 +67,7 @@ test('S172 ระบบใหม่: เงินได้ประจำนั�
   await expect(sumRow('ฐานเงินเดือนสำหรับ ภ.ง.ด.1').getByRole('cell').last()).toHaveText('223,000.00');
   const taxPay = page.locator('#payrollTbl');
   await expect(taxPay.getByRole('row').filter({ hasText: 'EMP001' }).getByRole('cell')).toHaveText(
-    ['EMP001 · ศักดิ์ชัย มั่นคง', 'หัวหน้าช่าง', '25,000.00', '3,500.00', '2,000.00', '30,500.00', '875.00', '875.00', '1,750.00']);
+    ['EMP001 · ศักดิ์ชัย มั่นคง', 'หัวหน้าช่าง', '25,000.00', '3,500.00', '2,000.00', '30,500.00', '0.00', '875.00', '875.00', '1,750.00']);
   await expect(taxPay.getByRole('row').filter({ hasText: 'รวม 11 คน' })).toContainText('223,000.00');
 
   // Cancelled (paid already) with a reason: the expenses go, the month can be recorded again.
@@ -98,7 +98,7 @@ test('S172 ระบบใหม่: เงินได้ประจำนั�
   await asked(page, 'บันทึกเงินเดือน งวด ต.ค. 2569').getByRole('button', { name: 'บันทึก', exact: true }).click();
   await expect(page.getByText(/^บันทึกแล้ว · รายจ่าย MA-EX261000005 \(เงินเดือน\) และ MA-EX261000006 \(นายจ้างสมทบ\)$/)).toBeVisible();
 
-  // EMP009 may open 06.4 (once her form is saved, her older rights follow her table) but has no "บันทึกค่าใช้จ่าย".
+  // EMP009 may open 06.4 (once their form is saved, their older rights follow their table) but has no "บันทึกค่าใช้จ่าย".
   await page.getByRole('button', { name: '10 ตั้งค่าองค์กร' }).click();
   const staff = page.getByRole('row').filter({ hasText: 'EMP009' });
   await staff.getByRole('button', { name: '+ ออกบัญชี (ตั้งรหัสผ่าน)' }).click();

@@ -50,7 +50,7 @@ test('S173 ระบบใหม่: ร้านตั้งอัตราป�
   await page.getByRole('button', { name: '06 รายจ่าย / ซื้อสินค้า' }).click();
   await page.getByRole('button', { name: '4 · จ่ายเงินเดือน' }).click();
   await expect(page.locator('#payTbl').getByRole('row').filter({ hasText: 'EMP001' }).getByRole('cell').nth(7)).toHaveText('750.00');
-  await expect(page.locator('#payTbl').getByRole('row').filter({ hasText: 'รวม 11 คน' }).getByRole('cell')).toHaveText(['รวม 11 คน', '216,500.00', '8,050.00', '208,450.00', '8,050.00']);
+  await expect(page.locator('#payTbl').getByRole('row').filter({ hasText: 'รวม 11 คน' }).getByRole('cell')).toHaveText(['รวม 11 คน', '216,500.00', '8,050.00', '0.00', '208,450.00', '8,050.00']);
   await expect(page.getByText(/^ยังไม่ได้บันทึกงวด ต\.ค\. 2569/)).toContainText('ประกันสังคม 5% ฐาน 1,650 – 15,000 บาท (หักสูงสุด 750 บาท) · ร้านตั้งเอง');
 
   // The law's figures typed again: back to the law, no question.

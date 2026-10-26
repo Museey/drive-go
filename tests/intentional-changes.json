@@ -389,6 +389,16 @@
       "scenario": "S173-shop-sets-own-social-security-figures.spec.ts",
       "decision": "R12, R13, F5, X2 and answers of 2026-10-25 (task 3.7)",
       "why": "The shop's own social security figures are asked first, kept from the month they are set, written to the audit log and used by the payroll; typing the law's figures again goes back to the law."
+    },
+    {
+      "scenario": "S174-payroll-tax-withheld-remitted-pnd1.spec.ts",
+      "decision": "R13-ฉ, F6 and answers of 2026-10-25 (task 3.8)",
+      "why": "The employee's income tax withheld is typed per month (no more than what is left after social security); employees are paid net of it; it is remitted with ภ.ง.ด.1 after the salaries are paid, with a payment voucher to the Revenue Department; the payslip, the tax report (a line by payment date, a column, a printed summary) show it; a period cancelled after the remittance names its voucher."
+    },
+    {
+      "scenario": "S175-employee-annual-certificate-50-tawi.spec.ts",
+      "decision": "F6-ข and answers of 2026-10-25 (task 3.8)",
+      "why": "The employee form has an address for the certificate; the tax report prints every employee's 50 ทวิ of the year (ภ.ง.ด.1ก, pay and tax withheld in the year, social security), each with an MA-WH number given once and kept on the employee; an account without the expense right cannot print them."
     }
   ]
 }

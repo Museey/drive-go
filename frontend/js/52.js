@@ -285,7 +285,7 @@
   .sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.no).localeCompare(String(b.no)));
   const k={};rows.forEach(v=>{k[v.form]=(k[v.form]||0)+1;v.seq=k[v.form];});return rows;}
  const seqOf=v=>{const r=whtOutMonth(String(v.date).slice(0,7)).find(z=>z.id===v.id);return r?r.seq:0;};
- window.PKG_WHT_OUT={all:whtOutAll,month:whtOutMonth};
+ window.PKG_WHT_OUT={all:whtOutAll,month:whtOutMonth,sheet:(v,copy)=>sheetWhtCert(v,copy)};
  function whtVen(){
   const q=qOf('swhtOut'),st=stOf('swhtOut');
   return whtOutAll().filter(v=>(st==='wait'?!v.remit:st==='got'?v.remit:true)&&hit(q,[v.no,v.payee,v.tax,v.cert,v.desc])).sort(byDate);
@@ -400,23 +400,26 @@
  const tickBox=on=>`<span style="display:inline-block;width:11px;height:11px;border:1px solid #000;text-align:center;line-height:10px;font-size:10px;vertical-align:middle;margin-right:2px">${on?'✓':''}</span>`;
  const DOTS='.................................................';
  function sheetWhtCert(v,copy){
-  const s=DB.shop||{},vn=v.addr?null:(DB.vendors||[]).find(z=>String(z.name||'').trim()===String(v.payee||'').trim()),addr=v.addr||(vn&&vn.addr),tax=v.tax||(vn&&vn.tax)||'',seq=seqOf(v);
-  const tick=k=>(k==='4'&&v.form==='3')||(k==='7'&&v.form==='53'),blank=t=>`<tr><td>${t}</td><td></td><td></td><td></td></tr>`;
+  /* an employee's of the year (task 3.8, 60-payroll.js): v.form '1' — ภ.ง.ด.1ก, income type 1, v.when, the address as typed, v.seq, v.sso */
+  const emp=v.form==='1',s=DB.shop||{},vn=v.addr||emp?null:(DB.vendors||[]).find(z=>String(z.name||'').trim()===String(v.payee||'').trim()),addr=v.addr||(vn&&vn.addr),tax=v.tax||(vn&&vn.tax)||'',seq=emp?v.seq:seqOf(v);
+  const tick=k=>(k==='1'&&emp)||(k==='4'&&v.form==='3')||(k==='7'&&v.form==='53'),blank=t=>`<tr><td>${t}</td><td></td><td></td><td></td></tr>`;
+  const T5='5. การจ่ายเงินได้ที่ต้องหักภาษี ณ ที่จ่าย ตามคำสั่งกรมสรรพากรที่ออกตามมาตรา 3 เตรส เช่น รางวัล ส่วนลดหรือประโยชน์ใด ๆ เนื่องจากการส่งเสริมการขาย รางวัลในการประกวด การแข่งขัน การชิงโชค ค่าแสดงของนักแสดงสาธารณะ ค่าจ้างทำของ ค่าโฆษณา ค่าเช่า ค่าขนส่ง ค่าบริการ ค่าเบี้ยประกันวินาศภัย ฯลฯ';
   return `<div class="sheetpage"><div style="text-align:right;font-size:11px">${COPY[copy]}</div>
   <div style="text-align:center;margin:2px 0 4px"><b style="font-size:16px">หนังสือรับรองการหักภาษี ณ ที่จ่าย</b><br>ตามมาตรา 50 ทวิ แห่งประมวลรัษฎากร</div>
   <div style="text-align:right">เล่มที่ ........ เลขที่ <b>${esc(v.x.whtCertNo||'')}</b></div>
   <table><tr><td><span class="lbl">ผู้มีหน้าที่หักภาษี ณ ที่จ่าย</span> ชื่อ <b>${esc(typeof orgName==='function'?orgName():(s.name||''))}</b><br>เลขประจำตัวผู้เสียภาษีอากร (13 หลัก) <b>${esc(s.tax||'-')}</b><br>ที่อยู่ ${esc(s.addr?(typeof s.addr==='string'?s.addr:addrLine(s.addr)):'-')}</td></tr>
-   <tr><td><span class="lbl">ผู้ถูกหักภาษี ณ ที่จ่าย</span> ชื่อ <b>${esc(v.payee||'-')}</b><br>เลขประจำตัวผู้เสียภาษีอากร (13 หลัก) <b>${esc(tax||'-')}</b><br>ที่อยู่ ${addr?esc(addrLine(addr)):DOTS+DOTS}</td></tr>
+   <tr><td><span class="lbl">ผู้ถูกหักภาษี ณ ที่จ่าย</span> ชื่อ <b>${esc(v.payee||'-')}</b><br>เลขประจำตัวผู้เสียภาษีอากร (13 หลัก) <b>${esc(tax||'-')}</b><br>ที่อยู่ ${addr?esc(typeof addr==='string'?addr:addrLine(addr)):DOTS+DOTS}</td></tr>
    <tr><td>ลำดับที่ <b>${seq||'........'}</b> ในแบบ &nbsp;${FORMS.map(([k,t])=>tickBox(tick(k))+'('+k+') '+t).join(' &nbsp;')}</td></tr></table>
   <table style="margin-top:7px"><thead><tr><th>ประเภทเงินได้พึงประเมินที่จ่าย</th><th style="width:105px">วัน เดือน หรือปีภาษี ที่จ่าย</th><th style="width:110px">จำนวนเงินที่จ่าย</th><th style="width:110px">ภาษีที่หัก และนำส่งไว้</th></tr></thead><tbody>
-   ${blank('1. เงินเดือน ค่าจ้าง เบี้ยเลี้ยง โบนัส ฯลฯ ตามมาตรา 40 (1)')}${blank('2. ค่าธรรมเนียม ค่านายหน้า ฯลฯ ตามมาตรา 40 (2)')}${blank('3. ค่าแห่งลิขสิทธิ์ ฯลฯ ตามมาตรา 40 (3)')}
+   ${emp?`<tr><td>1. เงินเดือน ค่าจ้าง เบี้ยเลี้ยง โบนัส ฯลฯ ตามมาตรา 40 (1)</td><td style="text-align:center">${esc(v.when)}</td><td class="num">${money(v.base)}</td><td class="num">${money(v.amt)}</td></tr>`
+    :blank('1. เงินเดือน ค่าจ้าง เบี้ยเลี้ยง โบนัส ฯลฯ ตามมาตรา 40 (1)')}${blank('2. ค่าธรรมเนียม ค่านายหน้า ฯลฯ ตามมาตรา 40 (2)')}${blank('3. ค่าแห่งลิขสิทธิ์ ฯลฯ ตามมาตรา 40 (3)')}
    ${blank('4. (ก) ดอกเบี้ย ฯลฯ ตามมาตรา 40 (4) (ก)')}${blank('&nbsp;&nbsp;&nbsp;&nbsp;(ข) เงินปันผล เงินส่วนแบ่งกำไร ฯลฯ ตามมาตรา 40 (4) (ข)')}
-   <tr><td>5. การจ่ายเงินได้ที่ต้องหักภาษี ณ ที่จ่าย ตามคำสั่งกรมสรรพากรที่ออกตามมาตรา 3 เตรส เช่น รางวัล ส่วนลดหรือประโยชน์ใด ๆ เนื่องจากการส่งเสริมการขาย รางวัลในการประกวด การแข่งขัน การชิงโชค ค่าแสดงของนักแสดงสาธารณะ ค่าจ้างทำของ ค่าโฆษณา ค่าเช่า ค่าขนส่ง ค่าบริการ ค่าเบี้ยประกันวินาศภัย ฯลฯ
-    <br><b>${esc(INCOME[v.rate]||v.desc)} ${v.rate}%</b></td><td style="text-align:center">${thDate(v.date)}</td><td class="num">${money(v.base)}</td><td class="num">${money(v.amt)}</td></tr>
+   ${emp?blank(T5):`<tr><td>${T5}
+    <br><b>${esc(INCOME[v.rate]||v.desc)} ${v.rate}%</b></td><td style="text-align:center">${thDate(v.date)}</td><td class="num">${money(v.base)}</td><td class="num">${money(v.amt)}</td></tr>`}
    ${blank('6. อื่น ๆ (ระบุ) ................................')}
    <tr><td colspan="2" style="text-align:right"><b>รวมเงินที่จ่ายและภาษีที่หักนำส่ง</b></td><td class="num"><b>${money(v.base)}</b></td><td class="num"><b>${money(v.amt)}</b></td></tr>
    <tr><td colspan="4">รวมเงินภาษีที่หักนำส่ง (ตัวอักษร) <b>(${bahtText(v.amt)})</b></td></tr></tbody></table>
-  <div class="box">เงินที่จ่ายเข้า กบข. / กสจ. / กองทุนสงเคราะห์ครูโรงเรียนเอกชน ........ บาท &nbsp; กองทุนประกันสังคม ........ บาท &nbsp; กองทุนสำรองเลี้ยงชีพ ........ บาท</div>
+  <div class="box">เงินที่จ่ายเข้า กบข. / กสจ. / กองทุนสงเคราะห์ครูโรงเรียนเอกชน ........ บาท &nbsp; กองทุนประกันสังคม ${v.sso!=null?money(v.sso):'........'} บาท &nbsp; กองทุนสำรองเลี้ยงชีพ ........ บาท</div>
   <div class="box">ผู้จ่ายเงิน &nbsp;${tickBox(true)}(1) หัก ณ ที่จ่าย &nbsp; ${tickBox(false)}(2) ออกให้ตลอดไป &nbsp; ${tickBox(false)}(3) ออกให้ครั้งเดียว &nbsp; ${tickBox(false)}(4) อื่น ๆ (ระบุ) ..........</div>
   <table style="margin-top:6px"><tr><td style="width:45%;vertical-align:top;font-size:11px"><b>คำเตือน</b> ผู้มีหน้าที่ออกหนังสือรับรองการหักภาษี ณ ที่จ่าย ฝ่าฝืนไม่ปฏิบัติตามมาตรา 50 ทวิ แห่งประมวลรัษฎากร ต้องรับโทษทางอาญาตามมาตรา 35 แห่งประมวลรัษฎากร</td>
    <td style="text-align:center">ขอรับรองว่าข้อความและตัวเลขดังกล่าวข้างต้นถูกต้องตรงกับความจริงทุกประการ<br><br>ลงชื่อ ${DOTS} ผู้จ่ายเงิน<br>${thDate(v.date)}<br><span class="lbl">(วัน เดือน ปี ที่ออกหนังสือรับรองฯ)</span></td></tr></table></div>`;

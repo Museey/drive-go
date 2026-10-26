@@ -36,12 +36,12 @@ test('S165 ระบบใหม่: บันทึกเงินเดือ�
 
   const table = page.locator('#payTbl');
   const row = (code: string) => table.getByRole('row').filter({ hasText: code });
-  // EMP001: salary 25,000 → 875 (ceiling 17,500); EMP003 12,000 → 600; overtime and bonus start at 0.
-  await expect(row('EMP001').getByRole('cell')).toHaveText(['EMP001', 'ศักดิ์ชัย มั่นคง', 'หัวหน้าช่าง', '25,000.00', '', '', '25,000.00', '875.00', '24,125.00', '875.00']);
+  // EMP001: salary 25,000 → 875 (ceiling 17,500); EMP003 12,000 → 600; overtime, bonus and the tax withheld (task 3.8) start at 0.
+  await expect(row('EMP001').getByRole('cell')).toHaveText(['EMP001', 'ศักดิ์ชัย มั่นคง', 'หัวหน้าช่าง', '25,000.00', '', '', '25,000.00', '875.00', '', '24,125.00', '875.00']);
   await expect(row('EMP001').getByLabel('ค่าล่วงเวลา EMP001')).toHaveValue('');
   await expect(row('EMP003').getByRole('cell').nth(7)).toHaveText('600.00');
   await expect(table.getByRole('row').filter({ hasText: 'รวม 11 คน' })).toContainText('216,500.00');
-  await expect(table.getByRole('row').filter({ hasText: 'รวม 11 คน' }).getByRole('cell')).toHaveText(['รวม 11 คน', '216,500.00', '8,800.00', '207,700.00', '8,800.00']);
+  await expect(table.getByRole('row').filter({ hasText: 'รวม 11 คน' }).getByRole('cell')).toHaveText(['รวม 11 คน', '216,500.00', '8,800.00', '0.00', '207,700.00', '8,800.00']);
   await expect(table.getByRole('row').filter({ hasText: 'ยอดที่ต้องนำส่งประกันสังคม' })).toContainText('17,600.00');
   await expect(page.getByText(/^ยังไม่ได้บันทึกงวด ต\.ค\. 2569/)).toContainText('ประกันสังคม 5% ฐาน 1,650 – 17,500 บาท (หักสูงสุด 875 บาท)');
 
