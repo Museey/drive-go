@@ -9,7 +9,8 @@
 //   · after the last day the shop is read-only (15.3): everyone still signs in, views, prints and exports, and
 //     may change their own password or suspend an employee's account; any other save is refused (403
 //     { error: 'expired' }, the screens say so and reload). A franchise chain has one licence (15.7).
-//   · 90 days after the last day the shop's data is removed for good, after a notice 30 days before
+//   · 90 days after the last day the shop's data is removed for good, after a notice 30 days before; its change
+//     history stays 5 more years (owner's answer of 2026-10-26, as R15), then goes with the shop
 //     (15.5, 15.6; tools/retention.mjs). A renewal starts the count again.
 // Shared by the API routes (the app's role, its own shop's row) and the staff tools (the owner, any shop).
 import type pg from 'pg';
@@ -21,6 +22,7 @@ export const TRIAL_DAYS = 60;    // 15.2: from the day staff open the shop
 export const PILOT_YEARS = 1;    // 15.2: pilot garages, from opening
 export const KEEP_DAYS = 90;     // 15.5: after the last day, then the data is removed
 export const NOTICE_DAYS = 30;   // 15.5: the shop is told this long before
+export const HISTORY_YEARS = 5;  // after the removal, the change history is kept this long (owner 2026-10-26, as R15)
 export const WARN_DAYS = 30;     // 15.4: the legacy home banner (renderLicense) shows from this many days before
 
 export interface Licence {
@@ -29,6 +31,7 @@ export interface Licence {
   end: string;             // last day the shop may change its data
   deleteOn: string;        // when the data is removed (ends_on + KEEP_DAYS unless staff moved it)
   noticeSentOn: string | null;   // when the shop was told its data will be removed
+  removedOn: string | null;      // when its data was removed (its change history stays HISTORY_YEARS)
   contact: string;
 }
 
@@ -57,11 +60,11 @@ export function today(): string {
 
 // ---------- reading ----------
 
-export type LicenceRow = { kind: Kind; starts_on: string; ends_on: string; delete_on: string | null; notice_sent_on: string | null; contact: string };
-export const COLUMNS = "kind, starts_on::text, ends_on::text, delete_on::text, notice_sent_on::text, contact";
+export type LicenceRow = { kind: Kind; starts_on: string; ends_on: string; delete_on: string | null; notice_sent_on: string | null; removed_on: string | null; contact: string };
+export const COLUMNS = "kind, starts_on::text, ends_on::text, delete_on::text, notice_sent_on::text, removed_on::text, contact";
 export const fromRow = (r: LicenceRow): Licence => ({
   kind: r.kind, start: r.starts_on, end: r.ends_on, deleteOn: r.delete_on ?? addDays(r.ends_on, KEEP_DAYS),
-  noticeSentOn: r.notice_sent_on, contact: r.contact,
+  noticeSentOn: r.notice_sent_on, removedOn: r.removed_on ?? null, contact: r.contact,
 });
 
 // The licence of the transaction's shop (inside withShop). null: none (the shop is treated as expired).

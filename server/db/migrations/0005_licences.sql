@@ -10,6 +10,9 @@
 --              days (15.5); staff may postpone it. A renewal clears it.
 --   notice_sent_on  when the shop was told its data will be removed (30 days
 --              before, 15.5); a renewal or a postponement clears it.
+--   removed_on the day its data was removed; its change history (change_log)
+--              is kept HISTORY_YEARS (5) more years, then the shop goes for good
+--              (owner's answer 2026-10-26, as R15).
 create table licences (
   shop_id uuid primary key references shops (id) on delete cascade,
   kind text not null check (kind in ('trial', 'pilot', 'paid')),
@@ -18,8 +21,14 @@ create table licences (
   delete_on date check (delete_on > ends_on),
   notice_sent_on date,
   contact text not null default '',     -- who to call or e-mail about renewal and removal
+  removed_on date check (removed_on > ends_on),
   updated_at timestamptz not null default now()
 );
+
+-- A shop whose data was removed keeps its row (and its change history) until
+-- the history's 5 years are over; nobody signs in to it.
+alter table shops drop constraint shops_status_check;
+alter table shops add constraint shops_status_check check (status in ('active', 'suspended', 'removed'));
 
 -- Every action of the staff tools on a shop's licence, and every removal of a
 -- shop's data. Not tied to shops: the record that a shop was removed outlives it.
@@ -29,7 +38,7 @@ create table licence_log (
   shop_code text not null,
   at timestamptz not null default now(),
   actor text not null,                  -- who ran the tool (operating system user, or --by)
-  action text not null,                 -- open | renew | postpone | close | notice | delete | edit
+  action text not null,                 -- open | renew | postpone | close | contact | notice | delete | purge
   detail json not null default '{}'
 );
 create index licence_log_shop on licence_log (shop_id, id);
