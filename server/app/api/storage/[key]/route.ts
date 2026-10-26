@@ -17,6 +17,7 @@ import { type Changes, rootOf } from '@/lib/units';
 import { masksFor } from '@/lib/visibility';
 import { fillCosts } from '@/lib/costing';
 import { refuseRules } from '@/lib/rules';
+import { MAX_SAVE_BYTES, inlineFile, readBody } from '@/lib/files';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,8 +50,13 @@ export async function GET(req: Request, ctx: Ctx) {
 export async function POST(req: Request, ctx: Ctx) {
   const { key } = await ctx.params;
   if (!rootOf(key)) return json({ error: 'not a main data key' }, 400);
-  const body = await req.json() as { base: Record<string, number>; changes: Changes; session?: Record<string, string>;
+  const raw = await readBody(req, MAX_SAVE_BYTES);
+  if (!raw) return json({ error: 'too-large' }, 413);
+  const body = JSON.parse(raw.toString('utf8')) as { base: Record<string, number>; changes: Changes; session?: Record<string, string>;
     secrets?: { unit: string; key: string; field: string; value: string }[]; numbers?: Claims };
+  // Files are uploaded before a save, the data keeps links (task 3.11).
+  const inline = inlineFile(body.changes);
+  if (inline) return json({ error: 'file inside the data', what: inline }, 400);
   return inShop(req, async (c, s) => {
     const branch = await branchOfKey(c, key);
     if (!inScope(s.scope, branch)) return forbidden();
@@ -84,7 +90,9 @@ export async function POST(req: Request, ctx: Ctx) {
 export async function PUT(req: Request, ctx: Ctx) {
   const { key } = await ctx.params;
   if (rootOf(key)) return json({ error: 'main data keys are saved with POST' }, 400);
-  const value = await req.text();
+  const raw = await readBody(req, MAX_SAVE_BYTES);
+  if (!raw) return json({ error: 'too-large' }, 413);
+  const value = raw.toString('utf8');
   return inShop(req, async (c, s) => {
     const branch = await branchOfKey(c, key);
     if (!inScope(s.scope, branch)) return forbidden();

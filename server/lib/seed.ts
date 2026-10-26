@@ -6,6 +6,7 @@ import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { storeSecrets } from './auth.ts';
 import { withShop } from './db.ts';
+import { extractInline } from './files.ts';
 import { branchOf, writeBlob, writeMain } from './storage.ts';
 import { type Secret, rootOf, split } from './units.ts';
 
@@ -41,7 +42,9 @@ export async function createShop(db: pg.Pool | pg.ClientBase, shop: NewShop): Pr
       const s = split(key, value, { keepSecrets: shop.keepSecrets });
       secrets.push(...s.secrets.map(x => ({ ...x, storeKey: key })));
       const branch = branchOf(shop.pkg, key, fr?.branches);
-      const r = await writeMain(c, branch, key, {}, { layout: s.layout, upsert: s.rows, remove: [], order: {} }, null, { log: false });
+      // Files inside the data (a legacy app's pictures, slips …) are kept apart, the rows get links (task 3.11).
+      const rows = await extractInline(c, branch, s.rows);
+      const r = await writeMain(c, branch, key, {}, { layout: s.layout, upsert: rows, remove: [], order: {} }, null, { log: false });
       if (!r.ok) throw new Error(`seeding ${key}: ${r.conflicts.join(', ')}`);
       await storeSecrets(c, branch, s.secrets);
     }

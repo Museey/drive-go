@@ -9,6 +9,7 @@ import { gunzipSync, gzipSync } from 'node:zlib';
 import { COUNTERS, type Claims, type Counters, type Renumbered, numberOf, numbersIn, renumberText, seqOf } from './numbers.ts';
 import { type Changes, type Row, assemble, rootOf } from './units.ts';
 import { type Mask, maskRows, masksUnit, restoreRow } from './visibility.ts';
+import { dropRefs, keepForBackup, syncRefs } from './files.ts';
 
 // Version of each row, keyed "<unit>|<key>"; the browser sends back the
 // versions it last saw so the server can refuse a save that would overwrite
@@ -155,6 +156,8 @@ export async function writeMain(c: pg.ClientBase, branch: string, storeKey: stri
     ...changes.remove.filter(r => current.has(vkey(r.unit, r.key))).map(r => ({
       unit: r.unit, key: r.key, op: 'delete', version: null, before: before.get(vkey(r.unit, r.key))!, after: null })),
   ];
+  // Which files the data refers to (task 3.11): a file no row refers to any more is deleted.
+  await syncRefs(c, branch, log);
   if (keepLog && log.length) {
     await c.query(
       `insert into change_log (shop_id, branch_id, user_id, store_key, unit, key, op, version, before, after)
@@ -297,10 +300,11 @@ export async function makeBackup(c: pg.ClientBase, branch: string, key: string, 
   if (safety) await c.query(
     `delete from backups where shop_id = app_shop() and branch_id = $1 and key like '%.bak.safety-%'
         and created_at < now() - make_interval(days => $2)`, [branch, SAFETY_DAYS]);
-  await c.query(
+  const made = await c.query(
     `insert into backups (shop_id, branch_id, key, data) values (app_shop(), $1, $2, $3)
      on conflict (shop_id, branch_id, key) do ${safety ? 'nothing' : 'update set data = excluded.data, created_at = now()'}`,
     [branch, key, gzipSync(Buffer.from(main.json))]);
+  if (made.rowCount) await keepForBackup(c, branch, key, main.json);   // its files stay as long as it does (task 3.11)
   return true;
 }
 
@@ -327,6 +331,7 @@ export async function removeKey(c: pg.ClientBase, branch: string, key: string): 
   } else if (rootOf(key)) {
     const root = layoutUnit(key);
     await c.query('delete from records where shop_id = app_shop() and branch_id = $1 and (unit = $2 and key = $3 or unit like $4)', [branch, root, key, `${root}.%`]);
+    await dropRefs(c, branch, root);
   } else {
     await c.query('delete from blobs where shop_id = app_shop() and branch_id = $1 and key = $2', [branch, key]);
   }
