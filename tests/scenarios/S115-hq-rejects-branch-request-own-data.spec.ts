@@ -2,6 +2,7 @@ import { test, expect } from '../support/test';
 import { legacyGolden } from '../support/legacy-golden';
 import { hqOwnData } from '../support/hq-own-data';
 import type { Page } from '@playwright/test';
+import { FIXTURE_LINE, licenceLine } from '../support/licence';
 
 test.use({ dataset: 'franchise-trial' });
 
@@ -73,7 +74,9 @@ test('S115 ระบบใหม่: สาขาเติมใบขอเบ�
   await expect(page.getByText('ยังไม่มีใบขอเบิก', { exact: false }).filter({ visible: true })).toBeVisible();
   await expect(page.getByRole('row').filter({ hasText: 'REQ-6910-0001' })).toHaveCount(0);
   await golden.step('สาขา B002 ไม่เห็นใบขอเบิกของ B001');
-  await golden.screen('b002-requests');
+  // Task 3.15: the licence shown is the server's (tests/support/licence.ts), checked by its text and left out of the picture.
+  await expect(licenceLine(page)).toHaveText(FIXTURE_LINE);   // one date for the chain (15.7); the legacy new branch had a year from today
+  await golden.screen('b002-requests', { mask: [licenceLine(page)] });
 
   await signOut(page);
   await app.login('b001', '1234');

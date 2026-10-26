@@ -454,6 +454,8 @@
     notAllowed: "บันทึกไม่สำเร็จ — บัญชีนี้ไม่มีสิทธิ์แก้ข้อมูลส่วนนี้ กดตกลงเพื่อโหลดข้อมูลล่าสุด",
     // task T10, owner 2026-10-19
     lockedOut: "กรอกรหัสผิดหลายครั้ง กรุณารอ 15 นาทีแล้วลองใหม่",
+    // task 3.15, decision 15.3: after the licence's last day the shop is read-only
+    expired: "บันทึกไม่สำเร็จ — โปรแกรมหมดอายุการใช้งานแล้ว ยังเปิดดู พิมพ์ และส่งออกข้อมูลได้ แต่สร้างหรือแก้ไขข้อมูลไม่ได้จนกว่าจะต่ออายุ (โทร. 082-1087000) กดตกลงเพื่อโหลดข้อมูลล่าสุด",
     // task 3.2, decision R1-ก, owner 2026-10-23: the number a document got when the one it showed was taken
     // task 3.11 (R19-ค, answers 11.2 and 11.4): a file the server would not keep
     fileTooLarge: "บันทึกไม่สำเร็จ — ไฟล์แนบใหญ่เกิน 5 MB (คลิปเกิน 15 MB) กรุณาลดขนาดไฟล์ก่อนแนบ กดตกลงเพื่อโหลดข้อมูลล่าสุด",
@@ -488,6 +490,7 @@
     return new Promise(() => {
     });
   }
+  var refused = (what, body) => mustReload(/"error":"expired"/.test(body) ? MESSAGES.expired : MESSAGES.notAllowed, `not allowed to ${what}: ${body}`);
   async function send(input, init, saving) {
     for (let attempt = 0; ; attempt++) {
       try {
@@ -566,7 +569,7 @@
     }, true);
     if (r.status === 409) return mustReload(MESSAGES.conflict, `conflict ${key}: ${JSON.stringify((await r.json()).conflicts)}`);
     if (r.status === 401) return mustReload(MESSAGES.signedOut, `signed out while saving ${key}`);
-    if (r.status === 403) return mustReload(MESSAGES.notAllowed, `not allowed to save ${key}: ${await r.text()}`);
+    if (r.status === 403) return refused(`save ${key}`, await r.text());
     if (!r.ok) {
       problems.push(`save ${key}: ${r.status} ${await r.text()}`);
       return;
@@ -658,6 +661,7 @@
         const backup = /\.bak\./.test(key);
         await enqueue(async () => {
           const r = await send(url(key), { method: "PUT", body: backup ? "" : value }, true);
+          if (r.status === 403) return refused(`put ${key}`, await r.text());
           if (!r.ok) problems.push(`put ${key}: ${r.status}`);
         });
       }
@@ -667,7 +671,7 @@
       if (signedIn === false) return { key, deleted: false };
       await enqueue(async () => {
         const r = await send(url(key), { method: "DELETE" }, true);
-        if (r.status === 403) return mustReload(MESSAGES.notAllowed, `not allowed to delete ${key}`);
+        if (r.status === 403) return refused(`delete ${key}`, await r.text());
         if (!r.ok) problems.push(`delete ${key}: ${r.status}`);
         if (rootOf(key)) mains.set(key, { value: null, sent: null, last: null, base: {} });
       });

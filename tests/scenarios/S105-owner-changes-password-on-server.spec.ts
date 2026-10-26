@@ -1,6 +1,7 @@
 import { test, expect } from '../support/test';
 import { legacyStateChange, legacySteps, sameScreen } from '../support/legacy-golden';
 import { formatDiff, stateDiff } from '../support/state-diff.mjs';
+import { ownerPanelLicence } from '../support/licence';
 
 // Replaces S03 in the new system (tests/intentional-changes.json): the old
 // password is checked on the server and the new one stored there (T7); the
@@ -42,7 +43,8 @@ test('S105 ระบบใหม่: เจ้าของร้านเปล�
   await expect(page.getByText('ตั้งรหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร)')).toBeVisible();
   await page.locator('input:focus').waitFor();
   await page.keyboard.type('drive2026');
-  await sameScreen(page, app, testInfo, S03, 'new-password-typed');
+  // Task 3.15: the licence shown is the server's (tests/support/licence.ts), checked by its text and left out of the picture.
+  await sameScreen(page, app, testInfo, S03, 'new-password-typed', { mask: await ownerPanelLicence(page) });
   await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).click();
   await steps.same('เปลี่ยนรหัสผ่านเป็น drive2026');
   await app.settle();

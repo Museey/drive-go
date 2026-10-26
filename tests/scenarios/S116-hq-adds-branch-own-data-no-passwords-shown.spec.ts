@@ -2,6 +2,7 @@ import { test, expect } from '../support/test';
 import { legacyGolden } from '../support/legacy-golden';
 import { allPasswordCells, hiddenPasswords, hqOwnData } from '../support/hq-own-data';
 import type { Page } from '@playwright/test';
+import { FIXTURE_LINE, licenceLine } from '../support/licence';
 
 test.use({ dataset: 'franchise-trial' });
 
@@ -99,7 +100,9 @@ test('S116 ระบบใหม่: สำนักงานใหญ่ (ข�
   await app.login(headUser, headPass);
   await expect(page.getByRole('button', { name: /HQ ศูนย์กลางแฟรนไชส์/ })).toBeHidden();
   await golden.step('หัวหน้าสาขา B003 เข้าสู่ระบบ เห็นสาขาว่าง');
-  await golden.screen('b003-home');
+  // Task 3.15: the licence shown is the server's (tests/support/licence.ts), checked by its text and left out of the picture.
+  await expect(licenceLine(page)).toHaveText(FIXTURE_LINE);   // one date for the chain (15.7); the legacy new branch had a year from today
+  await golden.screen('b003-home', { mask: [licenceLine(page)] });
 
   await signOut(page);
   await app.login('b003.deputy', '5555');

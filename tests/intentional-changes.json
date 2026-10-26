@@ -23,13 +23,13 @@
       "scenario": "S03-owner-changes-password.spec.ts",
       "by": "S105-owner-changes-password-on-server.spec.ts",
       "decision": "T7, A1, A3",
-      "why": "Passwords are checked and stored on the server; the sign-in screenshot (demo account line) and the last step (way in without a password) cannot happen; every other step, screen and data change is checked against S03's goldens."
+      "why": "Passwords are checked and stored on the server; the sign-in screenshot (demo account line) and the last step (way in without a password) cannot happen; every other step, screen and data change is checked against S03's goldens. Task 3.15: the owner panel's tag counts the server's licence and the demo button is gone (checked by text, left out of the screenshot)."
     },
     {
       "scenario": "S05-suspend-and-reenable-employee-account.spec.ts",
       "by": "S106-suspend-employee-account-on-server.spec.ts",
       "decision": "T7, A3",
-      "why": "The refused sign-in happens on the server and the sign-in screen has no demo account line; every step, every other screen and every data change is checked against S05's goldens."
+      "why": "The refused sign-in happens on the server and the sign-in screen has no demo account line; every step, every other screen and every data change is checked against S05's goldens. Task 3.15: the owner panel's tag counts the server's licence and the demo button is gone (checked by text, left out of the screenshot)."
     },
     {
       "scenario": "S96-branch-head-issues-staff-login.spec.ts",
@@ -65,13 +65,13 @@
       "scenario": "S93-hq-rejects-branch-request.spec.ts",
       "by": "S115-hq-rejects-branch-request-own-data.spec.ts",
       "decision": "Q3",
-      "why": "HQ works on its own data set (HQ's screens: chain's name, HQ's licence line, HQ's own badges). Every step, data change, branch screen and the rest of each HQ screen is checked against S93's goldens."
+      "why": "HQ works on its own data set (HQ's screens: chain's name, HQ's licence line, HQ's own badges). Every step, data change, branch screen and the rest of each HQ screen is checked against S93's goldens. Task 3.15: a branch shows the chain's one licence date, not a year from today (checked by text, left out of the screenshot)."
     },
     {
       "scenario": "S94-hq-adds-branch-and-accounts.spec.ts",
       "by": "S116-hq-adds-branch-own-data-no-passwords-shown.spec.ts",
       "decision": "Q3, A3",
-      "why": "HQ works on its own data set and the branch register shows ******** instead of passwords; the new head's password comes from the message shown when the branch is made. Every step, message, data change and the rest of each screen is checked against S94's goldens."
+      "why": "HQ works on its own data set and the branch register shows ******** instead of passwords; the new head's password comes from the message shown when the branch is made. Every step, message, data change and the rest of each screen is checked against S94's goldens. Task 3.15: a branch shows the chain's one licence date, not a year from today (checked by text, left out of the screenshot)."
     },
     {
       "scenario": "S95-hq-suspends-branch-and-limits-menus.spec.ts",
@@ -83,7 +83,7 @@
       "scenario": "S97-what-each-franchise-role-sees.spec.ts",
       "by": "S118-what-each-franchise-role-sees-own-data.spec.ts",
       "decision": "Q3, A3; finding 42 (task 3.9)",
-      "why": "HQ works on its own data set (its settings page shows HQ's own organisation settings) and the branch register shows ******** instead of passwords. Every step, data change, branch screen and the rest of each HQ screen is checked against S97's goldens. Task 3.9 (finding 42): the staff account's home card of sales waiting for payment shows no amount."
+      "why": "HQ works on its own data set (its settings page shows HQ's own organisation settings) and the branch register shows ******** instead of passwords. Every step, data change, branch screen and the rest of each HQ screen is checked against S97's goldens. Task 3.9 (finding 42): the staff account's home card of sales waiting for payment shows no amount. Task 3.15: a branch shows the chain's one licence date (top bar and menu 10, without renew buttons), not a year from today (checked by text, left out of the screenshot)."
     },
     {
       "scenario": "S98-hq-turns-franchise-mode-off-and-on.spec.ts",
@@ -125,7 +125,7 @@
       "scenario": "S75-export-file-load-sample-import.spec.ts",
       "by": "S132-export-file-load-sample-import-counters-kept.spec.ts",
       "decision": "A7, F1 (task 3.2)",
-      "why": "Wiping the data and loading the sample data keep the shop's 8 document counters (S75 had none left); wiping, loading the sample data and importing ask for the shop's name, keep a copy first and write the audit log; every step, message, screen and other record count is checked against S75's goldens, and importing the exported file brings back the same counters."
+      "why": "Wiping the data and loading the sample data keep the shop's 8 document counters (S75 had none left); wiping, loading the sample data and importing ask for the shop's name, keep a copy first and write the audit log; every step, message, screen and other record count is checked against S75's goldens, and importing the exported file brings back the same counters. Task 3.15: the sample data's own licence dates do not count: the top bar shows the server's (checked by text, left out of the screenshot)."
     },
     {
       "scenario": "S76-load-36-month-test-data.spec.ts",
@@ -268,8 +268,8 @@
     {
       "scenario": "S55-shop-settings-logo-license.spec.ts",
       "by": "S168-shop-settings-sso-law-figures.spec.ts",
-      "decision": "R12, R13, F5, X2 and answers of 2026-10-25 (task 3.7)",
-      "why": "The social security fields show the law's figures (17,500 / 875) with a line beside the panel's title; saving writes nothing new. Those are checked by their text, every step, the rest of each screen and every data change against S55's goldens."
+      "decision": "R12, R13, F5, X2 and answers of 2026-10-25 (task 3.7); A2, 15.1 (task 3.15)",
+      "why": "The social security fields show the law's figures (17,500 / 875) with a line beside the panel's title; saving writes nothing new. Those are checked by their text, every step, the rest of each screen and every data change against S55's goldens. Task 3.15: the licence is DriveGo's, on the server, so the renew buttons are gone (hidden in place, left out of the screens) and the dates read-only; S55's renewal step cannot happen."
     },
     {
       "scenario": "S56-chart-of-accounts-add-edit-map.spec.ts",
@@ -324,6 +324,18 @@
       "by": "S210-asset-depreciation-by-days-paid-cash-voucher.spec.ts",
       "decision": "R17 and answers 13.1–13.11 of 2026-10-26 (task 3.13)",
       "why": "Depreciation is worked out by the days held in each year (the acquisition month is no longer a whole month), rounded per asset per year; the form has the payment terms and the vendor comes from the register (needed with VAT); bought in cash, the purchase is paid when saved with a payment voucher. Every step and message is S65's; the data change has the purchase, terms and payment; the list screen is S65's but for the vendor; the register is checked by its text."
+    },
+    {
+      "scenario": "S06-simulate-trial-expiry.spec.ts",
+      "by": "S230-no-demo-expiry-button-tag-follows-licence.spec.ts",
+      "decision": "A1, A2, 15.1 (task 3.15)",
+      "why": "The licence is DriveGo's, on the server: the demo button 'เดโม: จำลองครบ 15 วัน' is gone and the owner panel's tag counts to the licence's last day (the fixture's: 120 days), so the steps pressing the button cannot happen; the first and last steps and the rest of menu 10's screen are S06's."
+    },
+    {
+      "scenario": "S120-hq-extends-licence-branch-sees-it.spec.ts",
+      "by": "S231-hq-cannot-renew-chain-date-everywhere.spec.ts",
+      "decision": "A2, 15.1, 15.7 (task 3.15)",
+      "why": "A chain has one licence, DriveGo's, on the server: HQ cannot renew in menu 10 (no button, dates read-only) and saves keep the licence's dates, so S120's renewal step cannot happen; HQ's menu 10 step, the branch head's sign-in and their home screen (without the licence line) are S120's."
     }
   ],
   "added": [
@@ -576,6 +588,36 @@
       "scenario": "S214-statements-trial-balance-health-print-export-by-days.spec.ts",
       "decision": "R17 and answers 13.1, 13.7, 13.9 of 2026-10-26 (task 3.13)",
       "why": "The financial statements, the trial balance (printed and exported) and the health page (printed) carry depreciation by the day, the cash actually paid for assets and their input VAT in 1050."
+    },
+    {
+      "scenario": "S232-trial-near-its-end-warns.spec.ts",
+      "decision": "A2, 15.1–15.4, 15.7 (task 3.15)",
+      "why": "A trial staff opened 60 days long warns from 30 days before its last day with the legacy line, banner and tag, from the server's licence; the shop still saves."
+    },
+    {
+      "scenario": "S233-expired-shop-views-prints-exports-cannot-change.spec.ts",
+      "decision": "A2, 15.1–15.4, 15.7 (task 3.15)",
+      "why": "After the licence's last day the shop is read-only: the owner opens every menu, opens and prints a document, exports, never refused; a change is refused with the new message and the page reloads."
+    },
+    {
+      "scenario": "S234-expired-employee-signs-in-owner-suspends-account.spec.ts",
+      "decision": "A2, 15.1–15.4, 15.7 (task 3.15)",
+      "why": "Staff closing a shop applies to open pages at their next save; employees still sign in and view; suspending an employee's account is still allowed, turning it on is not."
+    },
+    {
+      "scenario": "S235-expired-franchise-hq-and-branch-read-only.spec.ts",
+      "decision": "A2, 15.1–15.4, 15.7 (task 3.15)",
+      "why": "A franchise chain has one licence: HQ and a branch head both see it expired, sign in and view, and are refused changes."
+    },
+    {
+      "scenario": "S236-staff-renew-expired-shop-saves-again.spec.ts",
+      "decision": "A2, 15.1–15.4, 15.7 (task 3.15)",
+      "why": "Staff renew with tools/shop-admin.mjs: after a lapse the year counts from the payment day; the shop saves again at once."
+    },
+    {
+      "scenario": "S237-expired-shop-api-calls-refused.spec.ts",
+      "decision": "A2, 15.1–15.4, 15.7 (task 3.15)",
+      "why": "Direct API calls of an expired shop: reads, viewing's audit entries and backup points pass; every other change is refused with { error: 'expired' }."
     }
   ]
 }
