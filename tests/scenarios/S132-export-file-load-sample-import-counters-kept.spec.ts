@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { test, expect } from '../support/test';
 import { legacyGolden } from '../support/legacy-golden';
 import { auditNote, confirmWithShopName } from '../support/whole-data';
-import { FIXTURE_LINE, licenceLine } from '../support/licence';
+import { FIXTURE_LINE, licenceBar, licenceLine } from '../support/licence';
 
 // Replaces S75 in the new system (tests/intentional-changes.json, task 3.2,
 // decisions A7, F1): wiping the data and loading the sample data keep the
@@ -57,7 +57,7 @@ test('S132 ระบบใหม่: ส่งออกไฟล์สำรอ�
     .toEqual([['wipe', auditNote('ล้างข้อมูลทั้งหมด')], ['demo', auditNote('โหลดข้อมูลตัวอย่าง')]]);
   // Task 3.15: the licence shown is the server's (tests/support/licence.ts), checked by its text and left out of the picture.
   await expect(licenceLine(page)).toHaveText(FIXTURE_LINE);   // the sample data's own dates (52 days) do not count
-  await golden.screen('home-sample-data', { mask: [licenceLine(page)] });
+  await golden.screen('home-sample-data', { mask: [licenceBar(page)] });
 
   await openDataPage();
   await page.getByRole('button', { name: /กู้คืนจากไฟล์สำรอง/ }).click();

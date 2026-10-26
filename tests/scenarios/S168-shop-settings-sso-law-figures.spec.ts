@@ -1,5 +1,6 @@
 import { test, expect } from '../support/test';
 import { legacyGolden } from '../support/legacy-golden';
+import { licenceBar, settingsLicence } from '../support/licence';
 
 // Replaces S55 in the new system (tests/intentional-changes.json, task 3.7, decision R12 = ค):
 // the social security fields show the law's figures for October 2026 — ceiling 17,500, at most 875
@@ -24,6 +25,8 @@ test('S168 ระบบใหม่: ตั้งค่าองค์กร ไ
   await expect(field('วันที่สิ้นสุดการใช้งาน (Expired Date)')).toHaveValue('2027-02-10');
   await expect(field('อายุการใช้งานคงเหลือ')).toHaveValue('120 วัน');
   const renew = page.locator('#v-setting button[onclick^="extendLic"]');   // hidden where they were (task 3.15)
+  // S55's later screens show its renewal (10/02/2571, 485 days); here the licence stays the server's.
+  const licenceAsServer = async () => [licenceBar(page), ...await settingsLicence(page)];
   await page.getByText('ตั้งค่าองค์กร · ข้อมูลผู้ใช้งานที่แสดงบนหัวเอกสาร').scrollIntoViewIfNeeded();
   await golden.step('หน้าตั้งค่าองค์กร');
   await golden.screen('settings-before', { mask: [renew] });
@@ -56,7 +59,7 @@ test('S168 ระบบใหม่: ตั้งค่าองค์กร ไ
   await expect(field('ฐานค่าจ้างต่ำสุด (บาท)')).toHaveValue('1650');
   await expect(field('ฐานค่าจ้างสูงสุด (บาท)')).toHaveValue('17500');
   await expect(page.getByText(/^ประกันสังคมตามกฎหมาย/)).toHaveText('ประกันสังคมตามกฎหมาย (ตั้งแต่ ม.ค. 2569): 5% · ฐาน 1,650 – 17,500 · หักสูงสุด 875 บาท — ระบบปรับให้เอง');
-  await golden.screen('logo-uploaded', { mask: [field('เพดานเงินสมทบต่อคน (บาท)'), field('ฐานค่าจ้างสูงสุด (บาท)'), page.getByText(/^ประกันสังคมตามกฎหมาย/), renew] });
+  await golden.screen('logo-uploaded', { mask: [field('เพดานเงินสมทบต่อคน (บาท)'), field('ฐานค่าจ้างสูงสุด (บาท)'), page.getByText(/^ประกันสังคมตามกฎหมาย/), ...await licenceAsServer()] });
 
   await page.getByRole('button', { name: 'ลบโลโก้' }).click();
   await expect(page.getByText('ลบโลโก้ออกจากระบบ?')).toBeVisible();
@@ -68,6 +71,6 @@ test('S168 ระบบใหม่: ตั้งค่าองค์กร ไ
   await expect(logoBox.getByText('ยังไม่มีโลโก้')).toBeVisible();
   await golden.step('หลังยืนยันลบโลโก้');
   await golden.stateChange('clear-logo', before);
-  await golden.screen('logo-cleared', { mask: [field('เพดานเงินสมทบต่อคน (บาท)'), field('ฐานค่าจ้างสูงสุด (บาท)'), page.getByText(/^ประกันสังคมตามกฎหมาย/), renew] });
+  await golden.screen('logo-cleared', { mask: [field('เพดานเงินสมทบต่อคน (บาท)'), field('ฐานค่าจ้างสูงสุด (บาท)'), page.getByText(/^ประกันสังคมตามกฎหมาย/), ...await licenceAsServer()] });
   golden.done();
 });

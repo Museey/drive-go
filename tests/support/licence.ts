@@ -5,6 +5,8 @@ import { type Page, expect } from '@playwright/test';
 
 // The top bar's "Expired Date … · เหลืออายุการใช้งาน N วัน".
 export const licenceLine = (page: Page) => page.getByText(/^⚠? ?Expired Date/).filter({ visible: true });
+// The whole line it sits in (the date before it moves when the licence text is longer or shorter).
+export const licenceBar = (page: Page) => licenceLine(page).locator('..');
 // The test shops' licence: the fixture's (a trial to 10/02/2570, 120 days on the tests' day).
 export const FIXTURE_LINE = 'Expired Date 10/02/2570 · เหลืออายุการใช้งาน 120 วัน';
 
