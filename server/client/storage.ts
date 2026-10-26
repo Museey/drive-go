@@ -40,7 +40,7 @@ const MESSAGES = {   // decision Q5
   // task 3.15, decision 15.3: after the licence's last day the shop is read-only
   expired: 'บันทึกไม่สำเร็จ — โปรแกรมหมดอายุการใช้งานแล้ว ยังเปิดดู พิมพ์ และส่งออกข้อมูลได้ แต่สร้างหรือแก้ไขข้อมูลไม่ได้จนกว่าจะต่ออายุ (โทร. 082-1087000) กดตกลงเพื่อโหลดข้อมูลล่าสุด',
   // task 3.2, decision R1-ก, owner 2026-10-23: the number a document got when the one it showed was taken
-  // task 3.11 (R19-ค, answers 11.2 and 11.4): a file the server would not keep
+  // task 3.11 (R19-ค, answers 11.2 and 11.4, owner approved 2026-10-26): a file the server would not keep
   fileTooLarge: 'บันทึกไม่สำเร็จ — ไฟล์แนบใหญ่เกิน 5 MB (คลิปเกิน 15 MB) กรุณาลดขนาดไฟล์ก่อนแนบ กดตกลงเพื่อโหลดข้อมูลล่าสุด',
   spaceFull: 'บันทึกไม่สำเร็จ — พื้นที่ไฟล์ของร้านเต็มแล้ว (2 GB) แนบรูปสินค้า ไฟล์คลังความรู้ และคลิปไม่ได้ กดตกลงเพื่อโหลดข้อมูลล่าสุด',
   renumbered: (r: Renumbered) => `บันทึกแล้ว เอกสารได้เลขที่ ${r.map(x => x[1]).join(', ')} เพราะเลขที่ ${r.map(x => x[0]).join(', ')} ถูกใช้ไปแล้ว`,
