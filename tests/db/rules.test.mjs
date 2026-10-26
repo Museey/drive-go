@@ -177,6 +177,43 @@ describe('ค่าใช้จ่าย สินทรัพย์ เงิ�
   });
 });
 
+describe('สินทรัพย์ (งาน 3.13)', () => {
+  // A purchase on credit (62-assets.js): its first line holds the payments.
+  const credit = (DB, extra = {}) => ({ ...DB.assets[0], id: 'fa1', no: 'MA-FA261000001', grp: 'fa1', date: '2026-10-05', vendorId: DB.vendors[0].id,
+    term: 'credit', days: 30, due: '2026-11-04', payments: [], paid: false, ...extra });
+  const pay = { id: 'p1', amt: 100, date: '2026-10-13', method: 'cash', by: 'x', pvNo: 'MA-PV261000001' };
+  test('จ่ายค่าสินทรัพย์ค้างจ่ายต้องมีสิทธิ์จ่ายเงินเจ้าหนี้ บันทึกหรือแก้สินทรัพย์ต้องมีสิทธิ์บันทึกค่าใช้จ่าย สินทรัพย์ และเงินลงทุน', async () => {
+    const { DB, check, put, grant } = await shop();
+    const a = credit(DB);
+    await put('DB.assets', 'fa1', a);
+    const paid = { ...a, payments: [pay], payDate: '2026-10-13' };
+    assert.equal(await check('EMP005', save(['DB.assets', 'fa1', paid])), 'DB.assets|fa1', 'no payGr');
+    await grant('EMP005', 'doc.payGr');
+    assert.equal(await check('EMP005', save(['DB.assets', 'fa1', paid])), null, 'paying');
+    assert.equal(await check('EMP005', save(['DB.assets', 'fa1', { ...paid, life: 10 }])), 'DB.assets|fa1', 'not the asset itself');
+    assert.equal(await check('EMP005', save(['DB.assets', 'fa2', { ...a, id: 'fa2' }])), 'DB.assets|fa2', 'not a new one');
+    assert.equal(await check('EMP002', save(['DB.assets', 'fa1', { ...paid, life: 10 }])), null);
+    // 4.4 records the certificate on a payment: open, as for an expense
+    await put('DB.assets', 'fa1', paid);
+    assert.equal(await check('EMP008', save(['DB.assets', 'fa1', { ...paid, payments: [{ ...pay, whtCertNo: 'MA-WH261000001' }] }])), null, 'certificate number');
+    assert.equal(await check('EMP008', save(['DB.assets', 'fa1', { ...paid, payments: [{ ...pay, cancelled: true }] }])), 'DB.assets|fa1', 'voiding a payment');
+  });
+
+  test('เดือนที่ปิดงวดแล้ว: สินทรัพย์ที่มี VAT จ่ายเงินและแก้อายุ ซาก สถานะได้ ช่องภาษี การยกเลิก และการลบไม่ได้', async () => {
+    const { DB, check, put } = await shop();
+    const a = credit(DB);
+    await put('DB.assets', 'fa1', a);
+    await put('DB.taxPeriods', '', { '2026-10': { closed: true, hist: [] } });
+    assert.equal(await check('owner', save(['DB.assets', 'fa1', { ...a, payments: [pay] }])), null, 'paying');
+    assert.equal(await check('owner', save(['DB.assets', 'fa1', { ...a, life: 10, salvage: 100, status: 'sold', out: '2026-10-20' }])), null, 'life, salvage, status');
+    for (const [k, v] of [['cost', 1], ['vendorId', DB.vendors[1].id], ['inv', 'X'], ['date', '2026-10-06'], ['cancelled', true]])
+      assert.equal(await check('owner', save(['DB.assets', 'fa1', { ...a, [k]: v }])), 'DB.assets|fa1: tax period closed', k);
+    assert.equal(await check('owner', save(['DB.assets', 'fa1', undefined])), 'DB.assets|fa1: tax period closed');
+    assert.equal(await check('owner', save(['DB.assets', 'fa9', { ...a, id: 'fa9' }])), 'DB.assets|fa9: tax period closed');
+    assert.equal(await check('owner', save(['DB.assets', 'fa1', { ...a, vat: 0, cost: 1 }])), 'DB.assets|fa1: tax period closed', 'had VAT');
+  });
+});
+
 describe('ยกเลิกเอกสารการเงิน (งาน 3.9)', () => {
   test('ยกเลิกการขาย การรับเงิน ใบรับสินค้า ต้องมีสิทธิ์ยกเลิกของเอกสารนั้น', async () => {
     const { DB, check } = await shop();
