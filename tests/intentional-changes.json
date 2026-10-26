@@ -462,6 +462,16 @@
       "scenario": "S187-employee-api-calls-refused-money-tax-people-settings.spec.ts",
       "decision": "R14 and answers of 2026-10-26 (task 3.9, part 3)",
       "why": "The server refuses saves the screens would not allow for money, tax, people and settings and the rules of tasks 3.3–3.8 (closing a tax month, VAT left off, credit notes, payroll, expenses, cancelling a sale, an employee record, the organisation settings); nothing changes."
+    },
+    {
+      "scenario": "S220-pdf-file-names-of-documents-and-reports.spec.ts",
+      "decision": "F9 and answers 14.1–14.4 of 2026-10-26 (task 3.14)",
+      "why": "Printing a document or a report names the PDF the browser saves: <type>_<number>_<party>.pdf (walk-in customer \"ลูกค้าทั่วไป\", \"_ยกเลิก\" when cancelled) or <title>_<period>.pdf; the page's title carries the name while printing and comes back afterwards. The legacy app leaves the page's title as the PDF name."
+    },
+    {
+      "scenario": "S221-pdf-file-names-voucher-payslips-credit-note-draft.spec.ts",
+      "decision": "F9 and answers 14.1–14.4 of 2026-10-26 (task 3.14)",
+      "why": "The PDF names of a payment voucher (the payee, cleaned of characters a file name may not hold and cut to 80 characters at a word's end), a credit note, one employee's pay slip (the period in place of a number), every employee's pay slips (\"ทุกคน\") and a goods receipt printed before it is saved (\"ร่าง\")."
     }
   ]
 }
