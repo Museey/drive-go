@@ -144,6 +144,17 @@ describe('ขายเกินของที่มี (งาน 3.6)', () => 
     assert.equal(await check('owner', sale), null);
     assert.equal(await check('EMP008', save(['DB.stockCuts', 'c1', cut], ['DB.stock', s.id, { ...s, qty: 0 }])), null);
   });
+
+  test('ขายที่สาขาอื่นของร้าน: server เก็บยอดสาขาหลักไว้ในแถว ยอดสาขาอื่นอยู่ใน bq จึงตรวจทุกสาขา (งาน 3.10 ข้อ 10.7)', async () => {
+    const { DB, check, put } = await shop();
+    const s = DB.stock.find(x => x.qty > 0);
+    const b2 = { qty: 1, min: 0, max: 0, zone: '', shelf: '', loc: '', lastMove: '' };
+    await put('DB.stock', s.id, { ...s, bq: { b2 } });
+    const cut = { ...DB.stockCuts[0], id: 'c1', no: 'B2-SA261000001', br: 'b2', lines: [{ stockId: s.id, qty: 2 }] };
+    const short = save(['DB.stockCuts', 'c1', cut], ['DB.stock', s.id, { ...s, bq: { b2: { ...b2, qty: -1 } } }]);
+    assert.equal(await check('EMP008', short), `DB.stock|${s.id}: not enough stock`);
+    assert.equal(await check('EMP008', save(['DB.stockCuts', 'c1', cut], ['DB.stock', s.id, { ...s, bq: { b2: { ...b2, qty: 0 } } }])), null);
+  });
 });
 
 describe('เงินเดือน (งาน 3.7–3.9)', () => {

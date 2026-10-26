@@ -207,11 +207,17 @@ async function shortRules(s: Save, who: Who): Promise<string | null> {
   if (!sale) return null;
   for (const t of await s.touched('DB.stock')) {
     if (!t.now || !t.old) continue;
-    const was = num(t.old.qty), now = num(t.now.qty);
-    if (now < 0 && now < was) return `DB.stock|${t.key}: not enough stock`;
+    for (const [br, now] of branchQty(t.now)) {
+      const was = branchQty(t.old).get(br) ?? 0;
+      if (now < 0 && now < was) return `DB.stock|${t.key}: not enough stock`;
+    }
   }
   return null;
 }
+// An item's quantity in each branch of the data set: the main branch's inline, the others' in bq (19.js). The server
+// keeps stock rows with the main branch's values inline whatever branch each person works in (task 3.10, 10.7).
+const branchQty = (s: Rec) => new Map<string, number>([['main', num(s.qty)],
+  ...Object.entries(isObj(s.bq) ? s.bq : {}).filter(([br]) => br !== 'main').map(([br, v]): [string, number] => [br, num(isObj(v) ? v.qty : 0)])]);
 
 // Payroll (tasks 3.7, 3.8, 3.9).
 async function payrollRules(s: Save, who: Who): Promise<string | null> {

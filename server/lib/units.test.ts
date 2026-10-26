@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-import { SECRET_PLACEHOLDER, assemble, diff, rootOf, split } from './units.ts';
+import { SECRET_PLACEHOLDER, applyRows, assemble, diff, rootOf, split } from './units.ts';
 
 // Every main STORE key of every fixture, as the legacy app saved it.
 const fixtures = ['biz-trial', 'prox-trial', 'franchise-trial', 'biz-full'];
@@ -65,8 +65,10 @@ test('แต่ละชนิดแบ่งเป็นแถวตามต�
   const s = split('garage.v22', json);
   assert.deepEqual(s.rows.map(r => `${r.unit}|${r.key}`), [
     'DB.receipts|r1', 'DB.coa|1000', 'DB.seq|MA-RE2610', 'DB.seq|MA-QT2610', 'DB.px.queue|q1', 'DB.px.shop|', 'DB.px.seq|',
-    'DB.fifo.v|', 'DB.fifo.lots|l1', 'DB.shop|', 'DB.curBranch|', 'DB.newThing|']);
-  assert.equal(assemble('garage.v22', s.layout, s.rows), json);
+    'DB.fifo.v|', 'DB.fifo.lots|l1', 'DB.shop|', 'DB.newThing|']);
+  // the working branch is the person's own (task 3.10, 10.7)
+  assert.deepEqual(s.session, { 'DB.curBranch': '"main"' });
+  assert.equal(assemble('garage.v22', s.layout, s.rows, { session: s.session }), json);
 });
 
 test('ช่องที่ปกติเป็นรายการแต่ค่าไม่ใช่รายการ ก็เก็บทั้งก้อนแล้วประกอบกลับได้', () => {
@@ -115,4 +117,20 @@ test('key ที่ไม่ใช่ข้อมูลหลักไม่ถ�
   assert.equal(rootOf('garage.v22.bak.2026-10-13'), null);
   assert.equal(rootOf('dgb.guide.v22'), null);
   assert.throws(() => split('garage.v22.trialkeep', '{}'));
+});
+
+test('ใส่แถวที่เครื่องอื่นบันทึกลงข้อมูลที่เปิดอยู่: แก้ที่เดิมโดยไม่เปลี่ยนตัววัตถุ เพิ่มต่อท้าย ลบ เรียงตามลำดับของ server', () => {
+  const DB: any = { receipts: [{ id: 'r1', paid: false }, { id: 'r2' }], seq: { A: 1 }, px: { queue: [{ id: 'q1' }] }, shop: { n: 1 } };
+  const r1 = DB.receipts[0], shop = DB.shop;
+  const ok = applyRows('garage.v22', DB, {
+    upsert: [{ unit: 'DB.receipts', key: 'r1', data: '{"id":"r1","paid":true}' }, { unit: 'DB.receipts', key: 'r3', data: '{"id":"r3"}' },
+      { unit: 'DB.seq', key: 'B', data: '2' }, { unit: 'DB.px.queue', key: 'q2', data: '{"id":"q2"}' }, { unit: 'DB.shop', key: '', data: '{"n":2}' }],
+    remove: [{ unit: 'DB.receipts', key: 'r2' }], order: { 'DB.px.queue': ['q2', 'q1'] },
+  });
+  assert.equal(ok, true);
+  assert.equal(DB.receipts[0], r1);
+  assert.equal(DB.shop, shop);
+  assert.equal(JSON.stringify(DB), '{"receipts":[{"id":"r1","paid":true},{"id":"r3"}],"seq":{"A":1,"B":2},"px":{"queue":[{"id":"q2"},{"id":"q1"}]},"shop":{"n":2}}');
+  // a field the app has not made yet: read the whole key instead
+  assert.equal(applyRows('garage.v22', DB, { upsert: [{ unit: 'DB.payroll', key: 'p1', data: '{"id":"p1"}' }], remove: [], order: {} }), false);
 });

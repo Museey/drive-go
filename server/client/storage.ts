@@ -13,6 +13,7 @@
 //
 // All writes go out one at a time, in call order. A save the server refuses
 // because someone else saved first (decision P1) asks the user to reload.
+// Other devices' saves come in as they happen (task 3.10, ./live.ts).
 //
 // Before signing in, the app gets only what the sign-in screen needs (the
 // server's /api/public) and nothing it writes is sent. Passwords never travel
@@ -22,6 +23,8 @@ import { type Counters, type Issued, type Renumbered, baseOf, claimsIn, correctS
 import { type Split, SECRET_PLACEHOLDER, assemble, diff, eachRecord, rootOf, split } from '../lib/units.ts';
 import { type Mask, maskRows } from '../lib/visibility.ts';
 import { type Refused, linkInPlace, setSpace, space, uploadFiles, withLinks } from './files.ts';
+import { createLive } from './live.ts';
+import { dataToMain } from '../lib/branch-stock.ts';
 
 const API = '/api/storage';
 // The legacy app later wraps window.fetch to show its loading overlay on every
@@ -59,6 +62,8 @@ interface Main {
   forbidden?: boolean;
   // What the server left out for this person (task 3.9): their copy is compared with the server's through it.
   masks?: Mask[];
+  raw?: string | null;           // the app's write that `sent` was made from (they differ for the stock of another branch, 10.7)
+  cursor?: number;               // other devices' saves up to this one are in the data as read (task 3.10)
 }
 const mains = new Map<string, Main>();
 const vk = (unit: string, key: string) => `${unit}|${key}`;
@@ -129,8 +134,9 @@ async function readMain(key: string): Promise<Main> {
     const nl = body.indexOf('\n');
     m.base = JSON.parse(body.slice(0, nl));
     m.masks = JSON.parse(decodeURIComponent(r.headers.get('x-drivego-masks') || '%5B%5D'));   // escaped: a header is Latin-1
-    m.value = m.sent = body.slice(nl + 1);
+    m.value = m.sent = m.raw = body.slice(nl + 1);
     m.last = split(key, m.sent);
+    m.cursor = Number(r.headers.get('x-drivego-live')) || 0;
   } else if (r.status === 403) {
     m.forbidden = true;
   } else if (r.status === 401) {
@@ -149,12 +155,31 @@ function newSecrets(before: Split | null, next: Split) {
   return next.secrets.filter(s => s.value !== SECRET_PLACEHOLDER && was.get(`${s.unit}|${s.key}|${s.field}`) !== s.value);
 }
 
+// The app's data as the server keeps it (task 3.10, answer 10.7): working in another branch, its stock records
+// have that branch's values inline; the server's have the main branch's (server/lib/branch-stock.ts).
+const storedStock = new WeakMap<Split, Map<string, Record<string, unknown>>>();
+function serverShape(key: string, value: string, m: Main): string {
+  if (rootOf(key) !== 'DB' || !/"stockCtx":"(?!main")/.test(value)) return value;
+  const db = JSON.parse(value) as Record<string, unknown>;
+  let stored = m.last ? storedStock.get(m.last) : undefined;
+  if (m.last && !stored) {
+    stored = new Map(m.last.rows.filter(r => r.unit === 'DB.stock').map(r => [r.key, JSON.parse(r.data)]));
+    storedStock.set(m.last, stored);
+  }
+  return dataToMain(db, stored ?? new Map()) ? JSON.stringify(db) : value;
+}
+
+// A save that replaces the whole data set (3.2d: the app keeps a safety copy first, guardWholeData): the other
+// devices are told to reload (task 3.10, answer 10.5).
+const whole = new Map<string, string>();
+
 // Sends what changed in a main key since the server's last confirmed value.
 async function flush(key: string): Promise<void> {
   const m = mains.get(key)!;
   let value = m.value;
-  if (value === null || value === m.sent || !signedIn || m.forbidden) return;
-  let next = split(key, value);
+  if (value === null || value === m.raw || !signedIn || m.forbidden) return;
+  let shaped = serverShape(key, value, m);
+  let next = split(key, shaped);
   const secrets = newSecrets(m.last, next);
   let changes = m.last ? diff(m.last, next)
     : { layout: next.layout, upsert: next.rows, remove: [], order: {} };
@@ -166,12 +191,13 @@ async function flush(key: string): Promise<void> {
     m.value = m.value === value ? linked : withLinks(key, m.value!, files);
     if (typeof KEY !== 'undefined' && KEY === key && typeof DB !== 'undefined') linkInPlace(key, DB, files);
     value = linked;
-    next = split(key, value);
+    shaped = serverShape(key, value, m);
+    next = split(key, shaped);
     changes = m.last ? diff(m.last, next) : { layout: next.layout, upsert: next.rows, remove: [], order: {} };
   }
   const sessionChanged = JSON.stringify(next.session) !== JSON.stringify(m.last?.session ?? {});
   if (changes.layout === undefined && !changes.upsert.length && !changes.remove.length && !Object.keys(changes.order).length && !sessionChanged && !secrets.length) {
-    m.sent = value; m.last = next;
+    m.sent = shaped; m.raw = value; m.last = next;
     return;
   }
   const root = rootOf(key)!;
@@ -181,23 +207,28 @@ async function flush(key: string): Promise<void> {
   for (const r of changes.upsert) known(r.unit, r.key);
   for (const r of changes.remove) known(r.unit, r.key);
   const numbers = claimsIn(issuedFor(key), value);
+  const replacing = whole.get(key);
+  whole.delete(key);
   const r = await send(url(key), {
     method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ base, changes, session: next.session, secrets, numbers }),
+    body: JSON.stringify({ base, changes, session: next.session, secrets, numbers, ...(replacing ? { whole: replacing } : {}) }),
   }, true);
   if (r.status === 409) return mustReload(MESSAGES.conflict, `conflict ${key}: ${JSON.stringify((await r.json()).conflicts)}`);
   if (r.status === 401) return mustReload(MESSAGES.signedOut, `signed out while saving ${key}`);
   // The server's permission checks refused it (task T10): the screen must not go on as if it were saved.
   if (r.status === 403) return refused(`save ${key}`, await r.text());
   if (!r.ok) { problems.push(`save ${key}: ${r.status} ${await r.text()}`); return; }
-  const { versions, renumbered = [], counters = [] } = await r.json() as { versions: Record<string, number>; renumbered?: Renumbered; counters?: Counters };
+  const { versions, renumbered = [], counters = [], live: logId } = await r.json() as
+    { versions: Record<string, number>; renumbered?: Renumbered; counters?: Counters; live?: number | null };
+  live.own(logId);
   for (const x of changes.remove) delete m.base[vk(x.unit, x.key)];
   Object.assign(m.base, versions);
   const claimed = new Set(Object.values(numbers).flat());
   const later = issuedFor(key).filter(x => !claimed.has(x.no));
   if (!renumbered.length && !counters.length) {
     issued.set(key, later);
-    m.sent = value;
+    m.sent = shaped;
+    m.raw = value;
     m.last = next;
     return;
   }
@@ -212,7 +243,8 @@ async function flush(key: string): Promise<void> {
   const all = [...renumbered, ...shift.renumbered];
   const moved = new Map(shift.renumbered);
   issued.set(key, later.map(x => ({ base: x.base, no: moved.get(x.no) ?? x.no })));
-  if (m.value === value) m.value = m.sent;
+  m.raw = null;
+  if (m.value === value && shaped === value) m.value = m.sent;
   else { const now = split(key, m.value!); m.value = correctSplit(key, now, rowsToRenumber(next, changes, now), all, shift.counters); }
   if (typeof KEY !== 'undefined' && KEY === key && typeof DB !== 'undefined') {
     const rows = rowsToRenumber(next, changes, split(key, JSON.stringify(DB)));
@@ -261,11 +293,18 @@ scriptsLoaded.then(() => {
   };
 });
 
+const live = createLive({
+  mains, enqueue, send, problems,
+  read: async key => { const m = await readMain(key); return m; },
+  mustReload,
+});
+
 const storage = {
   async get(key: string): Promise<{ key: string; value: string } | null> {
     if (rootOf(key)) {
       let m = mains.get(key);
       if (!m) { m = await readMain(key); if (!mains.has(key)) mains.set(key, m); else m = mains.get(key)!; }
+      if (signedIn && !m.forbidden && m.last) live.start(m.cursor ?? 0);
       await scriptsLoaded;
       return m.value === null ? null : { key, value: m.value };
     }
@@ -289,6 +328,8 @@ const storage = {
       // Backup points are copied on the server from its own data, so their
       // (whole-data) value is not uploaded.
       const backup = /\.bak\./.test(key);
+      const safety = /^(.+?)\.bak\.safety-.*-([a-z]+)$/.exec(key);
+      if (safety && rootOf(safety[1])) whole.set(safety[1], safety[2]);
       await enqueue(async () => {
         const r = await send(url(key), { method: 'PUT', body: backup ? '' : value }, true);
         if (r.status === 403) return refused(`put ${key}`, await r.text());
@@ -351,6 +392,7 @@ const storage = {
     if ((window as unknown as { __drivegoTest?: boolean }).__drivegoTest)
       for (const key of (await storage.verify()).wrong) problems.push(`not on the server at sign-out: ${key}`);
     await send('/api/auth/logout', { method: 'POST' }, false);
+    live.stop();
     signedIn = false;
     mains.clear();
   },
@@ -366,6 +408,9 @@ const storage = {
     return r.ok && body.ok === true;
   },
 
+  // Other devices' saves (task 3.10): for the screens (frontend/js/67-live.js).
+  live: live.api,
+
   // For the tests: resolves when every write so far has been answered.
   idle: () => queue.then(() => {}),
   problems,
@@ -380,7 +425,7 @@ const storage = {
       checked.push(key);
       const r = await fetch0(url(key), { cache: 'no-store' });
       const body = await r.text();
-      const s = split(key, m.value);
+      const s = split(key, serverShape(key, m.value, m));
       const expected = assemble(key, s.layout, m.masks?.length ? maskRows(s.rows, m.masks) : s.rows, { session: s.session });
       if (r.status !== 200 || body.slice(body.indexOf('\n') + 1) !== expected) wrong.push(key);
     }

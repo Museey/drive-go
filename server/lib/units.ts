@@ -36,11 +36,13 @@ RULES['DB.coa'] = BY_CODE;
 for (const f of ['seq', 'paySlips', 'whtDocs']) RULES[`DB.${f}`] = MAP;
 RULES['DB.px'] = GROUP;
 RULES['DB.fifo'] = GROUP;
-for (const u of ['DB.curEmp', 'FR.session', 'DGB.session']) RULES[u] = SESSION;
+// DB.curBranch: the branch each person works in (task 3.10, answer 10.7), so one person changing branch moves nobody else.
+for (const u of ['DB.curEmp', 'DB.curBranch', 'FR.session', 'DGB.session']) RULES[u] = SESSION;
 
 // Value of a session field when nobody is signed in (as the legacy app starts).
 export const SESSION_DEFAULTS: Record<string, string> = {
   'DB.curEmp': '""',
+  'DB.curBranch': '"main"',
   'FR.session': '{"accId":"","inspect":""}',
   'DGB.session': '{"who":""}',
 };
@@ -238,4 +240,77 @@ export function diff(before: Split, after: Split): Changes {
     if (kept.join('\u0000') !== keptBefore.join('\u0000') || !newAtEnd) changes.order[unit] = b.map(r => r.key);
   }
   return changes;
+}
+
+// Puts rows another device saved into a STORE key's live value (the legacy app's DB, FR or DGB object) in place,
+// as split() would read them back (task 3.10): a record of a list is replaced where it is (the same object keeps
+// its identity, so the screens' references to it stay good), a new one goes last (the server gives new records the
+// next position), a removed one goes; order gives a unit's full key order. read: the value of a row (the browser
+// may change its shape, e.g. a stock record for the branch it works in). Returns false when the value has no
+// place for a row (its layout differs: a field the app has not made yet): the caller reads the whole key instead.
+export function applyRows(storeKey: string, value: unknown, changes: { upsert: Row[]; remove: { unit: string; key: string }[]; order: Record<string, string[]> },
+  read: (row: Row) => unknown = r => JSON.parse(r.data)): boolean {
+  const root = rootOf(storeKey);
+  if (!root || !isObject(value)) return false;
+  // The object that holds a unit's field, and the field: DB.px.queue -> (value.px, 'queue').
+  const place = (unit: string): [Record<string, unknown>, string] | null => {
+    const path = unit.split('.').slice(1);
+    let at: unknown = value;
+    for (const f of path.slice(0, -1)) { at = isObject(at) ? at[f] : undefined; if (!isObject(at)) return null; }
+    return isObject(at) ? [at, path[path.length - 1]] : null;
+  };
+  const replace = (target: Record<string, unknown>, v: unknown) => {
+    if (!isObject(v)) return false;
+    for (const k of Object.keys(target)) delete target[k];
+    Object.assign(target, v);
+    return true;
+  };
+  const units = new Set([...changes.upsert.map(r => r.unit), ...changes.remove.map(r => r.unit), ...Object.keys(changes.order)]);
+  for (const unit of units) {
+    const rule = RULES[unit];
+    if (rule === SESSION) continue;
+    const at = place(unit);
+    if (!at) return false;
+    const [holder, field] = at;
+    const ups = changes.upsert.filter(r => r.unit === unit), gone = new Set(changes.remove.filter(r => r.unit === unit).map(r => r.key));
+    if (rule === LIST || rule === BY_CODE) {
+      const list = holder[field];
+      if (!Array.isArray(list) || !list.every(isObject)) return false;
+      const items = list as Record<string, unknown>[], keyOf = () => listKeys(items, rule === LIST ? 'id' : 'code');
+      for (const r of ups) {
+        const v = read(r), i = keyOf().indexOf(r.key);
+        if (!isObject(v)) return false;
+        if (i < 0) items.push(v);
+        else if (!replace(items[i], v)) items[i] = v;
+      }
+      if (gone.size) { const keys = keyOf(); for (let i = items.length - 1; i >= 0; i--) if (gone.has(keys[i])) items.splice(i, 1); }
+      const order = changes.order[unit];
+      if (order) {
+        const keys = keyOf(), byKey = new Map(items.map((x, i) => [keys[i], x])), rank = new Map(order.map((k, i) => [k, i]));
+        const sorted = [...byKey.keys()].sort((a, b) => (rank.get(a) ?? Infinity) - (rank.get(b) ?? Infinity) || keys.indexOf(a) - keys.indexOf(b));
+        items.splice(0, items.length, ...sorted.map(k => byKey.get(k)!));
+      }
+    } else if (rule === MAP) {
+      const map = holder[field];
+      if (!isObject(map)) return false;
+      for (const r of ups) map[r.key] = read(r);
+      for (const k of gone) delete map[k];
+      const order = changes.order[unit];
+      if (order) {
+        const entries = Object.entries(map), rank = new Map(order.map((k, i) => [k, i]));
+        entries.sort((a, b) => (rank.get(a[0]) ?? Infinity) - (rank.get(b[0]) ?? Infinity));
+        for (const [k] of entries) delete map[k];
+        for (const [k, v] of entries) map[k] = v;
+      }
+    } else {
+      // A whole field (DB.shop …): one row, key ''.
+      for (const r of ups) {
+        if (r.key !== '' || !(field in holder)) return false;
+        const v = read(r);
+        if (!(isObject(holder[field]) && replace(holder[field] as Record<string, unknown>, v))) holder[field] = v;
+      }
+      if (gone.size) return false;
+    }
+  }
+  return true;
 }

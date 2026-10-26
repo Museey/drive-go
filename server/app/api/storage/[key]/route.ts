@@ -20,6 +20,7 @@ import { fillCosts } from '@/lib/costing';
 import { refuseRules } from '@/lib/rules';
 import { MAX_SAVE_BYTES, inlineFile, readBody } from '@/lib/files';
 import { licenceOf, pinData, refuseExpiredKey, refuseExpiredSave } from '@/lib/licence';
+import { liveCursor } from '@/lib/live';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,9 +40,12 @@ export async function GET(req: Request, ctx: Ctx) {
     const rights = await rightsOf(c, await actorOf(c, s));
     if (rootOf(key)) {
       const masks = masksFor(rights);
+      // Where the browser starts hearing other devices' saves (task 3.10): taken first, so none made while it reads is missed.
+      const cursor = await liveCursor(c);
       const main = await readMain(c, branch, key, sessionFields(s, key), masks);
       if (!main) return missing();
-      return text(JSON.stringify(main.versions) + '\n' + main.json, { 'x-drivego-masks': encodeURIComponent(JSON.stringify(masks)) });
+      return text(JSON.stringify(main.versions) + '\n' + main.json,
+        { 'x-drivego-masks': encodeURIComponent(JSON.stringify(masks)), 'x-drivego-live': String(cursor) });
     }
     if (isDataCopyKey(key) && !rights.owner) return json({ error: 'not allowed', what: key }, 403);
     const value = isBackupKey(key) ? await readBackup(c, branch, key) : await readBlob(c, branch, key);
@@ -55,7 +59,7 @@ export async function POST(req: Request, ctx: Ctx) {
   const raw = await readBody(req, MAX_SAVE_BYTES);
   if (!raw) return json({ error: 'too-large' }, 413);
   const body = JSON.parse(raw.toString('utf8')) as { base: Record<string, number>; changes: Changes; session?: Record<string, string>;
-    secrets?: { unit: string; key: string; field: string; value: string }[]; numbers?: Claims };
+    secrets?: { unit: string; key: string; field: string; value: string }[]; numbers?: Claims; whole?: unknown };
   // Files are uploaded before a save, the data keeps links (task 3.11).
   const inline = inlineFile(body.changes);
   if (inline) return json({ error: 'file inside the data', what: inline }, 400);
@@ -78,7 +82,9 @@ export async function POST(req: Request, ctx: Ctx) {
     // Money, tax, people and settings: what the screens would not have let this person do (task 3.9).
     const broken = await refuseRules(c, actor, branch, key, changes);
     if (broken) return json({ error: 'not allowed', what: broken }, 403);
-    const r = await saveMain(c, branch, key, body.base || {}, changes, body.numbers || {}, s.userId);
+    // whole: the browser is replacing the whole data set (3.2d: wipe, restore, import, sample data); the other devices reload (10.5).
+    const whole = typeof body.whole === 'string' && /^[a-z-]{1,20}$/.test(body.whole) ? body.whole : undefined;
+    const r = await saveMain(c, branch, key, body.base || {}, changes, body.numbers || {}, s.userId, whole);
     if (!r.ok) return json({ conflicts: r.conflicts }, 409);
     if (body.session) await saveSessionFields(c, s, key, body.session);
     // New passwords become hashes; a save that touches accounts may end other
@@ -90,7 +96,7 @@ export async function POST(req: Request, ctx: Ctx) {
       const pkg = (await c.query<{ package: string }>('select package from shops where id = app_shop()')).rows[0].package;
       await endStaleSessions(c, pkg, s.tokenHash, changedPasswords);
     }
-    return json({ versions: r.versions, renumbered: r.renumbered, counters: r.counters });
+    return json({ versions: r.versions, renumbered: r.renumbered, counters: r.counters, live: r.logId });
   });
 }
 

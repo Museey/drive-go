@@ -43,9 +43,10 @@
   for (const f of ["seq", "paySlips", "whtDocs"]) RULES[`DB.${f}`] = MAP;
   RULES["DB.px"] = GROUP;
   RULES["DB.fifo"] = GROUP;
-  for (const u of ["DB.curEmp", "FR.session", "DGB.session"]) RULES[u] = SESSION;
+  for (const u of ["DB.curEmp", "DB.curBranch", "FR.session", "DGB.session"]) RULES[u] = SESSION;
   var SESSION_DEFAULTS = {
     "DB.curEmp": '""',
+    "DB.curBranch": '"main"',
     "FR.session": '{"accId":"","inspect":""}',
     "DGB.session": '{"who":""}'
   };
@@ -211,6 +212,75 @@
       if (kept.join("\0") !== keptBefore.join("\0") || !newAtEnd) changes.order[unit] = b.map((r) => r.key);
     }
     return changes;
+  }
+  function applyRows(storeKey, value, changes, read = (r) => JSON.parse(r.data)) {
+    const root = rootOf(storeKey);
+    if (!root || !isObject(value)) return false;
+    const place = (unit) => {
+      const path = unit.split(".").slice(1);
+      let at = value;
+      for (const f of path.slice(0, -1)) {
+        at = isObject(at) ? at[f] : void 0;
+        if (!isObject(at)) return null;
+      }
+      return isObject(at) ? [at, path[path.length - 1]] : null;
+    };
+    const replace = (target, v) => {
+      if (!isObject(v)) return false;
+      for (const k of Object.keys(target)) delete target[k];
+      Object.assign(target, v);
+      return true;
+    };
+    const units = /* @__PURE__ */ new Set([...changes.upsert.map((r) => r.unit), ...changes.remove.map((r) => r.unit), ...Object.keys(changes.order)]);
+    for (const unit of units) {
+      const rule = RULES[unit];
+      if (rule === SESSION) continue;
+      const at = place(unit);
+      if (!at) return false;
+      const [holder, field] = at;
+      const ups = changes.upsert.filter((r) => r.unit === unit), gone = new Set(changes.remove.filter((r) => r.unit === unit).map((r) => r.key));
+      if (rule === LIST || rule === BY_CODE) {
+        const list = holder[field];
+        if (!Array.isArray(list) || !list.every(isObject)) return false;
+        const items = list, keyOf2 = () => listKeys(items, rule === LIST ? "id" : "code");
+        for (const r of ups) {
+          const v = read(r), i = keyOf2().indexOf(r.key);
+          if (!isObject(v)) return false;
+          if (i < 0) items.push(v);
+          else if (!replace(items[i], v)) items[i] = v;
+        }
+        if (gone.size) {
+          const keys = keyOf2();
+          for (let i = items.length - 1; i >= 0; i--) if (gone.has(keys[i])) items.splice(i, 1);
+        }
+        const order = changes.order[unit];
+        if (order) {
+          const keys = keyOf2(), byKey = new Map(items.map((x, i) => [keys[i], x])), rank = new Map(order.map((k, i) => [k, i]));
+          const sorted = [...byKey.keys()].sort((a, b) => (rank.get(a) ?? Infinity) - (rank.get(b) ?? Infinity) || keys.indexOf(a) - keys.indexOf(b));
+          items.splice(0, items.length, ...sorted.map((k) => byKey.get(k)));
+        }
+      } else if (rule === MAP) {
+        const map = holder[field];
+        if (!isObject(map)) return false;
+        for (const r of ups) map[r.key] = read(r);
+        for (const k of gone) delete map[k];
+        const order = changes.order[unit];
+        if (order) {
+          const entries = Object.entries(map), rank = new Map(order.map((k, i) => [k, i]));
+          entries.sort((a, b) => (rank.get(a[0]) ?? Infinity) - (rank.get(b[0]) ?? Infinity));
+          for (const [k] of entries) delete map[k];
+          for (const [k, v] of entries) map[k] = v;
+        }
+      } else {
+        for (const r of ups) {
+          if (r.key !== "" || !(field in holder)) return false;
+          const v = read(r);
+          if (!(isObject(holder[field]) && replace(holder[field], v))) holder[field] = v;
+        }
+        if (gone.size) return false;
+      }
+    }
+    return true;
   }
 
   // server/lib/numbers.ts
@@ -443,6 +513,314 @@
     });
   }
 
+  // server/lib/branch-stock.ts
+  var isObj = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+  var MAIN = "main";
+  var SF = ["qty", "min", "max", "zone", "shelf", "loc", "lastMove"];
+  var NUMERIC = /* @__PURE__ */ new Set(["qty", "min", "max"]);
+  var blank2 = (k) => NUMERIC.has(k) ? 0 : "";
+  var valuesOf = (s) => Object.fromEntries(SF.map((k) => [k, s[k] == null ? blank2(k) : s[k]]));
+  var zero = () => Object.fromEntries(SF.map((k) => [k, blank2(k)]));
+  function stockToBranch(s, to) {
+    if (to === MAIN) return s;
+    const out = { ...s }, bq = isObj(s.bq) ? { ...s.bq } : {};
+    bq[MAIN] = valuesOf(s);
+    const t = isObj(bq[to]) ? bq[to] : zero();
+    for (const k of SF) out[k] = t[k];
+    delete bq[to];
+    out.bq = bq;
+    return out;
+  }
+  function lenient(s) {
+    const out = { ...s };
+    for (const k of SF) if (out[k] == null || out[k] === blank2(k)) delete out[k];
+    if (isObj(s.bq)) {
+      const bq = {};
+      for (const [br, v] of Object.entries(s.bq)) {
+        if (!isObj(v)) {
+          bq[br] = v;
+          continue;
+        }
+        const kept = Object.fromEntries(Object.entries(v).filter(([k, x]) => !(SF.includes(k) && (x == null || x === blank2(k)))));
+        if (Object.keys(kept).length) bq[br] = kept;
+      }
+      if (Object.keys(bq).length) out.bq = bq;
+      else delete out.bq;
+    }
+    return out;
+  }
+  var canon = (v) => Array.isArray(v) ? v.map(canon) : isObj(v) ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, canon(v[k])])) : v;
+  var same = (a, b) => JSON.stringify(canon(lenient(a))) === JSON.stringify(canon(lenient(b)));
+  function stockToMain(s, from, stored) {
+    if (from === MAIN) return s;
+    const out = { ...s }, bq = isObj(s.bq) ? { ...s.bq } : {};
+    bq[from] = valuesOf(s);
+    const t = isObj(bq[MAIN]) ? bq[MAIN] : zero();
+    for (const k of SF) out[k] = t[k];
+    delete bq[MAIN];
+    out.bq = bq;
+    return stored && same(out, stored) ? stored : out;
+  }
+  function dataToMain(db, stored) {
+    const from = typeof db.stockCtx === "string" ? db.stockCtx : MAIN;
+    if (from === MAIN) return false;
+    if (Array.isArray(db.stock)) db.stock = db.stock.map((s) => isObj(s) ? stockToMain(s, from, typeof s.id === "string" || typeof s.id === "number" ? stored.get(String(s.id)) : void 0) : s);
+    db.stockCtx = MAIN;
+    return true;
+  }
+
+  // server/client/live.ts
+  var LIVE_MESSAGES = {
+    // answer 10.4 (new text, waiting for the owner's approval)
+    offline: "เชื่อมต่อ server ไม่ได้ — ออกเอกสารและรับเงินไม่ได้จนกว่าจะเชื่อมต่อได้ ระบบกำลังลองเชื่อมต่อใหม่",
+    // answer 10.5 (new text): another device wiped, restored, imported or loaded the sample data
+    whole: (kind) => `${{ wipe: "ล้างข้อมูล", restore: "กู้คืนข้อมูล", import: "นำเข้าข้อมูล", sample: "โหลดข้อมูลตัวอย่าง" }[kind] || "แทนที่ข้อมูล"}ทั้งหมดจากเครื่องอื่นแล้ว — กดตกลงเพื่อโหลดข้อมูลล่าสุด`
+  };
+  var SIGNED_OUT = "หมดเวลาการเข้าระบบ กรุณาเข้าสู่ระบบใหม่";
+  var vk = (unit, key) => `${unit}|${key}`;
+  var unitOf = (k) => k.slice(0, k.indexOf("|"));
+  var keyOf = (k) => k.slice(k.indexOf("|") + 1);
+  var QUIET_TICKS = 8;
+  function createLive(d) {
+    const own = /* @__PURE__ */ new Set();
+    const pending = /* @__PURE__ */ new Map();
+    let busy = () => false;
+    let source = null, heardUpTo = 0, quiet = 0, started = false, cover = null;
+    let watch = null;
+    const emit = (name, detail) => window.dispatchEvent(new CustomEvent(name, { detail }));
+    const pendingOf = (key) => pending.get(key) ?? pending.set(key, { rows: /* @__PURE__ */ new Map(), order: {} }).get(key);
+    const known = (m, key, k) => {
+      const p = pending.get(key)?.rows;
+      if (p?.has(k)) {
+        const r = p.get(k);
+        return r ? r.version : -1;
+      }
+      return m.base[k] ?? -1;
+    };
+    function liveObject(key) {
+      const root = rootOf(key);
+      const v = root === "DB" ? typeof KEY !== "undefined" && KEY === key && typeof DB !== "undefined" ? DB : null : root === "FR" ? typeof FR !== "undefined" ? FR : null : root === "DGB" ? typeof DGB !== "undefined" ? DGB : null : null;
+      return v && typeof v === "object" ? v : null;
+    }
+    const ctxOf = (live2) => live2 && typeof live2.stockCtx === "string" ? live2.stockCtx : MAIN;
+    const forApp = (ctx) => (r) => {
+      const v = JSON.parse(r.data);
+      return ctx !== MAIN && r.unit === "DB.stock" ? stockToBranch(v, ctx) : v;
+    };
+    async function heard(e) {
+      if (own.has(e.id)) return;
+      const m = d.mains.get(e.key);
+      if (!m || m.forbidden || !m.last || m.cursor !== void 0 && e.id <= m.cursor) return;
+      if (e.whole) return d.mustReload(LIVE_MESSAGES.whole(e.whole), `whole data of ${e.key} replaced elsewhere (${e.whole})`);
+      if (e.layout) return reread(e.key);
+      const want = e.rows.filter(([u, k, v]) => known(m, e.key, vk(u, k)) < v).map(([u, k]) => [u, k]);
+      const removed = e.removed.filter(([u, k]) => known(m, e.key, vk(u, k)) >= 0);
+      const ordered = e.ordered;
+      if (!want.length && !removed.length && !ordered.length) return;
+      const p = pendingOf(e.key);
+      const changed = [], gone = [];
+      if (want.length || ordered.length) {
+        const r = await d.send(`/api/storage/${encodeURIComponent(e.key)}/rows`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ rows: want, ordered })
+        }, false);
+        if (r.status === 401) return d.mustReload(SIGNED_OUT, `signed out while reading rows of ${e.key}`);
+        if (!r.ok) {
+          d.problems.push(`rows of ${e.key}: ${r.status}`);
+          return reread(e.key);
+        }
+        const got = await r.json();
+        for (const row of got.rows) if (known(m, e.key, vk(row.unit, row.key)) < row.version) {
+          p.rows.set(vk(row.unit, row.key), row);
+          changed.push(vk(row.unit, row.key));
+        }
+        for (const [u, k] of got.gone) if (known(m, e.key, vk(u, k)) >= 0) {
+          p.rows.set(vk(u, k), null);
+          gone.push(vk(u, k));
+        }
+        Object.assign(p.order, got.order);
+      }
+      for (const [u, k] of removed) if (!gone.includes(vk(u, k))) {
+        p.rows.set(vk(u, k), null);
+        gone.push(vk(u, k));
+      }
+      if (changed.length || gone.length)
+        emit("drivego:heard", { key: e.key, rows: changed, removed: gone, by: e.by, at: e.late ? e.at : (/* @__PURE__ */ new Date()).toISOString() });
+      if (!busy()) applyNow(e.key);
+    }
+    function applyNow(key) {
+      const p = pending.get(key), m = d.mains.get(key);
+      if (!p || !m || !m.last) return;
+      pending.delete(key);
+      const live2 = liveObject(key), ctx = ctxOf(live2);
+      if (p.replace) {
+        const s = split(key, p.replace.json);
+        m.base = { ...p.replace.versions };
+        if (p.replace.masks) m.masks = p.replace.masks;
+        m.last = s;
+        m.sent = p.replace.json;
+        if (live2) {
+          const next2 = JSON.parse(p.replace.json);
+          for (const k of Object.keys(live2)) delete live2[k];
+          Object.assign(live2, next2);
+          if (ctx !== MAIN && Array.isArray(live2.stock)) {
+            live2.stock = live2.stock.map((x) => x && typeof x === "object" ? stockToBranch(x, ctx) : x);
+            live2.stockCtx = ctx;
+          }
+        }
+        m.value = live2 ? JSON.stringify(live2) : m.sent;
+        emit("drivego:applied", { key, whole: true });
+        return;
+      }
+      const upsert = [...p.rows.values()].filter((r) => !!r);
+      const remove = [...p.rows].filter(([, r]) => !r).map(([k]) => ({ unit: unitOf(k), key: keyOf(k) }));
+      if (live2 && !applyRows(key, live2, { upsert, remove, order: p.order }, forApp(ctx))) {
+        void reread(key);
+        return;
+      }
+      const rows = m.last.rows.slice();
+      const at = new Map(rows.map((r, i) => [vk(r.unit, r.key), i]));
+      for (const r of upsert) {
+        const row = { unit: r.unit, key: r.key, data: r.data }, i = at.get(vk(r.unit, r.key));
+        if (i === void 0) {
+          at.set(vk(r.unit, r.key), rows.length);
+          rows.push(row);
+        } else rows[i] = row;
+        m.base[vk(r.unit, r.key)] = r.version;
+      }
+      const goneKeys = new Set(remove.map((r) => vk(r.unit, r.key)));
+      for (const k of goneKeys) delete m.base[k];
+      let next = rows.filter((r) => !goneKeys.has(vk(r.unit, r.key)));
+      for (const [unit, keys] of Object.entries(p.order)) {
+        const rank = new Map(keys.map((k, i) => [k, i]));
+        const mine = next.filter((r) => r.unit === unit).sort((a, b) => (rank.get(a.key) ?? Infinity) - (rank.get(b.key) ?? Infinity));
+        let j = 0;
+        next = next.map((r) => r.unit === unit ? mine[j++] : r);
+      }
+      m.last = { ...m.last, rows: next };
+      m.sent = assemble(key, m.last.layout, next, { session: m.last.session });
+      m.value = live2 ? JSON.stringify(live2) : m.sent;
+      emit("drivego:applied", { key });
+    }
+    async function reread(key) {
+      const m = d.mains.get(key);
+      if (!m || m.forbidden || !m.last) return;
+      const fresh = await d.read(key);
+      if (fresh.forbidden || fresh.value === null) return;
+      const s = split(key, fresh.value), was = m.last;
+      const c = diff(was, s);
+      pending.set(key, { rows: /* @__PURE__ */ new Map(), order: {}, replace: { json: fresh.value, versions: fresh.base, masks: fresh.masks } });
+      m.cursor = Math.max(m.cursor ?? 0, fresh.cursor ?? 0);
+      const changed = c.upsert.map((r) => vk(r.unit, r.key)), gone = c.remove.map((r) => vk(r.unit, r.key));
+      if (changed.length || gone.length || c.layout !== void 0) emit("drivego:heard", { key, rows: changed, removed: gone, by: null, at: (/* @__PURE__ */ new Date()).toISOString() });
+      if (!busy()) applyNow(key);
+    }
+    const rereadAll = () => {
+      for (const key of [...d.mains.keys()]) void d.enqueue(() => reread(key));
+    };
+    function connect() {
+      if (source) return;
+      const es = new EventSource(`/api/live?since=${heardUpTo}`);
+      source = es;
+      const alive = () => {
+        quiet = 0;
+        if (cover) {
+          cover.remove();
+          cover = null;
+        }
+      };
+      es.addEventListener("ping", alive);
+      es.addEventListener("change", (ev) => {
+        alive();
+        const e = JSON.parse(ev.data);
+        heardUpTo = Math.max(heardUpTo, e.id);
+        void d.enqueue(() => heard(e)).catch((err) => d.problems.push(`live ${e.key}: ${err}`));
+      });
+      es.addEventListener("resync", () => {
+        alive();
+        reconnect();
+        rereadAll();
+      });
+      es.addEventListener("rights", () => {
+        alive();
+        reconnect();
+        rereadAll();
+        emit("drivego:rights", {});
+      });
+      es.addEventListener("signedOut", () => {
+        es.close();
+        source = null;
+        void d.mustReload(SIGNED_OUT, "session ended elsewhere");
+      });
+      es.addEventListener("error", () => {
+        if (source === es) {
+          es.close();
+          source = null;
+          setTimeout(connect, 2e3);
+        }
+      });
+    }
+    function reconnect() {
+      if (source) {
+        source.close();
+        source = null;
+      }
+      setTimeout(connect, 0);
+    }
+    function showCover() {
+      if (cover || !document.body) return;
+      cover = document.createElement("div");
+      cover.id = "drivegoOffline";
+      cover.setAttribute("role", "alert");
+      cover.textContent = LIVE_MESSAGES.offline;
+      cover.style.cssText = "position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(15,23,42,.72);color:#fff;font:600 18px/1.6 inherit;text-align:center";
+      document.body.append(cover);
+    }
+    return {
+      // Starts listening once there is a session and data, from the cursor that data was read at.
+      start(cursor) {
+        if (started) return;
+        started = true;
+        heardUpTo = cursor;
+        quiet = 0;
+        connect();
+        watch ?? (watch = setInterval(() => {
+          if (started && ++quiet >= QUIET_TICKS) showCover();
+        }, 1e3));
+      },
+      stop() {
+        started = false;
+        source?.close();
+        source = null;
+        if (cover) {
+          cover.remove();
+          cover = null;
+        }
+      },
+      own(id) {
+        if (typeof id === "number") own.add(id);
+      },
+      // For the screens (67-live.js).
+      api: {
+        setBusy(fn) {
+          busy = fn;
+        },
+        // Put what is pending into the app's data now (the screens are no longer busy, or the user asked for it).
+        apply: () => d.enqueue(async () => {
+          for (const key of [...pending.keys()]) applyNow(key);
+        }),
+        pending: (key, unit, k) => pending.get(key)?.rows.has(vk(unit, k)) || !!pending.get(key)?.replace,
+        get waiting() {
+          return [...pending.values()].some((p) => p.rows.size || p.replace || Object.keys(p.order).length);
+        },
+        get offline() {
+          return !!cover;
+        }
+      }
+    };
+  }
+
   // server/client/storage.ts
   var API = "/api/storage";
   var fetch0 = window.fetch.bind(window);
@@ -465,7 +843,7 @@
   var SHOP = decodeURIComponent(location.pathname.split("/")[1] || "");
   var signedIn = null;
   var mains = /* @__PURE__ */ new Map();
-  var vk = (unit, key) => `${unit}|${key}`;
+  var vk2 = (unit, key) => `${unit}|${key}`;
   var url = (key) => `${API}/${encodeURIComponent(key)}`;
   var wait = (ms) => new Promise((r) => setTimeout(r, ms));
   var problems = [];
@@ -512,8 +890,9 @@
       const nl = body.indexOf("\n");
       m.base = JSON.parse(body.slice(0, nl));
       m.masks = JSON.parse(decodeURIComponent(r.headers.get("x-drivego-masks") || "%5B%5D"));
-      m.value = m.sent = body.slice(nl + 1);
+      m.value = m.sent = m.raw = body.slice(nl + 1);
       m.last = split(key, m.sent);
+      m.cursor = Number(r.headers.get("x-drivego-live")) || 0;
     } else if (r.status === 403) {
       m.forbidden = true;
     } else if (r.status === 401) {
@@ -529,11 +908,24 @@
     const was = new Map((before?.secrets || []).map((s) => [`${s.unit}|${s.key}|${s.field}`, s.value]));
     return next.secrets.filter((s) => s.value !== SECRET_PLACEHOLDER && was.get(`${s.unit}|${s.key}|${s.field}`) !== s.value);
   }
+  var storedStock = /* @__PURE__ */ new WeakMap();
+  function serverShape(key, value, m) {
+    if (rootOf(key) !== "DB" || !/"stockCtx":"(?!main")/.test(value)) return value;
+    const db = JSON.parse(value);
+    let stored = m.last ? storedStock.get(m.last) : void 0;
+    if (m.last && !stored) {
+      stored = new Map(m.last.rows.filter((r) => r.unit === "DB.stock").map((r) => [r.key, JSON.parse(r.data)]));
+      storedStock.set(m.last, stored);
+    }
+    return dataToMain(db, stored ?? /* @__PURE__ */ new Map()) ? JSON.stringify(db) : value;
+  }
+  var whole = /* @__PURE__ */ new Map();
   async function flush(key) {
     const m = mains.get(key);
     let value = m.value;
-    if (value === null || value === m.sent || !signedIn || m.forbidden) return;
-    let next = split(key, value);
+    if (value === null || value === m.raw || !signedIn || m.forbidden) return;
+    let shaped = serverShape(key, value, m);
+    let next = split(key, shaped);
     const secrets = newSecrets(m.last, next);
     let changes = m.last ? diff(m.last, next) : { layout: next.layout, upsert: next.rows, remove: [], order: {} };
     const files = await uploadFiles(key, changes, (u, init) => send(u, init, true));
@@ -543,29 +935,33 @@
       m.value = m.value === value ? linked : withLinks(key, m.value, files);
       if (typeof KEY !== "undefined" && KEY === key && typeof DB !== "undefined") linkInPlace(key, DB, files);
       value = linked;
-      next = split(key, value);
+      shaped = serverShape(key, value, m);
+      next = split(key, shaped);
       changes = m.last ? diff(m.last, next) : { layout: next.layout, upsert: next.rows, remove: [], order: {} };
     }
     const sessionChanged = JSON.stringify(next.session) !== JSON.stringify(m.last?.session ?? {});
     if (changes.layout === void 0 && !changes.upsert.length && !changes.remove.length && !Object.keys(changes.order).length && !sessionChanged && !secrets.length) {
-      m.sent = value;
+      m.sent = shaped;
+      m.raw = value;
       m.last = next;
       return;
     }
     const root = rootOf(key);
     const base = {};
     const known = (unit, k) => {
-      const v = m.base[vk(unit, k)];
-      if (v !== void 0) base[vk(unit, k)] = v;
+      const v = m.base[vk2(unit, k)];
+      if (v !== void 0) base[vk2(unit, k)] = v;
     };
     if (changes.layout !== void 0) known(root, key);
     for (const r2 of changes.upsert) known(r2.unit, r2.key);
     for (const r2 of changes.remove) known(r2.unit, r2.key);
     const numbers = claimsIn(issuedFor(key), value);
+    const replacing = whole.get(key);
+    whole.delete(key);
     const r = await send(url(key), {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ base, changes, session: next.session, secrets, numbers })
+      body: JSON.stringify({ base, changes, session: next.session, secrets, numbers, ...replacing ? { whole: replacing } : {} })
     }, true);
     if (r.status === 409) return mustReload(MESSAGES.conflict, `conflict ${key}: ${JSON.stringify((await r.json()).conflicts)}`);
     if (r.status === 401) return mustReload(MESSAGES.signedOut, `signed out while saving ${key}`);
@@ -574,14 +970,16 @@
       problems.push(`save ${key}: ${r.status} ${await r.text()}`);
       return;
     }
-    const { versions, renumbered = [], counters = [] } = await r.json();
-    for (const x of changes.remove) delete m.base[vk(x.unit, x.key)];
+    const { versions, renumbered = [], counters = [], live: logId } = await r.json();
+    live.own(logId);
+    for (const x of changes.remove) delete m.base[vk2(x.unit, x.key)];
     Object.assign(m.base, versions);
     const claimed = new Set(Object.values(numbers).flat());
     const later = issuedFor(key).filter((x) => !claimed.has(x.no));
     if (!renumbered.length && !counters.length) {
       issued.set(key, later);
-      m.sent = value;
+      m.sent = shaped;
+      m.raw = value;
       m.last = next;
       return;
     }
@@ -591,7 +989,8 @@
     const all = [...renumbered, ...shift.renumbered];
     const moved = new Map(shift.renumbered);
     issued.set(key, later.map((x) => ({ base: x.base, no: moved.get(x.no) ?? x.no })));
-    if (m.value === value) m.value = m.sent;
+    m.raw = null;
+    if (m.value === value && shaped === value) m.value = m.sent;
     else {
       const now = split(key, m.value);
       m.value = correctSplit(key, now, rowsToRenumber(next, changes, now), all, shift.counters);
@@ -631,6 +1030,17 @@
       return no;
     };
   });
+  var live = createLive({
+    mains,
+    enqueue,
+    send,
+    problems,
+    read: async (key) => {
+      const m = await readMain(key);
+      return m;
+    },
+    mustReload
+  });
   var storage = {
     async get(key) {
       if (rootOf(key)) {
@@ -640,6 +1050,7 @@
           if (!mains.has(key)) mains.set(key, m);
           else m = mains.get(key);
         }
+        if (signedIn && !m.forbidden && m.last) live.start(m.cursor ?? 0);
         await scriptsLoaded;
         return m.value === null ? null : { key, value: m.value };
       }
@@ -659,6 +1070,8 @@
         await enqueue(() => flush(key));
       } else {
         const backup = /\.bak\./.test(key);
+        const safety = /^(.+?)\.bak\.safety-.*-([a-z]+)$/.exec(key);
+        if (safety && rootOf(safety[1])) whole.set(safety[1], safety[2]);
         await enqueue(async () => {
           const r = await send(url(key), { method: "PUT", body: backup ? "" : value }, true);
           if (r.status === 403) return refused(`put ${key}`, await r.text());
@@ -717,6 +1130,7 @@
       if (window.__drivegoTest)
         for (const key of (await storage.verify()).wrong) problems.push(`not on the server at sign-out: ${key}`);
       await send("/api/auth/logout", { method: "POST" }, false);
+      live.stop();
       signedIn = false;
       mains.clear();
     },
@@ -731,6 +1145,8 @@
       if (body.locked && typeof window.toast === "function") window.toast(MESSAGES.lockedOut);
       return r.ok && body.ok === true;
     },
+    // Other devices' saves (task 3.10): for the screens (frontend/js/67-live.js).
+    live: live.api,
     // For the tests: resolves when every write so far has been answered.
     idle: () => queue.then(() => {
     }),
@@ -746,7 +1162,7 @@
         checked.push(key);
         const r = await fetch0(url(key), { cache: "no-store" });
         const body = await r.text();
-        const s = split(key, m.value);
+        const s = split(key, serverShape(key, m.value, m));
         const expected = assemble(key, s.layout, m.masks?.length ? maskRows(s.rows, m.masks) : s.rows, { session: s.session });
         if (r.status !== 200 || body.slice(body.indexOf("\n") + 1) !== expected) wrong.push(key);
       }

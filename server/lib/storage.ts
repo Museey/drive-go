@@ -63,6 +63,26 @@ export async function readMain(c: pg.ClientBase, branch: string, storeKey: strin
   return { json: assemble(storeKey, layout.rows[0].data, masks.length ? maskRows(rows, masks) : rows, { session }), versions };
 }
 
+// Some rows of a STORE key as they are now, for a device that heard they changed (task 3.10): their data (with
+// what the person may not see left out, as readMain does) and versions, the rows of those that are gone, and the
+// full key order of the units asked for (ordered).
+export async function readRows(c: pg.ClientBase, branch: string, storeKey: string, keys: [string, string][], ordered: string[], masks: Mask[] = []):
+  Promise<{ rows: (Row & { version: number })[]; gone: [string, string][]; order: Record<string, string[]> }> {
+  const root = layoutUnit(storeKey);
+  const own = keys.filter(([u, k]) => typeof u === 'string' && typeof k === 'string' && u.startsWith(root + '.'));
+  const { rows } = own.length ? await c.query<Row & { version: number }>(
+    `select unit, key, data::text as data, version from records
+      where shop_id = app_shop() and branch_id = $1 and (unit, key) in (select * from unnest($2::text[], $3::text[]))`,
+    [branch, own.map(k => k[0]), own.map(k => k[1])]) : { rows: [] };
+  const found = new Set(rows.map(r => vkey(r.unit, r.key)));
+  const order: Record<string, string[]> = {};
+  for (const unit of new Set(ordered.filter(u => typeof u === 'string' && u.startsWith(root + '.')))) {
+    order[unit] = (await c.query<{ key: string }>(
+      'select key from records where shop_id = app_shop() and branch_id = $1 and unit = $2 order by pos, key', [branch, unit])).rows.map(r => r.key);
+  }
+  return { rows: masks.length ? maskRows(rows, masks) as (Row & { version: number })[] : rows, gone: own.filter(([u, k]) => !found.has(vkey(u, k))), order };
+}
+
 // A save by someone who could not see some values: the rows they send carry blanks there; the stored values
 // go back in (task 3.9). A new row keeps what it was sent with.
 export async function restoreHidden(c: pg.ClientBase, branch: string, changes: Changes, masks: Mask[]): Promise<Changes> {
@@ -76,16 +96,18 @@ export async function restoreHidden(c: pg.ClientBase, branch: string, changes: C
   return { ...changes, upsert: changes.upsert.map(r => masksUnit(masks, r.unit) ? restoreRow(r, stored.get(vkey(r.unit, r.key)), masks) : r) };
 }
 
-export type WriteResult = { ok: true; versions: Versions } | { ok: false; conflicts: string[] };
+// logId: the save's write_log row, which every other device of the shop hears about (task 3.10, server/lib/live.ts).
+export type WriteResult = { ok: true; versions: Versions; logId: number | null } | { ok: false; conflicts: string[] };
 
 // Applies one save. base: the versions the browser saw of every row it
 // changes or removes (missing = it thinks the row is new). All or nothing: on
 // any conflict nothing is written. A duplicate document number raises 23505,
 // which the caller also reports as a conflict. Every row written or removed is
 // recorded in change_log with its value before and after (task 3.1, R15),
-// except when a shop is opened with its starting data (log: false).
+// except when a shop is opened with its starting data (log: false). whole: the save replaces the whole data set
+// (a wipe, a restore, an import, the sample data: 3.2d), which the other devices reload for (task 3.10, 10.5).
 export async function writeMain(c: pg.ClientBase, branch: string, storeKey: string, base: Versions, changes: Changes,
-  userId: string | null = null, { log: keepLog = true }: { log?: boolean } = {}): Promise<WriteResult> {
+  userId: string | null = null, { log: keepLog = true, whole }: { log?: boolean; whole?: string } = {}): Promise<WriteResult> {
   const root = layoutUnit(storeKey);
   // A save of one key may only touch that key's own units (DB.* for
   // garage.v22, FR.* for franchise.v22 …), never the layout row directly.
@@ -144,9 +166,14 @@ export async function writeMain(c: pg.ClientBase, branch: string, storeKey: stri
       `update records r set pos = o.ord from unnest($3::text[]) with ordinality as o(key, ord)
         where r.shop_id = app_shop() and r.branch_id = $1 and r.unit = $2 and r.key = o.key`, [branch, unit, keys]);
   }
+  let logId: number | null = null;
   if (touched.length || Object.keys(changes.order).length) {
-    await c.query('insert into write_log (shop_id, branch_id, user_id, units) values (app_shop(), $1, $2, $3)',
-      [branch, userId, JSON.stringify({ key: storeKey, versions, removed: changes.remove.map(r => vkey(r.unit, r.key)) })]);
+    // ordered: units whose records changed order (a device shows them in the server's order).
+    const ordered = Object.keys(changes.order);
+    const { rows } = await c.query<{ id: string }>('insert into write_log (shop_id, branch_id, user_id, units) values (app_shop(), $1, $2, $3) returning id',
+      [branch, userId, JSON.stringify({ key: storeKey, versions, removed: changes.remove.map(r => vkey(r.unit, r.key)),
+        ...(ordered.length ? { ordered } : {}), ...(whole ? { whole } : {}) })]);
+    logId = Number(rows[0].id);
   }
   // Rows written with the same value they had are not changes.
   const log = [
@@ -166,18 +193,18 @@ export async function writeMain(c: pg.ClientBase, branch: string, storeKey: stri
       [branch, userId, storeKey, log.map(l => l.unit), log.map(l => l.key), log.map(l => l.op), log.map(l => l.version ?? null),
         log.map(l => l.before), log.map(l => l.after)]);
   }
-  return { ok: true, versions };
+  return { ok: true, versions, logId };
 }
 
-export type SaveResult = { ok: true; versions: Versions; renumbered: Renumbered; counters: Counters } | { ok: false; conflicts: string[] };
+export type SaveResult = { ok: true; versions: Versions; logId: number | null; renumbered: Renumbered; counters: Counters } | { ok: false; conflicts: string[] };
 
 // One save from the browser: its document numbers checked against the
 // shop's counters (task 3.2), then written (writeMain). claims: the numbers
 // the browser issued in this save, by counter (numbers.ts).
 export async function saveMain(c: pg.ClientBase, branch: string, storeKey: string, base: Versions, changes: Changes,
-  claims: Claims = {}, userId: string | null = null): Promise<SaveResult> {
+  claims: Claims = {}, userId: string | null = null, whole?: string): Promise<SaveResult> {
   const n = await issueNumbers(c, branch, storeKey, base, changes, claims);
-  const r = await writeMain(c, branch, storeKey, n.base, n.changes, userId);
+  const r = await writeMain(c, branch, storeKey, n.base, n.changes, userId, { whole });
   return r.ok ? { ...r, renumbered: n.renumbered, counters: n.counters } : r;
 }
 

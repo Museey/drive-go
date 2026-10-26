@@ -54,6 +54,19 @@ export function sessionFields(s: Session, storeKey: string): Record<string, stri
   return out;
 }
 
+// Where a person starts working when they sign in (task 3.10, answer 10.7): an employee in their home branch of the
+// data set (emp.branchHome, else the first branch they may use, as 37.js empHome), everyone else in the main one
+// (DB.curBranch's default). Runs inside withShop, right after startSession.
+export async function startInHomeBranch(c: pg.ClientBase, token: string, storeKey: string, branch: string, empId: string): Promise<void> {
+  const { rows } = await c.query<{ data: { branchHome?: unknown; branches?: unknown } }>(
+    "select data from records where shop_id = app_shop() and branch_id = $1 and unit = 'DB.emp' and key = $2", [branch, empId]);
+  const e = rows[0]?.data;
+  const home = e && (e.branchHome || (Array.isArray(e.branches) && e.branches[0]));
+  if (typeof home !== 'string' || !home || home === 'main') return;
+  await c.query('update sessions set state = $2 where shop_id = app_shop() and id_hash = $1',
+    [hashToken(token), JSON.stringify({ [`${storeKey}|DB.curBranch`]: JSON.stringify(home) })]);
+}
+
 export async function saveSessionFields(c: pg.ClientBase, s: Session, storeKey: string, fields: Record<string, string>): Promise<void> {
   const changed = Object.entries(fields).filter(([unit, v]) => s.state[`${storeKey}|${unit}`] !== v);
   if (!changed.length) return;
