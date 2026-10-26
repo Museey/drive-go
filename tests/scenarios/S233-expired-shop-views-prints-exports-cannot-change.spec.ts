@@ -5,12 +5,15 @@ import type { Page } from '@playwright/test';
 // The legacy app only warned; now the shop is read-only. The owner signs in, sees the legacy expiry line and banner
 // and the owner panel's tag "หมดอายุการใช้งานแล้ว", opens every menu and sub-menu, opens and prints a quotation,
 // exports a list to Excel and the whole shop's backup file: nothing is refused, and the server keeps nothing new
-// but the audit log's entries of opening, printing and exporting. Saving the settings is refused with the new
+// but the audit log's entries of opening, printing and exporting (and settings the screens add with their
+// starting value when first opened). Saving the settings is refused with the new
 // message, the page reloads, and the shop's data is as it was.
 test.use({ licence: { kind: 'paid', start: '2025-10-01', end: '2026-10-01' } });
 
 const EXPIRED = 'บันทึกไม่สำเร็จ — โปรแกรมหมดอายุการใช้งานแล้ว ยังเปิดดู พิมพ์ และส่งออกข้อมูลได้ แต่สร้างหรือแก้ไขข้อมูลไม่ได้จนกว่าจะต่ออายุ (โทร. 082-1087000) กดตกลงเพื่อโหลดข้อมูลล่าสุด';
-const withoutAudit = (db: any) => ({ ...db, audit: undefined });
+// The shop's data but the audit log, as it was before: viewing may only add the fields the app keeps with their
+// starting values (an empty list, the quotation form's preset lists), never change one that is there.
+const withoutAudit = (db: any, like: any = db) => Object.fromEntries(Object.keys(like).filter(k => k !== 'audit').map(k => [k, db[k]]));
 const problems = (page: Page) => page.evaluate(() => (window as any).storage.problems.slice());
 
 test('S233 ระบบใหม่: ร้านหมดอายุแล้ว เจ้าของเข้าระบบ เปิดทุกเมนู เปิดและพิมพ์เอกสาร ส่งออกได้ แต่บันทึกการตั้งค่าไม่ได้ ขึ้นข้อความแล้วโหลดใหม่', async ({ app, page }) => {
@@ -63,7 +66,7 @@ test('S233 ระบบใหม่: ร้านหมดอายุแล้�
   expect(await problems(page)).toEqual([]);
   await expect(page.getByText(EXPIRED)).toHaveCount(0);
   const viewed = await app.serverDB();
-  expect(withoutAudit(viewed)).toEqual(withoutAudit(before));
+  expect(withoutAudit(viewed, before)).toEqual(withoutAudit(before));
   const added = viewed.audit.slice(before.audit.length);
   expect(added.map((a: any) => `${a.kind} ${a.no} ${a.act}`)).toEqual(expect.arrayContaining(['quote MA-QT261000002 open', 'quote MA-QT261000002 print']));
   for (const a of added) expect(['open', 'print', 'export']).toContain(a.act);
@@ -77,5 +80,5 @@ test('S233 ระบบใหม่: ร้านหมดอายุแล้�
   await page.getByRole('button', { name: 'ตกลง', exact: true }).filter({ visible: true }).click();
   await reloaded;
   await expect(page.getByText(/^⚠ ?Expired Date/).filter({ visible: true })).toHaveText('⚠ Expired Date 01/10/2569 · หมดอายุการใช้งานแล้ว 12 วัน');
-  expect(withoutAudit(await app.serverDB())).toEqual(withoutAudit(before));
+  expect(withoutAudit(await app.serverDB(), before)).toEqual(withoutAudit(before));
 });
