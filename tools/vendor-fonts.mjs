@@ -4,7 +4,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
-const html = readFileSync(new URL('../legacy/DRIVEGO_TRIAL_v23.html', import.meta.url), 'utf8');
+const html = readFileSync(new URL('../legacy/DRIVEGO_TRIAL_v24.html', import.meta.url), 'utf8');
 const outDir = new URL('../tests/support/fonts/', import.meta.url);
 mkdirSync(outDir, { recursive: true });
 

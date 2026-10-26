@@ -3,7 +3,7 @@
 //
 //   node tools/make-fixture.mjs [biz|prox|franchise] [trial|full]
 //
-// trial (default) = what a tester gets from DRIVEGO_TRIAL_v23.html: on first
+// trial (default) = what a tester gets from DRIVEGO_TRIAL_v24.html: on first
 //         open the app fills itself with 36 months of demo data, and on the
 //         owner's first sign-in it replaces the documents with the "ready to
 //         try" set (PKG_TRIAL.fresh), shows "ข้อมูลทดลองพร้อมใช้งาน" and reloads.

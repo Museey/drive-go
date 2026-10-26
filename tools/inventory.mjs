@@ -24,7 +24,7 @@ import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
 
 const ROOT = new URL('../', import.meta.url);
-const HTML_PATH = new URL('legacy/DRIVEGO_TRIAL_v23.html', ROOT);
+const HTML_PATH = new URL('legacy/DRIVEGO_TRIAL_v24.html', ROOT);
 const html = readFileSync(HTML_PATH, 'utf8');
 
 const lineStarts = [0];
@@ -297,7 +297,7 @@ const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0) + '%';
 const tested = arr => arr.filter(r => r.tested_by).length;
 const summary = `# รายการพฤติกรรมของระบบเดิม
 
-ไฟล์นี้สร้างอัตโนมัติด้วย \`npm run inventory\` (ห้ามแก้ด้วยมือ) จาก \`legacy/DRIVEGO_TRIAL_v23.html\`
+ไฟล์นี้สร้างอัตโนมัติด้วย \`npm run inventory\` (ห้ามแก้ด้วยมือ) จาก \`legacy/DRIVEGO_TRIAL_v24.html\`
 รายละเอียดทุกแถวอยู่ใน [behaviors.csv](behaviors.csv)
 
 ## ภาพรวม

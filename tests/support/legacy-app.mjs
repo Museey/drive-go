@@ -25,9 +25,11 @@ export function messageRecorderInitScript() {
 
 // dataset: starting data (tests/fixtures/<dataset>.json) put into the browser
 // before the first open(). Its first word is the package (biz, prox,
-// franchise): the app is opened with ?package=<it> (biz is the default and is
-// left out, as the goldens were recorded that way) and loginAsOwner() uses
-// that package's owner account.
+// franchise): the app is opened with ?package=<it> and loginAsOwner() uses
+// that package's owner account. (The goldens were recorded from v23, where Biz
+// was the default and left out of the address; since v24 an address without a
+// package opens the page that asks which one, so Biz is named too — every
+// golden is the same either way, NOTES.md "v24".)
 // url: which copy of the app to open (the legacy file, or a shop's address in
 // the new system for TARGET=new); both have the same screens and behaviour.
 // restore: how the dataset reaches the app (default: written into the browser).
@@ -37,7 +39,7 @@ export function legacyApp(page, { dataset = 'biz-trial', url = LEGACY_URL, resto
   return {
     async open(params = '') {
       if (!restored) { await restore(page, dataset); restored = true; }
-      const pkg = plan === 'biz' ? '' : `package=${plan}&`;
+      const pkg = `package=${plan}&`;
       await page.goto(`${url}?${pkg}login=account${params ? '&' + params : ''}`);
       await waitForLegacyBoot(page);
       // Messages shown while the app is still starting are not counted. The

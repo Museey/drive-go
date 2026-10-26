@@ -24,7 +24,7 @@ export const TEST_SEED = 1013;
 if (!process.env.LEGACY_PORT) process.env.LEGACY_PORT = String(4200 + Math.floor(Math.random() * 1500));
 export const PORT = Number(process.env.LEGACY_PORT);
 export const LEGACY_ORIGIN = `http://127.0.0.1:${PORT}`;
-export const LEGACY_URL = `${LEGACY_ORIGIN}/DRIVEGO_TRIAL_v23.html`;
+export const LEGACY_URL = `${LEGACY_ORIGIN}/DRIVEGO_TRIAL_v24.html`;
 // The new system (server/, tools/serve-new.mjs) runs on the same port; a
 // shop's screens are at /<shop code>/ (each test opens its own shop).
 

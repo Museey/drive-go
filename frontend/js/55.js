@@ -258,9 +258,11 @@
    (DRIVEGO_PACKAGE_TEST_v23.html) never has the flag, so nothing here runs in it. */
 (()=>{
  const A=window.PKG_AUTO_TRIAL;if(!A||typeof applyPerms!=='function'||!window.PKG_TRIAL||!window.PKG_SALE)return;
- const KEY='pkgAutoTrialDone';
+ /* one mark per package (each package keeps its own database in the browser); the first trial file (Biz only, 12 Oct) used
+    the plain key — still honoured for Biz so a tester's Biz data is never rebuilt */
+ const PLAN=window.PKG_PLAN||'biz',KEY='pkgAutoTrialDone:'+PLAN;
  const mark=()=>{try{localStorage.setItem(KEY,'1');}catch(e){}};
- const marked=()=>{try{return localStorage.getItem(KEY)==='1';}catch(e){return false;}};
+ const marked=()=>{try{return localStorage.getItem(KEY)==='1'||(PLAN==='biz'&&localStorage.getItem('pkgAutoTrialDone')==='1');}catch(e){return false;}};
  let done=false;
  async function run(){
   if(done||typeof DB!=='object'||!DB||!document.documentElement.classList.contains('pkg-open'))return;done=true;

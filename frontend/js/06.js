@@ -113,10 +113,14 @@
  const oldPerms=applyPerms,oldFrUI=frApplyUI;
  applyPerms=function(){const r=oldPerms();filter();return r;};
  frApplyUI=function(){const r=oldFrUI();filter();return r;};
- function accountMode(){const url=new URL(location.href);url.searchParams.set('login','account');history.replaceState(null,'',url.href);}
+ function accountMode(){try{const url=new URL(location.href);url.searchParams.set('login','account');history.replaceState(null,'',url.href);}catch(e){}}
+ /* ready-to-try file (window.PKG_AUTO_TRIAL, owner 2026-10-25: every package from ONE file, phones included): the package is
+    kept in this browser instead of in the address — a phone that opened the file from a message cannot follow a changed
+    address. The normal test copy has no flag and keeps the address way. */
+ function trialGo(p){if(!window.PKG_AUTO_TRIAL)return false;try{if(p)localStorage.setItem('pkgTrialPlan',p);else localStorage.removeItem('pkgTrialPlan');}catch(e){}location.reload();return true;}
  async function previewOwner(){
   if(!ready)return;
-  const url=new URL(location.href);url.searchParams.delete('login');history.replaceState(null,'',url.href);
+  try{const url=new URL(location.href);url.searchParams.delete('login');history.replaceState(null,'',url.href);}catch(e){}
   loggedIn=true;
   try{
    if(franchise){
@@ -130,9 +134,10 @@
  dgbLogout=async function(){await oldDgbOut();await window.storage.signOut();accountMode();lock();};
  frLogout=async function(){await oldFrOut();if(!frAcc()){await window.storage.signOut();accountMode();lock();}};
  gate.querySelectorAll('[data-package]').forEach(b=>b.addEventListener('click',()=>{
+  if(trialGo(b.dataset.package))return;
   const url=new URL(location.href);url.searchParams.set('package',b.dataset.package);url.searchParams.delete('login');location.href=url.href;
  }));
- field('back').addEventListener('click',()=>{const url=new URL(location.href);url.searchParams.delete('package');location.href=url.href;});
+ field('back').addEventListener('click',()=>{if(trialGo(''))return;const url=new URL(location.href);url.searchParams.delete('package');location.href=url.href;});
  field('eye').addEventListener('click',()=>{const show=field('password').type==='password';field('password').type=show?'text':'password';field('eye').setAttribute('aria-pressed',String(show));field('eye').setAttribute('aria-label',show?'ซ่อนรหัสผ่าน':'แสดงรหัสผ่าน');});
  field('help').addEventListener('click',()=>{field('help-answer').hidden=!field('help-answer').hidden;field('help').setAttribute('aria-expanded',String(!field('help-answer').hidden));});
  field('form').addEventListener('submit',async event=>{
@@ -184,7 +189,7 @@
  // DriveGo phase 2 (A1): no way in without a password (was: 'กลับเข้าโหมดทดลอง… โดยไม่กรอกรหัส').
  status.querySelector('button').addEventListener('click',async()=>{
   if(loggedIn&&!confirm('บันทึกข้อมูลแล้วกลับไปเลือกแพ็กเกจ?'))return;
-  if(ready)await save();const url=new URL(location.href);url.searchParams.delete('package');location.href=url.href;
+  if(ready)await save();if(trialGo(''))return;const url=new URL(location.href);url.searchParams.delete('package');location.href=url.href;
  });
  field('choices').hidden=!!plan;field('login').hidden=!plan;
  if(plan){

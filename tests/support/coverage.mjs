@@ -1,8 +1,8 @@
 // Turns Chromium JS coverage for the legacy page into "function name + line in
-// DRIVEGO_TRIAL_v23.html" for every function that ran at least once.
+// DRIVEGO_TRIAL_v24.html" for every function that ran at least once.
 import { readFileSync } from 'node:fs';
 
-const html = readFileSync(new URL('../../legacy/DRIVEGO_TRIAL_v23.html', import.meta.url), 'utf8');
+const html = readFileSync(new URL('../../legacy/DRIVEGO_TRIAL_v24.html', import.meta.url), 'utf8');
 const lineStarts = [0];
 for (let i = 0; i < html.length; i++) if (html.charCodeAt(i) === 10) lineStarts.push(i + 1);
 const lineAt = offset => {
