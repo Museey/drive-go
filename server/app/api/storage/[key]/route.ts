@@ -10,15 +10,17 @@
 import { inShop, json } from '@/lib/api';
 import { endStaleSessions, storeSecrets } from '@/lib/auth';
 import type { Claims } from '@/lib/numbers';
-import { actorOf, refuseRemoveKey, refuseSave, traceWrite } from '@/lib/permissions';
+import { actorOf, refuseRemoveKey, refuseSave, rightsOf, traceWrite } from '@/lib/permissions';
 import { saveSessionFields, sessionFields } from '@/lib/session';
-import { branchOfKey, inScope, isBackupKey, makeBackup, readBackup, readBlob, readMain, removeKey, saveMain, writeBlob } from '@/lib/storage';
+import { branchOfKey, inScope, isBackupKey, isDataCopyKey, makeBackup, readBackup, readBlob, readMain, removeKey, restoreHidden, saveMain, writeBlob } from '@/lib/storage';
 import { type Changes, rootOf } from '@/lib/units';
+import { masksFor } from '@/lib/visibility';
 
 export const dynamic = 'force-dynamic';
 
 type Ctx = { params: Promise<{ key: string }> };
-const text = (body: string) => new Response(body, { headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' } });
+const text = (body: string, more: Record<string, string> = {}) =>
+  new Response(body, { headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store', ...more } });
 const missing = () => new Response(null, { status: 404, headers: { 'cache-control': 'no-store' } });
 // Another branch's data (or HQ's) for a branch account: refused, not empty.
 const forbidden = () => json({ error: 'another branch' }, 403);
@@ -28,10 +30,15 @@ export async function GET(req: Request, ctx: Ctx) {
   return inShop(req, async (c, s) => {
     const branch = await branchOfKey(c, key);
     if (!inScope(s.scope, branch)) return forbidden();
+    // What this person may see (task 3.9): the masks go with the data, so the browser can compare its copy.
+    const rights = await rightsOf(c, await actorOf(c, s));
     if (rootOf(key)) {
-      const main = await readMain(c, branch, key, sessionFields(s, key));
-      return main ? text(JSON.stringify(main.versions) + '\n' + main.json) : missing();
+      const masks = masksFor(rights);
+      const main = await readMain(c, branch, key, sessionFields(s, key), masks);
+      if (!main) return missing();
+      return text(JSON.stringify(main.versions) + '\n' + main.json, { 'x-drivego-masks': JSON.stringify(masks) });
     }
+    if (isDataCopyKey(key) && !rights.owner) return json({ error: 'not allowed', what: key }, 403);
     const value = isBackupKey(key) ? await readBackup(c, branch, key) : await readBlob(c, branch, key);
     return value === null ? missing() : text(value);
   });
@@ -49,7 +56,8 @@ export async function POST(req: Request, ctx: Ctx) {
     traceWrite(actor, key, body.changes, body.secrets || []);
     const refused = await refuseSave(c, actor, branch, key, body.changes, body.secrets || []);
     if (refused) return json({ error: 'not allowed', what: refused }, 403);
-    const r = await saveMain(c, branch, key, body.base || {}, body.changes, body.numbers || {}, s.userId);
+    const changes = await restoreHidden(c, branch, body.changes, masksFor(await rightsOf(c, actor)));
+    const r = await saveMain(c, branch, key, body.base || {}, changes, body.numbers || {}, s.userId);
     if (!r.ok) return json({ conflicts: r.conflicts }, 409);
     if (body.session) await saveSessionFields(c, s, key, body.session);
     // New passwords become hashes; a save that touches accounts may end other

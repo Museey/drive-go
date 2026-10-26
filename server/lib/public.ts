@@ -11,7 +11,7 @@ export async function publicValue(c: pg.ClientBase, storeKey: string): Promise<s
   if (!main) return null;
   const v = JSON.parse(main.json);
   if (storeKey === 'dgb.v22') {
-    if (v.shop) { delete v.shop.pass; delete v.shop.email; delete v.shop.ownerUser; }
+    if (v.shop) { delete v.shop.pass; delete v.shop.email; delete v.shop.ownerUser; delete v.shop.idcard; }   /* idcard: task 3.9 */
     v.session = { who: '' };
   } else {
     for (const k of ['branches', 'accounts', 'reqs', 'hqStock']) if (Array.isArray(v[k])) v[k] = [];

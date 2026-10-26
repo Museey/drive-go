@@ -33,8 +33,12 @@
  const monthEnd=mo=>iso(new Date(+mo.slice(0,4),+mo.slice(5,7),0));
  const monthName=mo=>TH_M[+mo.slice(5,7)-1]+' '+(+mo.slice(0,4)+543);
  const lbl=mo=>'งวด '+monthName(mo);
- const canPay=()=>!curEmp()||can('doc.acctEdit');
- const NO_RIGHT='บัญชีนี้ไม่มีสิทธิ์บันทึกเงินเดือน (ต้องมีสิทธิ์บันทึกค่าใช้จ่าย)';
+ /* pay and personal data (task 3.9, answer of 2026-10-26): the owner, "ดูสรุปการเงิน ภาษี และเงินเดือน" or "ดูและแก้ไขข้อมูลพนักงาน" —
+    the server sends nobody else the other employees' pay (server/lib/visibility.ts), so the payroll needs it */
+ const payOk=()=>!curEmp()||can('doc.fin')||can('doc.emp');
+ const NO_PAY='บัญชีนี้ไม่มีสิทธิ์ดูเงินเดือน (ต้องมีสิทธิ์ดูสรุปการเงิน ภาษี และเงินเดือน หรือดูและแก้ไขข้อมูลพนักงาน)';
+ const canPay=()=>!curEmp()||(can('doc.acctEdit')&&payOk());
+ const NO_RIGHT='บัญชีนี้ไม่มีสิทธิ์บันทึกเงินเดือน (ต้องมีสิทธิ์บันทึกค่าใช้จ่าย)',why=()=>payOk()?NO_RIGHT:NO_PAY;
 
  /* ---------- social security: the law by month, or the shop's own figures (R12 = ค) ---------- */
  const LAW=[{from:'0000-01',rate:5,min:1650,max:15000},{from:'2026-01',rate:5,min:1650,max:17500},
@@ -94,7 +98,7 @@
   if(!x.pvNo)x.pvNo=window.PKG_PV?PKG_PV.newNo():docNo('PV');stampRec(x,old);
   logAudit('expense',x,'pay',head+' ('+a.method+') · ใบสำคัญจ่าย '+x.pvNo);}
  window.payrollRun=async function(){
-  if(!canPay())return toast(NO_RIGHT);
+  if(!canPay())return toast(why());
   const mo=payMonthVal(),L=rowsOf(mo,true);if(!L.length)return toast('ยังไม่มีข้อมูลพนักงาน — เพิ่มที่เมนูตั้งค่าองค์กร');
   const cur=periodOf(mo);if(cur)return toast(lbl(mo)+' บันทึกแล้ว ('+cur.payNo+') — ต้องยกเลิกงวดเดิมก่อนจึงจะบันทึกใหม่ได้');
   const t=sum(L),d=monthEnd(mo);
@@ -116,13 +120,13 @@
   toast('บันทึกเงินเดือน '+lbl(mo)+' แล้ว · เงินเดือน '+money0(t.g)+' + สมทบนายจ้าง '+money0(t.r)+' บาท'+(a.paid?' · จ่ายแล้ว':' · ค้างจ่าย'));
  };
  async function paySalary(id){
-  if(!canPay())return toast(NO_RIGHT);const p=periods().find(x=>x.id===id),x=p&&expOf(p.payId);if(!x||x.paid||p.cancelled)return;
+  if(!canPay())return toast(why());const p=periods().find(x=>x.id===id),x=p&&expOf(p.payId);if(!x||x.paid||p.cancelled)return;
   const a=await payAsk({title:'จ่ายเงินเดือน '+p.label,yes:'บันทึกการจ่าย',html:`<p>จ่ายสุทธิให้พนักงาน ${p.totals.n} คน <b>${money(p.totals.net)}</b> บาท
    (รวมรายได้ ${money(p.totals.gross)} หักประกันสังคม ${money(p.totals.emp)}${n(p.totals.tax)?' หักภาษี ณ ที่จ่าย '+money(p.totals.tax):''})</p>`});
   if(!a)return;markPaid(x,a,'จ่ายเงินเดือน '+p.label+' สุทธิ '+money(p.totals.net)+' บาท');save();window.renderPayroll();renderHome();
   toast('บันทึกจ่ายเงินเดือน '+p.label+' แล้ว · ใบสำคัญจ่าย '+x.pvNo);}
  async function paySso(id){
-  if(!canPay())return toast(NO_RIGHT);const p=periods().find(x=>x.id===id),x=p&&expOf(p.ssoId);if(!x||x.paid||p.cancelled)return;
+  if(!canPay())return toast(why());const p=periods().find(x=>x.id===id),x=p&&expOf(p.ssoId);if(!x||x.paid||p.cancelled)return;
   const a=await payAsk({title:'นำส่งประกันสังคม '+p.label,yes:'บันทึกการนำส่ง',html:`<p>นำส่งสำนักงานประกันสังคม <b>${money(p.totals.emp+p.totals.er)}</b> บาท
    (ลูกจ้าง ${money(p.totals.emp)} + นายจ้าง ${money(p.totals.er)}) ภายในวันที่ 15 ของเดือนถัดไป</p>`});
   if(!a)return;markPaid(x,a,'นำส่งประกันสังคม '+p.label+' '+money(p.totals.emp+p.totals.er)+' บาท (ลูกจ้าง '+money(p.totals.emp)+' + นายจ้าง '+money(p.totals.er)+')');
@@ -131,7 +135,7 @@
  const nextMonth=d=>{const y=+String(d).slice(0,4),m=+String(d).slice(5,7);return m===12?(y+1)+'-01':y+'-'+String(m+1).padStart(2,'0');};
  const taxN=p=>p.lines.filter(l=>n(l.tax)>0).length;
  async function payTax(id){
-  if(!canPay())return toast(NO_RIGHT);const p=periods().find(x=>x.id===id),x=p&&expOf(p.payId),T=p&&n(p.totals.tax);
+  if(!canPay())return toast(why());const p=periods().find(x=>x.id===id),x=p&&expOf(p.payId),T=p&&n(p.totals.tax);
   if(!x||!T||p.cancelled||p.taxRemit)return;
   if(!x.paid)return toast('ยังไม่ได้จ่ายเงินเดือน '+p.label+' — ภาษีหัก ณ ที่จ่ายนำส่งได้หลังจ่ายเงินเดือน');
   const due='7 '+monthName(nextMonth(x.payDate||x.date));
@@ -148,7 +152,7 @@
  const tk0=docNoTaken;docNoTaken=function(no){return tk0.apply(this,arguments)||periods().some(p=>p&&p.taxRemit&&p.taxRemit.pvNo===no)
   ||(DB.emp||[]).some(e=>e&&e.cert50&&Object.values(e.cert50).includes(no));};
  async function cancelPeriod(id){
-  if(!canPay())return toast(NO_RIGHT);const p=periods().find(x=>x.id===id);if(!p||p.cancelled)return;
+  if(!canPay())return toast(why());const p=periods().find(x=>x.id===id);if(!p||p.cancelled)return;
   const xs=[expOf(p.payId),expOf(p.ssoId)].filter(Boolean),paid=xs.filter(x=>x.paid).map(x=>x.pvNo).concat(p.taxRemit?[p.taxRemit.pvNo]:[]);
   const why=await askPromptP({title:'ยกเลิกเงินเดือน '+p.label,text:'ระบุเหตุผลที่ยกเลิก (จำเป็น)\nรายจ่าย '+xs.map(x=>x.no).join(' และ ')+' ของงวดนี้จะถูกยกเลิก'
    +(paid.filter(Boolean).length?' รวมการจ่ายที่บันทึกไว้ ('+paid.filter(Boolean).join(', ')+')':'')+' แล้วบันทึกงวดใหม่ได้',yes:'ยกเลิกงวดนี้',no:'ไม่ยกเลิก',required:true});
@@ -165,6 +169,8 @@
   const mo=payMonthVal(),p=periodOf(mo),L=p?p.lines:rowsOf(mo,true),t=p?tot(p):sum(L),edit=!p&&canPay();
   const hr=$i('payTbl').tHead&&$i('payTbl').tHead.rows[0];   /* the tax withheld (task 3.8), after social security */
   if(hr&&!hr.querySelector('.pkg-pay-tax'))hr.cells[7].insertAdjacentHTML('afterend','<th class="num pkg-pay-tax" style="width:110px">หักภาษี ณ ที่จ่าย</th>');
+  if(!payOk()){$i('payTag').textContent=lbl(mo);$i('payTbl').tBodies[0].innerHTML=`<tr><td colspan="11" class="empty">${NO_PAY}</td></tr>`;
+   $i('payTbl').tFoot.innerHTML='';$i('payEmpty').style.display='none';const st=$i('pkgPayState');if(st){st.innerHTML='';delete st.dataset.pid;}history();return;}
   $i('payTag').textContent=lbl(mo)+' · '+L.length+' คน'+(p?' · บันทึกแล้ว':'');
   const box=(l,k)=>edit?`<input type="number" min="0" step="0.01" class="pkg-pay-in" data-emp="${esc(l.empId)}" data-k="${k}" value="${n(l[k])||''}" placeholder="0" aria-label="${{ot:'ค่าล่วงเวลา',bonus:'เงินพิเศษ',tax:'ภาษีหัก ณ ที่จ่าย'}[k]} ${esc(l.code)}" style="width:96px;text-align:right">`:money(n(l[k]));
   $i('payTbl').tBodies[0].innerHTML=L.map(l=>`<tr><td class="mono">${esc(l.code)}</td>
@@ -245,7 +251,7 @@
  const pm=$i('payMonth');if(pm)pm.onchange=()=>window.renderPayroll();
 
  /* ---------- the printed sheet and the payslips ---------- */
- window.printPayroll=function(){
+ window.printPayroll=function(){if(!payOk())return toast(NO_PAY);
   const mo=payMonthVal(),p=periodOf(mo),L=p?p.lines:rowsOf(mo,true),t=p?tot(p):sum(L);
   printDocs(sheetTop({title:'ใบจ่ายเงินเดือนพนักงาน',en:'PAYROLL SHEET',copy:'เอกสารภายใน',
     fields:[['งวดเดือน',monthName(mo)],['จำนวนพนักงาน',L.length+' คน'],['วันที่พิมพ์',thDate(iso())]]})+
@@ -281,7 +287,7 @@
   <div class="box"><span class="lbl">นายจ้างสมทบประกันสังคมให้</span> ${money(l.ssoEr)} บาท</div>
   <div class="sign"><div><div class="line"></div>( ................................................. )<br><span class="lbl">ผู้จ่ายเงิน</span></div>
    <div><div class="line"></div>( ${esc(l.name)} )<br><span class="lbl">ผู้รับเงิน</span></div></div></div>`;}
- function printSlips(p,empId){const L=p.lines.filter(l=>!empId||l.empId===empId);if(!L.length)return;
+ function printSlips(p,empId){if(!payOk())return toast(NO_PAY);const L=p.lines.filter(l=>!empId||l.empId===empId);if(!L.length)return;
   logAudit('expense',{id:p.payId,no:p.payNo},'print','สลิปเงินเดือน '+p.label+(empId?' · '+L[0].code:' · ทุกคน '+L.length+' ใบ'));save();
   printDocs(L.map(l=>slip(p,l)).join(''));}
 
@@ -366,11 +372,11 @@
      const th=pt.tHead&&pt.tHead.rows[0];
      if(th&&!th.querySelector('.pkg-pay-tax'))th.cells[5].insertAdjacentHTML('afterend','<th class="num pkg-pay-tax">ภาษีหัก ณ ที่จ่าย</th>');
      if(th&&th.cells[7]){th.cells[7].textContent='ลูกจ้าง '+rate+'%';th.cells[8].textContent='นายจ้าง '+rate+'%';}
-     pt.tBodies[0].innerHTML=p?p.lines.map(l=>`<tr><td>${esc(l.code)} · ${esc(l.name)}</td><td>${esc(l.position||'-')}</td>
+     pt.tBodies[0].innerHTML=!payOk()?`<tr><td colspan="10" class="empty">${NO_PAY}</td></tr>`:p?p.lines.map(l=>`<tr><td>${esc(l.code)} · ${esc(l.name)}</td><td>${esc(l.position||'-')}</td>
       <td class="num">${money(r2(l.salary+l.regular))}${l.full?'':hint(l.days+' วัน')}</td><td class="num">${money(l.ot)}</td><td class="num">${money(l.bonus)}</td>
       <td class="num">${money(l.gross)}</td><td class="num">${money(n(l.tax))}</td><td class="num">${money(l.ssoEmp)}</td><td class="num">${money(l.ssoEr)}</td><td class="num">${money(l.ssoEmp+l.ssoEr)}</td></tr>`).join('')
       :`<tr><td colspan="10" class="empty">ยังไม่ได้บันทึกเงินเดือน${esc(lbl(mo))} (06.4 จ่ายเงินเดือน)</td></tr>`;
-     pt.tFoot.innerHTML=`<tr><td colspan="5">รวม ${T.n} คน</td><td class="num">${money(T.gross)}</td><td class="num">${money(n(T.tax))}</td><td class="num">${money(T.emp)}</td><td class="num">${money(T.er)}</td><td class="num">${money(T.emp+T.er)}</td></tr>`;
+     pt.tFoot.innerHTML=!payOk()?'':`<tr><td colspan="5">รวม ${T.n} คน</td><td class="num">${money(T.gross)}</td><td class="num">${money(n(T.tax))}</td><td class="num">${money(T.emp)}</td><td class="num">${money(T.er)}</td><td class="num">${money(T.emp+T.er)}</td></tr>`;
      const h=pt.closest('.panel')&&pt.closest('.panel').querySelector('header');
      if(h&&!h.querySelector('[data-pnd1]'))h.insertAdjacentHTML('beforeend','<div class="spacer"></div><button type="button" class="btn sm gh" data-pnd1="1">พิมพ์สรุป ภ.ง.ด.1</button><button type="button" class="btn sm gh" data-cert50="1">พิมพ์ 50 ทวิ ประจำปีของพนักงาน</button>');}
    }catch(e){}
@@ -381,7 +387,7 @@
  /* what was paid in a month (by the day the salaries were paid), one row per employee and period */
  function pnd1(mo){const out=[];periods().forEach(p=>{const d=paidOn(p);if(d.slice(0,7)===mo)p.lines.forEach(l=>out.push({p,l,date:d}));});
   return out.sort((a,b)=>a.date.localeCompare(b.date)||String(a.l.code).localeCompare(String(b.l.code)));}
- function printPnd1(){const mo=acctM(),R=pnd1(mo);if(!R.length)return toast('เดือน '+monthName(mo)+' ยังไม่มีเงินเดือนที่จ่ายแล้ว');
+ function printPnd1(){if(!payOk())return toast(NO_PAY);const mo=acctM(),R=pnd1(mo);if(!R.length)return toast('เดือน '+monthName(mo)+' ยังไม่มีเงินเดือนที่จ่ายแล้ว');
   const g=r2(R.reduce((a,r)=>a+r.l.gross,0)),x=r2(R.reduce((a,r)=>a+n(r.l.tax),0)),k=R.filter(r=>n(r.l.tax)>0).length,ps=[...new Set(R.map(r=>r.p))];
   logAudit('expense',{id:ps[0].payId,no:ps[0].payNo},'print','สรุป ภ.ง.ด.1 เดือน '+monthName(mo)+' · '+R.length+' ราย · ภาษี '+money(x)+' บาท');save();
   printDocs(sheetTop({title:'สรุปภาษีเงินได้หัก ณ ที่จ่าย ภ.ง.ด.1',en:'P.N.D.1 SUMMARY',copy:'เอกสารภายใน',
@@ -403,7 +409,7 @@
   return [...m.values()].sort((a,b)=>String(a.code).localeCompare(String(b.code)));}
  /* 50 ทวิ of the year for every employee paid in it: copies 1 and 2, a number of its own (MA-WH…, the one of task 3.4)
     given on the first print and kept on the employee for that year */
- function printCert50(){if(!canPay())return toast('บัญชีนี้ไม่มีสิทธิ์ออก 50 ทวิ ของพนักงาน (ต้องมีสิทธิ์บันทึกค่าใช้จ่าย)');
+ function printCert50(){if(!canPay())return toast(payOk()?'บัญชีนี้ไม่มีสิทธิ์ออก 50 ทวิ ของพนักงาน (ต้องมีสิทธิ์บันทึกค่าใช้จ่าย)':NO_PAY);
   const y=+acctM().slice(0,4),R=yearRows(y),W=window.PKG_WHT_OUT;if(!R.length)return toast('ปี '+(y+543)+' ยังไม่มีเงินเดือนที่จ่ายแล้ว');if(!W||!W.sheet)return;
   const E=a=>(DB.emp||[]).find(e=>e.id===a.empId);
   R.forEach(a=>{const e=E(a);if(!e||(e.cert50&&e.cert50[y]))return;const old=Object.assign({},e);e.cert50=Object.assign({},e.cert50,{[y]:docNo('WH')});stampRec(e,old);});

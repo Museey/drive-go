@@ -282,6 +282,18 @@
       "by": "S171-delete-wrong-entries-cash-without-payroll-estimate.spec.ts",
       "decision": "R12, R13, F5, X2 and answers of 2026-10-25 (task 3.7)",
       "why": "Cash no longer takes off the payroll estimate (993,634 and 968,634); the cash, equity and assets figures are checked by their text, every step, the rest of each screen and every data change against S58's goldens."
+    },
+    {
+      "scenario": "S41-cashier-account-limited-menus.spec.ts",
+      "by": "S176-cashier-gets-no-pay-or-personal-data.spec.ts",
+      "decision": "R14-ข and answers of 2026-10-26 (task 3.9)",
+      "why": "The server no longer sends the cashier the other employees' pay and personal data (null in the browser; the masks go with the data); the cashier's own record stays whole; backup points cannot be read. Every step, screen and the rest of the data change are S41's."
+    },
+    {
+      "scenario": "S47-mechanic-account-price-visibility.spec.ts",
+      "by": "S177-mechanic-account-no-pay-data.spec.ts",
+      "decision": "R14-ข and answers of 2026-10-26 (task 3.9)",
+      "why": "The server no longer sends the mechanic the other employees' pay and personal data (null in the browser); their own record stays whole. Every step, screen and the rest of the data change are S47's."
     }
   ],
   "added": [
@@ -399,6 +411,11 @@
       "scenario": "S175-employee-annual-certificate-50-tawi.spec.ts",
       "decision": "F6-ข and answers of 2026-10-25 (task 3.8)",
       "why": "The employee form has an address for the certificate; the tax report prints every employee's 50 ทวิ of the year (ภ.ง.ด.1ก, pay and tax withheld in the year, social security), each with an MA-WH number given once and kept on the employee; an account without the expense right cannot print them."
+    },
+    {
+      "scenario": "S178-payroll-and-backup-need-the-right.spec.ts",
+      "decision": "R14-ข and answers of 2026-10-26 (task 3.9)",
+      "why": "Someone who may open 06.4 without the pay right sees a message instead of the table and cannot record or print; the whole shop's backup file and restoring a backup point are the owner's, even with the export and backup rights."
     }
   ]
 }

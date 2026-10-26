@@ -293,6 +293,43 @@
     return assemble(storeKey, s.layout, out, { session: s.session, secrets: s.secrets });
   }
 
+  // server/lib/visibility.ts
+  var isObject2 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+  function reach(v, path, fn) {
+    const dot = path.indexOf(".");
+    const head = dot < 0 ? path : path.slice(0, dot), rest = dot < 0 ? "" : path.slice(dot + 1);
+    if (!isObject2(v)) return;
+    if (head.endsWith("[]")) {
+      const list = v[head.slice(0, -2)];
+      if (Array.isArray(list) && rest) for (const x of list) reach(x, rest, fn);
+      return;
+    }
+    if (!Object.prototype.hasOwnProperty.call(v, head)) return;
+    if (rest) reach(v[head], rest, fn);
+    else fn(v, head);
+  }
+  var blank = (v) => Array.isArray(v) ? [] : null;
+  function masksOf(masks, unit, key) {
+    const paths = [];
+    for (const m of masks) if (m.unit === unit && !(m.except || []).includes(key)) paths.push(...m.paths);
+    return paths;
+  }
+  function maskRow(row, masks) {
+    const paths = masksOf(masks, row.unit, row.key);
+    if (!paths.length) return row;
+    const v = JSON.parse(row.data);
+    let changed = false;
+    for (const p of paths) reach(v, p, (h, f) => {
+      const b = blank(h[f]);
+      if (JSON.stringify(h[f]) !== JSON.stringify(b)) {
+        h[f] = b;
+        changed = true;
+      }
+    });
+    return changed ? { ...row, data: JSON.stringify(v) } : row;
+  }
+  var maskRows = (rows, masks) => rows.map((r) => maskRow(r, masks));
+
   // server/client/storage.ts
   var API = "/api/storage";
   var fetch0 = window.fetch.bind(window);
@@ -355,6 +392,7 @@
       const body = await r.text();
       const nl = body.indexOf("\n");
       m.base = JSON.parse(body.slice(0, nl));
+      m.masks = JSON.parse(r.headers.get("x-drivego-masks") || "[]");
       m.value = m.sent = body.slice(nl + 1);
       m.last = split(key, m.sent);
     } else if (r.status === 403) {
@@ -562,7 +600,7 @@
         const r = await fetch0(url(key), { cache: "no-store" });
         const body = await r.text();
         const s = split(key, m.value);
-        const expected = assemble(key, s.layout, s.rows, { session: s.session });
+        const expected = assemble(key, s.layout, m.masks?.length ? maskRows(s.rows, m.masks) : s.rows, { session: s.session });
         if (r.status !== 200 || body.slice(body.indexOf("\n") + 1) !== expected) wrong.push(key);
       }
       return { checked, wrong };

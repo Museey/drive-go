@@ -8,6 +8,7 @@ import type pg from 'pg';
 import { gunzipSync, gzipSync } from 'node:zlib';
 import { COUNTERS, type Claims, type Counters, type Renumbered, numberOf, numbersIn, renumberText, seqOf } from './numbers.ts';
 import { type Changes, type Row, assemble, rootOf } from './units.ts';
+import { type Mask, maskRows, masksUnit, restoreRow } from './visibility.ts';
 
 // Version of each row, keyed "<unit>|<key>"; the browser sends back the
 // versions it last saw so the server can refuse a save that would overwrite
@@ -19,6 +20,9 @@ export const isBackupKey = (k: string) => /^garage\.v22(::[^.]+)?\.bak\./.test(k
 // The copy the app asks for before it wipes, restores, imports or replaces the
 // whole data set (task 3.2, decision F1): kept 90 days, never replaced or removed by the app.
 export const isSafetyBackupKey = (k: string) => isBackupKey(k) && k.includes('.bak.safety-');
+// A whole copy of a branch's data kept beside it: backup points, and other keys under the main key
+// (garage.v22.trialkeep, 55.js). Only its managers may read one (task 3.9, owner's answer of 2026-10-26).
+export const isDataCopyKey = (k: string) => /^garage\.v22(::[^.]+)?\./.test(k);
 const SAFETY_DAYS = 90;
 const mainOfBackup = (k: string) => k.slice(0, k.indexOf('.bak.'));
 
@@ -43,7 +47,8 @@ export const inScope = (scope: string, branch: string) => scope === '*' || branc
 // The layout row of a STORE key: unit = its root (DB, FR, DGB), key = the STORE key.
 const layoutUnit = (storeKey: string) => rootOf(storeKey)!;
 
-export async function readMain(c: pg.ClientBase, branch: string, storeKey: string, session: Record<string, string> = {}):
+// masks: what the person may not see (lib/visibility.ts, task 3.9); a backup point copies everything.
+export async function readMain(c: pg.ClientBase, branch: string, storeKey: string, session: Record<string, string> = {}, masks: Mask[] = []):
   Promise<{ json: string; versions: Versions } | null> {
   const root = layoutUnit(storeKey);
   const layout = await c.query<{ data: string; version: number }>(
@@ -54,7 +59,20 @@ export async function readMain(c: pg.ClientBase, branch: string, storeKey: strin
       where shop_id = app_shop() and branch_id = $1 and unit like $2 order by unit, pos, key`, [branch, `${root}.%`]);
   const versions: Versions = { [vkey(root, storeKey)]: layout.rows[0].version };
   for (const r of rows) versions[vkey(r.unit, r.key)] = r.version;
-  return { json: assemble(storeKey, layout.rows[0].data, rows, { session }), versions };
+  return { json: assemble(storeKey, layout.rows[0].data, masks.length ? maskRows(rows, masks) : rows, { session }), versions };
+}
+
+// A save by someone who could not see some values: the rows they send carry blanks there; the stored values
+// go back in (task 3.9). A new row keeps what it was sent with.
+export async function restoreHidden(c: pg.ClientBase, branch: string, changes: Changes, masks: Mask[]): Promise<Changes> {
+  const hidden = changes.upsert.filter(r => masksUnit(masks, r.unit));
+  if (!hidden.length) return changes;
+  const { rows } = await c.query<{ unit: string; key: string; data: string }>(
+    `select unit, key, data::text as data from records
+      where shop_id = app_shop() and branch_id = $1 and (unit, key) in (select * from unnest($2::text[], $3::text[]))`,
+    [branch, hidden.map(r => r.unit), hidden.map(r => r.key)]);
+  const stored = new Map(rows.map(r => [vkey(r.unit, r.key), r.data]));
+  return { ...changes, upsert: changes.upsert.map(r => masksUnit(masks, r.unit) ? restoreRow(r, stored.get(vkey(r.unit, r.key)), masks) : r) };
 }
 
 export type WriteResult = { ok: true; versions: Versions } | { ok: false; conflicts: string[] };

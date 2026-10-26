@@ -20,6 +20,7 @@
 // is split off and sent once, to be stored as a hash (design §3.2).
 import { type Counters, type Issued, type Renumbered, baseOf, claimsIn, correctSplit, isRow, renumberValue, rowsToRenumber, setCounters, shiftLater } from '../lib/numbers.ts';
 import { type Split, SECRET_PLACEHOLDER, assemble, diff, eachRecord, rootOf, split } from '../lib/units.ts';
+import { type Mask, maskRows } from '../lib/visibility.ts';
 
 const API = '/api/storage';
 // The legacy app later wraps window.fetch to show its loading overlay on every
@@ -50,6 +51,8 @@ interface Main {
   // server refuses it (403). The legacy app still reads and writes the first
   // branch's key while it starts; it gets no data and its writes are not sent.
   forbidden?: boolean;
+  // What the server left out for this person (task 3.9): their copy is compared with the server's through it.
+  masks?: Mask[];
 }
 const mains = new Map<string, Main>();
 const vk = (unit: string, key: string) => `${unit}|${key}`;
@@ -115,6 +118,7 @@ async function readMain(key: string): Promise<Main> {
     const body = await r.text();
     const nl = body.indexOf('\n');
     m.base = JSON.parse(body.slice(0, nl));
+    m.masks = JSON.parse(r.headers.get('x-drivego-masks') || '[]');
     m.value = m.sent = body.slice(nl + 1);
     m.last = split(key, m.sent);
   } else if (r.status === 403) {
@@ -335,7 +339,7 @@ const storage = {
       const r = await fetch0(url(key), { cache: 'no-store' });
       const body = await r.text();
       const s = split(key, m.value);
-      const expected = assemble(key, s.layout, s.rows, { session: s.session });
+      const expected = assemble(key, s.layout, m.masks?.length ? maskRows(s.rows, m.masks) : s.rows, { session: s.session });
       if (r.status !== 200 || body.slice(body.indexOf('\n') + 1) !== expected) wrong.push(key);
     }
     return { checked, wrong };

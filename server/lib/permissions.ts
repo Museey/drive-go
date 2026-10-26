@@ -6,11 +6,13 @@ import type pg from 'pg';
 import type { Session } from './session.ts';
 import { isSafetyBackupKey } from './storage.ts';
 import { type Changes, rootOf } from './units.ts';
+import type { Rights } from './visibility.ts';
 
 // Who is signed in, as the legacy screens know them.
 //   Biz/ProX   owner | emp (an employee signed in with a phone number)
 //   Franchise  HQ | HB (branch head) | SHB (staff account) | emp (<branch>.<employee code> + PIN)
-export interface Actor { pkg: string; role: 'owner' | 'emp' | 'HQ' | 'HB' | 'SHB'; ref: string; branch: string }
+// emp: the branch employee a staff account (SHB) signs in as, when it has one (its screens follow that employee's rights).
+export interface Actor { pkg: string; role: 'owner' | 'emp' | 'HQ' | 'HB' | 'SHB'; ref: string; branch: string; emp?: string }
 
 export async function actorOf(c: pg.ClientBase, s: Session): Promise<Actor> {
   const { rows } = await c.query<{ kind: string; ref: string; branch_id: string; package: string }>(
@@ -21,9 +23,22 @@ export async function actorOf(c: pg.ClientBase, s: Session): Promise<Actor> {
   if (u.kind !== 'fr') return { pkg: u.package, role: u.kind as 'owner' | 'emp', ref: u.ref, branch: u.branch_id };
   const acc = await c.query<{ data: string }>(
     "select data::text as data from records where shop_id = app_shop() and branch_id = '' and unit = 'FR.accounts' and key = $1", [u.ref]);
-  const role = acc.rows.length ? JSON.parse(acc.rows[0].data).role : '';
+  const data = acc.rows.length ? JSON.parse(acc.rows[0].data) : {};
+  const role = data.role || '';
   if (!['HQ', 'HB', 'SHB'].includes(role)) throw new Error(`franchise account ${u.ref} has no role`);
-  return { pkg: u.package, role, ref: u.ref, branch: s.scope === '*' ? '' : s.scope };
+  return { pkg: u.package, role, ref: u.ref, branch: s.scope === '*' ? '' : s.scope, ...(role === 'SHB' && data.empId ? { emp: String(data.empId) } : {}) };
+}
+
+// What the person may see (task 3.9, lib/visibility.ts): an employee (or a staff account signed in as one) by
+// the rights on that employee's record — the legacy keys the screens check (doc.fin, doc.emp); everyone else
+// sees all of their scope. owner: the shop's owner, Franchise HQ or a branch head (the whole-data copies).
+export async function rightsOf(c: pg.ClientBase, a: Actor): Promise<Rights> {
+  const owner = a.role === 'owner' || a.role === 'HQ' || a.role === 'HB';
+  const self = a.role === 'emp' ? a.ref : a.emp ?? '';
+  if (!self) return { owner, pay: true, self: '' };
+  const e = (await current(c, a.branch, 'DB.emp', [self])).get(self);
+  const doc = ((e?.perms as Rec | undefined)?.doc ?? {}) as Rec;
+  return { owner, pay: doc.fin === true || doc.emp === true, self };
 }
 
 // For working out the rules (task T10): with DRIVEGO_WRITE_TRACE set, every
