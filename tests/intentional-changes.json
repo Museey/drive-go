@@ -318,6 +318,12 @@
       "by": "S191-knowledge-article-file-kept-as-link.spec.ts",
       "decision": "R19-ค, answers 11.1–11.6 (task 3.11)",
       "why": "The file attached to a knowledge article is kept by the server and the article holds its link (/api/files/<SHA-256>) instead of the file; every step, screen and the confirm dialog are checked against S86's goldens, and each data change is S86's with the link in place of the file."
+    },
+    {
+      "scenario": "S65-register-fixed-assets.spec.ts",
+      "by": "S210-asset-depreciation-by-days-paid-cash-voucher.spec.ts",
+      "decision": "R17 and answers 13.1–13.11 of 2026-10-26 (task 3.13)",
+      "why": "Depreciation is worked out by the days held in each year (the acquisition month is no longer a whole month), rounded per asset per year; the form has the payment terms and the vendor comes from the register (needed with VAT); bought in cash, the purchase is paid when saved with a payment voucher. Every step and message is S65's; the data change has the purchase, terms and payment; the list screen is S65's but for the vendor; the register is checked by its text."
     }
   ],
   "added": [
@@ -550,6 +556,26 @@
       "scenario": "S205-prox-online-chain-costs-hidden-without-cost-right.spec.ts",
       "decision": "answer 12.5, F7 = ก (task 3.12)",
       "why": "Someone who may not see costs sees \"-\" for the chain catalogue's cost and the cost of the central warehouse requests."
+    },
+    {
+      "scenario": "S211-asset-on-credit-vat-per-invoice-paid-with-withholding.spec.ts",
+      "decision": "R17 and answers 13.5–13.7, 13.10 of 2026-10-26 (task 3.13)",
+      "why": "An asset bought on credit is owed until paid in ชำระเงินเจ้าหนี้ (with withholding, a payment voucher and ภ.ง.ด.53); its VAT is worked out once per tax invoice and is in the input tax report with the vendor's tax ID, the home page and the trial balance (1050, 2010)."
+    },
+    {
+      "scenario": "S212-asset-disposal-delete-cancel-monthly-by-days.spec.ts",
+      "decision": "R17 and answers 13.2–13.4, 13.9 of 2026-10-26 (task 3.13)",
+      "why": "The monthly profit and loss spreads depreciation by the days of each month; a disposal needs its date and stops depreciation there; only a purchase on credit with nothing paid can be deleted, others are cancelled with a reason together with a payment made when saved."
+    },
+    {
+      "scenario": "S213-asset-in-closed-tax-month.spec.ts",
+      "decision": "R17, T5 and answer 13.11 of 2026-10-26 (task 3.13)",
+      "why": "An asset with VAT in a closed tax month can still be paid and have its life, salvage and status changed; its tax fields cannot change and it cannot be cancelled."
+    },
+    {
+      "scenario": "S214-statements-trial-balance-health-print-export-by-days.spec.ts",
+      "decision": "R17 and answers 13.1, 13.7, 13.9 of 2026-10-26 (task 3.13)",
+      "why": "The financial statements, the trial balance (printed and exported) and the health page (printed) carry depreciation by the day, the cash actually paid for assets and their input VAT in 1050."
     }
   ]
 }

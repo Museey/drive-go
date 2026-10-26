@@ -8,6 +8,8 @@ import { legacyGolden } from '../support/legacy-golden';
 // is October's 216,500 + 8,800 and the expense category "เงินเดือนและค่าแรงงาน" is not added a second
 // time. The figures changed, so the two screens are checked by their text; the steps are S46's
 // (the recording now asks first: the legacy step after it is checked here).
+// Task 3.13 (R17, answer 13.1): the year's depreciation is worked out by the day, 164,913.43 instead of
+// 165,198.35, so the expenses add up to 218,803 before recording and 444,103 after (legacy 219,088 / 444,388).
 const S46 = 'S46-payroll-in-finance-health.spec.ts';
 
 test('S166 ระบบใหม่: หน้าสุขภาพการเงินนับเงินเดือนจากงวดที่บันทึกเท่านั้น บอกเดือนที่ยังไม่บันทึก', async ({ app, page }, testInfo) => {
@@ -17,7 +19,7 @@ test('S166 ระบบใหม่: หน้าสุขภาพการเ�
 
   await page.getByRole('button', { name: '08 บัญชี - การเงิน' }).click();
   await page.getByRole('button', { name: '└ สุขภาพการเงิน', exact: true }).click();
-  await expect(page.getByText('รวม 219,088 บาท', { exact: true })).toBeVisible();
+  await expect(page.getByText('รวม 218,803 บาท', { exact: true })).toBeVisible();
   await expect(page.getByText('เงินเดือนและสวัสดิการพนักงาน', { exact: true }).filter({ visible: true })).toHaveCount(0);
   await expect(page.getByText('เงินเดือนและค่าแรงงาน', { exact: true }).filter({ visible: true })).toHaveCount(0);
   await expect(page.getByText(/^ยังไม่ได้บันทึกเงินเดือน/)).toHaveText('ยังไม่ได้บันทึกเงินเดือน 10 เดือน (ม.ค. 2569 – ต.ค. 2569) — งบและเงินสดยังไม่มีเงินเดือนของเดือนเหล่านั้น (บันทึกที่ 06.4 จ่ายเงินเดือน)');
@@ -39,7 +41,7 @@ test('S166 ระบบใหม่: หน้าสุขภาพการเ�
 
   await page.getByRole('button', { name: '08 บัญชี - การเงิน' }).click();
   await page.getByRole('button', { name: '└ สุขภาพการเงิน', exact: true }).click();
-  await expect(page.getByText('รวม 444,388 บาท', { exact: true })).toBeVisible();
+  await expect(page.getByText('รวม 444,103 บาท', { exact: true })).toBeVisible();
   await expect(page.getByText('เงินเดือนและสวัสดิการพนักงาน', { exact: true })).toBeVisible();
   await expect(page.getByText('เงินเดือนและค่าแรงงาน', { exact: true }).filter({ visible: true })).toHaveCount(0);
   await expect(page.getByText('225,300 บาท', { exact: true })).toBeVisible();

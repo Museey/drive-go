@@ -17,8 +17,8 @@
 //   selling short         a sale, a revision or a customer claim that takes stock below zero: the owner or an approval right (59-stock-fifo.js)
 //   payroll               DB.payroll: the owner, or "บันทึกค่าใช้จ่าย" with the pay right (60-payroll.js); one period per month
 //                         that is not cancelled
-//   expenses, assets,     "บันทึกค่าใช้จ่าย สินทรัพย์ และเงินลงทุน" (doc.acctEdit), except marking an expense paid; payroll
-//   capital               expenses: the payroll's right
+//   expenses, assets,     "บันทึกค่าใช้จ่าย สินทรัพย์ และเงินลงทุน" (doc.acctEdit), except marking an expense paid and paying
+//   capital               for an asset ("จ่ายเงินเจ้าหนี้", doc.payGr, task 3.13); payroll expenses: the payroll's right
 //   cancelling            a sale, a receipt or a receiving, a billing note, a goods receipt or a vendor payment, a legacy
 //                         invoice: the right each screen checks where it is cancelled
 //   people                employees' records: "ดูและแก้ไขข้อมูลพนักงานและสิทธิใช้งาน" (doc.emp); leave and warnings: doc.hrEdit
@@ -114,7 +114,7 @@ const TAX_FIELDS: Record<string, string[]> = {
   'DB.stockCuts': ['date', 'disc', 'vat', 'items', 'lines', 'cancelled', 'superseded'],
   'DB.purchases': ['date', 'vendorId', 'inv', 'disc', 'vat', 'items', 'cancelled'],
   'DB.expenses': ['date', 'payee', 'tax', 'inv', 'base', 'vat'],
-  'DB.assets': ['date', 'vat', 'inv', 'vendor', 'cost'],
+  'DB.assets': ['date', 'vat', 'inv', 'vendor', 'vendorId', 'cost', 'cancelled'],
 };
 // A sale's adjustments other than those of credit notes, and its tax invoices that were cancelled.
 const ownAdj = (x?: Rec) => ((x?.adj as Rec[] | undefined) || []).filter(a => a && !a.cn);
@@ -231,10 +231,18 @@ const changedFields = (t: Touch) => !t.old || !t.now ? ['(record)']
   : [...new Set([...Object.keys(t.old), ...Object.keys(t.now)])].filter(f => !same(t.old![f], t.now![f]));
 
 // Expenses, assets and capital: "บันทึกค่าใช้จ่าย สินทรัพย์ และเงินลงทุน" (doc.acctEdit, 03.js saveExp / delExp / saveAsset /
-// delAsset / saveCap / delCap). Marking an expense paid has no right of its own on the screens (payExp, the
-// withholding certificate's number and remittance), so those fields stay open. Payroll expenses change only with
-// their period (60-payroll.js): the payroll's right.
+// delAsset / saveCap / delCap, 62-assets.js cancelAsset). Marking an expense paid has no right of its own on the screens
+// (payExp, the withholding certificate's number and remittance), so those fields stay open; paying for an asset is
+// "จ่ายเงินเจ้าหนี้" (ASSET_PAYMENT). Payroll expenses change only with their period (60-payroll.js): the payroll's right.
 const EXP_PAYMENT = ['paid', 'payDate', 'method', 'pvNo', 'whtCertNo', 'whtForm', 'whtRemit', 'updatedBy', 'updatedByName', 'updatedAt'];
+// Paying for an asset bought on credit (task 3.13, answer 13.10): "จ่ายเงินเจ้าหนี้" (doc.payGr), in the settle window
+// or its payment history (62-assets.js). What 4.4 records for a withholding certificate on a payment (its number, the
+// form, the remittance) stays open, as for an expense; the asset's own payment fields (paid: nothing owed) do not.
+const STAMP = ['updatedBy', 'updatedByName', 'updatedAt'];
+const ASSET_PAYMENT = ['payments', 'paid', 'payDate', 'payMethod', 'payBank', 'payRef', 'payCard4', 'chkDate', 'payBy', 'payNote', ...STAMP];
+const CERT = ['whtCertNo', 'whtForm', 'whtRemit'];
+const payments = (x?: Rec) => ((x?.payments as Rec[] | undefined) || [])
+  .map(p => isObj(p) ? Object.fromEntries(Object.entries(p).filter(([k]) => !CERT.includes(k))) : p);
 async function moneyRules(s: Save, who: Who): Promise<string | null> {
   if (who.owner) return null;
   const payroll = who.can('doc.acctEdit') && (who.can('doc.fin') || who.can('doc.emp'));
@@ -242,8 +250,16 @@ async function moneyRules(s: Save, who: Who): Promise<string | null> {
     if (t.old?.payroll || t.now?.payroll) { if (!payroll) return `DB.expenses|${t.key}`; continue; }
     if (!who.can('doc.acctEdit') && changedFields(t).some(f => !EXP_PAYMENT.includes(f))) return `DB.expenses|${t.key}`;
   }
-  for (const unit of ['DB.assets', 'DB.capital']) if (s.units().has(unit) && !who.can('doc.acctEdit'))
-    for (const t of await s.touched(unit)) if (changedFields(t).length) return `${unit}|${t.key}`;
+  if (s.units().has('DB.capital') && !who.can('doc.acctEdit'))
+    for (const t of await s.touched('DB.capital')) if (changedFields(t).length) return `DB.capital|${t.key}`;
+  if (s.units().has('DB.assets') && !who.can('doc.acctEdit'))
+    for (const t of await s.touched('DB.assets')) {
+      const f = changedFields(t);
+      if (!f.length) continue;
+      if (f.some(x => !ASSET_PAYMENT.includes(x))) return `DB.assets|${t.key}`;
+      if (!who.can('doc.payGr') && (f.some(x => x !== 'payments' && !STAMP.includes(x)) || !same(payments(t.old), payments(t.now))))
+        return `DB.assets|${t.key}`;
+    }
   return null;
 }
 

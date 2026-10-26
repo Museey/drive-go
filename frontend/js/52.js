@@ -278,6 +278,7 @@
   const out=(DB.expenses||[]).filter(x=>x&&n(x.wht)>0).map(x=>({id:x.id,x,doc:x,kind:'expense',paid:!!x.paid,br:x.br,createdByName:x.createdByName,createdAt:x.createdAt,date:x.paid?(x.payDate||x.date):x.date,no:x.no||'',payee:x.payee||'',tax:x.tax||'',addr:null,desc:x.desc||x.cat||'',base:n(expTotals(x).base),rate:n(x.wht),amt:n(expTotals(x).wht),form:formOf(x),cert:x.whtCertNo||'',remit:!!(x.whtRemit&&x.whtRemit.done)}));
   (DB.purchases||[]).forEach(g=>{if(!g||g.cancelled)return;const v=venOf(g.vendorId);(g.payments||[]).forEach(p=>{if(!p||p.cancelled||!p.wht||!(n(p.wht.amt)>0))return;
    out.push({id:'GR:'+g.id+':'+p.id,x:p,doc:g,kind:'gr',paid:true,br:p.br||g.br,createdByName:p.by||'',createdAt:'',date:p.date,no:p.pvNo||g.no||'',payee:(v&&v.name)||'',tax:(v&&v.tax)||'',addr:v&&v.addr,desc:'ค่าสินค้าตามใบรับสินค้า '+(g.no||''),base:n(p.wht.baseAmt),rate:n(p.wht.rate),amt:n(p.wht.amt),form:p.whtForm||p.wht.form||'3',cert:p.whtCertNo||'',remit:!!(p.whtRemit&&p.whtRemit.done)});});});
+  if(window.PKG_ASSETS)out.push(...PKG_ASSETS.whtOut());   /* fixed assets bought (task 3.13, 62-assets.js) */
   return out;
  }
  /* a month's ภ.ง.ด.3 / 53 (paid only), in the order of its attachment — payment date, then document number; seq = ลำดับที่ */
