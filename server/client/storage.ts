@@ -21,6 +21,7 @@
 import { type Counters, type Issued, type Renumbered, baseOf, claimsIn, correctSplit, isRow, renumberValue, rowsToRenumber, setCounters, shiftLater } from '../lib/numbers.ts';
 import { type Split, SECRET_PLACEHOLDER, assemble, diff, eachRecord, rootOf, split } from '../lib/units.ts';
 import { type Mask, maskRows } from '../lib/visibility.ts';
+import { type Refused, linkInPlace, setSpace, space, uploadFiles, withLinks } from './files.ts';
 
 const API = '/api/storage';
 // The legacy app later wraps window.fetch to show its loading overlay on every
@@ -34,6 +35,9 @@ const MESSAGES = {   // decision Q5
   notAllowed: 'บันทึกไม่สำเร็จ — บัญชีนี้ไม่มีสิทธิ์แก้ข้อมูลส่วนนี้ กดตกลงเพื่อโหลดข้อมูลล่าสุด',   // task T10, owner 2026-10-19
   lockedOut: 'กรอกรหัสผิดหลายครั้ง กรุณารอ 15 นาทีแล้วลองใหม่',
   // task 3.2, decision R1-ก, owner 2026-10-23: the number a document got when the one it showed was taken
+  // task 3.11 (R19-ค, answers 11.2 and 11.4): a file the server would not keep
+  fileTooLarge: 'บันทึกไม่สำเร็จ — ไฟล์แนบใหญ่เกิน 5 MB (คลิปเกิน 15 MB) กรุณาลดขนาดไฟล์ก่อนแนบ กดตกลงเพื่อโหลดข้อมูลล่าสุด',
+  spaceFull: 'บันทึกไม่สำเร็จ — พื้นที่ไฟล์ของร้านเต็มแล้ว (2 GB) แนบรูปสินค้า ไฟล์คลังความรู้ และคลิปไม่ได้ กดตกลงเพื่อโหลดข้อมูลล่าสุด',
   renumbered: (r: Renumbered) => `บันทึกแล้ว เอกสารได้เลขที่ ${r.map(x => x[1]).join(', ')} เพราะเลขที่ ${r.map(x => x[0]).join(', ')} ถูกใช้ไปแล้ว`,
 };
 
@@ -142,12 +146,23 @@ function newSecrets(before: Split | null, next: Split) {
 // Sends what changed in a main key since the server's last confirmed value.
 async function flush(key: string): Promise<void> {
   const m = mains.get(key)!;
-  const value = m.value;
+  let value = m.value;
   if (value === null || value === m.sent || !signedIn || m.forbidden) return;
-  const next = split(key, value);
+  let next = split(key, value);
   const secrets = newSecrets(m.last, next);
-  const changes = m.last ? diff(m.last, next)
+  let changes = m.last ? diff(m.last, next)
     : { layout: next.layout, upsert: next.rows, remove: [], order: {} };
+  // Task 3.11: files the app put into the rows go up first; the save, what the app wrote since and its data get their links.
+  const files = await uploadFiles(key, changes, (u, init) => send(u, init, true));
+  if (!(files instanceof Map)) return refusedFile(key, files);
+  if (files.size) {
+    const linked = withLinks(key, value, files);
+    m.value = m.value === value ? linked : withLinks(key, m.value!, files);
+    if (typeof KEY !== 'undefined' && KEY === key && typeof DB !== 'undefined') linkInPlace(key, DB, files);
+    value = linked;
+    next = split(key, value);
+    changes = m.last ? diff(m.last, next) : { layout: next.layout, upsert: next.rows, remove: [], order: {} };
+  }
   const sessionChanged = JSON.stringify(next.session) !== JSON.stringify(m.last?.session ?? {});
   if (changes.layout === undefined && !changes.upsert.length && !changes.remove.length && !Object.keys(changes.order).length && !sessionChanged && !secrets.length) {
     m.sent = value; m.last = next;
@@ -200,6 +215,16 @@ async function flush(key: string): Promise<void> {
   }
   // After the app's own message for the save, if it shows one.
   if (renumbered.length && typeof window.toast === 'function') setTimeout(() => window.toast!(MESSAGES.renumbered(renumbered)), 0);
+}
+
+// An upload the server refused (task 3.11): the save cannot go without it.
+function refusedFile(key: string, r: Refused): Promise<void> {
+  if (r.error === 'signed-out') return mustReload(MESSAGES.signedOut, `signed out while uploading a file of ${key}`);
+  if (r.error === 'not-allowed') return mustReload(MESSAGES.notAllowed, `not allowed to upload a file of ${key}`);
+  if (r.error === 'too-large') return mustReload(MESSAGES.fileTooLarge, `file too large for ${key}`);
+  if (r.error === 'quota') return mustReload(MESSAGES.spaceFull, `no space for a file of ${key}`);
+  problems.push(`upload for ${key}: ${r.error}`);
+  return Promise.resolve();
 }
 
 // The legacy scripts keep wrapping the app's functions while the page loads.
@@ -286,6 +311,16 @@ const storage = {
   },
 
   get signedIn() { return signedIn === true; },
+
+  // Attachments (task 3.11): the space the shop or branch uses, for the screens (66-files.js).
+  files: {
+    space,
+    async usage(key: string): Promise<typeof space> {
+      const r = await send(`/api/files?key=${encodeURIComponent(key)}`, {}, false);
+      if (r.ok) setSpace(await r.json());
+      return space;
+    },
+  },
 
   // Signs in at this shop. The server decides, with the legacy app's rules and
   // messages; on success everything is read again, now with the shop's data.

@@ -300,6 +300,18 @@
       "by": "S180-employee-home-without-money-right.spec.ts",
       "decision": "R14-ข, finding 42 (approved) and answers of 2026-10-26 (task 3.9)",
       "why": "The employee without \"ดูยอดเงินและมูลค่าในหน้าแรก\" sees the home card of sales waiting for payment with its count and without the amount. Every step, data change and the rest of each screen are S04's."
+    },
+    {
+      "scenario": "S52-stock-item-photo-upload-delete.spec.ts",
+      "by": "S190-stock-photo-kept-as-file-link.spec.ts",
+      "decision": "R19-ค, answers 11.1–11.6 (task 3.11)",
+      "why": "The product picture is kept by the server as a file and the img field holds its link (/api/files/<SHA-256>) instead of the picture; every step and screen is checked against S52's goldens, and each data change is S52's with the link in place of the picture."
+    },
+    {
+      "scenario": "S86-knowledge-library-article-lifecycle.spec.ts",
+      "by": "S191-knowledge-article-file-kept-as-link.spec.ts",
+      "decision": "R19-ค, answers 11.1–11.6 (task 3.11)",
+      "why": "The file attached to a knowledge article is kept by the server and the article holds its link (/api/files/<SHA-256>) instead of the file; every step, screen and the confirm dialog are checked against S86's goldens, and each data change is S86's with the link in place of the file."
     }
   ],
   "added": [

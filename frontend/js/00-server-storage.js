@@ -338,6 +338,111 @@
   }
   var maskRows = (rows, masks) => rows.map((r) => maskRow(r, masks));
 
+  // server/lib/attachments.ts
+  var MiB = 1024 * 1024;
+  var limitOf = (mime) => (/^video\//i.test(mime) ? 15 : 5) * MiB;
+  var QUOTA = 2 * 1024 * MiB;
+  var INLINE_UNITS = /* @__PURE__ */ new Set(["DB.shop"]);
+  function useOf(unit) {
+    if (unit === "DB.paySlips" || unit === "DB.whtDocs" || unit === "DB.purchases") return "evidence";
+    if (unit === "DB.stock") return "picture";
+    if (unit === "DB.px.learn") return "knowledge";
+    return "other";
+  }
+  var DATA_URL = /^data:([\w.+-]+\/[\w.+-]+)?((?:;[\w.+-]+=[^;,]*)*)(;base64)?,/i;
+  var isDataUrl = (v) => typeof v === "string" && DATA_URL.test(v);
+  var mightHoldDataUrl = (text) => text.includes('"data:');
+  function parseDataUrl(url2) {
+    const m = DATA_URL.exec(url2);
+    if (!m) return null;
+    const mime = (m[1] || "text/plain").toLowerCase();
+    return { mime, base64: !!m[3], payload: url2.slice(m[0].length) };
+  }
+  function dataUrlsIn(value, out = []) {
+    if (Array.isArray(value)) value.forEach((v) => dataUrlsIn(v, out));
+    else if (value && typeof value === "object") {
+      const o = value;
+      for (const v of Object.values(o)) {
+        if (isDataUrl(v)) out.push({ url: v, name: String(o.fname ?? o.name ?? "").slice(0, 200) });
+        else dataUrlsIn(v, out);
+      }
+    } else if (isDataUrl(value)) out.push({ url: value, name: "" });
+    return out;
+  }
+  function replaceStrings(value, map) {
+    if (typeof value === "string") return map.get(value) ?? value;
+    if (Array.isArray(value)) {
+      value.forEach((v, i) => {
+        if (typeof v === "string") {
+          if (map.has(v)) value[i] = map.get(v);
+        } else replaceStrings(v, map);
+      });
+      return value;
+    }
+    if (value && typeof value === "object") {
+      const o = value;
+      for (const [k, v] of Object.entries(o)) {
+        if (typeof v === "string") {
+          if (map.has(v)) o[k] = map.get(v);
+        } else replaceStrings(v, map);
+      }
+    }
+    return value;
+  }
+
+  // server/client/files.ts
+  var space = { used: 0, quota: 0, known: false };
+  var setSpace = (s) => {
+    if (typeof s.used === "number" && typeof s.quota === "number") Object.assign(space, { used: s.used, quota: s.quota, known: true });
+  };
+  var uploaded = /* @__PURE__ */ new Map();
+  function bytesOf(url2) {
+    const p = parseDataUrl(url2);
+    if (!p.base64) return { mime: p.mime, bytes: new TextEncoder().encode(decodeURIComponent(p.payload)) };
+    const bin = atob(p.payload), bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return { mime: p.mime, bytes };
+  }
+  async function uploadFiles(storeKey, changes, send2) {
+    const map = /* @__PURE__ */ new Map();
+    for (const r of changes.upsert) {
+      if (INLINE_UNITS.has(r.unit) || !mightHoldDataUrl(r.data)) continue;
+      for (const f of dataUrlsIn(JSON.parse(r.data))) {
+        if (map.has(f.url)) continue;
+        const known = uploaded.get(f.url);
+        if (known) {
+          map.set(f.url, known);
+          continue;
+        }
+        const { mime, bytes } = bytesOf(f.url);
+        if (bytes.length > limitOf(mime)) return { error: "too-large", limit: limitOf(mime) };
+        const q = new URLSearchParams({ key: storeKey, use: useOf(r.unit), name: f.name });
+        const res = await send2(`/api/files?${q}`, { method: "POST", headers: { "content-type": mime }, body: bytes });
+        const body = await res.json().catch(() => ({}));
+        if (res.status === 401) return { error: "signed-out" };
+        if (res.status === 403) return { error: "not-allowed" };
+        if (!res.ok || !body.url) return { error: body.error || `upload ${res.status}`, limit: body.limit };
+        setSpace(body);
+        uploaded.set(f.url, body.url);
+        map.set(f.url, body.url);
+      }
+    }
+    return map;
+  }
+  function withLinks(storeKey, json, map) {
+    const value = JSON.parse(json);
+    linkInPlace(storeKey, value, map);
+    return JSON.stringify(value);
+  }
+  function linkInPlace(storeKey, value, map) {
+    eachRecord(storeKey, value, (unit, _k, get, set) => {
+      if (INLINE_UNITS.has(unit)) return;
+      const v = get();
+      const r = replaceStrings(v, map);
+      if (r !== v) set(r);
+    });
+  }
+
   // server/client/storage.ts
   var API = "/api/storage";
   var fetch0 = window.fetch.bind(window);
@@ -350,6 +455,9 @@
     // task T10, owner 2026-10-19
     lockedOut: "กรอกรหัสผิดหลายครั้ง กรุณารอ 15 นาทีแล้วลองใหม่",
     // task 3.2, decision R1-ก, owner 2026-10-23: the number a document got when the one it showed was taken
+    // task 3.11 (R19-ค, answers 11.2 and 11.4): a file the server would not keep
+    fileTooLarge: "บันทึกไม่สำเร็จ — ไฟล์แนบใหญ่เกิน 5 MB (คลิปเกิน 15 MB) กรุณาลดขนาดไฟล์ก่อนแนบ กดตกลงเพื่อโหลดข้อมูลล่าสุด",
+    spaceFull: "บันทึกไม่สำเร็จ — พื้นที่ไฟล์ของร้านเต็มแล้ว (2 GB) แนบรูปสินค้า ไฟล์คลังความรู้ และคลิปไม่ได้ กดตกลงเพื่อโหลดข้อมูลล่าสุด",
     renumbered: (r) => `บันทึกแล้ว เอกสารได้เลขที่ ${r.map((x) => x[1]).join(", ")} เพราะเลขที่ ${r.map((x) => x[0]).join(", ")} ถูกใช้ไปแล้ว`
   };
   var SHOP = decodeURIComponent(location.pathname.split("/")[1] || "");
@@ -420,11 +528,21 @@
   }
   async function flush(key) {
     const m = mains.get(key);
-    const value = m.value;
+    let value = m.value;
     if (value === null || value === m.sent || !signedIn || m.forbidden) return;
-    const next = split(key, value);
+    let next = split(key, value);
     const secrets = newSecrets(m.last, next);
-    const changes = m.last ? diff(m.last, next) : { layout: next.layout, upsert: next.rows, remove: [], order: {} };
+    let changes = m.last ? diff(m.last, next) : { layout: next.layout, upsert: next.rows, remove: [], order: {} };
+    const files = await uploadFiles(key, changes, (u, init) => send(u, init, true));
+    if (!(files instanceof Map)) return refusedFile(key, files);
+    if (files.size) {
+      const linked = withLinks(key, value, files);
+      m.value = m.value === value ? linked : withLinks(key, m.value, files);
+      if (typeof KEY !== "undefined" && KEY === key && typeof DB !== "undefined") linkInPlace(key, DB, files);
+      value = linked;
+      next = split(key, value);
+      changes = m.last ? diff(m.last, next) : { layout: next.layout, upsert: next.rows, remove: [], order: {} };
+    }
     const sessionChanged = JSON.stringify(next.session) !== JSON.stringify(m.last?.session ?? {});
     if (changes.layout === void 0 && !changes.upsert.length && !changes.remove.length && !Object.keys(changes.order).length && !sessionChanged && !secrets.length) {
       m.sent = value;
@@ -483,6 +601,14 @@
       setCounters(DB, shift.counters);
     }
     if (renumbered.length && typeof window.toast === "function") setTimeout(() => window.toast(MESSAGES.renumbered(renumbered)), 0);
+  }
+  function refusedFile(key, r) {
+    if (r.error === "signed-out") return mustReload(MESSAGES.signedOut, `signed out while uploading a file of ${key}`);
+    if (r.error === "not-allowed") return mustReload(MESSAGES.notAllowed, `not allowed to upload a file of ${key}`);
+    if (r.error === "too-large") return mustReload(MESSAGES.fileTooLarge, `file too large for ${key}`);
+    if (r.error === "quota") return mustReload(MESSAGES.spaceFull, `no space for a file of ${key}`);
+    problems.push(`upload for ${key}: ${r.error}`);
+    return Promise.resolve();
   }
   var scriptsLoaded = new Promise((resolve) => {
     if (document.readyState !== "loading") resolve();
@@ -556,6 +682,15 @@
     },
     get signedIn() {
       return signedIn === true;
+    },
+    // Attachments (task 3.11): the space the shop or branch uses, for the screens (66-files.js).
+    files: {
+      space,
+      async usage(key) {
+        const r = await send(`/api/files?key=${encodeURIComponent(key)}`, {}, false);
+        if (r.ok) setSpace(await r.json());
+        return space;
+      }
     },
     // Signs in at this shop. The server decides, with the legacy app's rules and
     // messages; on success everything is read again, now with the shop's data.
