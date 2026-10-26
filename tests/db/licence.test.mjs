@@ -215,7 +215,7 @@ describe('เก็บข้อมูล 90 วันแล้วลบ (15.5, 1
     [t, (await ownerPool.query(`select count(*)::int as n from ${t} where shop_id = $1`, [shopId])).rows[0].n])));
   const dueFor = async (code, on) => (await retentionDue(ownerPool, on)).filter(d => d.shop.code === code);
 
-  test('แจ้งก่อนลบ 30 วัน ลองดูก่อน (ไม่เปลี่ยนอะไร) แล้วลบทุกอย่างของร้านในวันที่ 90 เหลือแค่ประวัติของทีมงาน', async () => {
+  test('แจ้งก่อนลบ 30 วัน ลองดูก่อน (ไม่เปลี่ยนอะไร) ลบข้อมูลในวันที่ 90 เก็บประวัติการเปลี่ยนแปลงอีก 5 ปีแล้วจึงลบ', async () => {
     const s = await shop('biz-trial', 'biz', expiredLicence);   // last day 2026-10-01: removal 2026-12-30, notice from 2026-11-30
     // Some change history and a backup of its own, to see them go.
     await asApp(s.shopId, '', c => c.query("insert into change_log (shop_id, store_key, unit, key, op) values (app_shop(), 'garage.v22', 'DB.cust', 'x', 'insert')"));
@@ -234,10 +234,18 @@ describe('เก็บข้อมูล 90 วันแล้วลบ (15.5, 1
     const before = await rowsOf(s.shopId);
     assert.ok(before.records > 0 && before.change_log > 0 && before.backups > 0 && before.users > 0, JSON.stringify(before));
     assert.equal(await carryOut(ownerPool, del, { actor, on: '2026-12-31', tell }), true);
+    // Everything but the change history (owner's answer of 2026-10-26: kept 5 years, as R15) and the licence.
+    assert.deepEqual(await rowsOf(s.shopId), { ...Object.fromEntries(tables.map(t => [t, 0])), change_log: before.change_log, licences: 1 });
+    assert.equal((await ownerPool.query('select status from shops where id = $1', [s.shopId])).rows[0].status, 'removed');
+    await assert.rejects(renew(ownerPool, s.code, { years: 1, actor }), /removed on 2026-12-31/);
+    assert.deepEqual(await dueFor(s.code, '2031-12-30'), []);
+    const [purge] = await dueFor(s.code, '2031-12-31');
+    assert.equal(purge.action, 'purge');
+    assert.equal(await carryOut(ownerPool, purge, { actor, on: '2031-12-31', tell }), true);
     assert.deepEqual(await rowsOf(s.shopId), Object.fromEntries(tables.map(t => [t, 0])));
     assert.equal((await ownerPool.query('select count(*)::int as n from shops where id = $1', [s.shopId])).rows[0].n, 0);
     const log = await ownerPool.query('select action from licence_log where shop_id = $1 order by id', [s.shopId]);
-    assert.deepEqual(log.rows.map(r => r.action), ['notice', 'delete']);
+    assert.deepEqual(log.rows.map(r => r.action), ['notice', 'delete', 'purge']);
   });
 
   test('ร้านที่ต่ออายุแล้วไม่ถูกลบ แม้ได้รับแจ้งไปแล้ว และงานที่ค้างไว้ก่อนต่ออายุก็ไม่ลบ', async () => {

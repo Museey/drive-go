@@ -1,11 +1,12 @@
 // What DriveGo's staff do with shops' licences (task 3.15, decisions 15.1, 15.2, 15.5, 15.6): open, renew,
-// postpone the removal, close, and the retention job that tells a shop and then removes its data. Used by
+// postpone the removal, close, and the retention job that tells a shop, removes its data (its change history
+// stays 5 more years, owner's answer of 2026-10-26) and at last the history too. Used by
 // tools/shop-admin.mjs and tools/retention.mjs with the database owner's connection (never by the web app, whose
 // role can only read its own shop's licence); renew() is also what a payment provider's webhook will call once
 // one is chosen (task 3.16). Every action is written to licence_log, with who did it.
 import type pg from 'pg';
 import { withShop } from './db.ts';
-import { COLUMNS, KEEP_DAYS, type Kind, type Licence, type LicenceRow, NOTICE_DAYS, PILOT_YEARS, TRIAL_DAYS,
+import { COLUMNS, HISTORY_YEARS, KEEP_DAYS, type Kind, type Licence, type LicenceRow, NOTICE_DAYS, PILOT_YEARS, TRIAL_DAYS,
   addDays, addYears, daysBetween, fromRow, isDay, today, writeLicenceIntoData } from './licence.ts';
 
 export interface Shop { id: string; code: string; package: string; name: string; status: string }
@@ -32,6 +33,7 @@ async function change(db: pg.Pool, code: string, actor: string, action: string,
   return withShop(db, shop.id, '*', async c => {
     const { rows } = await c.query<LicenceRow>(`select ${COLUMNS} from licences where shop_id = app_shop() for update`);
     const before = rows.length ? fromRow(rows[0]) : null;
+    if (before?.removedOn) throw new Error(`${code}: its data was removed on ${before.removedOn}`);
     const n = fn(before);
     if (n.end < n.start) throw new Error(`the last day ${n.end} is before the first ${n.start}`);
     if (n.deleteOn && n.deleteOn <= n.end) throw new Error(`the data cannot be removed (${n.deleteOn}) before the licence ends (${n.end})`);
@@ -109,7 +111,7 @@ export function setContact(db: pg.Pool, code: string, o: { contact: string; acto
 export async function listShops(db: pg.Pool, { expiring, on = today() }: { expiring?: number; on?: string } = {}): Promise<ShopLicence[]> {
   const { rows } = await db.query<Shop & LicenceRow & { has: boolean }>(
     `select s.id, s.code, s.package, s.name, s.status, l.shop_id is not null as has,
-            l.kind, l.starts_on::text, l.ends_on::text, l.delete_on::text, l.notice_sent_on::text, l.contact
+            l.kind, l.starts_on::text, l.ends_on::text, l.delete_on::text, l.notice_sent_on::text, l.removed_on::text, l.contact
        from shops s left join licences l on l.shop_id = s.id order by l.ends_on nulls first, s.code`);
   return rows.map(r => ({ id: r.id, code: r.code, package: r.package, name: r.name, status: r.status, licence: r.has ? fromRow(r) : null }))
     .filter(s => expiring === undefined || !s.licence || daysBetween(on, s.licence.end) <= expiring);
@@ -117,7 +119,7 @@ export async function listShops(db: pg.Pool, { expiring, on = today() }: { expir
 
 // ---------- retention (15.5, 15.6) ----------
 
-export interface Due { shop: Shop; licence: Licence; action: 'notice' | 'delete'; why: string }
+export interface Due { shop: Shop; licence: Licence; action: 'notice' | 'delete' | 'purge'; why: string }
 
 // What the retention job would do on `on`: tell the shops whose removal is NOTICE_DAYS away or nearer (once),
 // and remove the data of those whose removal day has come — never sooner than NOTICE_DAYS after they were told,
@@ -127,6 +129,11 @@ export async function retentionDue(db: pg.Pool, on = today()): Promise<Due[]> {
   for (const s of await listShops(db)) {
     const l = s.licence;
     if (!l || on <= l.end) continue;
+    if (l.removedOn) {
+      const until = addYears(l.removedOn, HISTORY_YEARS);
+      if (on >= until) out.push({ shop: s, licence: l, action: 'purge', why: `data removed ${l.removedOn}, history kept until ${until}` });
+      continue;
+    }
     if (!l.noticeSentOn) {
       if (on >= addDays(l.deleteOn, -NOTICE_DAYS)) out.push({ shop: s, licence: l, action: 'notice', why: `removal on ${l.deleteOn}` });
     } else if (on >= l.deleteOn && daysBetween(l.noticeSentOn, on) >= NOTICE_DAYS) {
@@ -148,6 +155,14 @@ export async function carryOut(db: pg.Pool, d: Due, o: { actor: string; on?: str
     if (!rows.length) return false;
     const l = fromRow(rows[0]);
     if (on <= l.end) return false;
+    if (d.action === 'purge') {
+      if (!l.removedOn || on < addYears(l.removedOn, HISTORY_YEARS)) return false;
+      // The kept change history, the licence and the shop itself: every table refers to shops with on delete cascade.
+      await log(c, d.shop, o.actor, 'purge', { removedOn: l.removedOn });
+      await c.query('delete from shops where id = app_shop()');
+      return true;
+    }
+    if (l.removedOn) return false;
     if (d.action === 'notice') {
       if (l.noticeSentOn || on < addDays(l.deleteOn, -NOTICE_DAYS)) return false;
       // Always a full NOTICE_DAYS: a late notice moves the removal day.
@@ -158,11 +173,22 @@ export async function carryOut(db: pg.Pool, d: Due, o: { actor: string; on?: str
       return true;
     }
     if (!l.noticeSentOn || on < l.deleteOn || daysBetween(l.noticeSentOn, on) < NOTICE_DAYS) return false;
-    // Everything of the shop, its change history included (15.6): every table refers to shops with on delete cascade.
-    await log(c, d.shop, o.actor, 'delete', { licence: l, package: d.shop.package, name: d.shop.name });
-    await c.query('delete from shops where id = app_shop()');
+    // Everything of the shop but its change history (15.6; the owner's answer of 2026-10-26: kept HISTORY_YEARS
+    // years, as R15), its licence and the shop's row, which nobody can sign in to any more. Every table with a
+    // shop_id is emptied, so tables added later (attachments …) go too.
+    const { rows: tables } = await c.query<{ t: string }>(
+      `select table_name as t from information_schema.columns
+        where table_schema = 'public' and column_name = 'shop_id'
+          and table_name not in ('shops', 'licences', 'licence_log', 'change_log') order by 1`);
+    const removed: Record<string, number> = {};
+    for (const { t } of tables) removed[t] = (await c.query(`delete from ${pgIdent(t)} where shop_id = app_shop()`)).rowCount ?? 0;
+    await c.query("update shops set status = 'removed' where id = app_shop()");
+    await c.query('update licences set removed_on = $1, updated_at = now() where shop_id = app_shop()', [on]);
+    await log(c, d.shop, o.actor, 'delete', { licence: l, package: d.shop.package, name: d.shop.name, removed, historyUntil: addYears(on, HISTORY_YEARS) });
     return true;
   });
 }
 
-export { KEEP_DAYS, NOTICE_DAYS };
+const pgIdent = (t: string) => '"' + t.replace(/"/g, '""') + '"';
+
+export { HISTORY_YEARS, KEEP_DAYS, NOTICE_DAYS };

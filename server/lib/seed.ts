@@ -40,7 +40,7 @@ export async function createShop(db: pg.Pool | pg.ClientBase, shop: NewShop): Pr
   const store = shop.data?.store ?? {};
   const fr = store['franchise.v22'] ? JSON.parse(store['franchise.v22']) : null;
   const l: NonNullable<NewShop['licence']> = shop.licence ?? datesIn(store) ?? { kind: 'trial', start: today(), end: addDays(today(), TRIAL_DAYS) };
-  const lic: Licence = { kind: l.kind, start: l.start, end: l.end, deleteOn: '', noticeSentOn: null, contact: l.contact ?? '' };
+  const lic: Licence = { kind: l.kind, start: l.start, end: l.end, deleteOn: '', noticeSentOn: null, removedOn: null, contact: l.contact ?? '' };
   await withShop(db, shopId, '*', async c => {
     await c.query('insert into shops (id, code, package, name) values ($1, $2, $3, $4)', [shopId, shop.code, shop.pkg, shop.name ?? '']);
     await c.query('insert into licences (shop_id, kind, starts_on, ends_on, contact) values ($1, $2, $3, $4, $5)', [shopId, lic.kind, lic.start, lic.end, lic.contact]);
