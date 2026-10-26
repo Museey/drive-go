@@ -12,7 +12,8 @@
 //   credit notes          DB.creditNotes: the owner or "ออกใบลดหนี้" (doc.creditNote); one that takes effect (approved) and
 //                         approving or rejecting: the owner or "อนุมัติใบกำกับภาษี" (apv.tax) (57-credit-note.js)
 //   VAT left off          a sales document of a VAT-registered shop without VAT (a quotation, a receipt, a stock cut):
-//                         the owner or "เลือกไม่คิด VAT" (doc.noVat), with a reason; or the reason of the document it came from
+//                         the owner or "เลือกไม่คิด VAT" (doc.noVat), or taken over from the document it came from (the
+//                         reason is the screens' to ask: the sample data and older data have documents without one)
 //   selling short         a sale, a revision or a customer claim that takes stock below zero: the owner or an approval right (59-stock-fifo.js)
 //   payroll               DB.payroll: the owner, or "บันทึกค่าใช้จ่าย" with the pay right (60-payroll.js); one period per month
 //                         that is not cancelled
@@ -192,7 +193,6 @@ async function noVatRules(s: Save, who: Who): Promise<string | null> {
     if (unit === 'DB.receipts') from.push(...await s.where('DB.stockCuts', 'ledId', [String(now.id ?? t.key)]));
     if (from.some(x => num(x.vat) <= 0 && (x.noVatReason === now.noVatReason || !now.noVatReason))) continue;
     if (!who.owner && !who.can('doc.noVat')) return `${unit}|${t.key}: VAT left off`;
-    if (!String(now.noVatReason || '').trim() && !t.old) return `${unit}|${t.key}: VAT left off without a reason`;
   }
   return null;
 }

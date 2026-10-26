@@ -7,6 +7,8 @@ import { test, expect } from '../support/test';
 // is saved; the head technician (EMP001, approves quotations only) may. What was sold short is
 // costed at the register cost until goods arrive, then the bill takes the new lot's cost (R9-ก,
 // as the legacy app does), and the register cost becomes the average cost of what is left (F4).
+// Neither employee sees costs (task 3.9: the server sends them none and works out the costs of their saves), so
+// what they did is read from the server.
 async function sellBrakePads(page: Page, qty: string) {
   await page.getByRole('button', { name: /^04 ใบเสร็จรับเงิน/ }).click();
   await page.getByRole('button', { name: '+ สร้างข้อมูลใหม่' }).filter({ visible: true }).click();
@@ -53,13 +55,12 @@ test('S160 ระบบใหม่: ขายเกินของที่ม�
 
   // The front desk sells 25 brake pads; 19 are in stock: refused, nothing is cut or saved.
   await app.login('092-111-2233', '5555');
-  const start = (await app.state()).DB;
+  const start = await app.serverDB();
   expect(brakePads(start)).toMatchObject({ qty: 19, cost: 850 });
   await sellBrakePads(page, '25');
   await expect(page.getByText('อะไหล่ 1 รายการมีไม่พอ — ตัดสต็อกติดลบได้เฉพาะเจ้าของหรือผู้มีสิทธิ์อนุมัติเอกสาร', { exact: true }).filter({ visible: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'สต๊อกไม่พอ' })).toBeHidden();
-  await app.settle();
-  const refused = (await app.state()).DB;
+  const refused = await app.serverDB();
   expect(refused.stockCuts.length).toBe(start.stockCuts.length);
   expect(brakePads(refused).qty).toBe(19);
   await page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).first().click();
@@ -71,8 +72,7 @@ test('S160 ระบบใหม่: ขายเกินของที่ม�
   await expect(page.getByRole('heading', { name: 'สต๊อกไม่พอ' })).toBeVisible();
   await page.getByRole('button', { name: 'ตัดสต็อก (ยอมติดลบ)' }).click();
   await expect(page.getByText('บันทึกข้อมูลสำเร็จ').filter({ visible: true })).toBeVisible();
-  await app.settle();
-  const sold = (await app.state()).DB;
+  const sold = await app.serverDB();
   const sale = sold.stockCuts.find((c: any) => !start.stockCuts.some((b: any) => b.id === c.id));
   expect(sale).toMatchObject({ no: 'MA-SA261000015', sellerName: 'ศักดิ์ชัย มั่นคง (หัวหน้าช่าง)' });
   expect(brakePads(sold)).toMatchObject({ qty: -6, cost: 850 });

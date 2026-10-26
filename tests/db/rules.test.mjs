@@ -115,11 +115,11 @@ describe('ใบลดหนี้ (งาน 3.3)', () => {
 });
 
 describe('ไม่คิด VAT (งาน 3.3)', () => {
-  test('เอกสารขายที่ไม่คิด VAT ของร้านที่จด VAT ต้องมีสิทธิ์และเหตุผล หรือรับเหตุผลมาจากเอกสารต้นทาง', async () => {
+  test('เอกสารขายที่ไม่คิด VAT ของร้านที่จด VAT ต้องมีสิทธิ์ หรือรับมาจากเอกสารต้นทาง', async () => {
     const { DB, check, put } = await shop();
     const q = { ...DB.quotes[0], id: 'q1', no: 'MA-QT261000099', vat: 0, noVatReason: 'ลูกค้าต่างประเทศ' };
     assert.equal(await check('EMP008', save(['DB.quotes', 'q1', q])), 'DB.quotes|q1: VAT left off');
-    assert.equal(await check('owner', save(['DB.quotes', 'q1', { ...q, noVatReason: '' }])), 'DB.quotes|q1: VAT left off without a reason');
+    assert.equal(await check('owner', save(['DB.quotes', 'q1', { ...q, noVatReason: '' }])), null, 'the reason is asked by the screens');
     assert.equal(await check('owner', save(['DB.quotes', 'q1', q])), null);
     // A stock cut of that quotation takes its reason over, whoever makes it.
     await put('DB.quotes', 'q1', q);
