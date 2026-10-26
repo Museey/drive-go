@@ -123,6 +123,7 @@ test('S211 ระบบใหม่: ซื้อสินทรัพย์เ�
   await page.getByRole('button', { name: '└ ทะเบียนสินทรัพย์', exact: true }).click();
   const reg = page.locator('#assetTbl').getByRole('row').filter({ hasText: 'ชุดประแจทอร์ค' }).filter({ visible: true }).first();
   await expect(reg.getByRole('button', { name: 'ลบ' })).toHaveCount(0);
+  await app.signature();
   await reg.getByRole('button', { name: 'ยกเลิก' }).click();
   await app.settle();
   expect(await app.signature()).toMatchObject({ messages: ['ใบนี้บันทึกจ่ายเงินเจ้าหนี้แล้ว ยกเลิกไม่ได้ — ต้องแก้รายการจ่ายที่หน้า 08 · เจ้าหนี้ ก่อน'] });

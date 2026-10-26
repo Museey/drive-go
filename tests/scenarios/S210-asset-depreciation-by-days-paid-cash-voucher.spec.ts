@@ -109,7 +109,8 @@ test('S210 ระบบใหม่: ซื้อสินทรัพย์ 2 �
   await expect(select('เงื่อนไขชำระ')).toBeDisabled();
   await page.getByRole('button', { name: 'พิมพ์ใบสำคัญจ่าย' }).click();
   await printed(page, ['ใบสำคัญจ่าย', 'MA-PV261000001', 'ร้านยางเจริญยนต์', 'ค่าสินทรัพย์ถาวร เครื่องเชื่อม CO2 / MIG 250A / เครื่องปรับอากาศห้องรับรองลูกค้า 18,000 BTU (ใบกำกับภาษี TT-6910-0077)',
-    'MA-FA261000001, MA-FA261000002', '66,875.00', 'เลขประจำตัวผู้เสียภาษี 3100900123456']);
+    'MA-FA261000001, MA-FA261000002', '66,875.00']);
+  await expect(page.locator('#printStage')).toContainText('เลขประจำตัวผู้เสียภาษี 3100900123456');   /* the vendor's, from the register */
   await app.settle();
   expect((await app.state()).DB.audit.at(-1)).toMatchObject({ kind: 'asset', no: 'MA-FA261000001', act: 'print', note: 'ใบสำคัญจ่าย MA-PV261000001' });
 });

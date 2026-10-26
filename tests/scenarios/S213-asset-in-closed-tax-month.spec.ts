@@ -14,7 +14,7 @@ test('S213 ระบบใหม่: สินทรัพย์ที่มี 
   await app.loginAsOwner();
   await app.signature();   /* the welcome message */
 
-  // Bought on credit on 20/10/2569, before October is closed.
+  // Bought on credit on 20/10/2569, before October is closed (numbered on the day it is recorded: MA-FA2611…).
   await page.getByRole('button', { name: '06 รายจ่าย / ซื้อสินค้า' }).click();
   await page.getByRole('button', { name: '3 · ซื้อสินทรัพย์' }).click();
   await page.getByRole('button', { name: '+ บันทึกการซื้อสินทรัพย์' }).click();
@@ -69,13 +69,13 @@ test('S213 ระบบใหม่: สินทรัพย์ที่มี 
   await page.getByRole('button', { name: '└ เจ้าหนี้ (ค้างจ่าย)', exact: true }).click();
   await page.getByRole('button', { name: '+ ชำระเงินเจ้าหนี้' }).click();
   await page.getByRole('button').filter({ hasText: 'บริษัท อะไหล่ยนต์รุ่งเรือง จำกัด' }).filter({ visible: true }).click();
-  await page.getByRole('checkbox', { name: 'เลือก MA-FA261000001' }).check();
+  await page.getByRole('checkbox', { name: 'เลือก MA-FA261100001' }).check();
   await page.getByRole('button', { name: 'เต็มจำนวน' }).first().click();
   await page.getByRole('button', { name: 'บันทึกจ่ายชำระ' }).click();
   await page.getByRole('button', { name: 'ยืนยันบันทึกจ่ายชำระ ฿10,700.00' }).click();
   await expect(page.getByText('ใบสำคัญจ่าย MA-PV261100001')).toBeVisible();
   await app.settle();
-  const a = (await app.state()).DB.assets.find((x: any) => x.no === 'MA-FA261000001');
+  const a = (await app.state()).DB.assets.find((x: any) => x.no === 'MA-FA261100001');
   expect(a).toMatchObject({ paid: true, payDate: '2026-11-02', life: 8, cost: 10000 });
   expect(a.payments).toEqual([expect.objectContaining({ amt: 10700, date: '2026-11-02', pvNo: 'MA-PV261100001' })]);
 });
