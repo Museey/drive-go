@@ -103,6 +103,8 @@
    const back=F().allocs.filter(a=>a&&a.refNo===d.no&&a.stockId===it.stockId).reduce((t,a)=>t+rem(a),0);
    const q=Math.min(s-sold,back);if(q>EPS)out.push({stockId:it.stockId,code:it.code,name:it.name,qty:q});});
   return out;}
+ /* task 3.9: whoever may not see costs gets none from the server — the amounts below are left out for them */
+ const costOk=()=>!window.PKG_RIGHTS||PKG_RIGHTS.costOk();
  function countBox(){
   const tbl=$i('scItems');if(!tbl||typeof SC==='undefined')return;const wrap=tbl.closest('.scroll')||tbl;let box=$i('pkgScBook');
   if(!box){box=document.createElement('div');box.id='pkgScBook';box.className='hint';box.style.margin='8px 0 0';wrap.after(box);}
@@ -110,7 +112,7 @@
   if(!d||!d.applied||d.cancelled){box.style.display='none';box.innerHTML='';return;}
   const k=docBook(d.no),L=shortLeft(d),sold=live(d),nos=[...new Set(sold.map(x=>x.no))];
   box.style.display='';
-  box.innerHTML='ลงบัญชีตามทุน FIFO: ค่าใช้จ่ายสินค้าขาด <b>'+money(k.out)+'</b> บาท · รายได้อื่น (สินค้าเกิน) <b>'+money(k.in)+'</b> บาท'
+  box.innerHTML=(costOk()?'ลงบัญชีตามทุน FIFO: ค่าใช้จ่ายสินค้าขาด <b>'+money(k.out)+'</b> บาท · รายได้อื่น (สินค้าเกิน) <b>'+money(k.in)+'</b> บาท':'')
    +(nos.length?'<div>ขายของที่ขาดให้ผู้รับผิดชอบแล้ว: '+nos.map(no=>esc(no)+' ('+sold.filter(x=>x.no===no).map(x=>{const s=stockOf(x.stockId);return esc(s?s.code:'')+' × '+qf(x.qty);}).join(', ')+')').join(' · ')+'</div>':'')
    +(L.length?'<div style="margin-top:6px"><button type="button" class="btn gh sm" id="pkgScSell">เปิดใบขายให้ผู้รับผิดชอบ</button></div>':'');
   const b=$i('pkgScSell');if(b)b.onclick=()=>sellShort(d.id);
@@ -164,7 +166,7 @@
    try{const el=$i('isExpCat'),box=$i('pkgIsBook');if(typeof IS==='undefined'||!IS)return out;
     if(el){el.value=IS.expCat||DEF_CAT;el.disabled=!!IS.cancelled;}
     const d=IS.id?(DB.issues||[]).find(x=>x.id===IS.id):null;
-    if(box){if(d&&d.deducted&&!d.cancelled){box.style.display='';box.innerHTML='ลงบัญชีตามทุน FIFO: ค่าใช้จ่ายหมวด '+esc(d.expCat||DEF_CAT)+' <b>'+money(docBook(d.no).out)+'</b> บาท';}
+    if(box){if(d&&d.deducted&&!d.cancelled&&costOk()){box.style.display='';box.innerHTML='ลงบัญชีตามทุน FIFO: ค่าใช้จ่ายหมวด '+esc(d.expCat||DEF_CAT)+' <b>'+money(docBook(d.no).out)+'</b> บาท';}
      else{box.style.display='none';box.innerHTML='';}}
    }catch(e){}
    return out;};}
@@ -175,6 +177,7 @@
  function newCosts(items){
   const list=(items||[]).filter(i=>n(i.apQty)>0&&!DB.stock.some(x=>String(x.code).toLowerCase()===String(i.code).toLowerCase()));
   if(!list.length)return Promise.resolve({});
+  if(!costOk()){toast('มีสินค้าใหม่ '+list.length+' รายการที่ต้องกรอกทุน — ให้ผู้มีสิทธิ์เห็นต้นทุนรับของเข้าสต๊อก');return Promise.resolve(null);}   /* task 3.9 */
   return new Promise(res=>{
    const msg='<p>สินค้า '+list.length+' รายการยังไม่มีในทะเบียนของสาขา — กรอกทุนต่อหน่วย (ใช้เป็นต้นทุน FIFO และทุนในทะเบียน)</p>'
     +'<table class="tbl"><thead><tr><th>รหัสสินค้า</th><th>ชื่อสินค้า</th><th class="num">จำนวน</th><th class="num">ทุนต่อหน่วย</th></tr></thead><tbody>'

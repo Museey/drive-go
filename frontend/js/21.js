@@ -217,9 +217,11 @@
   const al=(DB.fifo&&DB.fifo.allocs)||[];
   ok.forEach(l=>{const mine=al.filter(a=>a.refNo===c.no&&a.stockId===l.stockId),q=mine.reduce((x,a)=>x+n(a.qty),0),s=DB.stock.find(x=>x.id===l.stockId);l.cost=q>0?mine.reduce((x,a)=>x+n(a.qty)*n(a.cost),0)/q:n(s&&s.cost);});
   Object.assign(c,{cut:true,status:'done',doneAt:nowTs(),doneBy:DB.curEmp||'',doneByName:meName()});
-  logAudit('cclaim',c,'replace','เปลี่ยนให้ลูกค้า '+ok.length+' รายการ · ต้นทุน '+money(cost(c))+' บาท');save();
+  /* DriveGo new system (task 3.9): whoever may not see costs has none to write — the server works the cost out */
+  const ck=!window.PKG_RIGHTS||PKG_RIGHTS.costOk();
+  logAudit('cclaim',c,'replace','เปลี่ยนให้ลูกค้า '+ok.length+' รายการ'+(ck?' · ต้นทุน '+money(cost(c))+' บาท':''));save();
   keep();paint();render();if(typeof renderStock==='function')try{renderStock();}catch(e){}
-  toast('เปลี่ยนสินค้าให้ลูกค้าแล้ว · ต้นทุนที่ร้านรับ '+money(cost(c))+' บาท');
+  toast('เปลี่ยนสินค้าให้ลูกค้าแล้ว'+(ck?' · ต้นทุนที่ร้านรับ '+money(cost(c))+' บาท':''));
  }
  async function rejectDoc(id){
   const c=L().find(x=>x.id===id);if(!c||c.cancelled||c.cut)return;if(!need('add'))return;

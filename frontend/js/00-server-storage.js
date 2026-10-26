@@ -298,6 +298,10 @@
   function reach(v, path, fn) {
     const dot = path.indexOf(".");
     const head = dot < 0 ? path : path.slice(0, dot), rest = dot < 0 ? "" : path.slice(dot + 1);
+    if (head === "[]") {
+      if (Array.isArray(v) && rest) for (const x of v) reach(x, rest, fn);
+      return;
+    }
     if (!isObject2(v)) return;
     if (head.endsWith("[]")) {
       const list = v[head.slice(0, -2)];
@@ -309,15 +313,19 @@
     else fn(v, head);
   }
   var blank = (v) => Array.isArray(v) ? [] : null;
-  function masksOf(masks, unit, key) {
-    const paths = [];
-    for (const m of masks) if (m.unit === unit && !(m.except || []).includes(key)) paths.push(...m.paths);
-    return paths;
+  function applies(m, unit, key, rec) {
+    if (m.unit !== unit || (m.except || []).includes(key)) return false;
+    if (!m.where) return true;
+    const v = isObject2(rec) ? rec[m.where.field] : void 0;
+    if (m.where.in) return m.where.in.includes(String(v));
+    return m.where.match !== void 0 && typeof v === "string" && v.includes(m.where.match);
   }
+  var pathsOf = (masks, unit, key, rec) => masks.filter((m) => applies(m, unit, key, rec)).flatMap((m) => m.paths);
+  var masksUnit = (masks, unit) => masks.some((m) => m.unit === unit);
   function maskRow(row, masks) {
-    const paths = masksOf(masks, row.unit, row.key);
+    if (!masksUnit(masks, row.unit)) return row;
+    const v = JSON.parse(row.data), paths = pathsOf(masks, row.unit, row.key, v);
     if (!paths.length) return row;
-    const v = JSON.parse(row.data);
     let changed = false;
     for (const p of paths) reach(v, p, (h, f) => {
       const b = blank(h[f]);
@@ -392,7 +400,7 @@
       const body = await r.text();
       const nl = body.indexOf("\n");
       m.base = JSON.parse(body.slice(0, nl));
-      m.masks = JSON.parse(r.headers.get("x-drivego-masks") || "[]");
+      m.masks = JSON.parse(decodeURIComponent(r.headers.get("x-drivego-masks") || "%5B%5D"));
       m.value = m.sent = body.slice(nl + 1);
       m.last = split(key, m.sent);
     } else if (r.status === 403) {

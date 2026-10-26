@@ -15,7 +15,7 @@ const emp = rows.filter(r => r.unit === 'DB.emp');
 const self = JSON.parse(emp[2].data).id as string;
 
 test('without the pay right, other employees come without pay and personal data; their own record stays whole', () => {
-  const masks = masksFor({ owner: false, pay: false, self });
+  const masks = masksFor({ owner: false, pay: false, cost: true, self });
   for (const r of maskRows(emp, masks)) {
     const was = JSON.parse(emp.find(x => x.key === r.key)!.data), now = JSON.parse(r.data);
     assert.deepEqual(Object.keys(now), Object.keys(was), 'every field stays where it was');
@@ -28,18 +28,18 @@ test('without the pay right, other employees come without pay and personal data;
 });
 
 test('with the pay right (or as the owner) nothing of the employees is masked', () => {
-  for (const r of [{ owner: false, pay: true, self }, { owner: true, pay: true, self: '' }])
+  for (const r of [{ owner: false, pay: true, cost: true, self }, { owner: true, pay: true, cost: true, self: '' }])
     assert.deepEqual(maskRows(emp, masksFor(r)), emp);
 });
 
 test('a payroll period keeps its totals; its lines are an empty list', () => {
   const period = { unit: 'DB.payroll', key: 'p1', data: JSON.stringify({ id: 'p1', month: '2026-10', lines: [{ empId: 'a', salary: 25000 }], totals: { n: 1, gross: 25000 } }) };
-  const masked = JSON.parse(maskRow(period, masksFor({ owner: false, pay: false, self })).data);
+  const masked = JSON.parse(maskRow(period, masksFor({ owner: false, pay: false, cost: true, self })).data);
   assert.deepEqual(masked, { id: 'p1', month: '2026-10', lines: [], totals: { n: 1, gross: 25000 } });
 });
 
 test('a saved row gets the stored values back where they were masked; the rest is what was sent', () => {
-  const masks = masksFor({ owner: false, pay: false, self });
+  const masks = masksFor({ owner: false, pay: false, cost: true, self });
   const other = emp[0], seen = JSON.parse(maskRow(other, masks).data);
   seen.perms.doc.discount = !seen.perms.doc.discount;   // what the person changed
   seen.salary = 1;                                       // a hidden value cannot be changed
@@ -65,6 +65,6 @@ test('lists inside a record are reached element by element', () => {
 
 test('the owner sees the national id on the shop account; nobody else does', () => {
   const shop = { unit: 'DGB.shop', key: '', data: '{"owner":"ก","idcard":"1234"}' };
-  assert.equal(maskRow(shop, masksFor({ owner: true, pay: true, self: '' })).data, shop.data);
-  assert.equal(maskRow(shop, masksFor({ owner: false, pay: true, self: '' })).data, '{"owner":"ก","idcard":null}');
+  assert.equal(maskRow(shop, masksFor({ owner: true, pay: true, cost: true, self: '' })).data, shop.data);
+  assert.equal(maskRow(shop, masksFor({ owner: false, pay: true, cost: true, self: '' })).data, '{"owner":"ก","idcard":null}');
 });

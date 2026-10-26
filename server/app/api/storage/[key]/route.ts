@@ -15,6 +15,8 @@ import { saveSessionFields, sessionFields } from '@/lib/session';
 import { branchOfKey, inScope, isBackupKey, isDataCopyKey, makeBackup, readBackup, readBlob, readMain, removeKey, restoreHidden, saveMain, writeBlob } from '@/lib/storage';
 import { type Changes, rootOf } from '@/lib/units';
 import { masksFor } from '@/lib/visibility';
+import { fillCosts } from '@/lib/costing';
+import { refuseRules } from '@/lib/rules';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +38,7 @@ export async function GET(req: Request, ctx: Ctx) {
       const masks = masksFor(rights);
       const main = await readMain(c, branch, key, sessionFields(s, key), masks);
       if (!main) return missing();
-      return text(JSON.stringify(main.versions) + '\n' + main.json, { 'x-drivego-masks': JSON.stringify(masks) });
+      return text(JSON.stringify(main.versions) + '\n' + main.json, { 'x-drivego-masks': encodeURIComponent(JSON.stringify(masks)) });
     }
     if (isDataCopyKey(key) && !rights.owner) return json({ error: 'not allowed', what: key }, 403);
     const value = isBackupKey(key) ? await readBackup(c, branch, key) : await readBlob(c, branch, key);
@@ -53,10 +55,16 @@ export async function POST(req: Request, ctx: Ctx) {
     const branch = await branchOfKey(c, key);
     if (!inScope(s.scope, branch)) return forbidden();
     const actor = await actorOf(c, s);
-    traceWrite(actor, key, body.changes, body.secrets || []);
+    await traceWrite(c, actor, branch, key, body.changes, body.secrets || [], req.headers.get('x-drivego-test') || '');
     const refused = await refuseSave(c, actor, branch, key, body.changes, body.secrets || []);
     if (refused) return json({ error: 'not allowed', what: refused }, 403);
-    const changes = await restoreHidden(c, branch, body.changes, masksFor(await rightsOf(c, actor)));
+    // What the person could not see goes back in, and the costs they could not work out are worked out here (task 3.9).
+    const rights = await rightsOf(c, actor);
+    let changes = await restoreHidden(c, branch, body.changes, masksFor(rights));
+    if (!rights.cost && rootOf(key) === 'DB') changes = await fillCosts(c, branch, changes);
+    // Money, tax, people and settings: what the screens would not have let this person do (task 3.9).
+    const broken = await refuseRules(c, actor, branch, key, changes);
+    if (broken) return json({ error: 'not allowed', what: broken }, 403);
     const r = await saveMain(c, branch, key, body.base || {}, changes, body.numbers || {}, s.userId);
     if (!r.ok) return json({ conflicts: r.conflicts }, 409);
     if (body.session) await saveSessionFields(c, s, key, body.session);

@@ -10,7 +10,8 @@ test.use({ dataset: 'franchise-trial' });
 // name, its own licence line and its own badges (tests/support/hq-own-data.ts)
 // and the organisation settings under the HQ panel are HQ's own; the branch
 // register shows ******** instead of passwords. Every step, data change,
-// branch screen and the rest of every HQ screen are still S97's.
+// branch screen and the rest of every HQ screen are still S97's. Task 3.9 (finding 42, approved): the head
+// mechanic has no "ดูยอดเงินและมูลค่าในหน้าแรก", so the home card of sales waiting for payment drops the amount.
 const S97 = 'S97-what-each-franchise-role-sees.spec.ts';
 
 async function signOut(page: Page) {
@@ -54,7 +55,10 @@ test('S118 ระบบใหม่: แต่ละบทบาทในเค�
       - button /07 สต๊อกอะไหล่/
   `);
   await golden.step('หัวหน้าช่าง (SHB) ของ B001 เข้าระบบ เห็นเฉพาะเมนูตามสิทธิ');
-  await golden.screen('staff001-home');
+  const waiting = page.locator('#pkgSfHome');
+  await expect(waiting).toContainText('ค้างข้ามวัน');
+  await expect(waiting).not.toContainText('฿');
+  await golden.screen('staff001-home', { mask: [waiting] });
 
   await page.getByRole('button', { name: /07 สต๊อกอะไหล่/ }).click();
   await page.getByRole('button', { name: '★ เบิกสินค้าจาก HQ' }).click();

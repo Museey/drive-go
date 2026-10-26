@@ -14,7 +14,7 @@ import { test as base, expect } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { prepareContext, restoreLocalStorage } from './browser.mjs';
 import { FIXED_NOW, LEGACY_ORIGIN, LEGACY_URL, TEST_SEED } from './config.mjs';
-import { openTestShop } from './new-shop.mjs';
+import { openTestShop, readTestShop } from './new-shop.mjs';
 import { legacyApp, messageRecorderInitScript } from './legacy-app.mjs';
 import { stateDiff, stateCounts, formatDiff } from './state-diff.mjs';
 import { executedFunctions } from './coverage.mjs';
@@ -23,7 +23,8 @@ import { SABOTAGE } from './sabotage.mjs';
 const TARGET = process.env.TARGET || 'legacy';
 declare const STORAGE_MODE: string;   // the legacy app's storage mode, read in the page
 
-type App = ReturnType<typeof legacyApp>;
+// serverDB(): the shop's data as the server holds it (TARGET=new; task 3.9: an employee's browser holds less).
+type App = ReturnType<typeof legacyApp> & { serverDB(): Promise<any> };
 type Golden = {
   step(label: string): Promise<void>;
   screen(name: string): Promise<void>;
@@ -69,12 +70,18 @@ export const test = base.extend<{ dataset: string; app: App; golden: Golden }>({
   // test opens a shop of its own from the dataset, and at the end the server
   // must hold exactly what the app last saved, with no save refused or lost.
   app: async ({ page, context, dataset }, use, testInfo) => {
-    if (TARGET === 'legacy') return use(legacyApp(page, { dataset, url: LEGACY_URL }));
+    if (TARGET === 'legacy') {
+      const legacy = legacyApp(page, { dataset, url: LEGACY_URL });
+      return use(Object.assign(legacy, { serverDB: async () => ((await legacy.state()) as any).DB }));
+    }
     if (TARGET !== 'new') throw new Error(`No app adapter for TARGET=${TARGET}.`);
     const shop = await openTestShop(dataset);
     // Tells window.storage to also check the server's copy when signing out.
     await context.addInitScript(() => { (window as any).__drivegoTest = true; });
-    await use(legacyApp(page, { dataset, url: `${LEGACY_ORIGIN}/${shop.code}/`, restore: restoreLocalStorage }));
+    // Working out the server's rules (DRIVEGO_WRITE_TRACE, lib/permissions.ts): which scenario made each save.
+    if (process.env.DRIVEGO_WRITE_TRACE) await context.setExtraHTTPHeaders({ 'x-drivego-test': encodeURIComponent(testInfo.titlePath[0] || '') });
+    const app = legacyApp(page, { dataset, url: `${LEGACY_ORIGIN}/${shop.code}/`, restore: restoreLocalStorage });
+    await use(Object.assign(app, { serverDB: async () => { await app.settle(); return readTestShop(shop.code); } }));
     if (testInfo.status !== testInfo.expectedStatus || page.isClosed()) return;
     const storage = await page.evaluate(async () => {
       const s = (window as any).storage;

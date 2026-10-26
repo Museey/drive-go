@@ -34,8 +34,8 @@
     {
       "scenario": "S96-branch-head-issues-staff-login.spec.ts",
       "by": "S110-branch-head-issues-staff-login-no-passwords-shown.spec.ts",
-      "decision": "A3",
-      "why": "The branch head's account panel shows ******** instead of passwords; the new password is read from the message shown when it is set. Every step, message, data change and the rest of each screen is checked against S96's goldens."
+      "decision": "A3; finding 42 (task 3.9)",
+      "why": "The branch head's account panel shows ******** instead of passwords; the new password is read from the message shown when it is set. Every step, message, data change and the rest of each screen is checked against S96's goldens. Task 3.9 (finding 42): the employee's home card of sales waiting for payment shows no amount."
     },
     {
       "scenario": "S99-branch-head-suspends-staff-login.spec.ts",
@@ -82,8 +82,8 @@
     {
       "scenario": "S97-what-each-franchise-role-sees.spec.ts",
       "by": "S118-what-each-franchise-role-sees-own-data.spec.ts",
-      "decision": "Q3, A3",
-      "why": "HQ works on its own data set (its settings page shows HQ's own organisation settings) and the branch register shows ******** instead of passwords. Every step, data change, branch screen and the rest of each HQ screen is checked against S97's goldens."
+      "decision": "Q3, A3; finding 42 (task 3.9)",
+      "why": "HQ works on its own data set (its settings page shows HQ's own organisation settings) and the branch register shows ******** instead of passwords. Every step, data change, branch screen and the rest of each HQ screen is checked against S97's goldens. Task 3.9 (finding 42): the staff account's home card of sales waiting for payment shows no amount."
     },
     {
       "scenario": "S98-hq-turns-franchise-mode-off-and-on.spec.ts",
@@ -294,6 +294,12 @@
       "by": "S177-mechanic-account-no-pay-data.spec.ts",
       "decision": "R14-ข and answers of 2026-10-26 (task 3.9)",
       "why": "The server no longer sends the mechanic the other employees' pay and personal data (null in the browser); their own record stays whole. Every step, screen and the rest of the data change are S47's."
+    },
+    {
+      "scenario": "S04-change-employee-login-phone.spec.ts",
+      "by": "S180-employee-home-without-money-right.spec.ts",
+      "decision": "R14-ข, finding 42 (approved) and answers of 2026-10-26 (task 3.9)",
+      "why": "The employee without \"ดูยอดเงินและมูลค่าในหน้าแรก\" sees the home card of sales waiting for payment with its count and without the amount. Every step, data change and the rest of each screen are S04's."
     }
   ],
   "added": [
@@ -416,6 +422,41 @@
       "scenario": "S178-payroll-and-backup-need-the-right.spec.ts",
       "decision": "R14-ข and answers of 2026-10-26 (task 3.9)",
       "why": "Someone who may open 06.4 without the pay right sees a message instead of the table and cannot record or print; the whole shop's backup file and restoring a backup point are the owner's, even with the export and backup rights."
+    },
+    {
+      "scenario": "S179-sale-by-staff-without-cost.spec.ts",
+      "decision": "R14-ข, F7 and answers of 2026-10-26 (task 3.9)",
+      "why": "Someone who may not see costs gets none from the server; for a direct sale the server works out the costs their save needs (FIFO allocations, new lots, moves, the document's cost of goods, the register cost) the same as the legacy app does with every cost (compared with the legacy scenario's data change)."
+    },
+    {
+      "scenario": "S181-revision-by-staff-without-cost.spec.ts",
+      "decision": "R14-ข, F7 and answers of 2026-10-26 (task 3.9)",
+      "why": "Someone who may not see costs gets none from the server; for a revision of a sale the server works out the costs their save needs (FIFO allocations, new lots, moves, the document's cost of goods, the register cost) the same as the legacy app does with every cost (compared with the legacy scenario's data change)."
+    },
+    {
+      "scenario": "S182-cancel-sale-by-staff-without-cost.spec.ts",
+      "decision": "R14-ข, F7 and answers of 2026-10-26 (task 3.9)",
+      "why": "Someone who may not see costs gets none from the server; for a cancelled sale the server works out the costs their save needs (FIFO allocations, new lots, moves, the document's cost of goods, the register cost) the same as the legacy app does with every cost (compared with the legacy scenario's data change)."
+    },
+    {
+      "scenario": "S183-cut-from-quote-by-staff-without-cost.spec.ts",
+      "decision": "R14-ข, F7 and answers of 2026-10-26 (task 3.9)",
+      "why": "Someone who may not see costs gets none from the server; for a sale cut from a quotation the server works out the costs their save needs (FIFO allocations, new lots, moves, the document's cost of goods, the register cost) the same as the legacy app does with every cost (compared with the legacy scenario's data change)."
+    },
+    {
+      "scenario": "S184-internal-issue-by-staff-without-cost.spec.ts",
+      "decision": "R14-ข, F7 and answers of 2026-10-26 (task 3.9)",
+      "why": "Someone who may not see costs gets none from the server; for a internal issue the server works out the costs their save needs (FIFO allocations, new lots, moves, the document's cost of goods, the register cost) the same as the legacy app does with every cost (compared with the legacy scenario's data change)."
+    },
+    {
+      "scenario": "S185-stock-count-by-staff-without-cost.spec.ts",
+      "decision": "R14-ข, F7 and answers of 2026-10-26 (task 3.9)",
+      "why": "Someone who may not see costs gets none from the server; for a stock count the server works out the costs their save needs (FIFO allocations, new lots, moves, the document's cost of goods, the register cost) the same as the legacy app does with every cost (compared with the legacy scenario's data change)."
+    },
+    {
+      "scenario": "S186-transfer-by-staff-without-cost.spec.ts",
+      "decision": "R14-ข, F7 and answers of 2026-10-26 (task 3.9)",
+      "why": "Someone who may not see costs gets none from the server; for a transfer between branches the server works out the costs their save needs (FIFO allocations, new lots, moves, the document's cost of goods, the register cost) the same as the legacy app does with every cost (compared with the legacy scenario's data change)."
     }
   ]
 }

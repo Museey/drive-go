@@ -255,9 +255,9 @@
   const host=$i('overdueAlert');if(!host)return;let el=$i('pkgSfHome');
   if(!on()){if(el)el.remove();return;}
   if(!el){el=document.createElement('div');el.id='pkgSfHome';host.after(el);}
-  const w=waiting();
+  const w=waiting(),seeAmt=!curEmp()||can('doc.homeMoney');   /* DriveGo new system (task 3.9, finding 42): the amount needs "ดูยอดเงินและมูลค่าในหน้าแรก" */
   el.innerHTML=w.n?`<div class="card ${w.old?'red':'green'}"><div class="k">รอชำระ (ใบตัดสต็อก)</div><div class="v"${w.old?' style="color:var(--danger)"':''}>${w.n}<span style="font-size:13px;font-weight:500"> ใบ</span></div>
-    <div class="s">รวม <b>฿${money(w.sum)}</b>${w.old?' · ค้างข้ามวัน '+w.old+' ใบ · นานสุด '+w.oldest+' วัน':' · ของวันนี้ทั้งหมด'}</div><button type="button" class="btn sm gh cbtn" data-sfhome="1">ดูใบตัดสต็อกที่รอชำระ</button></div>`
+    <div class="s">${seeAmt?'รวม <b>฿'+money(w.sum)+'</b> · ':''}${w.old?'ค้างข้ามวัน '+w.old+' ใบ · นานสุด '+w.oldest+' วัน':'ของวันนี้ทั้งหมด'}</div><button type="button" class="btn sm gh cbtn" data-sfhome="1">ดูใบตัดสต็อกที่รอชำระ</button></div>`
    :`<div class="card green"><div class="k">รอชำระ (ใบตัดสต็อก)</div><div class="v">0</div><div class="s">ไม่มีใบตัดสต็อกที่รอชำระ</div></div>`;
  }
  document.addEventListener('click',e=>{if(!e.target.closest||!e.target.closest('[data-sfhome]'))return;return showCuts('due');});

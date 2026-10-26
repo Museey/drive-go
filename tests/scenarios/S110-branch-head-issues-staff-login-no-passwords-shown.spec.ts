@@ -9,7 +9,8 @@ test.use({ dataset: 'franchise-trial' });
 // the branch head's account panel shows ******** instead of each employee's
 // password, so the head gives the employee the password from the message shown
 // when it is set. Every step, every message, the rest of each screen and every
-// data change are still S96's.
+// data change are still S96's. Task 3.9 (finding 42, approved): the warehouse employee has no
+// "ดูยอดเงินและมูลค่าในหน้าแรก", so the home card of sales waiting for payment keeps its count and drops the amount.
 const S96 = 'S96-branch-head-issues-staff-login.spec.ts';
 
 async function signOut(page: Page) {
@@ -83,7 +84,10 @@ test('S110 ระบบใหม่: หัวหน้าสาขาออก�
       - button /07 สต๊อกอะไหล่/
   `);
   await steps.same('พนักงานคลังเข้าระบบด้วยบัญชีของตัวเอง');
-  await sameScreen(page, app, testInfo, S96, 'staff-home');
+  const waiting = page.locator('#pkgSfHome');
+  await expect(waiting).toContainText('ค้างข้ามวัน');
+  await expect(waiting).not.toContainText('฿');
+  await sameScreen(page, app, testInfo, S96, 'staff-home', { mask: [waiting] });
 
   await page.getByRole('button', { name: /07 สต๊อกอะไหล่/ }).click();
   await page.getByRole('button', { name: '★ เบิกสินค้าจาก HQ' }).click();

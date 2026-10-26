@@ -118,7 +118,7 @@ async function readMain(key: string): Promise<Main> {
     const body = await r.text();
     const nl = body.indexOf('\n');
     m.base = JSON.parse(body.slice(0, nl));
-    m.masks = JSON.parse(r.headers.get('x-drivego-masks') || '[]');
+    m.masks = JSON.parse(decodeURIComponent(r.headers.get('x-drivego-masks') || '%5B%5D'));   // escaped: a header is Latin-1
     m.value = m.sent = body.slice(nl + 1);
     m.last = split(key, m.sent);
   } else if (r.status === 403) {

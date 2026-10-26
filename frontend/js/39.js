@@ -180,7 +180,7 @@
   const s=S[id],cfg=SUM[id];if(!s||!s.sum||!cfg)return;
   const put=(k,v)=>{const el=s.sum.querySelector(`[data-k="${k}"]`);if(el)el.textContent=v;};
   put('n',rows.length.toLocaleString('th-TH')+' '+cfg.unit);
-  cfg.f.forEach(([k,,fn,,perm])=>{const cell=s.sum.querySelector(`[data-k-cell="${k}"]`);const ok=!perm||typeof can!=='function'||!curEmp()||can(perm);if(cell)cell.hidden=!ok;if(ok)put(k,fn(rows));});
+  cfg.f.forEach(([k,,fn,,perm])=>{const cell=s.sum.querySelector(`[data-k-cell="${k}"]`);const ok=!perm||typeof can!=='function'||!curEmp()||can(perm);if(cell){cell.hidden=!ok;cell.style.display=ok?'':'none';}if(ok)put(k,fn(rows));});   /* DriveGo new system (task 3.9, finding 13): the cell's CSS beat its `hidden` */
  }
 
  const whenReady=fn=>{if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(fn,0));else setTimeout(fn,0);};

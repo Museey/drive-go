@@ -1,14 +1,16 @@
 import { test, expect } from '../support/test';
 import { legacyGolden } from '../support/legacy-golden';
+import { maskState, masksOfSession } from '../support/masks';
 
 // Replaces S47 in the new system (tests/intentional-changes.json, task 3.9, decision R14-ข and the owner's
 // answers of 2026-10-26): the mechanic (EMP003) signs in as in S47, with the same steps and screens, but the
 // server does not send the other employees' pay and personal data — they read null in the mechanic's browser;
-// their own record stays whole.
+// their own record stays whole — nor any cost (F7, finding 13: the stock register's search summary no longer
+// shows the cost value). Quotation totals stay visible (R14-ก = ข).
 const S47 = 'S47-mechanic-account-price-visibility.spec.ts';
 const PRIVATE = ['idcard', 'birth', 'age', 'edu', 'hospital', 'salary', 'ot', 'bonus', 'regular', 'emg', 'addr'];
 
-test('S177 ระบบใหม่: ช่างซ่อมเข้าระบบ เห็นทะเบียนอะไหล่และใบเสนอราคาเหมือนเดิม แต่ไม่ได้รับเงินเดือนและข้อมูลส่วนตัวของพนักงานคนอื่น', async ({ app, page }, testInfo) => {
+test('S177 ระบบใหม่: ช่างซ่อมเข้าระบบ เห็นทะเบียนอะไหล่และใบเสนอราคา แต่ไม่ได้รับทุน เงินเดือน และข้อมูลส่วนตัวของพนักงานคนอื่น ไม่เห็นมูลค่าทุนรวม', async ({ app, page }, testInfo) => {
   const golden = legacyGolden(S47, { app, page, testInfo });
   await app.loginAsOwner();
   await golden.step('หน้าแรก');
@@ -31,21 +33,24 @@ test('S177 ระบบใหม่: ช่างซ่อมเข้าระ�
   await golden.step('ช่างซ่อมเข้าสู่ระบบ');
 
   await page.getByRole('button', { name: /07 สต๊อกอะไหล่/ }).click();
-  const costSummary = page.getByText('มูลค่าทุนคงเหลือ (บาท)', { exact: true }).filter({ visible: true });
-  await expect(costSummary).toBeVisible();
-  await costSummary.scrollIntoViewIfNeeded();
+  // Finding 13 (approved): the search summary no longer shows the cost value (legacy: 566,870.00); the rest is S47's screen.
+  await expect(page.getByText('มูลค่าทุนคงเหลือ (บาท)', { exact: true }).filter({ visible: true })).toHaveCount(0);
+  const strip = page.getByText('คงเหลือรวม (ชิ้น)', { exact: true }).filter({ visible: true });
+  await strip.scrollIntoViewIfNeeded();
   await golden.step('ช่างซ่อมเปิดทะเบียนอะไหล่');
-  await golden.screen('mechanic-stock');
+  // (the strip is narrower without the cost value: mask the whole width it is in)
+  await golden.screen('mechanic-stock', { mask: [strip.locator('xpath=ancestor::div[contains(@class,"pkg-rh-sum")][1]/..')] });
 
   await page.getByRole('button', { name: /03 ใบเสนอราคา/ }).click();
   await expect(page.getByText('43,452.70', { exact: true }).filter({ visible: true })).toBeVisible();
   await golden.step('ช่างซ่อมเปิดใบเสนอราคา');
   await golden.screen('mechanic-quotes');
 
-  const hidden: Record<string, unknown> = {};
-  for (const e of before.DB.emp) if (e.code !== 'EMP003')
-    for (const f of PRIVATE) if (f in e && e[f] !== null) hidden[`DB.emp[${e.code}].${f}`] = [e[f], null];
-  expect(Object.keys(hidden)).toHaveLength(10 * 9);
-  await golden.stateChange('mechanic-account', before, hidden);
+  // The legacy change, from the owner's data as the server now gives it to this person (masks it sends with the data).
+  const masks = await masksOfSession(page);
+  await golden.stateChange('mechanic-account', maskState(before, masks));
+  const now = (await app.state()) as any;
+  for (const e of now.DB.emp) if (e.code !== 'EMP003') for (const f of PRIVATE) if (f in e) expect(e[f], `${e.code}.${f}`).toBeNull();
+  expect(now.DB.stock.every((s: any) => s.cost === null) && now.DB.fifo.lots.every((l: any) => l.cost === null), 'no cost either').toBe(true);
   expect(((await app.state()) as any).DB.emp.find((e: any) => e.code === 'EMP003')).toMatchObject({ salary: 12000, idcard: before.DB.emp.find((e: any) => e.code === 'EMP003').idcard });
 });

@@ -1,0 +1,160 @@
+// The rules the server checks again when a save is made (task 3.9, part 3, server/lib/rules.ts): money, tax,
+// people, settings and the rules of tasks 3.3–3.8. Every save of the screens passes (all scenarios run with these
+// checks on, TARGET=new); these are saves made round the screens, which must be refused.
+//
+//   npm run test:db
+import { after, before, describe, test } from 'node:test';
+import assert from 'node:assert/strict';
+import pg from 'pg';
+import { startTempPostgres } from '../../tools/pg-temp.mjs';
+import { migrate } from '../../server/db/migrate.ts';
+import { withShop } from '../../server/lib/db.ts';
+import { createShop, readFixture } from '../../server/lib/seed.ts';
+import { refuseRules } from '../../server/lib/rules.ts';
+import { readMain } from '../../server/lib/storage.ts';
+
+let db, ownerPool, appPool, n = 0;
+const fixture = name => readFixture(new URL(`../fixtures/${name}.json`, import.meta.url));
+const asApp = (shopId, fn) => withShop(appPool, shopId, '*', fn);
+
+before(async () => {
+  db = await startTempPostgres();
+  await migrate(db.url);
+  ownerPool = new pg.Pool({ connectionString: db.url });
+  appPool = new pg.Pool({ connectionString: db.url.replace('//drivego@', '//drivego_app@') });
+});
+after(async () => {
+  await ownerPool?.end();
+  await appPool?.end();
+  await db?.stop();
+});
+
+// A save of some records, as the browser sends it: [unit, key, value] (value undefined = removed).
+const save = (...rows) => ({
+  upsert: rows.filter(r => r[2] !== undefined).map(([unit, key, data]) => ({ unit, key, data: JSON.stringify(data) })),
+  remove: rows.filter(r => r[2] === undefined).map(([unit, key]) => ({ unit, key, data: '' })), order: {},
+});
+
+async function shop() {
+  const { shopId } = await createShop(ownerPool, { code: `R-${++n}`, pkg: 'biz', data: fixture('biz-trial') });
+  const DB = JSON.parse((await asApp(shopId, c => readMain(c, '', 'garage.v22'))).json);
+  const emp = code => DB.emp.find(e => e.code === code);
+  const as = code => code === 'owner' ? { pkg: 'biz', role: 'owner', ref: '', branch: '' } : { pkg: 'biz', role: 'emp', ref: emp(code).id, branch: '' };
+  const check = (who, changes) => asApp(shopId, c => refuseRules(c, as(who), '', 'garage.v22', changes));
+  // Stored values set by hand (as earlier saves would have left them).
+  const put = (unit, key, data) => asApp(shopId, c => c.query(
+    `insert into records (shop_id, branch_id, unit, key, pos, data) values (app_shop(), '', $1, $2, 0, $3)
+     on conflict (shop_id, branch_id, unit, key) do update set data = excluded.data`, [unit, key, JSON.stringify(data)]));
+  const grant = async (code, ...rights) => {
+    const e = emp(code);
+    for (const r of rights) { const [g, f] = r.split('.'); e.perms[g] = { ...e.perms[g], [f]: true }; }
+    await put('DB.emp', e.id, e);
+  };
+  return { DB, emp, check, put, grant };
+}
+
+describe('งวดภาษี (งาน 3.3)', () => {
+  test('ปิดงวดได้เฉพาะเจ้าของหรือผู้มีสิทธิ์ปิดงวดภาษี เปิดงวดกลับได้เฉพาะเจ้าของ', async () => {
+    const { check, put, grant } = await shop();
+    const close = { '2026-09': { closed: true, date: '2026-10-13', hist: [{ act: 'close', date: '2026-10-13' }] } };
+    assert.equal(await check('EMP008', save(['DB.taxPeriods', '', close])), 'DB.taxPeriods|2026-09');
+    assert.equal(await check('owner', save(['DB.taxPeriods', '', close])), null);
+    await grant('EMP004', 'doc.taxClose');
+    assert.equal(await check('EMP004', save(['DB.taxPeriods', '', close])), null);
+    await put('DB.taxPeriods', '', close);
+    const open = { '2026-09': { ...close['2026-09'], closed: false, hist: [...close['2026-09'].hist, { act: 'open', reason: 'x' }] } };
+    assert.equal(await check('EMP004', save(['DB.taxPeriods', '', open])), 'DB.taxPeriods|2026-09');
+    assert.equal(await check('owner', save(['DB.taxPeriods', '', open])), null);
+  });
+
+  test('เดือนที่ปิดงวดแล้ว: เอกสารที่มี VAT แก้ส่วนที่มีผลต่อภาษี ยกเลิก หรือสร้างใหม่ไม่ได้ แม้เป็นเจ้าของ รับเงินได้ตามปกติ', async () => {
+    const { DB, check, put } = await shop();
+    await put('DB.taxPeriods', '', { '2026-10': { closed: true, hist: [] } });
+    const cut = DB.stockCuts.find(x => x.no === 'MA-SA261000003');
+    assert.equal(await check('owner', save(['DB.stockCuts', cut.id, { ...cut, cancelled: true }])), `DB.stockCuts|${cut.id}: tax period closed`);
+    assert.equal(await check('owner', save(['DB.stockCuts', cut.id, { ...cut, disc: 100 }])), `DB.stockCuts|${cut.id}: tax period closed`);
+    assert.equal(await check('owner', save(['DB.stockCuts', cut.id, { ...cut, adj: [{ id: 'a1', type: 'down', amt: 10 }] }])), `DB.stockCuts|${cut.id}: tax period closed`);
+    assert.equal(await check('owner', save(['DB.stockCuts', cut.id, undefined])), `DB.stockCuts|${cut.id}: tax period closed`);
+    assert.equal(await check('owner', save(['DB.stockCuts', 'r1', { ...cut, id: 'r1', no: 'MA-SA261000003-R1', revOf: cut.id }])), 'DB.stockCuts|r1: tax period closed');
+    assert.equal(await check('owner', save(['DB.stockCuts', cut.id, { ...cut, paid: 100, note: 'จ่ายบางส่วน' }])), null, 'money only');
+    const gr = { id: 'g1', no: 'MA-RC261000099', date: '2026-10-05', vendorId: DB.vendors[0].id, inv: 'IV-1', vat: 7, items: [] };
+    assert.equal(await check('owner', save(['DB.purchases', 'g1', gr])), 'DB.purchases|g1: tax period closed');
+    assert.equal(await check('owner', save(['DB.purchases', 'g1', { ...gr, vat: 0 }])), null, 'no VAT');
+    assert.equal(await check('owner', save(['DB.purchases', 'g1', { ...gr, date: '2026-11-01' }])), null, 'another month');
+  });
+});
+
+describe('ใบลดหนี้ (งาน 3.3)', () => {
+  const note = (cut, status) => ({ id: 'cn1', no: 'MA-CN261000001', date: '2026-10-13', saleId: cut.id, saleNo: cut.no, gross: 107, apv: { status } });
+  test('ออกใบลดหนี้ได้เฉพาะเจ้าของหรือผู้มีสิทธิ์ พนักงานออกแล้วต้องรออนุมัติ อนุมัติได้เฉพาะผู้มีสิทธิ์อนุมัติใบกำกับภาษี', async () => {
+    const { DB, check, grant, put } = await shop();
+    const cut = DB.stockCuts.find(x => x.no === 'MA-SA261000003');
+    assert.equal(await check('EMP008', save(['DB.creditNotes', 'cn1', note(cut, 'pending')])), 'DB.creditNotes|cn1');
+    await grant('EMP008', 'doc.creditNote');
+    assert.equal(await check('EMP008', save(['DB.creditNotes', 'cn1', note(cut, 'pending')])), null);
+    assert.equal(await check('EMP008', save(['DB.creditNotes', 'cn1', note(cut, 'approved')])), 'DB.creditNotes|cn1');
+    assert.equal(await check('owner', save(['DB.creditNotes', 'cn1', note(cut, 'approved')])), null);
+    await put('DB.creditNotes', 'cn1', note(cut, 'pending'));
+    assert.equal(await check('EMP008', save(['DB.creditNotes', 'cn1', note(cut, 'approved')])), 'DB.creditNotes|cn1');
+    await grant('EMP004', 'apv.tax');
+    assert.equal(await check('EMP004', save(['DB.creditNotes', 'cn1', note(cut, 'approved')])), null);
+  });
+
+  test('รายการปรับลดของใบลดหนี้ต้องมาจากใบลดหนี้ที่มีผลแล้ว', async () => {
+    const { DB, check, put } = await shop();
+    const cut = DB.stockCuts.find(x => x.no === 'MA-SA261000003');
+    const adj = { ...cut, adj: [{ id: 'a1', type: 'down', amt: 107, cn: 'MA-CN261000001' }] };
+    assert.equal(await check('owner', save(['DB.stockCuts', cut.id, adj])), `DB.stockCuts|${cut.id}: credit note not in effect`);
+    await put('DB.creditNotes', 'cn1', note(cut, 'pending'));
+    assert.equal(await check('owner', save(['DB.stockCuts', cut.id, adj])), `DB.stockCuts|${cut.id}: credit note not in effect`);
+    assert.equal(await check('owner', save(['DB.creditNotes', 'cn1', note(cut, 'approved')], ['DB.stockCuts', cut.id, adj])), null);
+    // Also in a closed month: that is what credit notes are for.
+    await put('DB.taxPeriods', '', { '2026-10': { closed: true, hist: [] } });
+    assert.equal(await check('owner', save(['DB.creditNotes', 'cn1', note(cut, 'approved')], ['DB.stockCuts', cut.id, adj])), null);
+  });
+});
+
+describe('ไม่คิด VAT (งาน 3.3)', () => {
+  test('เอกสารขายที่ไม่คิด VAT ของร้านที่จด VAT ต้องมีสิทธิ์และเหตุผล หรือรับเหตุผลมาจากเอกสารต้นทาง', async () => {
+    const { DB, check, put } = await shop();
+    const q = { ...DB.quotes[0], id: 'q1', no: 'MA-QT261000099', vat: 0, noVatReason: 'ลูกค้าต่างประเทศ' };
+    assert.equal(await check('EMP008', save(['DB.quotes', 'q1', q])), 'DB.quotes|q1: VAT left off');
+    assert.equal(await check('owner', save(['DB.quotes', 'q1', { ...q, noVatReason: '' }])), 'DB.quotes|q1: VAT left off without a reason');
+    assert.equal(await check('owner', save(['DB.quotes', 'q1', q])), null);
+    // A stock cut of that quotation takes its reason over, whoever makes it.
+    await put('DB.quotes', 'q1', q);
+    const cut = { ...DB.stockCuts[0], id: 'c1', no: 'MA-SA261000099', quoteId: 'q1', vat: 0, noVatReason: q.noVatReason };
+    assert.equal(await check('EMP008', save(['DB.stockCuts', 'c1', cut])), null);
+    assert.equal(await check('EMP008', save(['DB.stockCuts', 'c1', { ...cut, quoteId: '' }])), 'DB.stockCuts|c1: VAT left off');
+    // An existing document left as it was.
+    const old = DB.stockCuts[0];
+    await put('DB.stockCuts', old.id, { ...old, vat: 0, noVatReason: 'เดิม' });
+    assert.equal(await check('EMP008', save(['DB.stockCuts', old.id, { ...old, vat: 0, noVatReason: 'เดิม', paid: 1 }])), null);
+  });
+});
+
+describe('ขายเกินของที่มี (งาน 3.6)', () => {
+  test('การขายที่ทำให้สต๊อกติดลบต้องเป็นเจ้าของหรือผู้มีสิทธิ์อนุมัติเอกสาร', async () => {
+    const { DB, check } = await shop();
+    const s = DB.stock.find(x => x.qty > 0);
+    const cut = { ...DB.stockCuts[0], id: 'c1', no: 'MA-SA261000099', lines: [{ stockId: s.id, qty: s.qty + 1 }] };
+    const sale = save(['DB.stockCuts', 'c1', cut], ['DB.stock', s.id, { ...s, qty: -1 }]);
+    assert.equal(await check('EMP008', sale), `DB.stock|${s.id}: not enough stock`);
+    assert.equal(await check('EMP004', sale), null);
+    assert.equal(await check('owner', sale), null);
+    assert.equal(await check('EMP008', save(['DB.stockCuts', 'c1', cut], ['DB.stock', s.id, { ...s, qty: 0 }])), null);
+  });
+});
+
+describe('เงินเดือน (งาน 3.7–3.9)', () => {
+  const period = (id, month, more = {}) => ({ id, month, label: 'งวด', date: '2026-10-31', lines: [], totals: {}, ...more });
+  test('บันทึกเงินเดือนต้องมีสิทธิ์บันทึกค่าใช้จ่ายและสิทธิ์ดูเงินเดือน เดือนหนึ่งมีงวดที่ใช้อยู่งวดเดียว', async () => {
+    const { check, put } = await shop();
+    assert.equal(await check('EMP008', save(['DB.payroll', 'p1', period('p1', '2026-10')])), 'DB.payroll|p1');
+    assert.equal(await check('EMP005', save(['DB.payroll', 'p1', period('p1', '2026-10')])), 'DB.payroll|p1', 'no expense right');
+    assert.equal(await check('EMP002', save(['DB.payroll', 'p1', period('p1', '2026-10')])), null);
+    await put('DB.payroll', 'p1', period('p1', '2026-10'));
+    assert.equal(await check('owner', save(['DB.payroll', 'p2', period('p2', '2026-10')])), 'DB.payroll|2026-10: recorded twice');
+    assert.equal(await check('owner', save(['DB.payroll', 'p1', period('p1', '2026-10', { cancelled: true })], ['DB.payroll', 'p2', period('p2', '2026-10')])), null);
+  });
+});

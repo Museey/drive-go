@@ -6,7 +6,7 @@ import type pg from 'pg';
 import type { Session } from './session.ts';
 import { isSafetyBackupKey } from './storage.ts';
 import { type Changes, rootOf } from './units.ts';
-import type { Rights } from './visibility.ts';
+import { type Rights, costRight } from './visibility.ts';
 
 // Who is signed in, as the legacy screens know them.
 //   Biz/ProX   owner | emp (an employee signed in with a phone number)
@@ -30,29 +30,48 @@ export async function actorOf(c: pg.ClientBase, s: Session): Promise<Actor> {
 }
 
 // What the person may see (task 3.9, lib/visibility.ts): an employee (or a staff account signed in as one) by
-// the rights on that employee's record — the legacy keys the screens check (doc.fin, doc.emp); everyone else
+// the rights on that employee's record — the legacy keys the screens check (doc.fin, doc.emp; COST_JOBS); everyone else
 // sees all of their scope. owner: the shop's owner, Franchise HQ or a branch head (the whole-data copies).
 export async function rightsOf(c: pg.ClientBase, a: Actor): Promise<Rights> {
   const owner = a.role === 'owner' || a.role === 'HQ' || a.role === 'HB';
   const self = a.role === 'emp' ? a.ref : a.emp ?? '';
-  if (!self) return { owner, pay: true, self: '' };
+  if (!self) return { owner, pay: true, cost: true, self: '' };
   const e = (await current(c, a.branch, 'DB.emp', [self])).get(self);
   const doc = ((e?.perms as Rec | undefined)?.doc ?? {}) as Rec;
-  return { owner, pay: doc.fin === true || doc.emp === true, self };
+  return { owner, pay: doc.fin === true || doc.emp === true, cost: costRight(e?.perms), self };
 }
 
-// For working out the rules (task T10): with DRIVEGO_WRITE_TRACE set, every
-// save is written to that file as one JSON line: who saved which units.
-export function traceWrite(actor: Actor, key: string, changes: Changes, secrets: { unit: string; field: string }[]): void {
+// For working out the rules (tasks T10, 3.9): with DRIVEGO_WRITE_TRACE set, every
+// save is written to that file as one JSON line: who saved (an employee's rights that are on), which units,
+// and per unit the rows added, removed and the fields changed (the scenario comes in header x-drivego-test).
+export async function traceWrite(c: pg.ClientBase, actor: Actor, branch: string, key: string, changes: Changes,
+  secrets: { unit: string; field: string }[], test = ''): Promise<void> {
   const file = process.env.DRIVEGO_WRITE_TRACE;
   if (!file) return;
   const units = [...new Set([...changes.upsert, ...changes.remove].map(r => r.unit))].sort();
+  const rows: Record<string, { added: number; removed: number; fields: string[] }> = {};
+  for (const u of units) {
+    const up = changes.upsert.filter(r => r.unit === u), old = await current(c, branch, u, up.map(r => r.key));
+    const fields = new Set<string>();
+    let added = 0;
+    for (const r of up) {
+      const was = old.get(r.key), now = JSON.parse(r.data);
+      if (!was) { added++; continue; }
+      if (!isObj(was) || !isObj(now)) { fields.add('(value)'); continue; }
+      for (const f of new Set([...Object.keys(was), ...Object.keys(now)])) if (!same(was[f], now[f])) fields.add(f);
+    }
+    rows[u] = { added, removed: changes.remove.filter(r => r.unit === u).length, fields: [...fields].sort() };
+  }
+  const self = actor.role === 'emp' ? actor.ref : actor.emp ?? '';
+  const e = self ? (await current(c, actor.branch, 'DB.emp', [self])).get(self) : undefined;
+  const on = e && isObj(e.perms) ? Object.entries(e.perms as Record<string, unknown>).flatMap(([g, v]) =>
+    isObj(v) ? Object.entries(v).filter(([, x]) => x === true).map(([k]) => `${g}.${k}`) : []).filter(k => !/^(m|tabs|stock)\./.test(k)) : undefined;
   appendFileSync(file, JSON.stringify({
-    pkg: actor.pkg, role: actor.role, key, units, layout: changes.layout !== undefined,
-    removed: [...new Set(changes.remove.map(r => r.unit))].sort(),
+    test, pkg: actor.pkg, role: actor.role, key, ...(on ? { emp: self, perms: on } : {}), units, rows, layout: changes.layout !== undefined,
     secrets: [...new Set(secrets.map(x => `${x.unit}.${x.field}`))].sort(),
   }) + '\n');
 }
+const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 
 // The rules (design §5.1), worked out from what each role saves in all the
 // scenarios (DRIVEGO_WRITE_TRACE): every save of the legacy screens passes,

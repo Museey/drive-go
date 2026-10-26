@@ -3,6 +3,8 @@
 // in through the sign-in screen, as on the legacy app.
 import pg from 'pg';
 import { createShop, readFixture } from '../../server/lib/seed.ts';
+import { withShop } from '../../server/lib/db.ts';
+import { readMain } from '../../server/lib/storage.ts';
 
 let pool, n = 0;
 
@@ -13,4 +15,14 @@ export async function openTestShop(dataset) {
   const data = readFixture(new URL(`../fixtures/${dataset}.json`, import.meta.url));
   await createShop(pool, { code, pkg, data });
   return { code };
+}
+
+// What the server holds for a Biz / ProX shop's data (garage.v22), whole — what its owner would get, whoever
+// saved it (task 3.9: an employee's browser holds less than the server).
+export async function readTestShop(code) {
+  pool ??= new pg.Pool({ connectionString: process.env.DRIVEGO_OWNER_DB, max: 2 });
+  const { rows } = await pool.query('select id from shops where code = $1', [code]);
+  if (!rows.length) throw new Error(`no shop ${code}`);
+  const main = await withShop(pool, rows[0].id, '*', c => readMain(c, '', 'garage.v22'));
+  return main ? JSON.parse(main.json) : null;
 }
