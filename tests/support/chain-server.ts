@@ -34,6 +34,8 @@ export async function chainServer(page: Page, setup: ChainSetup) {
     requests: structuredClone(setup.requests ?? []),
     coins: {} as Record<string, number>,
     stockReports: [] as unknown[][],
+    // The chain cannot be reached (task 3.12, answer 12.7): every request fails as a lost connection would.
+    down: false,
   };
   const calls: string[] = [];
   const waiting: { path: string; done: () => void }[] = [];
@@ -41,6 +43,7 @@ export async function chainServer(page: Page, setup: ChainSetup) {
     const req = route.request();
     const path = new URL(req.url()).pathname;
     calls.push(`${req.method()} ${path}`);
+    if (state.down) return route.abort('connectionrefused');
     const body = req.postDataJSON?.() ?? null;
     const signedIn = setup.accounts.find(a => req.headers().authorization === `Bearer token-${a.username}`);
     const answer = async (status: number, json: unknown) => {

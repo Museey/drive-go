@@ -69,7 +69,7 @@
   const pb=paidBy(I,p),ml=methodLines(pb),fee=feeOf(pb),w=p.wht&&n(p.wht.amt)>0?p.wht:null;
   return sheetTop({title:'ใบเสร็จรับเงิน',en:'RECEIPT',copy:copy||'ต้นฉบับ',
     fields:[['เลขที่',esc(p.reNo||'-')],['วันที่รับเงิน',thDate(p.date)+(p.time?' '+esc(p.time):'')],I.shared?['รับชำระรวม',I.parts.length+' บิล']:['อ้างอิงใบตัดสต็อก',esc(c.no)],
-     !I.shared&&S.invOk(L)?['ใบแจ้งหนี้เลขที่',esc(S.invOk(L).no)]:null,!I.shared&&tax?['ใบกำกับภาษีเลขที่',esc(tax)]:null,!I.shared&&v?['ทะเบียนรถ',esc(plateOf(v))]:null].filter(Boolean)})+`
+     !I.shared&&S.invOk(L)?['ใบแจ้งหนี้เลขที่',esc(S.invOk(L).no)]:null,!I.shared&&tax?['ใบกำกับภาษีเลขที่',esc(tax)]:null,!I.shared&&v?['ทะเบียนรถ',esc(plateOf(v))]:null,p.chainRc?['เลขอ้างอิงของเครือ DriveGo',esc(p.chainRc)]:null].filter(Boolean)})+`
   ${I.stamp==='ชำระแล้ว'?'':`<div style="position:absolute;right:18mm;top:52mm;transform:rotate(-12deg);border:3px solid ${col};color:${col};border-radius:8px;padding:4px 18px;font-size:22px;font-weight:700;opacity:.8;-webkit-print-color-adjust:exact;print-color-adjust:exact" class="pkg-sf-stamp">${I.stamp}</div>`}
   <table><tr><td style="width:58%;vertical-align:top"><span class="lbl">ได้รับเงินจาก</span><br><b>${esc(cu?custName(cu):'ลูกค้าทั่วไป (เงินสด)')}</b>${cu&&cu.type==='company'&&cu.name?'<br>ผู้ติดต่อ: '+esc(cu.name):''}<br>
     ${cu?esc(addrLine(cu.addr))+'<br>เลขประจำตัวผู้เสียภาษี '+esc(cu.tax||'-')+(cu.branch?' ('+esc(cu.branch)+')':'')+'<br>โทร. '+esc(cu.tel||'-'):''}</td>
@@ -105,7 +105,7 @@
   const row=(k,v)=>`<div><span>${k}</span><b data-no-translate>${v}</b></div>`;
   $i('srBody').innerHTML=`<div class="pkg-sr-grid">${row('วันที่รับเงิน',thDate(p.date)+(p.time?' '+esc(p.time):''))}${row('ผู้รับเงิน',esc(String(p.by||'-').replace(/^.*· /,'')))}
     ${row('ลูกค้า',esc(cu?custName(cu):'ลูกค้าทั่วไป (เงินสด)'))}${I.shared?row('ใบตัดสต็อก',I.parts.map(x=>esc(x.sale?x.sale.no:'')).join(', ')):row('ใบตัดสต็อก',esc(c.no))}
-    ${S.invOk(I.L)&&!I.shared?row('ใบแจ้งหนี้',esc(S.invOk(I.L).no)):''}${row('บันทึกเมื่อ',(p.createdAt?thDateTime(p.createdAt):'-')+(p.createdByName?' · '+esc(String(p.createdByName).replace(/^.*· /,'')):''))}</div>
+    ${S.invOk(I.L)&&!I.shared?row('ใบแจ้งหนี้',esc(S.invOk(I.L).no)):''}${p.chainRc?row('เลขอ้างอิงของเครือ DriveGo',esc(p.chainRc)):''}${row('บันทึกเมื่อ',(p.createdAt?thDateTime(p.createdAt):'-')+(p.createdByName?' · '+esc(String(p.createdByName).replace(/^.*· /,'')):''))}</div>
    <table class="tbl pkg-sr-tbl"><thead><tr><th>วิธีชำระ</th><th>รายละเอียด</th><th class="num">จำนวนเงิน</th></tr></thead><tbody>${ml.map(([k,d,a])=>`<tr><td>${k}</td><td data-no-translate>${esc(d)}</td><td class="num">${money(a)}</td></tr>`).join('')}
     ${fee>0?`<tr><td colspan="2">ยอดตามใบตัดสต็อก</td><td class="num">${money(I.money)}</td></tr><tr><td colspan="2">${feeLbl(pb)}</td><td class="num">${money(fee)}</td></tr>`:''}
     <tr class="tot"><td colspan="2"><b>ยอดรับครั้งนี้</b>${I.shared?' · รวม '+I.parts.length+' บิล':''}</td><td class="num"><b>${money(r2(I.money+fee))}</b></td></tr>
