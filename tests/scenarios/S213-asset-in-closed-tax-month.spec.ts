@@ -3,12 +3,12 @@ import { test, expect } from '../support/test';
 
 // New behaviour (task 3.13, the owner's answer 13.11 of 2026-10-26 and of the asset questions the same day): an asset
 // with VAT dated in a closed tax month. Its life, salvage and status can still change (they are not tax), and it can be
-// paid; its tax fields (here the cost, and so the VAT) cannot, and it cannot be cancelled — like a goods receipt, the
+// paid; its tax fields (here the cost, and so the VAT) cannot, and it cannot be deleted or cancelled — like a goods receipt, the
 // owner opens the month again first. The server checks the same (tests/db/rules.test.mjs).
 const popup = (page: Page, title: string) => page.locator('div.panel').filter({ has: page.getByRole('heading', { name: title, exact: true }) });
 const LOCKED = 'เดือน ต.ค. 2569 ปิดงวดภาษีแล้ว ใช้ใบลดหนี้แทน';
 
-test('S213 ระบบใหม่: สินทรัพย์ที่มี VAT ในเดือนที่ปิดงวดภาษีแล้ว แก้อายุและจ่ายเงินได้ แก้ราคาทุนหรือยกเลิกไม่ได้', async ({ app, page }) => {
+test('S213 ระบบใหม่: สินทรัพย์ที่มี VAT ในเดือนที่ปิดงวดภาษีแล้ว แก้อายุและจ่ายเงินได้ แก้ราคาทุนหรือลบไม่ได้', async ({ app, page }) => {
   test.slow();
   await page.clock.setFixedTime(new Date('2026-11-02T09:00:00+07:00'));
   await app.loginAsOwner();
@@ -59,8 +59,8 @@ test('S213 ระบบใหม่: สินทรัพย์ที่มี 
   expect((await app.state()).DB.assets).toEqual(before.assets);
   await page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).last().click();
 
-  // It cannot be cancelled.
-  await reg.getByRole('button', { name: 'ยกเลิก' }).click();
+  // Owed and unpaid it would be deleted ("ลบ"); not in a closed month.
+  await reg.getByRole('button', { name: 'ลบ' }).click();
   await app.settle();
   expect(await app.signature()).toMatchObject({ messages: [LOCKED] });
   expect((await app.state()).DB.assets).toEqual(before.assets);

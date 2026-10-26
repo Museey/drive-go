@@ -191,7 +191,7 @@
  window.renderTax=function(){
   const real=DB.assets,P=purchases().filter(p=>!p.cancelled),by={};
   DB.assets=P.map(p=>{const h=p.h,v=ven(h.vendorId);by[h.no]=v;
-   return {id:h.id,no:h.no,date:h.date,inv:h.inv,vendor:(v&&v.name)||h.vendor,name:p.lines[0].name,cost:p.base,vat:n(h.vat),br:h.br};});
+   return {id:h.id,no:h.no,date:h.date,inv:h.inv,vendor:(v&&v.name)||h.vendor,vendorId:h.vendorId,name:p.lines[0].name,cost:p.base,vat:n(h.vat),br:h.br,payments:h.payments};});   /* payments: ภ.ง.ด.3 / 53 (whtOut) */
   let out;try{out=rt0.apply(this,arguments);}finally{DB.assets=real;}
   try{let ch=false;(TAXBUY_ROWS||[]).forEach(r=>{if(r.src===SRC&&by[r.ref]&&by[r.ref].tax){r.tax=by[r.ref].tax;ch=true;}});if(ch)renderTaxBuyRows();}catch(e){}
   return out;};
@@ -238,7 +238,7 @@
    if(v.cash||!n(v.days)){$i('yTerm').value='cash';$i('yDays').value=0;}else{$i('yTerm').value='credit';$i('yDays').value=v.days;}dueText();});}
  const oa0=window.openAsset;
  window.openAsset=function(id){const r=oa0.apply(this,arguments);
-  try{const a=id?all().find(x=>x.id===id):null,h=a?headOf(a):null;FORM={h,locked:!!h&&(!isNew(h)||active(h).some(p=>!p.atOnce))};
+  try{const a=id?all().find(x=>x.id===id):null,h=a?headOf(a):null;FORM={h,locked:!!h&&(!isNew(h)||active(h).length>0)};
    const t=$i('yTerm');if(t){t.value=h&&h.term==='credit'?'credit':'cash';$i('yDays').value=h&&h.term==='credit'?n(h.days):30;t.disabled=FORM.locked;$i('yPaySt').value=payState(h);dueText();}
    const pv=h&&active(h).filter(x=>x.pvNo).slice(-1)[0];if(pvBtn)pvBtn.style.display=pv?'':'none';
    if(pv)$i('mAssetTitle').textContent+=' · ใบสำคัญจ่าย '+pv.pvNo;
