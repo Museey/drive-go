@@ -668,6 +668,11 @@
       "scenario": "S249-employee-signs-in-at-home-branch.spec.ts",
       "decision": "answer 10.7 (task 3.10)",
       "why": "An employee signs in in their home branch (สาขาประจำ) whatever branch anybody else works in."
+    },
+    {
+      "scenario": "S250-shop-address-on-80mm-slips.spec.ts",
+      "decision": "owner's approval of 2026-10-27 (accountant review pack)",
+      "why": "The 80 mm abbreviated tax invoice and the 80 mm invoice print the shop's address as typed; the legacy app printed \"ต.function sub() { [native code] }\"."
     }
   ]
 }

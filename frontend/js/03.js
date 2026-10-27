@@ -379,6 +379,7 @@ function vehIdLine(v){
   return '<br>เลขเครื่องยนต์ '+esc(v.engine||'-')+'  ·  หมายเลขตัวถัง '+esc(v.vin||'-');
 }
 function addrLine(a){ if(!a) return '-';
+  if(typeof a==='string') return a.trim()||'-'; /* ที่อยู่ร้าน/สาขาเป็นข้อความที่กรอกไว้ทั้งบรรทัด (เฟส 3: ระบบเดิมพิมพ์ "ต.function sub()…") */
   const bkk=a.prov==='กรุงเทพมหานคร', p=[];
   if(a.no)p.push(a.no); if(a.village)p.push(a.village); if(a.moo)p.push('หมู่ '+a.moo);
   if(a.soi)p.push('ซ.'+a.soi); if(a.road)p.push('ถ.'+a.road);
