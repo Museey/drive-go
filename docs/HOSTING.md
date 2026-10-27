@@ -6,6 +6,24 @@
 ตัวเลขราคาเป็นการประมาณจากราคาประกาศ **ต้องตรวจใน pricing calculator ของผู้ให้บริการก่อนตัดสินใจ**
 อัตราแลกเปลี่ยนประมาณ 33.5 บาท/USD ราคายังไม่รวม VAT
 
+## อัปเดต 2026-10-27: Railway (เจ้าของโปรเจกต์ถาม)
+
+- **ที่ตั้ง**: มี region สิงคโปร์ (`asia-southeast1-eqsg3a`) สถานะเรื่อง PDPA เท่ากับ DigitalOcean และ Render
+- **ราคาแบบจ่ายตามที่ใช้จริงรายวินาที**: RAM $10/GB/เดือน, CPU $20/vCPU/เดือน, พื้นที่ดิสก์ $0.15/GB/เดือน, ส่งข้อมูลออก $0.05/GB
+  แพ็กเกจ Hobby $5 (รวมค่าใช้งาน $5) / Pro $20 (รวมค่าใช้งาน $20) ตั้งเพดานค่าใช้จ่ายได้ (ถึงเพดานแล้วระบบหยุด)
+  server ทดสอบที่คนใช้น้อยน่าจะราว $10–20/เดือน (350–700 บาท) ถูกที่สุดในกลุ่ม ช่วงเริ่มเปิดขายน่าจะใกล้ DigitalOcean (ประมาณคร่าว ๆ)
+- **PostgreSQL**: เป็น PostgreSQL ตัวมาตรฐานที่รันในโปรเจกต์ของเรา มีสำรองแบบ snapshot และกู้ย้อนเวลา (PITR ด้วย pgBackRest) มีแบบ HA
+  แต่ไม่ได้ "ดูแลให้ทั้งหมด" เท่า DigitalOcean หรือ Cloud SQL (อัปเกรดรุ่นหลัก ดูแลประสิทธิภาพ เป็นงานของเรา)
+  น่าจะได้ user หลักของฐานข้อมูลจึงสร้าง role ได้ (ยังไม่พบเอกสารยืนยัน ต้องลองบน server ทดสอบ)
+- **การเชื่อมต่อค้างนาน**: container รันตลอด แต่คำขอหนึ่งครั้งยาวได้ไม่เกิน 15 นาที (มีรายงานว่าบางครั้ง 5 นาที) และตัดการเชื่อมต่อที่เงียบเกิน 60 วินาที
+  ระบบเราส่ง ping ทุก 3 วินาที และเบราว์เซอร์ต่อใหม่เองพร้อมรับสิ่งที่พลาด (งาน 3.10) จึงน่าจะใช้ได้ ต้องทดสอบบน server ทดสอบ
+- **ที่เก็บไฟล์**: มี bucket แบบ S3 ในตัว
+
+แหล่งข้อมูล: https://docs.railway.com/pricing/plans.md , https://railway.com/pricing , https://docs.railway.com/deployments/regions ,
+https://docs.railway.com/guides/postgres-backups-restores , https://docs.railway.com/volumes/point-in-time-recovery , https://docs.railway.com/pricing/cost-control ,
+https://station.railway.com/questions/can-the-900-second-http-request-timeout-ff86a21d ,
+https://station.railway.com/questions/edge-kills-requests-with-no-response-byt-c65210de
+
 ## อัปเดต 2026-10-20: สิ่งที่ระบบต้องการจริงหลังเฟส 2 และ server ทดสอบ (T12)
 
 **สิ่งที่ระบบใหม่ต้องการ** (รู้แน่แล้วจากงานเฟส 2):
