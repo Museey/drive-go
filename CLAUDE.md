@@ -32,7 +32,7 @@ npm run test:db                            # test ของฐานข้อม
 npm run test:unit                          # test ของ server/lib (แบ่งข้อมูลเป็นหน่วยแล้วประกอบกลับได้ทุกไบต์ ฯลฯ)
 node tools/split-legacy.mjs --check        # พิสูจน์ว่า frontend/ ตรงกับระบบเดิมทุกไบต์ ยกเว้นจุดที่จดใน frontend/CHANGES.md
 node tools/build-client.mjs                # สร้าง frontend/js/00-server-storage.js จาก server/client/ (--check ตรวจว่าตรงกับต้นฉบับ)
-node tools/accountant-pack.mjs            # ชุดตรวจสำหรับผู้ทำบัญชี: คำถามจาก docs/ACCOUNTANT-REVIEW.md + เอกสารที่ระบบใหม่พิมพ์ (PDF) รวมเป็น accountant-pack.zip
+node tools/accountant-pack.mjs            # ชุดตรวจสำหรับผู้ทำบัญชี: คำถามจาก docs/ACCOUNTANT-REVIEW.md เป็น Excel ให้ตอบ + เอกสารที่ระบบใหม่พิมพ์ (PDF) รวมเป็น accountant-pack.zip
 npm run test:record -- tests/scenarios/S05-xxx.spec.ts   # บันทึกเฉลยจากระบบเดิม (เฉพาะไฟล์ที่ระบุ)
 npm run fixture -- biz trial               # สร้างข้อมูลตั้งต้นใหม่ (biz | prox | franchise) — ปกติไม่ต้องสร้างใหม่ ใช้ไฟล์ที่ commit ไว้
 npm run inventory                          # สร้าง docs/behaviors.csv ใหม่
