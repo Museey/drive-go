@@ -12,6 +12,7 @@
 //                                               (wipe, restore, import, demo data): record counts per collection
 import { test as base, expect } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
+import { basename, join } from 'node:path';
 import { prepareContext, restoreLocalStorage } from './browser.mjs';
 import { FIXED_NOW, LEGACY_ORIGIN, LEGACY_URL, TEST_SEED } from './config.mjs';
 import { openTestShop, readTestShop } from './new-shop.mjs';
@@ -39,11 +40,55 @@ export const test = base.extend<{ dataset: string; licence: TestLicence | undefi
   // TARGET=new: the shop's licence on the server (task 3.15); by default the fixture's own dates.
   licence: [undefined, { option: true }],
 
-  context: async ({ context }, use) => {
+  context: async ({ context }, use, testInfo) => {
     await prepareContext(context, { seed: TEST_SEED, now: FIXED_NOW });
     await context.addInitScript(messageRecorderInitScript);
     if (process.env.SABOTAGE) await context.addInitScript(SABOTAGE[process.env.SABOTAGE]);
+    // PRINT_CAPTURE=<folder> (tools/accountant-pack.mjs): what the app prints is saved there as a PDF, named after the
+    // scenario and the file name the app gives it (task 3.14). What is on the print stage is copied when the app prints
+    // (the scenario goes on meanwhile) and made into a PDF on a page of its own, with the app's styles.
+    const capture = process.env.PRINT_CAPTURE;
+    const making = new Set<Promise<void>>();
+    if (capture) {
+      const scenario = basename(testInfo.file).split('-')[0];
+      let n = 0;
+      await context.exposeBinding('__drivegoPrinted', ({ page }, title: string, html: string) => {
+        mkdirSync(capture, { recursive: true });
+        const name = String(title || 'print').replace(/\.pdf$/i, '').replace(/[\\/:*?"<>|\s]+/g, '_').slice(0, 120);
+        const file = join(capture, `${scenario}-${String(++n).padStart(2, '0')}-${name}.pdf`);
+        const job = (async () => {
+          const sheet = await page.context().newPage();
+          try {
+            await sheet.setContent(html, { waitUntil: 'load' });
+            await sheet.evaluate(() => document.fonts.ready);
+            await sheet.pdf({ path: file, printBackground: true, preferCSSPageSize: true });
+          } finally { await sheet.close(); }
+        })();
+        making.add(job);
+        return job.finally(() => making.delete(job));
+      });
+      // (kept when a scenario puts its own window.print in place to see what was printed, as S220 does)
+      await context.addInitScript(() => {
+        let own = () => {};
+        const attrs = (el: Element) => [...el.attributes].map(a => `${a.name}="${a.value.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"`).join(' ');
+        const copy = () => {
+          const stage = document.getElementById('printStage');
+          const staged = !!stage && stage.innerHTML.trim() !== '';
+          let html = staged ? stage!.outerHTML : document.body.outerHTML;
+          for (let el = staged ? stage!.parentElement : null; el && el !== document.documentElement; el = el.parentElement)
+            html = `<${el.localName} ${attrs(el)}>${html}</${el.localName}>`;
+          const head = [...document.querySelectorAll('link[rel="stylesheet"], style')].map(x => x.outerHTML).join('');
+          return `<!doctype html><html ${attrs(document.documentElement)}><head><meta charset="utf-8"><base href="${location.href}">${head}</head>${html}</html>`;
+        };
+        Object.defineProperty(window, 'print', {
+          configurable: true,
+          get: () => () => { void (window as any).__drivegoPrinted(document.title, copy()); return own(); },
+          set: (f: () => void) => { own = f; },
+        });
+      });
+    }
     await use(context);
+    await Promise.allSettled([...making]);
   },
 
   page: async ({ page }, use, testInfo) => {
