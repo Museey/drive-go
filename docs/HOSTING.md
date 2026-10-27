@@ -6,6 +6,21 @@
 ตัวเลขราคาเป็นการประมาณจากราคาประกาศ **ต้องตรวจใน pricing calculator ของผู้ให้บริการก่อนตัดสินใจ**
 อัตราแลกเปลี่ยนประมาณ 33.5 บาท/USD ราคายังไม่รวม VAT
 
+## อัปเดต 2026-10-27: Cloudflare (เจ้าของโปรเจกต์ถาม)
+
+**ไม่เหมาะเป็นที่รันระบบหลัก แต่ใช้คู่กับเจ้าอื่นได้ดี**
+- ไม่มี PostgreSQL ของตัวเอง: D1 เป็น SQLite, Hyperdrive เป็นแค่ตัวต่อไปหาฐานข้อมูลที่อยู่ที่อื่น (มีพาร์ตเนอร์ PlanetScale) จึงยังต้องเช่าฐานข้อมูลอีกเจ้า
+- Workers เป็น serverless: หน่วยความจำ 128 MB ต่อ isolate, โมดูล native (argon2 ที่ใช้ hash รหัสผ่าน) รันไม่ได้, Next.js ต้องผ่าน OpenNext (ยังก่อน 1.0)
+  และไม่มีโปรแกรมที่รันค้าง จึงฟังการบันทึกจากฐานข้อมูล (LISTEN/NOTIFY) และส่งต่อแบบงาน 3.10 ไม่ได้ ต้องเขียนใหม่ด้วย Durable Objects
+- Containers (GA เม.ย. 2026) รัน container ของเราได้ แต่คิดเงินตามเวลาที่ทำงาน server ที่ถือการเชื่อมต่อค้างไว้ทั้งวันจึงทำงานตลอด
+  บทวิเคราะห์ภายนอก (ใช้ราคาช่วง beta) ประเมินว่าแพงกว่า host ที่คิดรายเดือนหลายเท่าสำหรับงานที่รันตลอด
+- ส่วนที่คุ้ม: DNS + HTTPS + กันการโจมตีหน้าเว็บ (แพ็กเกจฟรี รับคำขอได้ถึง 100 MB) วางหน้า server เจ้าไหนก็ได้
+  (ระบบส่ง ping ทุก 3 วินาที การเชื่อมต่อค้างนานจึงไม่เงียบ ต้องทดสอบ) และ R2 เก็บไฟล์แนบโดยไม่คิดค่าส่งข้อมูลออก เมื่อย้ายไฟล์ออกจากฐานข้อมูล
+
+แหล่งข้อมูล: https://developers.cloudflare.com/changelog/2026-04-13-containers-sandbox-ga , https://developers.cloudflare.com/workers/platform/limits/index.md ,
+https://opennext.js.org/cloudflare , https://developers.cloudflare.com/workers/learning/integrations/databases/ ,
+https://sliplane.io/blog/cloudflare-released-containers-everything-you-need-to-know
+
 ## อัปเดต 2026-10-27: Railway (เจ้าของโปรเจกต์ถาม)
 
 - **ที่ตั้ง**: มี region สิงคโปร์ (`asia-southeast1-eqsg3a`) สถานะเรื่อง PDPA เท่ากับ DigitalOcean และ Render
