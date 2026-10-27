@@ -571,9 +571,9 @@
 
   // server/client/live.ts
   var LIVE_MESSAGES = {
-    // answer 10.4 (new text, waiting for the owner's approval)
+    // answer 10.4 (new text, approved by the owner 2026-10-27)
     offline: "เชื่อมต่อ server ไม่ได้ — ออกเอกสารและรับเงินไม่ได้จนกว่าจะเชื่อมต่อได้ ระบบกำลังลองเชื่อมต่อใหม่",
-    // answer 10.5 (new text): another device wiped, restored, imported or loaded the sample data
+    // answer 10.5 (new text, approved 2026-10-27): another device wiped, restored, imported or loaded the sample data
     whole: (kind) => `${{ wipe: "ล้างข้อมูล", restore: "กู้คืนข้อมูล", import: "นำเข้าข้อมูล", sample: "โหลดข้อมูลตัวอย่าง" }[kind] || "แทนที่ข้อมูล"}ทั้งหมดจากเครื่องอื่นแล้ว — กดตกลงเพื่อโหลดข้อมูลล่าสุด`
   };
   var SIGNED_OUT = "หมดเวลาการเข้าระบบ กรุณาเข้าสู่ระบบใหม่";
