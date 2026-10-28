@@ -20,6 +20,9 @@ test('S72 บันทึกลาป่วย 2 วันของพนัก�
   await golden.step('หน้าบันทึกการทำงานและการลา งวด ต.ค. 2569');
 
   await page.getByRole('button', { name: '+ บันทึกรายการ' }).click();
+  // The window places its side buttons again 350 ms after it opens (frontend/js/17.js, place): picking ลาป่วย before then
+  // grows the form first and the buttons settle 9px lower than in the recording (CI 2026-10-28). Wait as a person would.
+  await page.waitForTimeout(400);
   await select('พนักงาน *').selectOption({ label: 'EMP003 · วิชัย ขยันงาน (ช่างซ่อมทั่วไป)' });
   await select('ประเภทรายการ *').selectOption({ label: 'ลาป่วย' });
   await expect(page.getByText('ปีนี้ใช้สิทธิ ลาป่วย ไปแล้ว 4 วัน', { exact: false })).toBeVisible();
