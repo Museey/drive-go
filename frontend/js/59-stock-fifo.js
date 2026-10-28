@@ -76,14 +76,15 @@
  window.finance=function(y){const f=fin0.apply(this,arguments);if(!f)return f;
   const b=book(d=>inYear(d,y));last={y,b};if(!nz(b))return f;
   f.issueExp=b.issue;f.stockLoss=b.loss;f.otherInc=b.gain;
+  /* by what moved, so what an earlier module put in the profit stays (the card fee of 53.js) */
   f.cogs+=b.cogs;f.gp-=b.cogs;f.gpm=f.revenue?f.gp/f.revenue*100:0;
-  f.expBase+=b.issue;f.opex+=b.issue+b.loss;f.np=f.gp+b.gain-f.opex;
+  f.expBase+=b.issue;f.opex+=b.issue+b.loss;f.np+=b.gain-b.issue-b.loss-b.cogs;
   f.npm=f.revenue?f.np/f.revenue*100:0;
   f.roi=f.ownerCap>0?f.np/f.ownerCap*100:(f.equity>0?f.np/f.equity*100:0);f.roa=f.assetsTotal>0?f.np/f.assetsTotal*100:0;
   return f;};
  if(typeof monthlyPnL==='function'){const o=monthlyPnL;
   window.monthlyPnL=function(){const out=o.apply(this,arguments);
-   (out||[]).forEach(m=>{const b=book(d=>String(d||'').slice(0,7)===m.key);if(!nz(b))return;m.cogs+=b.cogs;m.gp=m.rev-m.cogs;m.opex+=b.issue+b.loss;m.np=m.rev-m.cogs-m.opex+b.gain;});
+   (out||[]).forEach(m=>{const b=book(d=>String(d||'').slice(0,7)===m.key);if(!nz(b))return;m.cogs+=b.cogs;m.gp=m.rev-m.cogs;m.opex+=b.issue+b.loss;m.np+=b.gain-b.issue-b.loss-b.cogs;});
    return out;};}
  if(typeof expenseRank==='function'){const o=expenseRank;
   window.expenseRank=function(y){const out=o.apply(this,arguments),b=book(d=>inYear(d,y));if(!nz(b))return out;

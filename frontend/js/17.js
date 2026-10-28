@@ -230,7 +230,7 @@
   $o('pkgPayDueLbl').textContent=credit?'เงินเชื่อทั้งหมด':ok?'✓ ครบแล้ว':due>0?'ยังขาด':'เกินมา';
   $o('pkgPayDue').textContent=money(Math.abs(due));
   const ca=sumOf('card'),fe=fee();
-  $o('pkgPayCard').textContent=ca&&fe>0?`รูดบัตร ${money(ca)} + ค่าธรรมเนียม ${money(fe)} = ${money(ca+fe)} บาท (ค่าธรรมเนียมไม่นับเป็นรายได้)`:'';
+  $o('pkgPayCard').textContent=ca&&fe>0?`รูดบัตร ${money(ca)} + ค่าธรรมเนียม ${money(fe)} = ${money(ca+fe)} บาท (ค่าธรรมเนียมเป็นรายได้อื่น รวม VAT แล้ว)`:'';
   if($o('pkgPayFee'))$o('pkgPayFee').textContent=`ค่าธรรมเนียม ${money(fe)} บาท · ยอดที่ต้องรูดรวม ${money(ca+fe)} บาท`;
   $o('pkgPayTip').textContent=pn.length&&!ok?'พิมพ์ยอดของแต่ละวิธีเอง · กด “ยอดที่เหลือ” เพื่อเติมส่วนที่ยังขาด':'';
   pay.querySelectorAll('[data-tile-amt]').forEach(x=>{const k=x.dataset.tileAmt;if(!order.includes(k))return;const zero=k!=='credit'&&!(sumOf(k)>0);

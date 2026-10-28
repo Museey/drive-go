@@ -203,7 +203,7 @@
       "scenario": "S26-pay-by-credit-card-surcharge.spec.ts",
       "by": "S153-pay-by-card-surcharge-on-receipt.spec.ts",
       "decision": "R2, R8, F3 and answers of 2026-10-25 (task 3.5)",
-      "why": "The card payment has its receipt at once; the receipt shows the 3% surcharge on a line of its own (7,276.00 for the sale + 218.28 = 7,494.28 swiped, in words too) while the sale and its money stay 7,276.00. Every other step, screen and data change is checked against S26's goldens."
+      "why": "The card payment has its receipt at once; the receipt shows the 3% surcharge on a line of its own (7,276.00 for the sale + 218.28 = 7,494.28 swiped, in words too) while the sale and its money stay 7,276.00. Since 2026-10-28 (accountant review 3.2, S255) the payment window's note says the fee is other income with VAT in it: the note is checked by text and masked in the card-surcharge screen. Every other step, screen and data change is checked against S26's goldens."
     },
     {
       "scenario": "S21-pay-two-bills-split-cash-transfer.spec.ts",
@@ -693,6 +693,11 @@
       "scenario": "S254-count-shortage-moved-to-cost-of-sales.spec.ts",
       "decision": "accountant review 4.3, owner follows accountant B (2026-10-28), count approvers",
       "why": "A count's shortage that was goods used or sold earlier without their cost moves from the shortage expense to the cost of goods sold, with a reason."
+    },
+    {
+      "scenario": "S255-card-fee-other-income-with-vat.spec.ts",
+      "decision": "accountant review 3.2, owner follows accountant B (2026-10-28), fee includes VAT, other income",
+      "why": "The card fee charged to the customer is other income (4030) with output VAT in it: tax report, statements, trial balance, monthly table, daily report, payment window note."
     }
   ]
 }

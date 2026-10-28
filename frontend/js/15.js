@@ -823,7 +823,7 @@
   $i('spDueLbl').textContent=credit?'เงินเชื่อทั้งหมด':ok?'✓ ครบแล้ว':part?'คงค้างหลังรับครั้งนี้':due>0?'ยังขาด':'เกินมา';
   $i('spDueAmt').textContent=money(Math.abs(due));
   const ca=sumOf('card'),fe=feeNow();
-  $i('spCard').textContent=ca&&fe>0?`รูดบัตร ${money(ca)} + ค่าธรรมเนียม ${money(fe)} = ${money(ca+fe)} บาท (ค่าธรรมเนียมไม่นับเป็นรายได้)`:'';
+  $i('spCard').textContent=ca&&fe>0?`รูดบัตร ${money(ca)} + ค่าธรรมเนียม ${money(fe)} = ${money(ca+fe)} บาท (ค่าธรรมเนียมเป็นรายได้อื่น รวม VAT แล้ว)`:'';
   if($i('spFee'))$i('spFee').textContent=`ค่าธรรมเนียม ${money(fe)} บาท · ยอดที่ต้องรูดรวม ${money(ca+fe)} บาท`;
   $i('spTip').textContent=pn.length&&!ok?'พิมพ์ยอดของแต่ละวิธีเอง · กด “ยอดที่เหลือ” เพื่อเติมส่วนที่ยังขาด':'';
   P.querySelectorAll('[data-ptile-amt]').forEach(x=>{const k=x.dataset.ptileAmt;if(!PY.order.includes(k))return;const zero=k!=='credit'&&!(sumOf(k)>0);

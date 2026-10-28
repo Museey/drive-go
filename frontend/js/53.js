@@ -170,23 +170,77 @@
   if(n(p.payBills)>1&&t>0&&Math.abs(t-n(p.amt))>0.01){const f=n(p.amt)/t;return ms.map(m=>Object.assign({},m,{amt:r2(n(m.amt)*f),fee:r2(n(m.fee)*f)}));}
   return ms;}
  function daily(day){
-  const sales=[],voids=[],revs=[],pays=[],payVoids=[],refunds=[],by={cash:0,trans:0,card:0,check:0,other:0};let fee=0;
+  const sales=[],voids=[],revs=[],pays=[],payVoids=[],refunds=[],by={cash:0,trans:0,card:0,check:0,other:0};let fee=0,feeVat=0;
   SC.list().forEach(c=>{if(!c||!here(c))return;const L=S.led(c);if(!L)return;
    if(c.cancelled){if(String(c.cancelDate||'')===day&&c.date<day){const t=receiptTotals(L);voids.push({no:c.no,date:c.date,cust:custOf(c.custId),gross:t.gross,reason:c.cancelReason||''});}return;}
    if(c.superseded)return;
    if(c.revDate===day&&c.date<day)revs.push({no:c.no,date:c.date,gross:receiptTotals(L).gross});
    if(c.date===day){const t=receiptTotals(L),cost=costOf(c);sales.push({id:c.id,no:c.no,cust:custOf(c.custId),base:t.base,vat:t.vat,gross:t.gross,cost,profit:t.base-cost,state:S.state(c)});}});
   (DB.receipts||[]).forEach(L=>{if(!L||!L.pkgSale||!here(L))return;const c=S.saleOf(L);(L.payments||[]).forEach(p=>{if(!p)return;
-   if(!p.cancelled&&p.date===day){const ms=ownMethods(p);ms.forEach(m=>{const k=by[m.k]!==undefined?m.k:'other';by[k]+=n(m.amt);if(m.k==='card')fee+=n(m.fee);});
+   if(!p.cancelled&&p.date===day){const ms=ownMethods(p);let pf=0;ms.forEach(m=>{const k=by[m.k]!==undefined?m.k:'other';by[k]+=n(m.amt);if(m.k==='card'){fee+=n(m.fee);pf+=n(m.fee);}});feeVat+=feeVatOf(pf,L);
     pays.push({id:c?c.id:'',pay:p.id,reNo:p.reNo||'',sale:c?c.no:L.no,saleDate:L.date,earlier:L.date<day,cust:custOf(L.custId),method:(p.methods||[]).map(m=>PMT[m.k]||m.k).join(' + ')||PMT[p.method]||'ไม่ระบุวิธี',amt:n(p.amt),wht:n(p.wht&&p.wht.amt),by:String(p.by||'').replace(/^.*· /,'')});}
    else if(p.cancelled&&String(p.cancelDate||'')===day&&p.date<day&&n(p.amt)>0)payVoids.push({reNo:p.reNo||'',sale:c?c.no:L.no,date:p.date,amt:n(p.amt),reason:p.cancelReason||''});});});
   /* DriveGo new system (task 3.5): money paid back to customers by credit notes (57-credit-note.js) on the day it took effect */
   (DB.creditNotes||[]).forEach(x=>{if(!x||!here(x)||!x.money||!(n(x.money.refund)>0)||!(x.apv&&x.apv.status==='approved'))return;
    if(((x.apv&&x.apv.date)||x.date)===day)refunds.push({no:x.no,sale:x.saleNo,amt:n(x.money.refund),method:PMT[x.money.method]||x.money.method||''});});
   const sum=(a,k)=>r2(a.reduce((t,x)=>t+n(x[k]),0));
-  return {day,sales,voids,revs,pays,payVoids,refunds,fee:r2(fee),by:Object.fromEntries(Object.entries(by).map(([k,v])=>[k,r2(v)])),
+  return {day,sales,voids,revs,pays,payVoids,refunds,fee:r2(fee),feeVat:r2(feeVat),by:Object.fromEntries(Object.entries(by).map(([k,v])=>[k,r2(v)])),
    tot:{gross:sum(sales,'gross'),base:sum(sales,'base'),vat:sum(sales,'vat'),cost:sum(sales,'cost'),profit:sum(sales,'profit'),n:sales.length,money:sum(pays,'amt'),wht:sum(pays,'wht'),earlier:r2(pays.filter(x=>x.earlier).reduce((t,x)=>t+x.amt,0)),voidMoney:sum(payVoids,'amt')}};
  }
+ /* ---------- the card fee charged to customers (accountant review 3.2, the owner's decision of 2026-10-28 to follow
+    accountant B and the owner's answers of the same day): money the shop receives for its sale, so income with VAT in it —
+    the fee includes the VAT (the customer swipes what the receipt says), at the rate of the sale (7/107 at 7%); before VAT
+    it is other income (4030), the VAT is output VAT, all of it cash, on the day it was paid. Which document is its tax
+    invoice waits for the accountant: the tax report adds it to the month's figures, not to the list of tax invoices. ---------- */
+ const feeVatOf=(fee,L)=>{const rate=n(L&&L.vat);return fee>0&&rate>0?r2(fee*rate/(100+rate)):0;};
+ function cardFees(inP){const o={gross:0,base:0,vat:0};
+  (DB.receipts||[]).forEach(L=>{if(!L||!L.pkgSale||L.cancelled)return;
+   (L.payments||[]).forEach(p=>{if(!p||p.cancelled||!inP(p.date))return;
+    const fee=ownMethods(p).filter(m=>m.k==='card').reduce((t,m)=>t+n(m.fee),0);if(!(fee>0))return;
+    const vat=feeVatOf(fee,L);o.gross+=fee;o.vat+=vat;o.base+=r2(fee-vat);});});
+  o.gross=r2(o.gross);o.vat=r2(o.vat);o.base=r2(o.base);return o;}
+ let lastFee=null;   /* the fee of the latest finance() call (a branch's report filters the data only while it runs) */
+ if(typeof finance==='function'){const fin0=finance;window.finance=function(y){const f=fin0.apply(this,arguments);if(!f)return f;
+  const a=cardFees(d=>inYear(d,y)),c=cardFees(d=>+String(d||'').slice(0,4)<=y);lastFee={y,base:a.base};
+  if(!a.gross&&!c.gross)return f;
+  f.cardFee=a.base;f.vatSale+=a.vat;f.np+=a.base;f.npm=f.revenue?f.np/f.revenue*100:0;
+  f.cash+=c.gross;f.assetsTotal+=c.gross;f.equity+=c.gross;
+  f.roi=f.ownerCap>0?f.np/f.ownerCap*100:(f.equity>0?f.np/f.equity*100:0);f.roa=f.assetsTotal>0?f.np/f.assetsTotal*100:0;
+  return f;};}
+ if(typeof monthlyPnL==='function'){const mp0=monthlyPnL;
+  window.monthlyPnL=function(){const out=mp0.apply(this,arguments);
+   (out||[]).forEach(m=>{const a=cardFees(d=>String(d||'').slice(0,7)===m.key);if(a.base)m.np+=a.base;});return out;};}
+ if(typeof trialBalance==='function'){const tb0=trialBalance;
+  window.trialBalance=function(y){const out=tb0.apply(this,arguments),a=cardFees(d=>inYear(d,y)),code=(DB.map&&DB.map.revOther)||'4030';if(!a.base)return out;
+   let r=out.find(z=>z.code===code);if(!r){r={code,name:accName(code),type:((DB.coa||[]).find(z=>z.code===code)||{}).type||'',debit:0,credit:0};out.push(r);}
+   r.credit+=a.base;return out.sort((x,z)=>x.code.localeCompare(z.code));};}
+ /* 08 งบการเงิน: a row of its own before the net profit */
+ if(typeof renderFS==='function'){const fs0=renderFS;
+  window.renderFS=function(){lastFee=null;const out=fs0.apply(this,arguments);
+   try{const v=lastFee&&lastFee.y===acctY()?lastFee.base:0,tb=$i('plTbl')&&$i('plTbl').tBodies[0];
+    const np=v&&tb&&[...tb.rows].find(r=>r.cells[0]&&r.cells[0].textContent.trim()==='กำไร (ขาดทุน) สุทธิก่อนภาษี');
+    if(np){const tr=document.createElement('tr');tr.className='pkg-fs-fee';tr.innerHTML=`<td style="width:62%">${esc(((DB.map&&DB.map.revOther)||'4030')+' บวก รายได้อื่น (ค่าธรรมเนียมบัตรที่เรียกเก็บจากลูกค้า)')}</td><td class="num">${money(v)}</td>`;np.before(tr);}
+    /* the cash flow (the whole business, as the balance sheet's cash): the fees are money received from customers */
+    const cf=$i('cfTbl')&&$i('cfTbl').tBodies[0],g=cardFees(d=>inYear(d,acctY())).gross,
+     inn=g&&cf&&[...cf.rows].find(r=>r.cells[0]&&r.cells[0].textContent.trim()==='เงินสดรับจากลูกค้า');
+    if(inn&&inn.cells[1])inn.cells[1].textContent=money(n(String(inn.cells[1].textContent).replace(/,/g,''))+g);
+   }catch(e){}
+   return out;};}
+ /* 08 รายงานภาษี: the month's taxable sales, output VAT and VAT to pay take the fees in, and a line says how much
+    (renderTaxSaleRows runs inside renderTax, within a branch report's data; once per drawing of the summary) */
+ if(typeof renderTaxSaleRows==='function'){const ts0=renderTaxSaleRows;
+  window.renderTaxSaleRows=function(){const out=ts0.apply(this,arguments);
+   try{const st=$i('taxSumTbl')&&$i('taxSumTbl').tBodies[0];if(!st||st.querySelector('.pkg-tax-fee'))return out;
+    const mo=acctM(),a=cardFees(d=>String(d||'').slice(0,7)===mo);if(!a.vat)return out;
+    const rows=[...st.rows],at=t=>rows.find(r=>r.cells[0]&&r.cells[0].textContent.trim()===t),num=c=>n(String(c.textContent).replace(/,/g,''));
+    const sb=at('ยอดขายที่ต้องเสียภาษี (ก่อน VAT)'),sv=at('ภาษีขาย'),bv=at('ภาษีซื้อ');if(!sb||!sv||!bv)return out;
+    sb.cells[1].textContent=money(num(sb.cells[1])+a.base);sv.cells[1].textContent=money(num(sv.cells[1])+a.vat);
+    const pay=r2(num(sv.cells[1])-num(bv.cells[1])),row=rows[rows.indexOf(bv)+1];
+    if(row){row.cells[0].innerHTML='<b>'+(pay>=0?'ภาษีมูลค่าเพิ่มที่ต้องนำส่ง (ภ.พ.30) ภายในวันที่ 15 ของเดือนถัดไป':'ภาษีซื้อมากกว่าภาษีขาย — ขอคืน / เครดิตยกไป')+'</b>';
+     row.cells[1].innerHTML='<b>'+money(Math.abs(pay))+'</b>';}
+    sv.insertAdjacentHTML('afterend',`<tr class="pkg-tax-fee"><td class="hint">รวมค่าธรรมเนียมบัตรที่เรียกเก็บจากลูกค้า ${money(a.gross)} บาท: ก่อน VAT ${money(a.base)} ภาษีขาย ${money(a.vat)} (เอกสารที่เป็นใบกำกับภาษีรอผู้ทำบัญชี)</td><td></td></tr>`);
+   }catch(e){}
+   return out;};}
  /* sales still waiting for money (not credit): the home card = the 4.1 register with the status "รอชำระ / ชำระบางส่วน" (same N, same ฿) */
  function waiting(){
   const rows=SC.list().filter(c=>c&&!c.cancelled&&!c.superseded&&here(c)&&S.led(c)&&(typeof pkgOwnOk!=='function'||pkgOwnOk('rcptCut',c))).map(c=>({c,st:S.stat(c)})).filter(x=>x.st.k==='wait'||x.st.k==='part');
@@ -212,7 +266,7 @@
    <div class="pkg-sf-sum" id="sdSum1">${fig('ใบตัดสต็อก',T.n+' ใบ')}${fig('ยอดขายรวม',money(T.gross))}${fig('ก่อน VAT',money(T.base))}${cost?fig('ต้นทุนขาย',money(T.cost))+fig('กำไรขั้นต้น',money(T.profit),T.profit<0?'warn':''):''}</div>${sales}${notes}
    <h3>2 · เงินที่รับของวัน <small>นับตามวันที่รับเงิน — รวมเงินของใบตัดสต็อกวันก่อน</small></h3>
    <div class="pkg-sf-sum" id="sdSum2">${fig('รับเงินรวม',money(T.money))}${Object.keys(PMT).map(k=>fig(PMT[k],money(R.by[k]))).join('')}${R.by.other?fig('ไม่ระบุวิธี',money(R.by.other)):''}${fig('ของใบตัดสต็อกวันก่อน',money(T.earlier))}${T.voidMoney?fig('ยกเลิกของวันก่อน','−'+money(T.voidMoney),'warn'):''}${fig('เงินสุทธิของวัน',money(r2(T.money-T.voidMoney)))}</div>
-   <p class="hint">ลูกค้าหัก ณ ที่จ่ายวันนี้ <b>${money(T.wht)}</b> บาท — ไม่ใช่เงินที่รับ จึงแสดงแยก</p>${R.fee>0?`<p class="hint">ค่าธรรมเนียมบัตรที่ลูกค้าจ่ายเพิ่มวันนี้ <b>${money(R.fee)}</b> บาท — ไม่ใช่รายได้ ใช้หักกับค่าธรรมเนียมที่ธนาคารเก็บ (ไม่รวมในยอดบัตรข้างบน)</p>`:''}${pays}${pv}
+   <p class="hint">ลูกค้าหัก ณ ที่จ่ายวันนี้ <b>${money(T.wht)}</b> บาท — ไม่ใช่เงินที่รับ จึงแสดงแยก</p>${R.fee>0?`<p class="hint">ค่าธรรมเนียมบัตรที่ลูกค้าจ่ายเพิ่มวันนี้ <b>${money(R.fee)}</b> บาท — รายได้อื่น รวมภาษีขาย <b>${money(R.feeVat)}</b> บาท (ไม่รวมในยอดบัตรข้างบน)</p>`:''}${pays}${pv}
    ${R.refunds.length?`<div class="pkg-sf-dnote"><b>คืนเงินลูกค้าตามใบลดหนี้</b> — จ่ายออกจากเงินของวันนี้<ul>${R.refunds.map(v=>`<li data-no-translate>${esc(v.no)} · ${esc(v.sale)} · −${money(v.amt)}${v.method?' ('+esc(v.method)+')':''}</li>`).join('')}</ul></div>`:''}`;
  }
  function render(){

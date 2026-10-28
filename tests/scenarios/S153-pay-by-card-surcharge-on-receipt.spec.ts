@@ -6,8 +6,10 @@ import { legacyGolden, legacyStateChange } from '../support/legacy-golden';
 // payment has its receipt at once (MA-RE261000004), and the receipt shows the
 // 3% surcharge as a line of its own — 7,276.00 for the sale + 218.28 card fee
 // = 7,494.28 swiped, the total in words too — while the sale, its VAT and the
-// money counted for the sale stay 7,276.00 (the surcharge is not income). Every
-// other step, screen and data change is S26's.
+// money counted for the sale stay 7,276.00 (the surcharge is not the sale's: since
+// the owner's decision of 2026-10-28, accountant review 3.2, it is other income with
+// VAT in it, S255, and the payment window says so where S26's said it was not income).
+// Every other step, screen and data change is S26's.
 const S26 = 'S26-pay-by-credit-card-surcharge.spec.ts';
 
 test('S153 ระบบใหม่: รับชำระด้วยบัตรเครดิตชาร์จเพิ่ม 3% ได้ใบเสร็จทันที ใบเสร็จแสดงค่าธรรมเนียมบัตรแยกบรรทัด ยอดรวมเท่าที่รูด', async ({ app, page }, testInfo) => {
@@ -30,7 +32,9 @@ test('S153 ระบบใหม่: รับชำระด้วยบัต�
   await fee.waitFor();
   await fee.scrollIntoViewIfNeeded();
   await golden.step('บัตรเครดิต KTC 7,276.00 ชาร์จเพิ่ม 3%');
-  await golden.screen('card-surcharge');
+  const note = page.getByText('รูดบัตร 7,276.00 + ค่าธรรมเนียม 218.28 = 7,494.28 บาท (ค่าธรรมเนียมเป็นรายได้อื่น รวม VAT แล้ว)', { exact: true }).filter({ visible: true });
+  await expect(note).toBeVisible();
+  await golden.screen('card-surcharge', { mask: [note] });
 
   const before = await app.state();
   await page.getByRole('button', { name: 'บันทึกรับชำระ' }).filter({ visible: true }).click();

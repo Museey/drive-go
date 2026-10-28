@@ -9,7 +9,7 @@ import { test, expect } from '../support/test';
 //   "ชาร์จเพิ่ม (%)" on the card, the fee and what is swiped, in the check card
 //   and on the receipt; with "แยกใบเสร็จตามบิล" each receipt holds its own bill's
 //   share of the methods (bills oldest first, methods in the order entered);
-// · the daily report: the card surcharges of the day (not income) and money paid
+// · the daily report: the card surcharges of the day (other income with output VAT in it since 2026-10-28) and money paid
 //   back to customers by credit notes.
 const BBL = 'ธนาคารกรุงเทพ 789-0-12345-6 (หจก.เอกหม้อน้ำ)';
 const fig = (page: Page, label: string) => page.locator('#sdSum2 > div').filter({ has: page.getByText(label, { exact: true }) });
@@ -87,13 +87,13 @@ test('S156 ระบบใหม่: ขายแล้วชำระทัน�
   await expect(cn.getByRole('heading', { name: 'ใบลดหนี้ MA-CN261000001' })).toBeVisible();
   await cn.getByRole('button', { name: 'ปิด' }).click();
 
-  // The daily report: money received counted once by method, the day's card surcharges (not income), the money paid back.
+  // The daily report: money received counted once by method, the day's card surcharges (other income with output VAT in it, accountant review 3.2), the money paid back.
   await page.getByRole('button', { name: /^08 บัญชี/ }).click();
   await page.getByRole('button', { name: 'รายงานประจำวัน' }).click();
   await expect(fig(page, 'รับเงินรวม')).toContainText('15,709.70');   // 1,476.60 + 10,368.30 + the fixture's 3,864.80
   await expect(fig(page, 'เงินสด')).toContainText('10,341.40');      // 1,476.60 + 5,000.00 + 3,864.80
   await expect(fig(page, 'บัตร')).toContainText('5,368.30');
-  await expect(page.getByText('ค่าธรรมเนียมบัตรที่ลูกค้าจ่ายเพิ่มวันนี้ 161.05 บาท — ไม่ใช่รายได้ ใช้หักกับค่าธรรมเนียมที่ธนาคารเก็บ (ไม่รวมในยอดบัตรข้างบน)')).toBeVisible();
+  await expect(page.getByText('ค่าธรรมเนียมบัตรที่ลูกค้าจ่ายเพิ่มวันนี้ 161.05 บาท — รายได้อื่น รวมภาษีขาย 10.54 บาท (ไม่รวมในยอดบัตรข้างบน)')).toBeVisible();
   await expect(page.getByText('คืนเงินลูกค้าตามใบลดหนี้', { exact: true })).toBeVisible();
   await expect(page.getByText('MA-CN261000001 · MA-SA261000010 · −1,476.60 (เงินสด)', { exact: true })).toBeVisible();
 });
