@@ -157,5 +157,34 @@
  function print(no){const I=itemsOf(no);if(!I)return;
   logAudit(I.kind,I.doc,'print','ใบสำคัญจ่าย '+no);save();printDocs(sheet(no,I));}
 
+ /* ---------- a goods receipt saved as paid (accountant review 2.7, the owner's decision of 2026-10-28) ----------
+    "สถานะการชำระ: ชำระแล้ว" in the receipt's form pays it outside "ชำระเงินเจ้าหนี้": that payment gets a voucher too —
+    the whole receipt, cash or transfer at once, dated on the receipt (today when it is marked paid later). Only when the
+    save is what made it paid: receipts that were paid before (older data) stay as they were. The receipt's window
+    names the voucher and prints it. */
+ if(typeof saveGR==='function'){const sg0=saveGR;
+  saveGR=window.saveGR=async function(){
+   const id=typeof G!=='undefined'&&G?G.id:null,was=id?(DB.purchases||[]).find(x=>x.id===id):null,wasPaid=!!(was&&was.paid);
+   const r=await sg0.apply(this,arguments);
+   const g=id?(DB.purchases||[]).find(x=>x.id===id):null;
+   if(g&&g.no&&g.paid&&!wasPaid&&!g.cancelled&&!active(g).length){
+    const date=was?iso():(g.date||iso()),p={id:uid(),amt:grTotals(g).total,date,method:'cash',by:meName(),note:'',atOnce:true,pvNo:newNo()};
+    g.payments=(g.payments||[]).concat(p);g.payDate=date;g.payMethod='cash';
+    if(typeof G!=='undefined'&&G&&G.id===id)Object.assign(G,{payments:JSON.parse(JSON.stringify(g.payments)),payDate:date,payMethod:'cash'});
+    logAudit('gr',g,'pay','จ่ายเงิน '+money(p.amt)+' บาท (เงินสด / โอนทันที) · ใบสำคัญจ่าย '+p.pvNo);save();grPv();
+    try{renderGRList();}catch(e){}
+    toast('บันทึกจ่ายเงิน '+money(p.amt)+' บาท · ใบสำคัญจ่าย '+p.pvNo);
+   }
+   return r;};}
+ /* beside the window's own "พิมพ์" (its buttons are in the header) */
+ const grPrint=$i('mGREdit')&&$i('mGREdit').querySelector('header button[onclick="printGR()"]');let grBtn=null;
+ if(grPrint&&!$i('grPvPrint')){grBtn=document.createElement('button');grBtn.type='button';grBtn.id='grPvPrint';grBtn.className='btn gh';grBtn.textContent='พิมพ์ใบสำคัญจ่าย';grBtn.style.display='none';
+  grPrint.after(grBtn);grBtn.addEventListener('click',()=>{const p=grPvOf();if(p)print(p.pvNo);});}
+ /* the voucher of the receipt open in the window (the latest payment that has one) */
+ function grPvOf(){const g=typeof G!=='undefined'&&G?(DB.purchases||[]).find(x=>x.id===G.id):null;return g?active(g).filter(p=>p.pvNo).slice(-1)[0]||null:null;}
+ function grPv(){const p=grPvOf();if(grBtn)grBtn.style.display=p?'':'none';const no=$i('grNo');
+  if(p&&no&&no.textContent.indexOf(p.pvNo)<0)no.textContent+=' · ใบสำคัญจ่าย '+p.pvNo;}
+ if(typeof fillGRForm==='function'){const fg0=fillGRForm;fillGRForm=window.fillGRForm=function(){const r=fg0.apply(this,arguments);try{grPv();}catch(e){}return r;};}
+
  window.PKG_PV={newNo,whtButton,settleExtra,settleFields,confirmLine,resultLine,print,itemsOf,formFor};
 })();

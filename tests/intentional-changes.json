@@ -683,6 +683,11 @@
       "scenario": "S252-credit-note-in-its-own-month-profit-and-loss.spec.ts",
       "decision": "accountant review 1.10, owner follows accountant B (2026-10-28)",
       "why": "A credit note lowers sales and the cost of goods brought back in its own month in the profit and loss; the sale's month stays as sold; the trial balance's revenue goes down in the credit note's year."
+    },
+    {
+      "scenario": "S253-goods-paid-on-receipt-get-payment-voucher.spec.ts",
+      "decision": "accountant review 2.7, both accountants, owner's decision (2026-10-28)",
+      "why": "A goods receipt saved as paid (not through the vendor payment page) gets a payment voucher MA-PV, dated on the receipt."
     }
   ]
 }
