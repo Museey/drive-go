@@ -697,7 +697,7 @@
     {
       "scenario": "S255-card-fee-other-income-with-vat.spec.ts",
       "decision": "accountant review 3.2, owner follows accountant B (2026-10-28), fee includes VAT, other income",
-      "why": "The card fee charged to the customer is other income (4030) with output VAT in it: tax report, statements, trial balance, monthly table, daily report, payment window note."
+      "why": "The card fee charged to the customer is other income (4030) with output VAT in it: tax report, home tax card, statements, trial balance, monthly table, daily report, payment window note."
     }
   ]
 }

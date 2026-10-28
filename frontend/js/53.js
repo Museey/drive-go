@@ -241,6 +241,20 @@
     sv.insertAdjacentHTML('afterend',`<tr class="pkg-tax-fee"><td class="hint">รวมค่าธรรมเนียมบัตรที่เรียกเก็บจากลูกค้า ${money(a.gross)} บาท: ก่อน VAT ${money(a.base)} ภาษีขาย ${money(a.vat)} (เอกสารที่เป็นใบกำกับภาษีรอผู้ทำบัญชี)</td><td></td></tr>`);
    }catch(e){}
    return out;};}
+ /* 00 หน้าแรก "สรุปภาษีประจำงวด" (a VAT-registered shop): the month's fees the same way, within the home's branches */
+ if(typeof renderHome==='function'){const hm0=window.renderHome;
+  window.renderHome=function(){const out=hm0.apply(this,arguments);
+   try{const st=$i('taxTbl')&&$i('taxTbl').tBodies[0];if(!st||!isVatReg())return out;
+    const mo=($i('finMonth')&&$i('finMonth').value)||iso().slice(0,7),R=window.PKG_BRANCH_REPORT,f=()=>cardFees(d=>String(d||'').slice(0,7)===mo);
+    const a=R?R.run('home',f):f();if(!a.base&&!a.vat)return out;
+    const rows=[...st.rows],at=t=>rows.find(r=>r.cells[0]&&r.cells[0].textContent.trim()===t),num=c=>n(String(c.textContent).replace(/[^0-9.\-]/g,''));
+    const sb=at('ยอดขาย / รายได้ก่อน VAT'),sv=at('ภาษีขาย (VAT จากใบกำกับภาษีที่ออก)'),bv=at('ภาษีซื้อ (VAT จากใบกำกับภาษีผู้ขาย)'),
+     pay=at('ภาษีมูลค่าเพิ่มที่ต้องนำส่ง (ภ.พ.30)')||at('เครดิตภาษียกไปงวดถัดไป');if(!sb||!sv||!bv||!pay)return out;
+    sb.cells[1].textContent=money(r2(num(sb.cells[1])+a.base));sv.cells[1].textContent=money(r2(num(sv.cells[1])+a.vat));
+    const d=r2(num(sv.cells[1])-num(bv.cells[1]));
+    pay.cells[0].innerHTML='<b>'+(d>=0?'ภาษีมูลค่าเพิ่มที่ต้องนำส่ง (ภ.พ.30)':'เครดิตภาษียกไปงวดถัดไป')+'</b>';pay.cells[1].innerHTML='<b>'+money(Math.abs(d))+'</b>';
+   }catch(e){}
+   return out;};}
  /* sales still waiting for money (not credit): the home card = the 4.1 register with the status "รอชำระ / ชำระบางส่วน" (same N, same ฿) */
  function waiting(){
   const rows=SC.list().filter(c=>c&&!c.cancelled&&!c.superseded&&here(c)&&S.led(c)&&(typeof pkgOwnOk!=='function'||pkgOwnOk('rcptCut',c))).map(c=>({c,st:S.stat(c)})).filter(x=>x.st.k==='wait'||x.st.k==='part');

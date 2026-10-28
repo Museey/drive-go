@@ -17,6 +17,12 @@ const cellOf = async (page: Page, table: string, label: string | RegExp) => {
   return (await row.count()) ? num(await row.getByRole('cell').last().textContent()) : null;
 };
 async function figures(page: Page) {
+  await page.getByRole('button', { name: '00 Mr.DriveGo' }).click();
+  const home = {
+    base: await cellOf(page, '#taxTbl', 'ยอดขาย / รายได้ก่อน VAT'),
+    vat: await cellOf(page, '#taxTbl', 'ภาษีขาย (VAT จากใบกำกับภาษีที่ออก)'),
+    pay: await cellOf(page, '#taxTbl', 'ภาษีมูลค่าเพิ่มที่ต้องนำส่ง (ภ.พ.30)'),
+  };
   await go(page, /^08 บัญชี/, '└ รายงานภาษี');
   await expect(page.locator('#taxSumTbl').getByRole('row').first()).toBeVisible();
   const tax = {
@@ -44,7 +50,7 @@ async function figures(page: Page) {
   const tb = { other: await credit('4030'), vatOut: await credit('2030') };
   await go(page, /^08 บัญชี/, '└ สุขภาพการเงิน');
   const oct = (await page.locator('#pnlMonthTbl').getByRole('row').filter({ hasText: 'ต.ค. 69' }).getByRole('cell').allTextContents()).map(num);
-  return { tax, fs, tb, oct };
+  return { home, tax, fs, tb, oct };
 }
 
 test('S255 ระบบใหม่: ค่าธรรมเนียมบัตรที่เรียกเก็บจากลูกค้าเป็นรายได้อื่นที่มี VAT รวมอยู่ รายงานภาษีนับภาษีขาย งบกำไรขาดทุนมีบรรทัดรายได้อื่น งบทดลองลง 4030 และ 2030', async ({ app, page }) => {
@@ -82,6 +88,10 @@ test('S255 ระบบใหม่: ค่าธรรมเนียมบั�
   expect(after.tax.vat).toBeCloseTo(before.tax.vat! + 14.28, 2);
   expect(after.tax.buy).toBe(before.tax.buy);
   expect(after.tax.pay).toBeCloseTo(before.tax.pay! + 14.28, 2);
+  // the home page's "สรุปภาษีประจำงวด" the same way
+  expect(after.home.base).toBeCloseTo(before.home.base! + 204, 2);
+  expect(after.home.vat).toBeCloseTo(before.home.vat! + 14.28, 2);
+  expect(after.home.pay).toBeCloseTo(before.home.pay! + 14.28, 2);
   await go(page, /^08 บัญชี/, '└ รายงานภาษี');
   await expect(page.locator('#taxSumTbl').getByText('รวมค่าธรรมเนียมบัตรที่เรียกเก็บจากลูกค้า 218.28 บาท: ก่อน VAT 204.00 ภาษีขาย 14.28 (เอกสารที่เป็นใบกำกับภาษีรอผู้ทำบัญชี)', { exact: true })).toBeVisible();
 
