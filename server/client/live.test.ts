@@ -66,3 +66,31 @@ test('อ่านข้อมูลใหม่ทั้งก้อนแล�
   assert.equal(live.api.waiting, false);
   live.stop();
 });
+
+test('ออกจากระบบแล้ว การเปลี่ยนแปลงที่ได้ยินก่อนหยุดฟังไม่ทำให้ขึ้น "โหลดข้อมูลใหม่" ที่หน้าเข้าระบบ', async () => {
+  const m: LiveMain = server({ stock: [{ id: 'a', code: 'A' }] }, 1);
+  g.DB = { stock: [{ id: 'a', code: 'A' }] };
+  let queue: Promise<unknown> = Promise.resolve(), asked = 0;
+  const reloads: string[] = [];
+  let release!: () => void;
+  const gate = new Promise<void>(r => { release = r; });
+  const enqueue = <T>(job: () => Promise<T>) => { const run = queue.then(job); queue = run.catch(() => {}); return run; };
+  const live = createLive({
+    mains: new Map([[KEY, m]]), enqueue, problems: [],
+    // the rows are asked for while the sign-out ends the session: the server answers 401
+    send: async () => { asked++; await gate; return new Response('{}', { status: 401 }); },
+    read: async () => ({ ...m }),
+    mustReload: async (text: string) => { reloads.push(text); return new Promise<never>(() => {}); },
+  });
+  live.start(1);
+  const change = (id: number) => Source.last.dispatchEvent(Object.assign(new Event('change'), { data: JSON.stringify({ id, key: KEY, rows: [['DB.stock', 'a', 5]], removed: [], ordered: [], by: 'x', at: '' }) }));
+  change(2);                                   /* being read when the sign-out comes */
+  await new Promise(r => setTimeout(r, 0));
+  assert.equal(asked, 1);
+  change(3);                                   /* heard, still in the queue */
+  live.stop();
+  release();
+  await queue;
+  assert.equal(asked, 1, 'nothing more is read after the sign-out');
+  assert.deepEqual(reloads, []);
+});

@@ -395,8 +395,9 @@ const storage = {
     // saved; a sign-out would drop that copy, so they check here too.
     if ((window as unknown as { __drivegoTest?: boolean }).__drivegoTest)
       for (const key of (await storage.verify()).wrong) problems.push(`not on the server at sign-out: ${key}`);
-    await send('/api/auth/logout', { method: 'POST' }, false);
+    // Stop listening first: the stream would otherwise hear its own session end and ask to reload on the sign-in page.
     live.stop();
+    await send('/api/auth/logout', { method: 'POST' }, false);
     signedIn = false;
     mains.clear();
   },

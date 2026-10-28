@@ -89,7 +89,8 @@ export function createLive(d: LiveDeps) {
   const forApp = (ctx: string) => (r: Row) => { const v = JSON.parse(r.data); return ctx !== MAIN && r.unit === 'DB.stock' ? stockToBranch(v, ctx) : v; };
 
   async function heard(e: LiveEntry): Promise<void> {
-    if (own.has(e.id)) return;
+    // Heard before a sign-out stopped listening and run after it: nothing to put in any more.
+    if (!started || own.has(e.id)) return;
     const m = d.mains.get(e.key);
     if (!m || m.forbidden || !m.last || (m.cursor !== undefined && e.id <= m.cursor)) return;
     if (e.whole) return d.mustReload(LIVE_MESSAGES.whole(e.whole), `whole data of ${e.key} replaced elsewhere (${e.whole})`);
@@ -112,7 +113,7 @@ export function createLive(d: LiveDeps) {
       const r = await d.send(`/api/storage/${encodeURIComponent(e.key)}/rows`, {
         method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ rows: want, ordered }),
       }, false);
-      if (r.status === 401) return d.mustReload(SIGNED_OUT, `signed out while reading rows of ${e.key}`);
+      if (r.status === 401) return started ? d.mustReload(SIGNED_OUT, `signed out while reading rows of ${e.key}`) : undefined;
       if (!r.ok) { d.problems.push(`rows of ${e.key}: ${r.status}`); return reread(e.key); }
       const got = await r.json() as { rows: (Row & { version: number })[]; gone: [string, string][]; order: Record<string, string[]> };
       for (const row of got.rows) if (known(m, e.key, vk(row.unit, row.key)) < row.version) { p.rows.set(vk(row.unit, row.key), row); changed.push(vk(row.unit, row.key)); }

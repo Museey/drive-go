@@ -608,7 +608,7 @@
       return ctx !== MAIN && r.unit === "DB.stock" ? stockToBranch(v, ctx) : v;
     };
     async function heard(e) {
-      if (own.has(e.id)) return;
+      if (!started || own.has(e.id)) return;
       const m = d.mains.get(e.key);
       if (!m || m.forbidden || !m.last || m.cursor !== void 0 && e.id <= m.cursor) return;
       if (e.whole) return d.mustReload(LIVE_MESSAGES.whole(e.whole), `whole data of ${e.key} replaced elsewhere (${e.whole})`);
@@ -632,7 +632,7 @@
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ rows: want, ordered })
         }, false);
-        if (r.status === 401) return d.mustReload(SIGNED_OUT, `signed out while reading rows of ${e.key}`);
+        if (r.status === 401) return started ? d.mustReload(SIGNED_OUT, `signed out while reading rows of ${e.key}`) : void 0;
         if (!r.ok) {
           d.problems.push(`rows of ${e.key}: ${r.status}`);
           return reread(e.key);
@@ -1190,8 +1190,8 @@
       await queue;
       if (window.__drivegoTest)
         for (const key of (await storage.verify()).wrong) problems.push(`not on the server at sign-out: ${key}`);
-      await send("/api/auth/logout", { method: "POST" }, false);
       live.stop();
+      await send("/api/auth/logout", { method: "POST" }, false);
       signedIn = false;
       mains.clear();
     },
