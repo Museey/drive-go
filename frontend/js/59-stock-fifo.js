@@ -51,9 +51,23 @@
   F().allocs.forEach(a=>{if(!a||!(C.has(a.refNo)||I.has(a.refNo))||!pred(a.date))return;const v=rem(a)*n(a.cost);
    if(C.has(a.refNo))b.loss+=v;else{const k=I.get(a.refNo);b.issue+=v;b.cats[k]=(b.cats[k]||0)+v;}});
   F().lots.forEach(l=>{if(l&&l.src==='count'&&C.has(l.refNo)&&pred(l.date))b.gain+=n(l.qty)*n(l.cost);});
-  b.loss=r2(b.loss);b.gain=r2(b.gain);b.issue=r2(b.issue);Object.keys(b.cats).forEach(k=>{b.cats[k]=r2(b.cats[k]);});
+  /* a shortage moved to the cost of goods sold (4.3, below): out of the expense, into the cost of sales, same date */
+  b.cogs=0;(DB.stockCounts||[]).forEach(d=>{if(!d||!C.has(d.no)||!(d.toCogs||[]).length)return;
+   const m=movedOf(d,pred);b.loss-=m;b.cogs+=m;});
+  b.loss=r2(b.loss);b.gain=r2(b.gain);b.issue=r2(b.issue);b.cogs=r2(b.cogs);Object.keys(b.cats).forEach(k=>{b.cats[k]=r2(b.cats[k]);});
   return b;}
- const nz=b=>!!(b.loss||b.gain||b.issue);
+ const nz=b=>!!(b.loss||b.gain||b.issue||b.cogs);
+ /* ---------- a shortage that was goods sold earlier without their cost (accountant review 4.3, the owner's decision of
+    2026-10-28 to follow accountant B): whoever may approve stock counts moves it, item by item and with a reason, from
+    the expense "สินค้าขาดจากการตรวจนับ" to the cost of goods sold; the stock does not change.
+    d.toCogs = [{stockId, code, qty, reason, date, by, byName}]; the cost moved is the item's average in the count's
+    allocations × the quantity. ---------- */
+ const movedQty=(d,id)=>(d&&d.toCogs||[]).filter(x=>x.stockId===id).reduce((t,x)=>t+n(x.qty),0);
+ function movedOf(d,pred){let v=0;
+  (d.toCogs||[]).forEach(x=>{const al=F().allocs.filter(a=>a&&a.refNo===d.no&&a.stockId===x.stockId&&rem(a)>EPS);
+   const q=al.reduce((t,a)=>t+rem(a),0);if(q<=EPS||(pred&&!pred(al[0].date)))return;
+   v+=n(x.qty)*al.reduce((t,a)=>t+rem(a)*n(a.cost),0)/q;});
+  return r2(v);}
  const docBook=no=>{let out=0,inn=0;F().allocs.forEach(a=>{if(a&&a.refNo===no)out+=rem(a)*n(a.cost);});
   F().lots.forEach(l=>{if(l&&l.refNo===no&&l.src==='count')inn+=n(l.qty)*n(l.cost);});return{out:r2(out),in:r2(inn)};};
 
@@ -62,13 +76,14 @@
  window.finance=function(y){const f=fin0.apply(this,arguments);if(!f)return f;
   const b=book(d=>inYear(d,y));last={y,b};if(!nz(b))return f;
   f.issueExp=b.issue;f.stockLoss=b.loss;f.otherInc=b.gain;
+  f.cogs+=b.cogs;f.gp-=b.cogs;f.gpm=f.revenue?f.gp/f.revenue*100:0;
   f.expBase+=b.issue;f.opex+=b.issue+b.loss;f.np=f.gp+b.gain-f.opex;
   f.npm=f.revenue?f.np/f.revenue*100:0;
   f.roi=f.ownerCap>0?f.np/f.ownerCap*100:(f.equity>0?f.np/f.equity*100:0);f.roa=f.assetsTotal>0?f.np/f.assetsTotal*100:0;
   return f;};
  if(typeof monthlyPnL==='function'){const o=monthlyPnL;
   window.monthlyPnL=function(){const out=o.apply(this,arguments);
-   (out||[]).forEach(m=>{const b=book(d=>String(d||'').slice(0,7)===m.key);if(!nz(b))return;m.opex+=b.issue+b.loss;m.np=m.rev-m.cogs-m.opex+b.gain;});
+   (out||[]).forEach(m=>{const b=book(d=>String(d||'').slice(0,7)===m.key);if(!nz(b))return;m.cogs+=b.cogs;m.gp=m.rev-m.cogs;m.opex+=b.issue+b.loss;m.np=m.rev-m.cogs-m.opex+b.gain;});
    return out;};}
  if(typeof expenseRank==='function'){const o=expenseRank;
   window.expenseRank=function(y){const out=o.apply(this,arguments),b=book(d=>inYear(d,y));if(!nz(b))return out;
@@ -101,7 +116,7 @@
   (d.items||[]).forEach(it=>{const s=n(it.sysQty)-n(it.countedQty);if(s<=EPS)return;
    const sold=live(d).filter(x=>x.stockId===it.stockId).reduce((t,x)=>t+n(x.qty),0);
    const back=F().allocs.filter(a=>a&&a.refNo===d.no&&a.stockId===it.stockId).reduce((t,a)=>t+rem(a),0);
-   const q=Math.min(s-sold,back);if(q>EPS)out.push({stockId:it.stockId,code:it.code,name:it.name,qty:q});});
+   const q=Math.min(s-sold,back)-movedQty(d,it.stockId);if(q>EPS)out.push({stockId:it.stockId,code:it.code,name:it.name,qty:q});});
   return out;}
  /* task 3.9: whoever may not see costs gets none from the server — the amounts below are left out for them */
  const costOk=()=>!window.PKG_RIGHTS||PKG_RIGHTS.costOk();
@@ -110,13 +125,36 @@
   if(!box){box=document.createElement('div');box.id='pkgScBook';box.className='hint';box.style.margin='8px 0 0';wrap.after(box);}
   const d=SC&&SC.id?(DB.stockCounts||[]).find(x=>x.id===SC.id):null;
   if(!d||!d.applied||d.cancelled){box.style.display='none';box.innerHTML='';return;}
-  const k=docBook(d.no),L=shortLeft(d),sold=live(d),nos=[...new Set(sold.map(x=>x.no))];
+  const k=docBook(d.no),L=shortLeft(d),sold=live(d),nos=[...new Set(sold.map(x=>x.no))],mv=d.toCogs||[],mc=movedOf(d);
   box.style.display='';
-  box.innerHTML=(costOk()?'ลงบัญชีตามทุน FIFO: ค่าใช้จ่ายสินค้าขาด <b>'+money(k.out)+'</b> บาท · รายได้อื่น (สินค้าเกิน) <b>'+money(k.in)+'</b> บาท':'')
+  box.innerHTML=(costOk()?'ลงบัญชีตามทุน FIFO: ค่าใช้จ่ายสินค้าขาด <b>'+money(r2(k.out-mc))+'</b> บาท'+(mv.length?' · ต้นทุนขาย <b>'+money(mc)+'</b> บาท':'')+' · รายได้อื่น (สินค้าเกิน) <b>'+money(k.in)+'</b> บาท':'')
    +(nos.length?'<div>ขายของที่ขาดให้ผู้รับผิดชอบแล้ว: '+nos.map(no=>esc(no)+' ('+sold.filter(x=>x.no===no).map(x=>{const s=stockOf(x.stockId);return esc(s?s.code:'')+' × '+qf(x.qty);}).join(', ')+')').join(' · ')+'</div>':'')
-   +(L.length?'<div style="margin-top:6px"><button type="button" class="btn gh sm" id="pkgScSell">เปิดใบขายให้ผู้รับผิดชอบ</button></div>':'');
+   +(mv.length?'<div>ปรับเป็นต้นทุนขายแล้ว: '+mv.map(x=>esc(x.code)+' × '+qf(x.qty)+' ('+esc(x.reason)+')').join(' · ')+'</div>':'')
+   +(L.length?'<div style="margin-top:6px"><button type="button" class="btn gh sm" id="pkgScSell">เปิดใบขายให้ผู้รับผิดชอบ</button>'
+     +(mayMove()?' <button type="button" class="btn gh sm" id="pkgScCogs">ปรับของขาดเป็นต้นทุนขาย</button>':'')+'</div>':'');
   const b=$i('pkgScSell');if(b)b.onclick=()=>sellShort(d.id);
+  const c=$i('pkgScCogs');if(c)c.onclick=()=>moveToCogs(d.id);
  }
+ const mayMove=()=>!curEmp()||can('apv.count');
+ function moveToCogs(id){
+  const d=(DB.stockCounts||[]).find(x=>x.id===id),L=shortLeft(d);if(!L.length)return toast('ไม่มีของขาดที่ยังเป็นค่าใช้จ่าย');
+  if(!mayMove())return toast('บัญชีนี้ไม่ได้รับสิทธิอนุมัติเอกสารประเภทนี้');
+  const msg='<p>ใช้เมื่อของที่ขาดคือของที่ขายหรือใช้ซ่อมไปแล้วแต่ไม่ได้ลงต้นทุน — ย้ายจากค่าใช้จ่ายสินค้าขาดไปเป็นต้นทุนขาย สต๊อกไม่เปลี่ยน</p>'
+   +'<table class="tbl"><thead><tr><th>รหัส</th><th>สินค้า</th><th class="num">ขาด (ยังเป็นค่าใช้จ่าย)</th><th class="num">จำนวนที่ปรับ</th></tr></thead><tbody>'
+   +L.map(x=>`<tr><td>${esc(x.code)}</td><td>${esc(x.name)}</td><td class="num">${qf(x.qty)}</td><td class="num"><input type="number" min="0" max="${x.qty}" step="any" value="0" data-cogs="${esc(x.stockId)}" aria-label="จำนวนที่ปรับ ${esc(x.code)}" style="width:90px"></td></tr>`).join('')
+   +'</tbody></table><label class="f" style="margin-top:8px"><span>เหตุผล (ต้องกรอก)</span><input type="text" id="pkgScCogsWhy"></label>';
+  askConfirm({title:'ปรับของขาดเป็นต้นทุนขาย · ใบตรวจนับ '+d.no,msg,yes:'บันทึก',no:'ยกเลิก',onYes:()=>{
+   const why=String(($i('pkgScCogsWhy')||{}).value||'').trim(),got=[];
+   const rows=[...document.querySelectorAll('[data-cogs]')].map(i=>({x:L.find(z=>z.stockId===i.dataset.cogs),q:n(i.value)})).filter(r=>r.x&&r.q>0);
+   if(!rows.length)return toast('กรอกจำนวนที่ปรับอย่างน้อย 1 รายการ');
+   if(!why)return toast('กรอกเหตุผลก่อนบันทึก');
+   const over=rows.find(r=>r.q>r.x.qty+EPS);if(over)return toast(over.x.code+' ปรับได้ไม่เกิน '+qf(over.x.qty));
+   const at={date:iso(),by:DB.curEmp||'',byName:meName()};
+   d.toCogs=(d.toCogs||[]).concat(rows.map(r=>{got.push(r.x.code+' × '+qf(r.q));return Object.assign({stockId:r.x.stockId,code:r.x.code,qty:r.q,reason:why},at);}));
+   logAudit('count',d,'cogs','ปรับของขาดเป็นต้นทุนขาย '+got.join(', ')+' — '+why);save();countBox();
+   toast('ปรับของขาดเป็นต้นทุนขายแล้ว · '+got.join(', '));}});
+ }
+ if(typeof AUD_ACT==='object')AUD_ACT.cogs='ปรับของขาดเป็นต้นทุนขาย';
  if(typeof fillCountForm==='function'){const o=fillCountForm;window.fillCountForm=function(){const out=o.apply(this,arguments);try{countBox();}catch(e){}return out;};}
  function sellShort(id){
   const d=(DB.stockCounts||[]).find(x=>x.id===id),L=shortLeft(d);if(!L.length)return toast('ไม่มีของขาดที่ยังไม่ได้เปิดใบขาย');

@@ -157,6 +157,24 @@ describe('ขายเกินของที่มี (งาน 3.6)', () => 
   });
 });
 
+describe('ของขาดเป็นต้นทุนขาย (ผู้ทำบัญชี 4.3)', () => {
+  test('ปรับของขาดจากการตรวจนับเป็นต้นทุนขายได้เฉพาะเจ้าของหรือผู้มีสิทธิ์อนุมัติใบตรวจนับ และเพิ่มได้อย่างเดียว ลบหรือแก้รายการเดิมไม่ได้', async () => {
+    const { check, put, grant } = await shop();
+    const count = { id: 'sc1', no: 'MA-SC261000099', applied: true, items: [{ stockId: 's1', sysQty: 5, countedQty: 3 }] };
+    await put('DB.stockCounts', 'sc1', count);
+    const one = { stockId: 's1', code: 'BR-001', qty: 1, reason: 'ใช้ซ่อมไปแล้วแต่ไม่ได้ลงในบิล', date: '2026-10-13', by: '', byName: 'เจ้าของ' };
+    const moved = save(['DB.stockCounts', 'sc1', { ...count, toCogs: [one] }]);
+    assert.equal(await check('EMP008', moved), 'DB.stockCounts|sc1: toCogs');
+    assert.equal(await check('owner', moved), null);
+    await grant('EMP008', 'apv.count');
+    assert.equal(await check('EMP008', moved), null);
+    await put('DB.stockCounts', 'sc1', { ...count, toCogs: [one] });
+    assert.equal(await check('owner', save(['DB.stockCounts', 'sc1', { ...count, toCogs: [] }])), 'DB.stockCounts|sc1: toCogs');
+    assert.equal(await check('owner', save(['DB.stockCounts', 'sc1', { ...count, toCogs: [{ ...one, qty: 2 }] }])), 'DB.stockCounts|sc1: toCogs');
+    assert.equal(await check('EMP008', save(['DB.stockCounts', 'sc1', { ...count, toCogs: [one, { ...one, qty: 1 }] }])), null);
+  });
+});
+
 describe('เงินเดือน (งาน 3.7–3.9)', () => {
   const period = (id, month, more = {}) => ({ id, month, label: 'งวด', date: '2026-10-31', lines: [], totals: {}, ...more });
   test('บันทึกเงินเดือนต้องมีสิทธิ์บันทึกค่าใช้จ่ายและสิทธิ์ดูเงินเดือน เดือนหนึ่งมีงวดที่ใช้อยู่งวดเดียว', async () => {

@@ -15,6 +15,8 @@
 //                         the owner or "เลือกไม่คิด VAT" (doc.noVat), or taken over from the document it came from (the
 //                         reason is the screens' to ask: the sample data and older data have documents without one)
 //   selling short         a sale, a revision or a customer claim that takes stock below zero: the owner or an approval right (59-stock-fifo.js)
+//   shortage to cost      a stock count's shortage moved to the cost of goods sold (toCogs, accountant review 4.3): the owner
+//                         or "อนุมัติใบตรวจนับ" (apv.count), and only added to
 //   payroll               DB.payroll: the owner, or "บันทึกค่าใช้จ่าย" with the pay right (60-payroll.js); one period per month
 //                         that is not cancelled
 //   expenses, assets,     "บันทึกค่าใช้จ่าย สินทรัพย์ และเงินลงทุน" (doc.acctEdit), except marking an expense paid and paying
@@ -199,6 +201,18 @@ async function noVatRules(s: Save, who: Who): Promise<string | null> {
 
 // Selling more than there is (task 3.6, R9-ข): a save that makes a sale, a revision or a customer claim's
 // replacement and takes an item below zero.
+// A count's shortage moved to the cost of goods sold (accountant review 4.3, 59-stock-fifo.js): entries are only added.
+async function toCogsRules(s: Save, who: Who): Promise<string | null> {
+  if (!s.units().has('DB.stockCounts')) return null;
+  for (const t of await s.touched('DB.stockCounts')) {
+    const was = (t.old?.toCogs as unknown[] | undefined) || [], now = (t.now?.toCogs as unknown[] | undefined) || [];
+    if (same(was, now)) continue;
+    if (!who.owner && !who.can('apv.count')) return `DB.stockCounts|${t.key}: toCogs`;
+    if (now.length < was.length || !same(now.slice(0, was.length), was)) return `DB.stockCounts|${t.key}: toCogs`;
+  }
+  return null;
+}
+
 async function shortRules(s: Save, who: Who): Promise<string | null> {
   const approver = who.owner || ['quote', 'receipt', 'tax', 'gr', 'claim', 'issue', 'count', 'billing', 'invoice'].some(k => who.can(`apv.${k}`));
   if (approver || !s.units().has('DB.stock')) return null;
@@ -340,7 +354,7 @@ async function settingsRules(s: Save, who: Who, pkg: string): Promise<string | n
 export async function refuseRules(c: pg.ClientBase, a: Actor, branch: string, key: string, changes: Changes): Promise<string | null> {
   if (!/^garage\.v22/.test(key)) return null;
   const s = new Save(c, branch, changes), who = await whoOf(c, a);
-  for (const rule of [taxPeriodRules, creditNoteRules, noVatRules, shortRules, payrollRules, moneyRules, cancelRules, peopleRules,
+  for (const rule of [taxPeriodRules, creditNoteRules, noVatRules, shortRules, toCogsRules, payrollRules, moneyRules, cancelRules, peopleRules,
     (x: Save, w: Who) => settingsRules(x, w, a.pkg)]) {
     const r = await rule(s, who);
     if (r) return r;
