@@ -50,8 +50,12 @@
   const rem=S.stat(c).rem,reduce=r2(Math.min(x.gross,rem)),refund=r2(x.gross-reduce);
   x.money={reduce,refund,method:refund>EPS?x.method:''};
   c.adj=(c.adj||[]).concat([Object.assign({id:uid(),type:'down',amt:x.gross,reason:'ใบลดหนี้ '+x.no,note:x.reason,cn:x.no},stamp())]);
+  const allocs=()=>(DB.fifo&&DB.fifo.allocs)||[],before=new Map(allocs().map(a=>[a.id,n(a.back)]));
   inBr(c,()=>(x.lines||[]).forEach(l=>{if(l.stock!=='back'||!(n(l.qty)>0))return;const s=DB.stock.find(z=>z.id===l.stockId);if(!s)return;
    s.qty=n(s.qty)+n(l.qty);s.lastMove=iso();logMove(s.id,'in',n(l.qty),iso(),'รับคืนตามใบลดหนี้ '+x.no+' · ใบตัดสต็อก '+c.no,c.moveRef);}));
+  /* the FIFO allocations the goods went back to (no cost here: the reports read it, accountant review 1.10) */
+  const backs=allocs().filter(a=>before.has(a.id)&&n(a.back)-before.get(a.id)>1e-9).map(a=>({id:a.id,qty:n(a.back)-before.get(a.id)}));
+  if(backs.length)x.backs=backs;
   S.sync(c);S.touch(c);
   logAudit('stockcut',c,'creditnote','ใบลดหนี้ '+x.no+' · '+KIND[x.kind]+' · '+money(x.gross)+' บาท'
    +(refund>EPS?' · คืนเงินลูกค้า '+money(refund)+' บาท ('+(x.method==='trans'?'เงินโอน':'เงินสด')+')':'')+' — '+x.reason);
@@ -66,6 +70,47 @@
   const r=r2(all().filter(x=>done(x)&&x.money&&n(x.money.refund)>0&&+String(refundDay(x)).slice(0,4)<=y).reduce((a,x)=>a+n(x.money.refund),0));
   if(r>0){o.cash-=r;o.assetsTotal-=r;o.equity-=r;o.roi=o.ownerCap>0?o.np/o.ownerCap*100:(o.equity>0?o.np/o.equity*100:0);o.roa=o.assetsTotal>0?o.np/o.assetsTotal*100:0;}
   return o;};}
+ /* The profit and loss takes a credit note in ITS month, as the sales tax report does (accountant review 1.10, the owner's
+    decision of 2026-10-28 to follow accountant B): the sale's month keeps the sale as sold (soldAs) with the cost of goods
+    it had before any came back, the credit note's month takes off its amount before VAT, its VAT and the cost of the goods
+    that came back (x.backs × the allocation's cost). A credit note goes with its sale: only when the sale's ledger is in
+    the data shown (a branch's report). Credit notes made before this (no backs) move no cost. */
+ const ledOf=x=>(DB.receipts||[]).find(r=>r&&r.id===x.ledId&&!r.cancelled)||null;
+ const allocCost=id=>{const a=((DB.fifo&&DB.fifo.allocs)||[]).find(z=>z&&z.id===id);return a?n(a.cost):0;};
+ const costBack=x=>(x.backs||[]).reduce((t,b)=>t+n(b.qty)*allocCost(b.id),0);
+ /* what a period (in: a date's test) gains back from its sales and loses to its credit notes */
+ function cnShift(inP){
+  const d={rev:0,vat:0,cogs:0,parts:0,labor:0},seen=new Set();
+  all().filter(done).forEach(x=>{const L=ledOf(x);if(!L)return;const cb=costBack(x);
+   if(inP(L.date)){d.cogs+=cb;
+    if(!seen.has(L.id)){seen.add(L.id);const a=receiptTotals(soldAs(L)),b=receiptTotals(L);d.rev+=a.base-b.base;d.vat+=a.vat-b.vat;}}
+   if(inP(x.date)){d.rev-=n(x.base);d.vat-=n(x.vat);d.cogs-=cb;
+    /* the revenue accounts: goods brought back are parts, anything else as the sale was made up */
+    const its=(L.items||[]).map(it=>({lab:it.type==='labor',v:n(it.qty)*n(it.price)})),tot=its.reduce((t,i)=>t+i.v,0);
+    const lab=x.kind==='ret'||!(tot>0)?0:its.filter(i=>i.lab).reduce((t,i)=>t+i.v,0)/tot;
+    d.labor+=n(x.base)*lab;d.parts+=n(x.base)*(1-lab);}
+  });
+  return d;
+ }
+ const moved=d=>Math.abs(d.rev)>=0.005||Math.abs(d.cogs)>=0.005||Math.abs(d.vat)>=0.005||d.parts>0||d.labor>0;
+ if(typeof finance==='function'){const fin1=finance;finance=function(y){const o=fin1.apply(this,arguments);if(!o)return o;
+  const d=cnShift(dt=>inYear(dt,y));if(!moved(d))return o;
+  o.revenue+=d.rev;o.vatSale+=d.vat;o.cogs+=d.cogs;o.gp=o.revenue-o.cogs;o.np+=d.rev-d.cogs;
+  o.gpm=o.revenue?o.gp/o.revenue*100:0;o.npm=o.revenue?o.np/o.revenue*100:0;
+  o.roi=o.ownerCap>0?o.np/o.ownerCap*100:(o.equity>0?o.np/o.equity*100:0);o.roa=o.assetsTotal>0?o.np/o.assetsTotal*100:0;
+  return o;};}
+ if(typeof monthlyPnL==='function'){const mp0=monthlyPnL;
+  window.monthlyPnL=function(){const out=mp0.apply(this,arguments);
+   (out||[]).forEach(m=>{const d=cnShift(dt=>String(dt||'').slice(0,7)===m.key);if(!moved(d))return;
+    m.rev+=d.rev;m.cogs+=d.cogs;m.gp=m.rev-m.cogs;m.np+=d.rev-d.cogs;});
+   return out;};}
+ /* the trial balance's revenue comes from the sales' lines, which credit notes never lowered: they come off in their year */
+ if(typeof trialBalance==='function'){const tb0=trialBalance;
+  window.trialBalance=function(y){const out=tb0.apply(this,arguments),d=cnShift(dt=>inYear(dt,y)),M=DB.map||{};if(!(d.parts>0||d.labor>0))return out;
+   const take=(code,v)=>{if(!code||!(v>0))return;let r=out.find(z=>z.code===code);
+    if(!r){r={code,name:accName(code),type:((DB.coa||[]).find(a=>a.code===code)||{}).type||'',debit:0,credit:0};out.push(r);}r.credit-=v;};
+   take(M.revParts,d.parts);take(M.revLabor,d.labor);
+   return out.sort((a,c)=>a.code.localeCompare(c.code));};}
  const pa0=paidAmtOf;paidAmtOf=function(d){const v=pa0.apply(this,arguments);return d&&d.pkgSale&&DB.creditNotes?v-refunds(d):v;};
  const tk0=docNoTaken;docNoTaken=function(no){return tk0.apply(this,arguments)||all().some(x=>x.no===no);};
 

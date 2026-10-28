@@ -678,6 +678,11 @@
       "scenario": "S251-payslip-year-to-date.spec.ts",
       "decision": "accountant review 5.4, owner follows accountant B (2026-10-28)",
       "why": "A payslip shows the year-to-date income, tax withheld and social security of the employee from the recorded periods."
+    },
+    {
+      "scenario": "S252-credit-note-in-its-own-month-profit-and-loss.spec.ts",
+      "decision": "accountant review 1.10, owner follows accountant B (2026-10-28)",
+      "why": "A credit note lowers sales and the cost of goods brought back in its own month in the profit and loss; the sale's month stays as sold; the trial balance's revenue goes down in the credit note's year."
     }
   ]
 }
