@@ -4,9 +4,10 @@
      of that year (365 / 366), counting the acquisition date and not the disposal date; rounded to satang per asset per
      year (half up); the year the life ends takes what is left, so the years add up to cost − salvage. A disposed asset
      (status "sold") needs its disposal date and stops there. Every existing asset is worked out the same way.
-     The year's figure stays the whole year's (health, statements); the monthly profit and loss spreads it by the days of
-     each month. assetDep keeps its shape ({annual, thisYear, accBefore, accEnd, nbv}), so every screen that reads it
-     follows; a cancelled asset is all zeros.
+     The current year counts up to today (accountant review 7.2): health, statements, the trial balance and the register
+     show what has been depreciated so far; the monthly profit and loss spreads it by the days of each month.
+     assetDep keeps its shape ({annual, thisYear, accBefore, accEnd, nbv}), so every screen that reads it follows;
+     a cancelled asset is all zeros.
    · One purchase = the lines saved together (`grp`, the first line's id; older records are their own purchase). Its
      input VAT is worked out once on the purchase's total and rounded (R4), in the month of its date (13.7): one row per
      tax invoice in the input tax report, with the vendor's tax ID; the trial balance's 1050 has it (finance().vatBuyPur).
@@ -89,13 +90,17 @@
   const cost=n(a.cost),sc=sched(a);
   if(!sc)return {annual:0,thisYear:0,accBefore:0,accEnd:0,nbv:cost};
   let accBefore=0;for(let k=sc.y0;k<y&&k<=sc.last;k++)accBefore=r2(accBefore+sc.years[k].amt);
-  const thisYear=sc.years[y]?sc.years[y].amt:0,accEnd=r2(accBefore+thisYear);
+  const Y=sc.years[y],thisYear=Y?soFar(Y,y):0,accEnd=r2(accBefore+thisYear);
   return {annual:sc.annual,thisYear,accBefore,accEnd,nbv:r2(cost-accEnd)};
  };
- /* the part of a year's depreciation in one month, by the days held in it */
+ /* The current year counts up to today (accountant review 7.2, the owner's decision of 2026-10-28): its part of the
+    year's figure by the days held so far, today included; other years are whole. */
+ const cutoff=y=>y===+iso().slice(0,4)?dn(iso())+1:Infinity;
+ function soFar(Y,y){const days=Math.max(0,Math.min(Y.to,cutoff(y))-Y.from);return days>=Y.days?Y.amt:r2(Y.amt*days/Y.days);}
+ /* the part of a year's depreciation in one month, by the days held in it (not after today) */
  function monthDep(a,y,m){
   if(!live(a))return 0;const sc=sched(a),Y=sc&&sc.years[y];if(!Y||!Y.days)return 0;
-  const f=Math.max(Y.from,Date.UTC(y,m-1,1)/DAY),t=Math.min(Y.to,Date.UTC(y,m,1)/DAY);
+  const f=Math.max(Y.from,Date.UTC(y,m-1,1)/DAY),t=Math.min(Y.to,cutoff(y),Date.UTC(y,m,1)/DAY);
   return t>f?Y.amt*(t-f)/Y.days:0;
  }
  if(typeof monthlyPnL==='function'){const o=window.monthlyPnL;
@@ -364,7 +369,7 @@
   $('#assetEmpty').style.display=rows.length?'none':'block';
   if(typeof paintSort==='function')paintSort('assetTbl');
   $('#assetCount').textContent=rows.length+' รายการ';
-  $('#depTag').textContent='ปีบัญชี '+(y+543)+' · ค่าเสื่อมปีนี้ '+money(t.cur)+' บาท';
+  $('#depTag').textContent='ปีบัญชี '+(y+543)+' · ค่าเสื่อมปีนี้'+(y===+iso().slice(0,4)?' ถึง '+thDate(iso()):'')+' '+money(t.cur)+' บาท';
   $('#depTbl tbody').innerHTML=L.map(a=>{const d=assetDep(a,y);
    return `<tr><td>${esc(a.name)}</td><td class="ctr">${thDate(a.date)}</td><td class="num">${money(a.cost)}</td>
      <td class="num">${money(d.thisYear)}</td><td class="num">${money(d.accBefore)}</td>

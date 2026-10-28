@@ -10,6 +10,9 @@ import { legacyGolden, legacyStateChange } from '../support/legacy-golden';
 // (the legacy app counted October as a whole month: 3 months, 1,899.95); the air conditioner 24,500: 1,114.20.
 // The fixture's assets move too, e.g. the POS computer 32,000 of 12/04/2569 (life 3): 264 days, 7,714.83 (legacy 9
 // months, 7,999.75); the year's depreciation of the register is 164,913.43 + 1,728.17 + 1,114.20 = 167,755.80.
+// The current year counts up to today (accountant review 7.2, the owner's decision of 2026-10-28): on 13/10/2569 the
+// welder has been held 4 of its 83 days, 1,728.17 × 4 ÷ 83 = 83.29, the air conditioner 53.70, the POS computer 5,406.23,
+// and the register 128,581.02 + 83.29 + 53.70 = 128,718.01 so far (worked out apart from the app's code).
 // Every step and message is S65's; the screens with figures that moved are checked by their text.
 const S65 = 'S65-register-fixed-assets.spec.ts';
 const printed = async (page: Page, texts: string[]) => {
@@ -94,16 +97,16 @@ test('S210 ระบบใหม่: ซื้อสินทรัพย์ 2 �
   golden.done();
   // By the day: cost, this year, brought forward, carried forward, net.
   const dep = (name: string) => page.locator('#depTbl').getByRole('row').filter({ hasText: name });
-  await expect(dep('เครื่องเชื่อม CO2 / MIG 250A')).toHaveText(/^เครื่องเชื่อม CO2 \/ MIG 250A\s*10\/10\/2569\s*38,000\.00\s*1,728\.17\s*0\.00\s*1,728\.17\s*36,271\.83$/);
-  await expect(dep('เครื่องปรับอากาศห้องรับรองลูกค้า 18,000 BTU')).toContainText('1,114.20');
-  await expect(dep('คอมพิวเตอร์ POS หน้าร้านพร้อมเครื่องพิมพ์')).toContainText('7,714.83');
-  await expect(dep('ลิฟต์ยกรถ 2 เสา 4 ตัน (ตัวที่ 2)')).toContainText('72,179.94');
-  await expect(page.locator('#depTag')).toHaveText('ปีบัญชี 2569 · ค่าเสื่อมปีนี้ 167,755.80 บาท');
-  await expect(page.locator('#depTbl tfoot')).toHaveText(/^รวม\s*880,500\.00\s*167,755\.80\s*236,300\.67\s*404,056\.47\s*476,443\.53$/);
+  await expect(dep('เครื่องเชื่อม CO2 / MIG 250A')).toHaveText(/^เครื่องเชื่อม CO2 \/ MIG 250A\s*10\/10\/2569\s*38,000\.00\s*83\.29\s*0\.00\s*83\.29\s*37,916\.71$/);
+  await expect(dep('เครื่องปรับอากาศห้องรับรองลูกค้า 18,000 BTU')).toContainText('53.70');
+  await expect(dep('คอมพิวเตอร์ POS หน้าร้านพร้อมเครื่องพิมพ์')).toContainText('5,406.23');
+  await expect(dep('ลิฟต์ยกรถ 2 เสา 4 ตัน (ตัวที่ 2)')).toHaveText(/^ลิฟต์ยกรถ 2 เสา 4 ตัน \(ตัวที่ 2\)\s*19\/01\/2567\s*185,000\.00\s*28,991\.62\s*72,179\.94\s*101,171\.56\s*83,828\.44$/);
+  await expect(page.locator('#depTag')).toHaveText('ปีบัญชี 2569 · ค่าเสื่อมปีนี้ ถึง 13/10/2569 128,718.01 บาท');
+  await expect(page.locator('#depTbl tfoot')).toHaveText(/^รวม\s*880,500\.00\s*128,718\.01\s*236,300\.67\s*365,018\.68\s*515,481\.32$/);
 
   // Printed (the register's PDF button prints the asset register), with the same figures.
   await page.getByRole('group', { name: 'ส่งออกรายการ' }).filter({ visible: true }).getByRole('button', { name: 'PDF' }).click();
-  await printed(page, ['ทะเบียนทรัพย์สินและค่าเสื่อมราคา', 'เครื่องเชื่อม CO2 / MIG 250A', '1,728.17', '167,755.80', '404,056.47', '476,443.53']);
+  await printed(page, ['ทะเบียนทรัพย์สินและค่าเสื่อมราคา', 'เครื่องเชื่อม CO2 / MIG 250A', '83.29', '128,718.01', '365,018.68', '515,481.32']);
 
   // The voucher of the payment, printed from the asset's window.
   await reg.getByRole('button', { name: 'แก้ไข' }).click();

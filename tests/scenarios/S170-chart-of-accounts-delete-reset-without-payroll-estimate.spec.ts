@@ -13,8 +13,10 @@ test('S170 ระบบใหม่: ผังบัญชี ลบบัญช
   const bal = (code: string) => page.getByRole('row').filter({ has: page.getByRole('cell', { name: code, exact: true }) }).getByRole('cell').nth(3);
   // Task 3.13 (R17, answers 13.1, 13.7): depreciation by the day moves the accumulated depreciation (1221–1281) and
   // the year's 6130; the input VAT of the asset bought in 2569 (the POS computer, 2,240.00) is in 1050.
-  const ASSETS: [string, string][] = [['1050', '2,240.00'], ['1221', '274,187.82'], ['1231', '58,569.84'], ['1261', '19,553.63'],
-    ['1271', '7,714.83'], ['1281', '41,187.98'], ['6130', '164,913.43']];
+  // Accountant review 7.2 (the owner's decision of 2026-10-28): the current year counts up to today (13/10/2569),
+  // worked out apart from the app's code.
+  const ASSETS: [string, string][] = [['1050', '2,240.00'], ['1221', '254,015.89'], ['1231', '49,782.53'], ['1261', '17,735.59'],
+    ['1271', '5,406.23'], ['1281', '37,941.45'], ['6130', '128,581.02']];
   const payroll = () => ['1010', '2060', '6010', '6011', ...ASSETS.map(([c]) => c)].map(bal);
   await app.loginAsOwner();
   await golden.step('หน้าแรก');
