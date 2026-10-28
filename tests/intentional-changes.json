@@ -673,6 +673,11 @@
       "scenario": "S250-shop-address-on-80mm-slips.spec.ts",
       "decision": "owner's approval of 2026-10-27 (accountant review pack)",
       "why": "The 80 mm abbreviated tax invoice and the 80 mm invoice print the shop's address as typed; the legacy app printed \"ต.function sub() { [native code] }\"."
+    },
+    {
+      "scenario": "S251-payslip-year-to-date.spec.ts",
+      "decision": "accountant review 5.4, owner follows accountant B (2026-10-28)",
+      "why": "A payslip shows the year-to-date income, tax withheld and social security of the employee from the recorded periods."
     }
   ]
 }

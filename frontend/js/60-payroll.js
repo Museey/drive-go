@@ -270,7 +270,7 @@
       </tbody></table>
     <div class="sign"><div><div class="line"></div>( ................................................. )<br><span class="lbl">ผู้จัดทำ</span></div>
       <div><div class="line"></div>( ................................................. )<br><span class="lbl">ผู้อนุมัติจ่าย</span></div></div></div>`);};
- function slip(p,l){const x=expOf(p.payId),e=(DB.emp||[]).find(z=>z.id===l.empId)||{};
+ function slip(p,l){const x=expOf(p.payId),e=(DB.emp||[]).find(z=>z.id===l.empId)||{},y=ytd(p,l.empId);
   const row=(t,v)=>`<tr><td>${t}</td><td class="num">${money(v)}</td></tr>`;
   return sheetTop({title:'สลิปเงินเดือน',en:'PAY SLIP',copy:'สำหรับพนักงาน',fields:[['งวด',monthName(p.month)],['วันที่จ่าย',x&&x.paid?thDate(x.payDate||x.date):'-']]})+`
   <table><tr><td><span class="lbl">พนักงาน</span><br><b>${esc(l.code)} · ${esc(l.name)}</b><br>${esc(l.position||'-')}</td>
@@ -284,9 +284,15 @@
    <tr><td style="text-align:right"><b>รวมรายการหัก</b></td><td class="num"><b>${money(r2(l.ssoEmp+n(l.tax)))}</b></td></tr>
    <tr><td style="text-align:right"><b>รับสุทธิ</b></td><td class="num"><b>${money(l.net)}</b></td></tr>
    <tr><td colspan="2" style="text-align:center">(${bahtText(l.net)})</td></tr></tbody></table>
+  <table style="margin-top:7px"><thead><tr><th>ยอดสะสม ${TH_M[0]} – ${monthName(p.month)}</th><th style="width:110px">จำนวนเงิน</th></tr></thead><tbody>
+   ${row('รายได้สะสม',y.g)}${row('ภาษีเงินได้หัก ณ ที่จ่ายสะสม',y.x)}${row('เงินสมทบประกันสังคมสะสม',y.e)}</tbody></table>
   <div class="box"><span class="lbl">นายจ้างสมทบประกันสังคมให้</span> ${money(l.ssoEr)} บาท</div>
   <div class="sign"><div><div class="line"></div>( ................................................. )<br><span class="lbl">ผู้จ่ายเงิน</span></div>
    <div><div class="line"></div>( ${esc(l.name)} )<br><span class="lbl">ผู้รับเงิน</span></div></div></div>`;}
+ /* the year so far (accountant review 5.4, docs/ACCOUNTANT-ANSWERS.md): the employee's lines in the recorded periods
+    of the period's year up to its month */
+ function ytd(p,empId){return sum(periods().filter(q=>q&&!q.cancelled&&q.month.slice(0,4)===p.month.slice(0,4)&&q.month<=p.month)
+  .flatMap(q=>q.lines.filter(l=>l.empId===empId)));}
  function printSlips(p,empId){if(!payOk())return toast(NO_PAY);const L=p.lines.filter(l=>!empId||l.empId===empId);if(!L.length)return;
   logAudit('expense',{id:p.payId,no:p.payNo},'print','สลิปเงินเดือน '+p.label+(empId?' · '+L[0].code:' · ทุกคน '+L.length+' ใบ'));save();
   printDocs(L.map(l=>slip(p,l)).join(''));}
