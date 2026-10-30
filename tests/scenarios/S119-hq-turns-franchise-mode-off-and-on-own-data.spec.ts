@@ -12,6 +12,9 @@ test.use({ dataset: 'franchise-trial' });
 // the swap of data sets: compared from B001's data, it is exactly S98's.
 // Every step, every screen (all on B001's data) and the other data changes are
 // still S98's.
+// Task 3.15: the licence row of menu 10 is the server's (dates read-only, so no calendar button, and no
+// "ต่ออายุ" buttons): left out of the screen where it shows (without the test copy's bar, owner's decision of
+// 2026-10-30, the row comes up into the screen after the activation panel goes).
 const S98 = 'S98-hq-turns-franchise-mode-off-and-on.spec.ts';
 
 const ALL_MENUS = `
@@ -78,7 +81,10 @@ test('S119 ระบบใหม่: สำนักงานใหญ่ (ข�
   await expect(code).toBeHidden();
   await expect(page.getByRole('navigation')).toMatchAriaSnapshot(ALL_MENUS);
   await golden.step('เปิดใช้โหมดแฟรนไชส์แล้ว แต่ยังเห็นทุกเมนูโดยไม่มีบัญชีเข้าระบบ');
-  await golden.screen('after-activate');
+  const field = (label: string) => page.getByLabel(label, { exact: true }).filter({ visible: true });
+  await expect(field('วันที่เริ่มใช้ระบบ')).not.toBeEditable();
+  await golden.screen('after-activate', { mask: [page.locator('#v-setting button[onclick^="extendLic"]'),
+    field('วันที่เริ่มใช้ระบบ'), field('วันที่สิ้นสุดการใช้งาน (Expired Date)')] });
   await golden.stateChange('activate', beforeActivate);
 
   await page.getByText('ออกจากระบบ', { exact: true }).filter({ visible: true }).click();
