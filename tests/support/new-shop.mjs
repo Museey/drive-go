@@ -6,6 +6,7 @@ import { createShop, readFixture } from '../../server/lib/seed.ts';
 import { withShop } from '../../server/lib/db.ts';
 import { readMain } from '../../server/lib/storage.ts';
 import { close, renew } from '../../server/lib/licence-admin.ts';
+import { openRealShop, resetPassword } from '../../server/lib/shop-open.ts';
 
 let pool, n = 0;
 
@@ -38,4 +39,18 @@ export async function renewTestShop(page, years, paidOn) {
 export async function closeTestShop(page, lastDay) {
   pool ??= new pg.Pool({ connectionString: process.env.DRIVEGO_OWNER_DB, max: 2 });
   return close(pool, shopOfPage(page), { lastDay, actor: 'test' });
+}
+
+// What DriveGo's staff do with tools/shop-admin.mjs new / password (server/lib/shop-open.ts): a real, empty shop
+// with its owner's account, and a new password when it was forgotten. Returns the code, user and password.
+let realShops = 0;
+export async function openRealTestShop(o) {
+  pool ??= new pg.Pool({ connectionString: process.env.DRIVEGO_OWNER_DB, max: 2 });
+  const code = `real-${process.pid.toString(36)}-${++realShops}`;
+  const r = await openRealShop(pool, { kind: 'trial', actor: 'test', ...o, code });
+  return { code, user: r.user, password: r.password };
+}
+export async function resetTestPassword(code, o = {}) {
+  pool ??= new pg.Pool({ connectionString: process.env.DRIVEGO_OWNER_DB, max: 2 });
+  return resetPassword(pool, code, { actor: 'test', ...o });
 }

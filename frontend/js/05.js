@@ -89,6 +89,17 @@ async function dgbSignup(){
   $('#dgbCodeModal').style.display='flex';
   return true;
 }
+/* DriveGo new system (P3): a shop DriveGo's staff opened (tools/shop-admin.mjs new) has its registration in DGB.shop as
+   the sign-up form left it; on the owner's first entry it goes into the organisation's settings (menu 10), as above */
+async function dgbFillFromRegistration(){
+  const s=DGB.shop; if(!s||!s.fillSettings||!DB.shop) return;
+  if(!String(DB.shop.name||'').trim()){
+    DB.shop.name=s.name||''; DB.shop.person=s.owner||''; DB.shop.tax=s.taxId||''; DB.shop.tel=s.tel||'';
+    DB.shop.email=s.email||''; DB.shop.addr=(s.addr||'')+(s.zip?' '+s.zip:''); try{ await save(); }catch(e){}
+    if(typeof fillSetting==='function') try{fillSetting()}catch(e2){}
+  }
+  delete s.fillSettings; await dgbSave();
+}
 function dgbCodeOk(){ $('#dgbCodeModal').style.display='none'; dgbEnter(); }
 
 /* ── เข้าสู่ระบบ (เจ้าของ / พนักงาน) ── */
@@ -143,6 +154,7 @@ async function dgbEnter(){
     toast('เข้าใช้งานในนาม '+e.name+' · ร้าน '+DGB.shop.code+' (ตามสิทธิที่เจ้าของกำหนด)');
   }else{
     DB.curEmp=''; try{ await save(); }catch(er){}
+    await dgbFillFromRegistration();
     applyPerms();
     dgbShow(null); dgbApplyUI(); go('home');
     toast('ยินดีต้อนรับ '+DGB.shop.owner+' — เจ้าของร้าน '+DGB.shop.name);

@@ -1,7 +1,14 @@
-// DriveGo staff's tool for shops' licences (task 3.15, decisions 15.1, 15.2, 15.5): run on the server with the
-// database owner's connection — never part of the web app. Every action is logged (table licence_log) with who
-// ran it (--by, or the operating system user).
+// DriveGo staff's tool for shops (task 3.15, decisions 15.1, 15.2, 15.5; opening real shops and forgotten passwords,
+// LAUNCH-CHECKLIST stage 2): run on the server with the database owner's connection — never part of the web app.
+// Every action is logged (table licence_log) with who ran it (--by, or the operating system user). How to run it on
+// the test server and what to check before giving a password: docs/STAFF-TOOLS.md.
 //
+//   node tools/shop-admin.mjs new CODE --biz|--prox|--franchise --trial|--pilot --name TEXT --owner TEXT
+//        [--user NAME] [--tax-id N] [--addr TEXT] [--zip N] [--tel N] [--email E] [--from DAY] [--contact TEXT]
+//                                                             open an empty shop (no sample data) at /CODE/ with its owner's
+//                                                             (Franchise: HQ's) account; shows the temporary password once
+//   node tools/shop-admin.mjs password CODE [--user NAME]    a new temporary password for the owner (Franchise: HQ, or
+//                                                             the chain's account NAME); the old one stops working
 //   node tools/shop-admin.mjs list [--expiring DAYS]          shops and their licences (only those ending within DAYS)
 //   node tools/shop-admin.mjs show CODE                       one shop's licence and its log
 //   node tools/shop-admin.mjs open CODE --trial|--pilot [--from DAY] [--contact TEXT]
@@ -22,6 +29,7 @@ import pg from 'pg';
 import { pgConfig } from '../server/lib/pg-config.ts';
 import { close, listShops, openLicence, postpone, renew, setContact, shopOf } from '../server/lib/licence-admin.ts';
 import { today } from '../server/lib/licence.ts';
+import { openRealShop, resetPassword } from '../server/lib/shop-open.ts';
 
 const { values: o, positionals: [cmd, code, ...rest] } = parseArgs({
   allowPositionals: true,
@@ -30,6 +38,9 @@ const { values: o, positionals: [cmd, code, ...rest] } = parseArgs({
     trial: { type: 'boolean' }, pilot: { type: 'boolean' }, from: { type: 'string' }, contact: { type: 'string' },
     years: { type: 'string' }, 'paid-on': { type: 'string' }, note: { type: 'string' },
     to: { type: 'string' }, days: { type: 'string' }, 'last-day': { type: 'string' },
+    biz: { type: 'boolean' }, prox: { type: 'boolean' }, franchise: { type: 'boolean' }, name: { type: 'string' }, owner: { type: 'string' },
+    user: { type: 'string' }, 'tax-id': { type: 'string' }, addr: { type: 'string' }, zip: { type: 'string' }, tel: { type: 'string' },
+    email: { type: 'string' },
   },
 });
 const url = o.db || process.env.MIGRATE_DATABASE_URL;
@@ -46,6 +57,9 @@ const line = s => {
 };
 const show = l => console.log(`${code}: ${l.kind} ${l.start} → ${l.end} · removal ${l.deleteOn}${l.noticeSentOn ? ` (told ${l.noticeSentOn})` : ''}`);
 const need = (v, what) => { if (v === undefined || v === '') { console.error(`${cmd}: ${what} is required`); process.exit(2); } return v; };
+// A password is shown once, here; DriveGo's staff tell it to the owner by phone (docs/STAFF-TOOLS.md).
+const tell = (u, pass) => console.log(`  user ${u}\n  temporary password ${pass}\n` +
+  '  (shown once: tell it to the owner by phone, never by chat or e-mail; ask them to change it after signing in)');
 
 try {
   switch (cmd) {
@@ -61,6 +75,23 @@ try {
       console.log(line(shop));
       const { rows } = await db.query('select at, actor, action, detail from licence_log where shop_id = $1 order by id', [s.id]);
       for (const r of rows) console.log(`  ${r.at.toISOString()} ${r.actor.padEnd(12)} ${r.action.padEnd(8)} ${JSON.stringify(r.detail.after ? { after: r.detail.after } : r.detail)}`);
+      break;
+    }
+    case 'new': {
+      const pkgs = ['biz', 'prox', 'franchise'].filter(p => o[p]);
+      if (pkgs.length !== 1) { console.error('new: one of --biz, --prox, --franchise'); process.exit(2); }
+      if (!!o.trial === !!o.pilot) { console.error('new: --trial or --pilot'); process.exit(2); }
+      const r = await openRealShop(db, { code: need(code, 'CODE'), pkg: pkgs[0], kind: o.trial ? 'trial' : 'pilot', from: o.from, contact: o.contact,
+        actor, name: need(o.name, '--name'), owner: need(o.owner, '--owner'), user: o.user, taxId: o['tax-id'], addr: o.addr, zip: o.zip,
+        tel: o.tel, email: o.email });
+      console.log(`${code}: opened (${pkgs[0]}, ${o.trial ? 'trial' : 'pilot'} ${r.start} → ${r.end}) at /${code}/`);
+      tell(r.user, r.password);
+      break;
+    }
+    case 'password': {
+      const r = await resetPassword(db, need(code, 'CODE'), { user: o.user, actor });
+      console.log(`${code}: new password; the old one no longer works and the account's sessions ended`);
+      tell(r.user, r.password);
       break;
     }
     case 'open': {

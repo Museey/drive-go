@@ -1,7 +1,8 @@
 // Tries the test server's image (Dockerfile) the way DigitalOcean runs it (task 3.16, .do/app.yaml): a PostgreSQL that
 // only takes TLS with a certificate of its own CA (as the managed database), the app's user drivego_app made beforehand
 // with a password (as in the control panel), then the pre-deploy job twice (the schema and the demo shops, then nothing
-// left to do) and the web container: health, a shop's page, signing in. Used by CI before the deploy branch moves.
+// left to do) and the web container: health, a shop's page, signing in; then the staff tool opens a real shop and
+// gives its owner a new password (docs/STAFF-TOOLS.md), and the owner signs in. Used by CI before the deploy branch moves.
 //
 //   docker build -t drivego:smoke . && node tools/image-smoke.mjs [image]
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -68,6 +69,27 @@ try {
   const data = await fetch(`${base}/api/storage/garage.v22`, { headers: { cookie: session } });
   if (data.status !== 200) fail(`the shop's data after signing in: ${data.status}`);
   say('web: signing in to demo-biz gives a Secure session cookie and the shop\'s data');
+
+  // The staff tool in the image, as staff run it on the server: a real shop, then a forgotten password.
+  const admin = (...args) => docker(['run', '--rm', '--network', 'host', '-e', `MIGRATE_DATABASE_URL=${owner}`, '-e', 'DATABASE_CA_CERT',
+    image, 'node', 'tools/shop-admin.mjs', ...args, '--by', 'smoke']);
+  const passOf = r => (/temporary password (\S+)/.exec(r.stdout) || [])[1];
+  // A connection kept from before the (blocking) docker run may have been closed by the server meanwhile: try again.
+  const signInAs = async pass => {
+    for (let i = 0; ; i++) {
+      try {
+        return await fetch(`${base}/api/auth/login`, { method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ code: 'smoke-real', user: 'smokereal', pass }) });
+      } catch (e) { if (i > 1 || e.cause?.code !== 'UND_ERR_SOCKET') throw e; }
+    }
+  };
+  const opened = admin('new', 'smoke-real', '--biz', '--trial', '--name', 'อู่ทดสอบ image', '--owner', 'ทดสอบ ระบบ');
+  if (opened.status !== 0 || !passOf(opened)) fail(`shop-admin new:\n${opened.stdout}${opened.stderr}`);
+  if ((await signInAs(passOf(opened))).status !== 200) fail('the new shop\'s owner could not sign in');
+  const reset = admin('password', 'smoke-real');
+  if (reset.status !== 0 || !passOf(reset)) fail(`shop-admin password:\n${reset.stdout}${reset.stderr}`);
+  if ((await signInAs(passOf(opened))).status === 200 || (await signInAs(passOf(reset))).status !== 200) fail('the new password did not replace the old one');
+  say('staff tool: opened a real shop, its owner signed in; a new password replaced the old one');
   console.log('image smoke test passed');
 } catch (e) {
   if (web) console.error(docker(['logs', web]).stdout.slice(-3000), docker(['logs', web]).stderr.slice(-3000));

@@ -41,7 +41,8 @@ npm run test:unit                          # test ของ server/lib (แบ�
 node tools/split-legacy.mjs --check        # พิสูจน์ว่า frontend/ ตรงกับระบบเดิมทุกไบต์ ยกเว้นจุดที่จดใน frontend/CHANGES.md
 node tools/build-client.mjs                # สร้าง frontend/js/00-server-storage.js จาก server/client/ (--check ตรวจว่าตรงกับต้นฉบับ)
 node tools/accountant-pack.mjs            # ชุดตรวจสำหรับผู้ทำบัญชี: คำถามจาก docs/ACCOUNTANT-REVIEW.md เป็น Excel ให้ตอบ + เอกสารที่ระบบใหม่พิมพ์ (PDF) รวมเป็น accountant-pack.zip
-docker build -t drivego:smoke . && node tools/image-smoke.mjs   # ลอง image ของ server ทดสอบแบบที่ DigitalOcean รัน (ฐานข้อมูล TLS, job migrate, เข้าระบบร้านตัวอย่าง)
+docker build -t drivego:smoke . && node tools/image-smoke.mjs   # ลอง image ของ server ทดสอบแบบที่ DigitalOcean รัน (ฐานข้อมูล TLS, job migrate, เข้าระบบร้านตัวอย่าง, เปิดร้านจริง)
+node tools/shop-admin.mjs new|password|list|show|renew|close …   # เครื่องมือทีมงาน: เปิดร้านจริง ลืมรหัสผ่าน วันหมดอายุ (คู่มือ docs/STAFF-TOOLS.md)
 npm run test:record -- tests/scenarios/S05-xxx.spec.ts   # บันทึกเฉลยจากระบบเดิม (เฉพาะไฟล์ที่ระบุ)
 npm run fixture -- biz trial               # สร้างข้อมูลตั้งต้นใหม่ (biz | prox | franchise) — ปกติไม่ต้องสร้างใหม่ ใช้ไฟล์ที่ commit ไว้
 npm run inventory                          # สร้าง docs/behaviors.csv ใหม่
