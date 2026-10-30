@@ -10,7 +10,9 @@ test.use({ dataset: 'franchise-trial' });
 // licence line and its own badges (tests/support/hq-own-data.ts). The import
 // still copies the first branch's register, as the test copy did when HQ
 // worked on that branch's data. Every step, data change and the rest of every
-// screen are still S91's.
+// screen are still S91's. Since accountant review 4.2 (the owner's decision of 2026-10-30) the table has a
+// column "ทุนต่อหน่วย" (HQ's unit cost, which its shipments carry; S163): the table is checked here and
+// masked in the screens.
 const S91 = 'S91-hq-central-stock.spec.ts';
 
 async function answerPrompt(page: Page, value: string, button: string) {
@@ -37,7 +39,12 @@ test('S113 ระบบใหม่: สำนักงานใหญ่ (ข�
   await expect(page.getByText('52 รายการ', { exact: true }).filter({ visible: true })).toBeVisible();
   await golden.step('นำเข้า 52 รายการจากทะเบียนสาขา');
   await golden.stateChange('import-from-branch', before);
-  await golden.screen('hq-stock-imported', { mask: await hqOwnData(page) });
+  const table = page.locator('#frHqStockTbl');
+  await expect(table.getByRole('row').first().getByRole('cell').or(table.getByRole('row').first().getByRole('columnheader')))
+    .toHaveText(['รหัสสินค้า', 'ชื่อสินค้า', 'หน่วย', 'คงคลัง HQ', 'Min', 'Max', 'ทุนต่อหน่วย', 'ลบ']);
+  await expect(table.getByRole('row')).toHaveCount(53);
+  await expect(table.getByRole('spinbutton', { name: 'ทุนต่อหน่วย EN-501' })).toHaveValue('');
+  await golden.screen('hq-stock-imported', { mask: [...await hqOwnData(page), table] });
 
   const beforeEdit = await app.state();
   await page.getByRole('button', { name: '+ เพิ่มสินค้า' }).click();
@@ -60,7 +67,9 @@ test('S113 ระบบใหม่: สำนักงานใหญ่ (ข�
   await expect(page.getByText('52 รายการ', { exact: true }).filter({ visible: true })).toBeVisible();
   await golden.step('ลบรายการ OT-999 ออกจากคลัง HQ');
   await added.scrollIntoViewIfNeeded();
-  await golden.screen('hq-stock-after-edit', { mask: await hqOwnData(page) });
+  await expect(added.getByRole('spinbutton')).toHaveCount(4);
+  await expect(added.getByRole('spinbutton', { name: 'ทุนต่อหน่วย EV-140' })).toHaveValue('');
+  await golden.screen('hq-stock-after-edit', { mask: [...await hqOwnData(page), table] });
   await golden.stateChange('add-edit-delete', beforeEdit);
   golden.done();
 });

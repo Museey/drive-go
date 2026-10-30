@@ -53,13 +53,13 @@
       "scenario": "S91-hq-central-stock.spec.ts",
       "by": "S113-hq-central-stock-own-data.spec.ts",
       "decision": "Q3",
-      "why": "HQ works on its own data set: HQ's screens show the chain's name, HQ's licence line and HQ's own badges; the register import still copies the first branch's register. Every step, data change and the rest of each screen is checked against S91's goldens."
+      "why": "HQ works on its own data set: HQ's screens show the chain's name, HQ's licence line and HQ's own badges; the register import still copies the first branch's register. Every step, data change and the rest of each screen is checked against S91's goldens. Since accountant review 4.2 (2026-10-30) the central stock table has a column \"ทุนต่อหน่วย\": checked by text, the table masked in its two screens."
     },
     {
       "scenario": "S92-branch-request-hq-ship-receive.spec.ts",
       "by": "S114-branch-request-hq-ship-receive-own-data.spec.ts",
       "decision": "Q3; R11 (task 3.6)",
-      "why": "HQ works on its own data set (HQ's screens: chain's name, HQ's licence line, HQ's own badges). Every step, data change, branch screen and the rest of each HQ screen is checked against S92's goldens. Task 3.6 (R11): the branch's stock moves of the receipt keep the branch's register cost (95 and 980) instead of 0."
+      "why": "HQ works on its own data set (HQ's screens: chain's name, HQ's licence line, HQ's own badges). Every step, data change, branch screen and the rest of each HQ screen is checked against S92's goldens. Task 3.6 (R11): the branch's stock moves of the receipt keep the branch's register cost (95 and 980) instead of 0. Since accountant review 4.2 (2026-10-30) HQ types its unit costs (EN-501 100, OI-801 1,000) before shipping; the request's lines carry them and the branch's moves, lots and register take them."
     },
     {
       "scenario": "S93-hq-rejects-branch-request.spec.ts",
@@ -436,9 +436,9 @@
       "why": "A stock count's shortage and surplus and an internal issue reach the profit-and-loss at FIFO cost, read from the documents; a shortage can be sold to whoever is responsible without cutting stock twice; the move report shows what leaves as minus with its FIFO unit cost."
     },
     {
-      "scenario": "S163-franchise-new-item-from-hq-asks-cost.spec.ts",
-      "decision": "R9–R11, F4 and answers of 2026-10-25 (task 3.6)",
-      "why": "An item a franchise branch receives from the central warehouse for the first time asks its unit cost, which becomes its register cost, FIFO lot and stock move cost."
+      "scenario": "S163-franchise-receives-at-hq-cost.spec.ts",
+      "decision": "R9–R11, F4 and answers of 2026-10-25 (task 3.6); accountant review 4.2, owner decision 2026-10-30 (HQ unit cost in the central stock)",
+      "why": "HQ keeps a unit cost per item of its central stock; shipping needs it for every item that goes and writes it on the request's lines; the branch receives each line at that cost (a new item too, without being asked). Until 2026-10-30 the branch was asked the cost of a new item (task 3.6 R11)."
     },
     {
       "scenario": "S172-payroll-month-overtime-tax-report-cancel-rights.spec.ts",

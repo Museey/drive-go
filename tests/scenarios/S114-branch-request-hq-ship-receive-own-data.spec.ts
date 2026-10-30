@@ -12,7 +12,9 @@ test.use({ dataset: 'franchise-trial' });
 // branch screen and the rest of every HQ screen are still S92's.
 // Task 3.6 (decision R11): the branch's stock moves of the receipt keep the
 // branch's register cost (EN-501 95, OI-801 980 — the cost of their FIFO lots)
-// instead of 0.
+// instead of 0. Since accountant review 4.2 (the owner's decision of 2026-10-30)
+// HQ types its unit costs in the central stock (100 and 1,000), the shipment's
+// lines carry them and the branch's moves, lots and register take them.
 const S92 = 'S92-branch-request-hq-ship-receive.spec.ts';
 
 async function signOut(page: Page) {
@@ -65,6 +67,11 @@ test('S114 ระบบใหม่: สาขาขอเบิกอะไห�
   await page.getByRole('button', { name: '⇪ นำเข้ารายการจากทะเบียนสาขาที่เปิดอยู่' }).click();
   const hqOil = page.getByRole('row').filter({ hasText: 'OI-801' }).getByRole('spinbutton').first();
   await hqOil.fill('20'); await hqOil.press('Tab');
+  // Accountant review 4.2 (S163): HQ's unit costs, which the shipment carries (the branch's register has 95 and 980).
+  for (const [code, cost] of [['EN-501', '100'], ['OI-801', '1000']]) {
+    const box = page.getByRole('spinbutton', { name: `ทุนต่อหน่วย ${code}` });
+    await box.fill(cost); await box.press('Tab');
+  }
   await golden.step('HQ ตั้งคลังกลาง น้ำมันเครื่อง OI-801 เหลือ 20');
   const beforeShip = await app.state();
 
@@ -96,7 +103,12 @@ test('S114 ระบบใหม่: สาขาขอเบิกอะไห�
   await page.getByRole('button', { name: 'จัดส่งเท่าที่มี', exact: true }).click();
   await expect(hqReq).toContainText('HQ จัดส่งแล้ว — รอสาขายืนยันรับ');
   await golden.step('HQ จัดส่งเท่าที่มี');
-  await golden.stateChange('ship', beforeShip);
+  // S92's change, but the lines carry HQ's unit costs (and the request says so).
+  const shipped = JSON.parse(legacyStateChange(S92, 'ship'));
+  const items = shipped['FR.reqs[REQ-6910-0001].items'];
+  items.added[0].cost = 100;
+  items.added[1].cost = 1000;
+  await golden.stateChange('ship', beforeShip, { 'FR.reqs[REQ-6910-0001].items': items, 'FR.reqs[REQ-6910-0001].costed': [null, true] });
 
   await signOut(page);
   await app.login('b001', '1234');
@@ -114,8 +126,13 @@ test('S114 ระบบใหม่: สาขาขอเบิกอะไห�
   await golden.screen('branch-received');
   const legacy = JSON.parse(legacyStateChange(S92, 'receive'));
   const moves = legacy['DB.moves'];
-  moves.added[0].cost = 95;
-  moves.added[1].cost = 980;
-  await golden.stateChange('receive', beforeReceive, { 'DB.moves': moves });
+  moves.added[0].cost = 100;
+  moves.added[1].cost = 1000;
+  // The lots take HQ's costs (accountant review 4.2) and so does the register (B001 had none of either left).
+  const lots = legacy['DB.fifo.lots'];
+  lots.added[0].cost = 100;
+  lots.added[1].cost = 1000;
+  await golden.stateChange('receive', beforeReceive, { 'DB.moves': moves, 'DB.fifo.lots': lots,
+    'DB.stock[EN-501].cost': [95, 100], 'DB.stock[OI-801].cost': [980, 1000] });
   golden.done();
 });

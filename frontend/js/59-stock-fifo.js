@@ -254,9 +254,11 @@
  if(typeof collectIssue==='function'){const o=collectIssue;
   window.collectIssue=function(){const out=o.apply(this,arguments);const el=$i('isExpCat');if(el&&typeof IS!=='undefined'&&IS)IS.expCat=el.value||DEF_CAT;return out;};}
 
- /* ---------- an item new to a franchise branch: its cost before it is received (R11) ---------- */
+ /* ---------- an item new to a franchise branch: its cost before it is received (R11) ----------
+    Only for a request HQ shipped without costs (before accountant review 4.2): a line that carries HQ's cost has the key,
+    even when the server leaves its value out for someone who may not see costs. */
  function newCosts(items){
-  const list=(items||[]).filter(i=>n(i.apQty)>0&&!DB.stock.some(x=>String(x.code).toLowerCase()===String(i.code).toLowerCase()));
+  const list=(items||[]).filter(i=>n(i.apQty)>0&&!('cost' in i)&&!DB.stock.some(x=>String(x.code).toLowerCase()===String(i.code).toLowerCase()));
   if(!list.length)return Promise.resolve({});
   if(!costOk()){toast('มีสินค้าใหม่ '+list.length+' รายการที่ต้องกรอกทุน — ให้ผู้มีสิทธิ์เห็นต้นทุนรับของเข้าสต๊อก');return Promise.resolve(null);}   /* task 3.9 */
   return new Promise(res=>{
@@ -272,11 +274,44 @@
   });
  }
 
+ /* ---------- Franchise: HQ's unit cost in its central stock, carried by the requests it ships (accountant review 4.2,
+    the owner's decision of 2026-10-30) ----------
+    HQ keeps a unit cost per item of its central stock (a column of its table); shipping needs it for every item that
+    goes and writes it on the request's lines (r.costed); the branch receives each line at that cost (its move and lot).
+    Whoever may not see costs gets the lines without their values: the server fills them in (costing.ts). */
+ const codeKey=c=>String(c||'').toLowerCase();
+ const hqOf=i=>(FR.hqStock||[]).find(h=>h&&codeKey(h.code)===codeKey(i.code));
+ if(typeof frRenderHqStock==='function'&&typeof FR!=='undefined'){const o=window.frRenderHqStock;
+  window.frRenderHqStock=function(){const out=o.apply(this,arguments);
+   try{const tbl=$i('frHqStockTbl');if(!tbl||!tbl.tHead)return out;
+    if(!tbl.tHead.querySelector('.pkg-hqcost')){const th=document.createElement('th');th.className='num pkg-hqcost pkg-cost';th.style.width='110px';th.textContent='ทุนต่อหน่วย';tbl.tHead.rows[0].lastElementChild.before(th);}
+    [...tbl.tBodies[0].rows].forEach((tr,i)=>{const h=FR.hqStock[i];if(!h||tr.querySelector('.pkg-hqcost'))return;
+     const td=document.createElement('td');td.className='num pkg-hqcost pkg-cost';
+     td.innerHTML=`<input type="number" min="0" step="0.01" style="width:95px;text-align:right" value="${n(h.cost)>0?r2(n(h.cost)):''}" aria-label="ทุนต่อหน่วย ${esc(h.code)}">`;
+     td.firstChild.onchange=e=>{const v=parseFloat(e.target.value);if(v>0)h.cost=r2(v);else delete h.cost;frSave();};
+     tr.lastElementChild.before(td);});}catch(e){}
+   return out;};}
+ if(typeof frHqShip==='function'&&typeof FR!=='undefined'){const o=window.frHqShip;
+  window.frHqShip=async function(id){const r=(FR.reqs||[]).find(x=>x&&x.id===id);if(!r||r.status!=='pending')return o.apply(this,arguments);
+   const miss=r.items.filter(i=>{const h=hqOf(i);return n(i.apQty)>0&&h&&n(h.qty)>0&&!(n(h.cost)>0);});
+   if(miss.length)return toast('สินค้า '+miss.length+' รายการในคลังกลางยังไม่มีทุนต่อหน่วย ('+miss.map(i=>i.code).join(', ')+') — ใส่ทุนในตารางคลังกลางก่อนจัดส่ง');
+   const set=r.items.filter(i=>{const h=hqOf(i);return n(i.apQty)>0&&h&&n(h.cost)>0;});
+   set.forEach(i=>{i.cost=r2(n(hqOf(i).cost));});if(set.length)r.costed=true;
+   try{return await o.apply(this,arguments);}
+   finally{if(r.status!=='shipped'){set.forEach(i=>{delete i.cost;});delete r.costed;}}};}
+ if(typeof frReqReceive==='function'&&typeof FR!=='undefined'){const o=window.frReqReceive;
+  window.frReqReceive=async function(id){const r=(FR.reqs||[]).find(x=>x&&x.id===id),C={};
+   (r&&r.items||[]).forEach(i=>{if(n(i.cost)>0)C[codeKey(i.code)]=n(i.cost);});
+   if(!Object.keys(C).length)return o.apply(this,arguments);
+   const lm=logMove;
+   logMove=function(stockId,type,qty,date,rf,refNo,vendorId,cost){const s=refNo===r.no&&type==='in'?stockOf(stockId):null,c=s?C[codeKey(s.code)]:null;
+    return lm.call(this,stockId,type,qty,date,rf,refNo,vendorId,c!=null?c:cost);};
+   try{return await o.apply(this,arguments);}finally{logMove=lm;}};}
+
  /* ---------- goods from the ProX chain's central warehouse: the receiver confirms their cost (accountant review 4.2,
     the owner's decision of 2026-10-29: until there is a real chain server) ----------
     The cost on the chain's request is filled in (the register cost when it has none); the move and the lot of each item
     take the cost confirmed, and the shop's history says what was confirmed. */
- const codeKey=c=>String(c||'').toLowerCase();
  if(typeof dcReceive==='function'){const o=window.dcReceive;
   window.dcReceive=async function(id){
    const r=(typeof DCREQS!=='undefined'?DCREQS:[]).find(x=>x&&String(x.id)===String(id)),L=(r&&r.items||[]).filter(i=>i&&n(i.qty)>0);

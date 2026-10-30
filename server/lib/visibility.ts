@@ -42,6 +42,8 @@ export const COST_MASKS: Mask[] = [
   { unit: 'DB.transfers', paths: ['lines[].cost'] },
   { unit: 'DB.custClaims', paths: ['lines[].cost'] },
   { unit: 'DB.stockCounts', paths: ['items[].surplusCost', 'surplus'] },   // a surplus's confirmed cost and its evidence (accountant review 4.2)
+  { unit: 'FR.hqStock', paths: ['cost'] },   // Franchise HQ's unit cost and the cost its requests carry (accountant review 4.2)
+  { unit: 'FR.reqs', paths: ['items[].cost'] },
   { unit: 'DB.claims', paths: ['items[].result.amt', 'creditAmt', 'recvSummary'] },
   { unit: 'DB.px.catalog', paths: ['[].cost'] },
   { unit: 'DB.px.reqs', paths: ['[].cost'] },

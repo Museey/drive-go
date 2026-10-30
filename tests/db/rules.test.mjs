@@ -11,6 +11,7 @@ import { migrate } from '../../server/db/migrate.ts';
 import { withShop } from '../../server/lib/db.ts';
 import { createShop, readFixture } from '../../server/lib/seed.ts';
 import { refuseRules } from '../../server/lib/rules.ts';
+import { fillCosts } from '../../server/lib/costing.ts';
 import { readMain } from '../../server/lib/storage.ts';
 
 let db, ownerPool, appPool, n = 0;
@@ -205,6 +206,39 @@ describe('ทุนของเกินจากการตรวจนับ 
     const fresh = { id: 'sc3', no: 'MA-CT261000098', applied: true, items: [{ stockId: 's2', sysQty: 1, countedQty: 2 }] };
     assert.equal(await check('EMP008', save(['DB.stockCounts', 'sc3', fresh])), 'DB.stockCounts|sc3: surplus cost');
     assert.equal(await check('EMP008', save(['DB.stockCounts', 'sc3', { ...fresh, items: [{ stockId: 's2', sysQty: 2, countedQty: 1 }] }])), null);
+  });
+});
+
+describe('ทุนของที่สาขาแฟรนไชส์รับจาก HQ (ผู้ทำบัญชี 4.2)', () => {
+  const req = { id: 'r9', no: 'REQ-6910-0099', branchId: 'B001', status: 'shipped', costed: true,
+    items: [{ code: 'EV-140', name: 'สายไฟ', unit: 'เมตร', qty: 10, apQty: 10, cost: 1250 }] };
+  async function chain() {
+    const { shopId } = await createShop(ownerPool, { code: `R-${++n}`, pkg: 'franchise', data: fixture('franchise-trial') });
+    await asApp(shopId, c => c.query(`insert into records (shop_id, branch_id, unit, key, pos, data) values (app_shop(), '', 'FR.reqs', 'r9', 0, $1)`, [JSON.stringify(req)]));
+    const actor = role => ({ pkg: 'franchise', role, ref: '', branch: role === 'HQ' ? '' : 'B001' });
+    const check = (role, changes) => asApp(shopId, c => refuseRules(c, actor(role), '', 'franchise.v22', changes));
+    return { shopId, check };
+  }
+  test('ทุนในใบเบิกเขียนได้เฉพาะ HQ สาขารับของหรือสร้างใบเบิกใหม่โดยไม่แตะทุนได้', async () => {
+    const { check } = await chain();
+    assert.equal(await check('HB', save(['FR.reqs', 'r9', { ...req, status: 'received' }])), null);
+    assert.equal(await check('HB', save(['FR.reqs', 'r9', { ...req, items: [{ ...req.items[0], cost: 1 }] }])), 'FR.reqs|r9: cost');
+    assert.equal(await check('HB', save(['FR.reqs', 'r9', { ...req, costed: false }])), 'FR.reqs|r9: cost');
+    const fresh = { id: 'r10', no: 'REQ-6910-0100', branchId: 'B001', status: 'pending', items: [{ code: 'EN-501', qty: 5, apQty: 5 }] };
+    assert.equal(await check('HB', save(['FR.reqs', 'r10', fresh])), null);
+    assert.equal(await check('HB', save(['FR.reqs', 'r10', { ...fresh, items: [{ ...fresh.items[0], cost: 90 }] }])), 'FR.reqs|r10: cost');
+    assert.equal(await check('HQ', save(['FR.reqs', 'r9', { ...req, items: [{ ...req.items[0], cost: 1300 }] }])), null);
+  });
+  test('server เติมทุนตามใบเบิกที่ HQ จัดส่งให้สาขาที่ไม่เห็นทุน: รายการเคลื่อนไหว ล็อต และทุนในทะเบียน', async () => {
+    const { shopId } = await chain();
+    const stock = { id: 's9', code: 'EV-140', name: 'สายไฟ', unit: 'เมตร', qty: 10, cost: null };
+    const move = { id: 'm9', stockId: 's9', type: 'in', qty: 10, date: '2026-10-13', ref: 'รับสินค้าเติมสต๊อกจาก HQ (ใบเบิกแฟรนไชส์)', refNo: req.no, vendorId: '', cost: null };
+    const lot = { id: 'l9', seq: 1, stockId: 's9', date: '2026-10-13', ref: move.ref, refNo: req.no, vendorId: '', src: 'in', cost: null, qty: 10, left: 10 };
+    const out = await asApp(shopId, c => fillCosts(c, 'B001', save(['DB.stock', 's9', stock], ['DB.moves', 'm9', move], ['DB.fifo.lots', 'l9', lot])));
+    const got = Object.fromEntries(out.upsert.map(r => [r.unit, JSON.parse(r.data)]));
+    assert.equal(got['DB.moves'].cost, 1250);
+    assert.equal(got['DB.fifo.lots'].cost, 1250);
+    assert.equal(got['DB.stock'].cost, 1250);
   });
 });
 

@@ -20,6 +20,8 @@
 //   a count's surplus     approving a stored count that has goods over (applied): by someone who sees costs, with the unit cost
 //                         of each confirmed and the evidence noted (accountant review 4.2, 59-stock-fifo.js); a count saved
 //                         already applied (sample data, a backup, an import, or saved and approved at once): someone who sees costs
+//   a request's costs     Franchise (franchise.v22): the unit cost on a branch request's lines and its flag (costed), written
+//                         when HQ ships (accountant review 4.2, 59-stock-fifo.js): HQ only; a branch's own saves keep them
 //   payroll               DB.payroll: the owner, or "บันทึกค่าใช้จ่าย" with the pay right (60-payroll.js); one period per month
 //                         that is not cancelled
 //   expenses, assets,     "บันทึกค่าใช้จ่าย สินทรัพย์ และเงินลงทุน" (doc.acctEdit), except marking an expense paid and paying
@@ -370,7 +372,20 @@ async function settingsRules(s: Save, who: Who, pkg: string): Promise<string | n
   return null;
 }
 
+// The costs HQ ships a branch request at (accountant review 4.2): only HQ writes them.
+async function reqCostRules(s: Save, a: Actor): Promise<string | null> {
+  if (a.role === 'HQ' || a.role === 'owner' || !s.units().has('FR.reqs')) return null;
+  const costs = (r?: Rec) => ((r?.items as Rec[] | undefined) || []).map(i => (isObj(i) ? i.cost ?? null : null));
+  for (const t of await s.touched('FR.reqs')) {
+    if (!t.now) continue;
+    const was = costs(t.old), now = costs(t.now);
+    if (now.some((v, i) => !same(v, was[i] ?? null)) || !same(t.now.costed, t.old?.costed)) return `FR.reqs|${t.key}: cost`;
+  }
+  return null;
+}
+
 export async function refuseRules(c: pg.ClientBase, a: Actor, branch: string, key: string, changes: Changes): Promise<string | null> {
+  if (key === 'franchise.v22') return reqCostRules(new Save(c, branch, changes), a);
   if (!/^garage\.v22/.test(key)) return null;
   const s = new Save(c, branch, changes), who = await whoOf(c, a);
   for (const rule of [taxPeriodRules, creditNoteRules, noVatRules, shortRules, toCogsRules, surplusRules, payrollRules, moneyRules, cancelRules, peopleRules,

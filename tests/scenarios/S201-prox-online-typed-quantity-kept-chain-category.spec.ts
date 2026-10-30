@@ -51,8 +51,11 @@ test('S201 ระบบใหม่: ProX ออนไลน์ จำนวน�
   expect(state.DB.audit.at(-1)).toMatchObject({ kind: 'stock', docId: '', no: 'DC-602', act: 'save',
     note: 'ขอเติมสต๊อกจากคลังกลาง ProX · คำขอ #602 · DC-AT40 × 70 แกลลอน' });
 
-  // The shipment of #601: DC-AT40 is new to the shop.
+  // The shipment of #601: DC-AT40 is new to the shop. Its cost is confirmed as the chain's request has it
+  // (accountant review 4.2, S162).
   await page.getByRole('button', { name: '📦 รับของเข้าสต๊อก (07)' }).click();
+  await expect(page.getByRole('spinbutton', { name: 'ทุนต่อหน่วย DC-AT40' })).toHaveValue('620');
+  await page.locator('#mAsk').getByRole('button', { name: 'รับของเข้าสต๊อก' }).click();
   await stockSynced(page);
   await app.settle();
   state = await app.state();

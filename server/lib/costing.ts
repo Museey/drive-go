@@ -55,7 +55,9 @@ export async function fillCosts(c: pg.ClientBase, branch: string, changes: Chang
     return out;
   };
   const before = new Map<string, number>();   // register cost before the save
-  for (const r of await stored(c, branch, 'DB.stock', 'key = any($3)', [idList])) before.set(r.key, n(r.data.cost));
+  const codes = new Map<string, string>();
+  for (const r of await stored(c, branch, 'DB.stock', 'key = any($3)', [idList])) { before.set(r.key, n(r.data.cost)); codes.set(r.key, String(r.data.code ?? '')); }
+  for (const r of mine('DB.stock')) codes.set(r.key, String(r.data.code ?? ''));
   const storedKeys = async (unit: string, keys: string[]) => new Set((await stored(c, branch, unit, 'key = any($3)', [keys])).map(r => r.key));
   const lots = await merge('DB.fifo.lots', "data->>'stockId' = any($3)", [idList]);
   const allocs = await merge('DB.fifo.allocs', "data->>'stockId' = any($3)", [idList]);
@@ -73,6 +75,13 @@ export async function fillCosts(c: pg.ClientBase, branch: string, changes: Chang
   };
   const transfers = await docs('DB.transfers'), cclaims = await docs('DB.custClaims');
   const claimNos = new Set((await stored(c, branch, 'DB.claims', "data->>'no' = any($3)", [[...refNos]])).map(r => String(r.data.no)));
+  // A franchise branch's request to HQ: the unit cost HQ shipped each line at (the chain's data, accountant review 4.2).
+  const reqs = new Map((await stored(c, '', 'FR.reqs', "data->>'no' = any($3)", [[...refNos]])).map(r => [String(r.data.no), r.data]));
+  const reqCost = (no: string, stockId: unknown): number => {
+    const code = (codes.get(String(stockId)) ?? '').toLowerCase();
+    const l = ((reqs.get(no)?.items as Rec[] | undefined) || []).find(x => x && String(x.code ?? '').toLowerCase() === code);
+    return l ? n(l.cost) : 0;
+  };
   const movesStored = await storedKeys('DB.moves', mine('DB.moves').map(r => r.key));
   const newMoves = mine('DB.moves').filter(r => !movesStored.has(r.key));   // moves are only ever added
   // Goods-received moves an opening ledger is rebuilt from (09.js migrate).
@@ -109,6 +118,7 @@ export async function fillCosts(c: pg.ClientBase, branch: string, changes: Chang
     if (transfers.has(ref) && m.type === 'in') return lineCost(transfers.get(ref), m.stockId) ?? cost0(m.stockId);
     if (cclaims.has(ref) && m.type === 'in') return lineCost(cclaims.get(ref), m.stockId) ?? cost0(m.stockId);
     if (claimNos.has(ref) || ref.startsWith('DC-')) return cost0(m.stockId);
+    if (reqs.has(ref) && m.type === 'in') return reqCost(ref, m.stockId);
     return 0;
   };
   // 3. New lots: an opening balance or a count's surplus (the register cost), one rebuilt from an old goods

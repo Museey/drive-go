@@ -3,12 +3,11 @@ import { test, expect } from '../support/test';
 
 test.use({ dataset: 'franchise-trial' });
 
-// New behaviour (task 3.6, decision R11 = ก, owner's answer 2026-10-25 "ถามทุนตอนรับของ"):
-// HQ's central stock has no cost, and goods from it take the receiving branch's register cost.
-// An item the branch does not have yet has none: confirming the receipt first asks its unit
-// cost (every new item, more than 0), and that cost is the new item's register cost, its FIFO
-// lot and its stock move. In the legacy app the item was created at cost 0, so it sold at a
-// cost of 0 and its cost could not be set later (locked once a lot exists).
+// New behaviour (accountant review 4.2, the owner's decision of 2026-10-30; before it, task 3.6 R11 asked the
+// branch the cost of an item new to it): HQ keeps a unit cost per item of its central stock ("ทุนต่อหน่วย"),
+// shipping needs it for every item that goes and writes it on the request's lines, and the branch receives
+// each line at that cost — the new item's register cost, its FIFO lot and its stock move — without being asked.
+// In the legacy app the central stock had no cost and the item was created at cost 0.
 async function signOut(page: Page) {
   await page.getByText('ออกจากระบบ', { exact: true }).filter({ visible: true }).click();
   await page.getByRole('button', { name: 'ออกจากระบบ', exact: true }).filter({ visible: true }).click();
@@ -22,7 +21,7 @@ async function answerPrompt(page: Page, value: string, button: string) {
   await ok.click();
 }
 
-test('S163 ระบบใหม่: สาขาแฟรนไชส์รับสินค้าใหม่จากคลังกลางครั้งแรก ระบบถามทุนต่อหน่วยแล้วลงล็อต FIFO ตามทุนนั้น', async ({ app, page }) => {
+test('S163 ระบบใหม่: HQ ใส่ทุนต่อหน่วยในคลังกลาง จัดส่งของที่ยังไม่มีทุนไม่ได้ ใบเบิกบันทึกทุน สาขารับสินค้าใหม่ตามทุนนั้นลงล็อต FIFO โดยไม่ต้องถาม', async ({ app, page }) => {
   test.slow();
   // HQ has 100 metres of a cable no branch has.
   await app.loginAsOwner();
@@ -52,37 +51,42 @@ test('S163 ระบบใหม่: สาขาแฟรนไชส์รั�
   await expect(myReq).toContainText('รอ HQ อนุมัติ');
   await signOut(page);
 
-  // HQ approves and ships.
+  // HQ cannot ship it before its central stock has the unit cost.
   await app.login('hq', '1234');
   await page.getByRole('button', { name: /📦 ใบขอเบิกจากสาขา/ }).click();
   const hqReq = page.getByRole('row').filter({ hasText: 'REQ-6910-0001' });
-  await hqReq.getByRole('button', { name: 'ตรวจ / อนุมัติ' }).click();
-  await page.getByRole('button', { name: '✔ อนุมัติและจัดส่ง (ตัดคลัง HQ)' }).click();
+  const ship = async () => {
+    await hqReq.getByRole('button', { name: 'ตรวจ / อนุมัติ' }).click();
+    await page.getByRole('button', { name: '✔ อนุมัติและจัดส่ง (ตัดคลัง HQ)' }).click();
+  };
+  await ship();
+  await expect(page.getByText('สินค้า 1 รายการในคลังกลางยังไม่มีทุนต่อหน่วย (EV-140) — ใส่ทุนในตารางคลังกลางก่อนจัดส่ง', { exact: true }).filter({ visible: true })).toBeVisible();
+  await page.getByRole('button', { name: '✕ ปิด' }).click();
+  await expect(hqReq).toContainText('รอ HQ อนุมัติ');
+  // 1,250.00 a metre in the central stock, then shipped: the line carries it.
+  await page.getByRole('button', { name: '🏭 คลังกลาง HQ (Min-Max)' }).click();
+  const hqCost = page.getByRole('spinbutton', { name: 'ทุนต่อหน่วย EV-140' });
+  await hqCost.fill('1250'); await hqCost.press('Tab');
+  await page.getByRole('button', { name: /📦 ใบขอเบิกจากสาขา/ }).click();
+  await ship();
   await expect(hqReq).toContainText('HQ จัดส่งแล้ว — รอสาขายืนยันรับ');
+  await app.settle();
+  const FR = (await app.state()).FR;
+  expect(FR.hqStock.find((h: any) => h.code === 'EV-140')).toMatchObject({ qty: 90, cost: 1250 });
+  expect(FR.reqs.find((r: any) => r.no === 'REQ-6910-0001')).toMatchObject({ status: 'shipped', costed: true,
+    items: [{ code: 'EV-140', qty: 10, apQty: 10, cost: 1250 }] });
   await signOut(page);
 
-  // B001 receives: asked the unit cost of the new item first.
+  // B001 receives the new item at HQ's cost: no question about it.
   await app.login('b001', '1234');
   await page.getByRole('button', { name: /07 สต๊อกอะไหล่/ }).click();
   await page.getByRole('button', { name: '★ เบิกสินค้าจาก HQ' }).click();
   const before = (await app.state()).DB;
   expect(before.stock.some((s: any) => s.code === 'EV-140')).toBe(false);
-  const receive = async () => {
-    await myReq.getByRole('button', { name: '✔ ยืนยันรับของเข้าสต๊อก' }).click();
-    await page.getByRole('button', { name: 'รับของเข้าสต๊อก', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'ทุนของสินค้าใหม่' })).toBeVisible();
-    await expect(page.getByText('สินค้า 1 รายการยังไม่มีในทะเบียนของสาขา — กรอกทุนต่อหน่วย (ใช้เป็นต้นทุน FIFO และทุนในทะเบียน)', { exact: true })).toBeVisible();
-  };
-  // Without a cost: refused, nothing received.
-  await receive();
-  await page.getByRole('button', { name: 'รับของเข้าสต๊อก', exact: true }).click();
-  await expect(page.getByText('กรอกทุนต่อหน่วยของสินค้าใหม่ให้ครบทุกรายการ', { exact: true }).filter({ visible: true })).toBeVisible();
-  await expect(myReq).toContainText('HQ จัดส่งแล้ว — รอสาขายืนยันรับ');
-  // With 1,250.00 a metre.
-  await receive();
-  await page.getByLabel('ทุนต่อหน่วย EV-140').fill('1250');
+  await myReq.getByRole('button', { name: '✔ ยืนยันรับของเข้าสต๊อก' }).click();
   await page.getByRole('button', { name: 'รับของเข้าสต๊อก', exact: true }).click();
   await expect(myReq).toContainText('รับของเข้าสต๊อกแล้ว');
+  await expect(page.getByText('ทุนของสินค้าใหม่', { exact: true })).toBeHidden();
   await app.settle();
   const after = (await app.state()).DB;
   const item = after.stock.find((s: any) => s.code === 'EV-140');
