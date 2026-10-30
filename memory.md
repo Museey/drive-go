@@ -22,9 +22,9 @@
   `tests/db/shop-open.test.mjs`, S258 S259, `docs/STAFF-TOOLS.md`, image มี shop-admin และ image-smoke ลองเปิดร้าน)
 - **เอาส่วนของสำเนาทดสอบออก (เจ้าของเลือกทางเลือก ก 2026-10-30)**: ระบบใหม่ซ่อนใน `frontend/css/01.css`, ตัวทดสอบซ่อนชุดเดียวกันในไฟล์ legacy
   (`tests/support/browser.mjs` `TEST_COPY_HIDDEN` ต้องตรงกับบรรทัดท้าย 01.css), ปุ่มข้อมูลตัวอย่างเฉพาะร้านทดลอง (65-licence.js + route.ts), S260
-  **ขั้นต่อไปหลัง push**: CI จะล้มที่ภาพทุกสถานการณ์ (ภาพเฉลยยังมีแถบ) → รัน workflow "Record screenshot goldens (P4)"
-  (`record-screenshots.yml`, workflow_dispatch บน branch หลัก) มันบันทึกภาพจากระบบเดิมแล้ว commit เอง → ตรวจว่า CI ของ commit นั้นผ่านทั้งสองระบบ
-  เจ้าของอนุมัติการบันทึกเฉลยใหม่ครั้งนี้แล้ว (กติกา 3) ห้ามบันทึกภาพจากระบบใหม่
+  ภาพเฉลยบันทึกใหม่แล้วด้วย workflow P4 (148 ภาพ, commit cba1c89 ของ github-actions) → รอ CI ของ commit ถัดไปผ่านทั้งสองระบบ
+  แล้วแจ้งเจ้าของ (เจ้าของขอให้แจ้งผล CI) · workflow P4 commit แล้ว CI ไม่รันเอง ต้อง push commit ต่อจากนั้น
+  ห้าม push ระหว่าง workflow P4 รัน (มัน push เองตอนจบ) · ห้ามบันทึกภาพจากระบบใหม่
 
 ## สิ่งที่รอเจ้าของโปรเจกต์
 
