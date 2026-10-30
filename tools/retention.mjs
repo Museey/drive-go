@@ -3,10 +3,13 @@
 // removal day, if it was told at least 30 days before and has not renewed, everything of the shop is removed
 // for good but its change history, which is kept 5 more years (owner's answer of 2026-10-26, as R15) and then
 // removed with the shop (purge). Staff tell the shop by phone during the pilot (15.4): the notices
-// are printed for them; e-mail and running this on a schedule wait for the providers of task 3.16.
+// are printed for them; e-mail waits for a provider (LAUNCH-CHECKLIST stage 3).
+//
+// On the server the scheduled job does this each night (tools/nightly.mjs), without telling anyone: it lists the shops
+// to call, and staff record each call with `tools/shop-admin.mjs told` (docs/STAFF-TOOLS.md).
 //
 //   node tools/retention.mjs                 what would be done today (nothing is changed)
-//   node tools/retention.mjs --apply         tell the shops and remove the data that is due
+//   node tools/retention.mjs --apply         record every due notice as given, print them, and remove the data that is due
 //   options: --db URL (or MIGRATE_DATABASE_URL, the owner), --by NAME, --day yyyy-mm-dd (as if run that day)
 import { userInfo } from 'node:os';
 import { parseArgs } from 'node:util';

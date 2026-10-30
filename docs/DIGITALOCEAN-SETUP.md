@@ -44,7 +44,8 @@ server ทดสอบนี้ใช้ข้อมูลทดลองเท�
 ## ส่วนที่ 3: สร้างแอปจาก GitHub (ราว 30 นาที)
 
 ไฟล์ที่ DigitalOcean ใช้อยู่ใน repo แล้ว: `Dockerfile` (วิธีสร้างแอป) และ `.do/app.yaml` (ตั้งค่าแอป: เครื่อง 1 GB ที่สิงคโปร์,
-งาน migrate ที่ปรับโครงสร้างฐานข้อมูลก่อน deploy ทุกครั้ง, การผูกกับฐานข้อมูล) แอปจะ deploy จาก branch **`deploy/test`**
+งาน migrate ที่ปรับโครงสร้างฐานข้อมูลก่อน deploy ทุกครั้ง, งาน nightly ทุกคืน 03:17 น. (ลบข้อมูลร้านที่ครบกำหนดและไฟล์ที่ถูกลบเกิน 30 วัน
+ดู [STAFF-TOOLS.md](STAFF-TOOLS.md)), การผูกกับฐานข้อมูล) แอปจะ deploy จาก branch **`deploy/test`**
 ซึ่ง CI ขยับให้เองหลังทดสอบผ่านครบเท่านั้น **เริ่มส่วนนี้เมื่อ Claude บอกว่า branch `deploy/test` พร้อมแล้ว**
 
 1. **สร้าง user ของแอปในฐานข้อมูล**: Databases → **drivego-test-db** → แท็บ **Users & Databases** → Add new user →
@@ -57,11 +58,14 @@ server ทดสอบนี้ใช้ข้อมูลทดลองเท�
    - ชื่อแอป **drivego-test** โปรเจกต์ **DriveGo test** → Create Resources ครั้งแรกอาจ deploy ไม่ผ่าน ไม่เป็นไร
 3. **ใช้ไฟล์ตั้งค่าของเรา**: ในแอป → **Settings** → หัวข้อ **App Spec** → Edit
    → ลบของเดิมทั้งหมด → วางเนื้อหาของ https://github.com/Museey/drive-go/blob/deploy/test/.do/app.yaml (กดปุ่ม Raw แล้วคัดลอกทั้งหมด) → Save
-   จะมีส่วนประกอบ **web** (แอป) และ **migrate** (งานก่อน deploy) และผูกกับ **drivego-test-db**
-4. **ใส่รหัสเจ้าของฐานข้อมูลให้งาน migrate** (ห้ามส่งในแชต):
+   จะมีส่วนประกอบ **web** (แอป), **migrate** (งานก่อน deploy) และ **nightly** (งานทุกคืน) และผูกกับ **drivego-test-db**
+4. **ใส่รหัสเจ้าของฐานข้อมูลให้งาน migrate และงาน nightly** (ห้ามส่งในแชต):
    - Databases → drivego-test-db → **Connection Details** → User: **doadmin** · แบบ **Connection string** → Copy
    - แอป → Settings → ส่วนประกอบ **migrate** → **Environment Variables** → Edit → Add
      Key: **`MIGRATE_DATABASE_URL`** · Value: วางที่คัดลอกมา · ติ๊ก **Encrypt** → Save
+   - ทำซ้ำกับส่วนประกอบ **nightly** (Key และ Value เดียวกัน ติ๊ก Encrypt)
+   - งาน nightly ที่ล้ม หรือที่มีร้านต้องโทรแจ้ง DigitalOcean ส่งอีเมลแจ้งเตือน (กฎ `JOB_INVOCATION_FAILED`) ถึงอีเมลของบัญชี
+     ว่าทำอะไรต่อดู [STAFF-TOOLS.md](STAFF-TOOLS.md) "งานทุกคืน"
 5. **ให้ฐานข้อมูลรับเฉพาะแอป**: Databases → drivego-test-db → **Settings** → **Trusted sources** → Edit → เพิ่มแอป **drivego-test** → Save
 6. **Deploy**: แอป → ปุ่ม **Actions** → **Force rebuild and deploy** รอจนขึ้นสีเขียว (ราว 10 นาที)
    ถ้าไม่ผ่าน: แท็บ **Activity** → deploy ล่าสุด → ดู log ของ **migrate** หรือ **web** แล้วคัดลอกข้อความ error ส่งให้ Claude ได้ (log ไม่มีรหัส)
@@ -82,6 +86,7 @@ server ทดสอบนี้ใช้ข้อมูลทดลองเท�
 |---|---|
 | Managed PostgreSQL Basic 1 GB | ราว $15 |
 | App Platform เครื่อง 1 GB | ราว $12 |
+| งาน migrate และ nightly | คิดเฉพาะเวลาที่รัน (ไม่กี่วินาทีต่อครั้ง) แทบไม่มีค่าใช้จ่าย |
 | **รวม** | **ราว $27 (ประมาณ 950 บาท)** |
 
 ฐานข้อมูลเริ่มคิดเงินทันทีที่สร้าง (คิดตามชั่วโมง) ถ้าจะหยุดพักนาน ลบได้แล้วสร้างใหม่ทีหลัง (server ทดสอบไม่มีข้อมูลจริง)

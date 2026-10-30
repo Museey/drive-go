@@ -2,7 +2,8 @@
 // only takes TLS with a certificate of its own CA (as the managed database), the app's user drivego_app made beforehand
 // with a password (as in the control panel), then the pre-deploy job twice (the schema and the demo shops, then nothing
 // left to do) and the web container: health, a shop's page, signing in; then the staff tool opens a real shop and
-// gives its owner a new password (docs/STAFF-TOOLS.md), and the owner signs in. Used by CI before the deploy branch moves.
+// gives its owner a new password (docs/STAFF-TOOLS.md), and the owner signs in; the scheduled job (tools/nightly.mjs).
+// Used by CI before the deploy branch moves.
 //
 //   docker build -t drivego:smoke . && node tools/image-smoke.mjs [image]
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -90,6 +91,18 @@ try {
   if (reset.status !== 0 || !passOf(reset)) fail(`shop-admin password:\n${reset.stdout}${reset.stderr}`);
   if ((await signInAs(passOf(opened))).status === 200 || (await signInAs(passOf(reset))).status !== 200) fail('the new password did not replace the old one');
   say('staff tool: opened a real shop, its owner signed in; a new password replaced the old one');
+
+  // The scheduled job (.do/app.yaml nightly) as App Platform runs it: nothing due today; on a day after the trials
+  // ended it lists the real shop to call (and changes nothing) and leaves the demo shops to staff, ending with 3.
+  const nightly = (...args) => docker(['run', '--rm', '--network', 'host', '-e', `MIGRATE_DATABASE_URL=${owner}`, '-e', 'DATABASE_CA_CERT',
+    image, 'node', 'tools/nightly.mjs', ...args]);
+  const tonight = nightly();
+  if (tonight.status !== 0 || !/: 0 removal\(s\), 0 file\(s\) removed, 0 shop\(s\) to call/.test(tonight.stdout)) fail(`nightly:\n${tonight.stdout}${tonight.stderr}`);
+  const day = new Date(Date.now() + 200 * 86400_000).toISOString().slice(0, 10);   // trials (60 days) ended, removal (+90) near
+  const later = nightly('--day', day);
+  if (later.status !== 3 || !/^CALL {3}smoke-real /m.test(later.stdout) || !/^DEMO {3}demo-biz:/m.test(later.stdout)) fail(`nightly --day ${day}:\n${later.stdout}${later.stderr}`);
+  if (nightly('--day', day).status !== 3) fail('nightly recorded a notice nobody gave');
+  say('nightly job: nothing due today; later it lists the shop to call and the demo shops, and ends with 3');
   console.log('image smoke test passed');
 } catch (e) {
   if (web) console.error(docker(['logs', web]).stdout.slice(-3000), docker(['logs', web]).stderr.slice(-3000));

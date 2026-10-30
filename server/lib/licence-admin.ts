@@ -148,7 +148,7 @@ export async function retentionDue(db: pg.Pool, on = today()): Promise<Due[]> {
 export type Tell = (d: Due, removalOn: string) => Promise<void>;
 
 // Carries out one due action, checking again under lock that it is still due (a renewal in between wins).
-export async function carryOut(db: pg.Pool, d: Due, o: { actor: string; on?: string; tell: Tell }): Promise<boolean> {
+export async function carryOut(db: pg.Pool, d: Due, o: { actor: string; on?: string; tell: Tell; note?: string }): Promise<boolean> {
   const on = o.on ?? today();
   return withShop(db, d.shop.id, '*', async c => {
     const { rows } = await c.query<LicenceRow>(`select ${COLUMNS} from licences where shop_id = app_shop() for update`);
@@ -169,7 +169,7 @@ export async function carryOut(db: pg.Pool, d: Due, o: { actor: string; on?: str
       const removal = daysBetween(on, l.deleteOn) >= NOTICE_DAYS ? l.deleteOn : addDays(on, NOTICE_DAYS);
       await c.query('update licences set notice_sent_on = $1, delete_on = $2, updated_at = now() where shop_id = app_shop()', [on, removal]);
       await o.tell(d, removal);
-      await log(c, d.shop, o.actor, 'notice', { removalOn: removal, contact: l.contact });
+      await log(c, d.shop, o.actor, 'notice', { removalOn: removal, contact: l.contact, ...o.note ? { note: o.note } : {} });
       return true;
     }
     if (!l.noticeSentOn || on < l.deleteOn || daysBetween(l.noticeSentOn, on) < NOTICE_DAYS) return false;
@@ -190,5 +190,23 @@ export async function carryOut(db: pg.Pool, d: Due, o: { actor: string; on?: str
 }
 
 const pgIdent = (t: string) => '"' + t.replace(/"/g, '""') + '"';
+
+// Staff told the shop that its data will be removed (by phone during the pilot, 15.4; the scheduled job only lists
+// whom to call, server/lib/nightly.ts): the notice of the retention run, recorded once the shop was really told.
+// Only when it is due (NOTICE_DAYS before the removal day, or later: then the removal moves, as in carryOut).
+export async function recordNotice(db: pg.Pool, code: string, o: { actor: string; on?: string; note?: string }): Promise<{ removalOn: string }> {
+  const on = o.on ?? today();
+  const s = await shopOf(db, code);
+  const d = (await retentionDue(db, on)).find(x => x.shop.id === s.id);
+  if (!d || d.action !== 'notice') {
+    const [shop] = (await listShops(db, { on })).filter(x => x.id === s.id);
+    const l = shop?.licence;
+    throw new Error(!l || on <= l.end ? `${code}: the licence has not ended` : l.removedOn ? `${code}: data removed on ${l.removedOn}`
+      : l.noticeSentOn ? `${code}: told on ${l.noticeSentOn} already (removal ${l.deleteOn})` : `${code}: not due yet: from ${addDays(l.deleteOn, -NOTICE_DAYS)}`);
+  }
+  let removalOn = '';
+  if (!await carryOut(db, d, { actor: o.actor, on, note: o.note, tell: async (_, r) => { removalOn = r; } })) throw new Error(`${code}: no longer due`);
+  return { removalOn };
+}
 
 export { HISTORY_YEARS, KEEP_DAYS, NOTICE_DAYS };

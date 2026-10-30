@@ -8,7 +8,7 @@
 //   node tools/files.mjs restore <shop code> <file id> [--branch B001] [--replace]
 //        puts a deleted file back where the data last referred to it (30 days)
 //   node tools/files.mjs purge [<shop code>]
-//        removes for good what was deleted more than 30 days ago (until the server has a scheduler, task 3.16)
+//        removes for good what was deleted more than 30 days ago (the nightly job does it too, tools/nightly.mjs)
 import pg from 'pg';
 import { pgConfig } from '../server/lib/pg-config.ts';
 import { withShop } from '../server/lib/db.ts';

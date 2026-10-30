@@ -5,6 +5,9 @@
 # · migrate: runs before every deploy (PRE_DEPLOY) as the database owner: the schema, and the demo shops while the
 #   database has none (SEED_DEMO_SHOPS: a test server only). If it fails, the deploy stops and the running version stays.
 #   Its MIGRATE_DATABASE_URL (the connection string of doadmin) is a secret typed in the control panel, never here.
+# · nightly: each night at 03:17 Bangkok time, the data removals that are due and the deleted attachments
+#   (tools/nightly.mjs, docs/STAFF-TOOLS.md). As the database owner too (its own MIGRATE_DATABASE_URL secret). It never
+#   tells a shop itself: shops staff must call end the run with status 3, so JOB_INVOCATION_FAILED e-mails the team.
 # · db: the managed cluster drivego-test-db made by hand (part 2); the app connects as drivego_app (made in the control
 #   panel before the first deploy), which Row-Level Security applies to. The cluster only takes TLS: DATABASE_CA_CERT
 #   carries its CA (server/lib/pg-config.ts).
@@ -55,6 +58,27 @@ jobs:
       - key: SEED_DEMO_SHOPS
         scope: RUN_TIME
         value: "1"
+  - name: nightly
+    kind: SCHEDULED
+    schedule:
+      cron: "17 3 * * *"
+      time_zone: Asia/Bangkok
+    timeout: 30m
+    github:
+      repo: Museey/drive-go
+      branch: deploy/test
+      deploy_on_push: true
+    source_dir: /
+    dockerfile_path: Dockerfile
+    run_command: node tools/nightly.mjs
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    instance_count: 1
+    envs:
+      - key: DATABASE_CA_CERT
+        scope: RUN_TIME
+        value: ${db.CA_CERT}
+    alerts:
+      - rule: JOB_INVOCATION_FAILED
 databases:
   - name: db
     engine: PG

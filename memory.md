@@ -25,6 +25,11 @@
   ภาพเฉลยบันทึกใหม่ด้วย workflow P4 (148 ภาพ, cba1c89) · S119 ปิดแถวอายุการใช้งานในภาพ (9db54db) · **CI รอบ 135 ผ่านทุก job (เสร็จ)**
   วิธีใช้ P4: workflow_dispatch `record-screenshots.yml` บน branch หลัก, ห้าม push ระหว่างรัน (มัน push เองตอนจบ),
   commit ของมันไม่สั่ง CI ต้อง push commit ต่อจากนั้น · ห้ามบันทึกภาพจากระบบใหม่
+- **งานทุกคืน (nightly) เสร็จ 2026-10-30**: `.do/app.yaml` job SCHEDULED 03:17 Asia/Bangkok, `server/lib/nightly.ts`, `tools/nightly.mjs`,
+  `shop-admin told`, `tests/db/nightly.test.mjs`, image-smoke · **งานไม่จดว่าแจ้งร้านเอง** (ทีมงานโทร 15.4) จบด้วย 3 ให้ DO ส่งอีเมลเตือน
+  spec ของ DO ยืนยันจาก github.com/digitalocean/godo apps.gen.go (docs.digitalocean.com เปิดไม่ได้) · ต่อไป: แจ้งเตือนเมื่อระบบมีปัญหา → ตรวจความปลอดภัย → k6
+- Docker Hub ตอบ 429 (ดึง node base image ไม่ได้) ใน session นี้: ทดสอบ image ด้วย overlay บน `drivego:smoke` เดิม
+  (`FROM drivego:smoke` + COPY server/lib, tools) ถ้าไม่ได้แก้ส่วนที่ build ของ web
 - ค้าง (ไม่เร่ง): S16 ระบบใหม่พังเป็นครั้งคราว แถบเลขหน้า "‹ 1 ›" ของรายการ 4.2 หายตอนถ่ายภาพ (NOTES.md "เกิดอีก 2026-10-30") ถ้าเกิดอีกให้หาสาเหตุ ไม่ใช่รันซ้ำ
 
 ## สิ่งที่รอเจ้าของโปรเจกต์

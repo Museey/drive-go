@@ -142,8 +142,8 @@ export async function keepForBackup(c: pg.ClientBase, branch: string, key: strin
 
 // Removes for good the files deleted more than 30 days ago that no backup
 // point refers to, and treats an upload no save referred to within a day as
-// deleted. Done lazily at each upload and by tools/files.mjs until the
-// server has a scheduler (task 3.16). branch: one branch, or every one in reach.
+// deleted. Done lazily at each upload, each night (server/lib/nightly.ts) and
+// by tools/files.mjs. branch: one branch, or every one in reach.
 export async function purgeFiles(c: pg.ClientBase, branch?: string): Promise<{ branch: string; id: string }[]> {
   const only = branch === undefined ? '' : 'and f.branch_id = $2';
   const at = branch === undefined ? [] : [branch];

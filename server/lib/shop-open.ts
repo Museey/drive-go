@@ -26,7 +26,9 @@ export interface RealShop {
 
 // A code is the shop's address (/<code>/): small letters, digits and hyphens, not a path of the app itself.
 const CODE = /^[a-z0-9][a-z0-9-]{2,31}$/;
-const RESERVED = new Set(['api', 'demo-biz', 'demo-prox', 'demo-franchise']);
+// DriveGo's own demo shops (tools/demo-shops.mjs: a local run and the test server).
+export const DEMO_CODES = ['demo-biz', 'demo-prox', 'demo-franchise'];
+const RESERVED = new Set(['api', ...DEMO_CODES]);
 
 // A password to read out over the phone: no letters that look alike (0/O, 1/l/I).
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';

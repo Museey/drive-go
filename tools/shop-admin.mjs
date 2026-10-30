@@ -21,13 +21,15 @@
 //                                                             the shop stops: read-only after its last day (default yesterday),
 //                                                             data removed 90 days later
 //   node tools/shop-admin.mjs contact CODE TEXT               who to call or e-mail about renewal and removal
+//   node tools/shop-admin.mjs told CODE [--note TEXT]          the shop was told (by phone) that its data will be removed:
+//                                                             the 30 days to the removal start (the nightly job lists whom to call)
 //
 // Connection: --db URL or MIGRATE_DATABASE_URL (the owner, as for migrations). Days are yyyy-mm-dd.
 import { userInfo } from 'node:os';
 import { parseArgs } from 'node:util';
 import pg from 'pg';
 import { pgConfig } from '../server/lib/pg-config.ts';
-import { close, listShops, openLicence, postpone, renew, setContact, shopOf } from '../server/lib/licence-admin.ts';
+import { close, listShops, openLicence, postpone, recordNotice, renew, setContact, shopOf } from '../server/lib/licence-admin.ts';
 import { today } from '../server/lib/licence.ts';
 import { openRealShop, resetPassword } from '../server/lib/shop-open.ts';
 
@@ -111,6 +113,11 @@ try {
     case 'contact':
       show(await setContact(db, need(code, 'CODE'), { contact: need(rest.join(' '), 'TEXT'), actor }));
       break;
+    case 'told': {
+      const r = await recordNotice(db, need(code, 'CODE'), { actor, note: o.note });
+      console.log(`${code}: told; its data will be removed on ${r.removalOn} unless it renews (node tools/shop-admin.mjs renew …)`);
+      break;
+    }
     default:
       usage();
   }
