@@ -175,6 +175,39 @@ describe('ของขาดเป็นต้นทุนขาย (ผู้�
   });
 });
 
+describe('ทุนของเกินจากการตรวจนับ (ผู้ทำบัญชี 4.2)', () => {
+  test('อนุมัติใบตรวจนับที่มีของเกินได้เฉพาะผู้ที่เห็นทุน และต้องยืนยันทุนทุกรายการพร้อมหลักฐาน', async () => {
+    const { check, put, grant } = await shop();
+    const count = { id: 'sc1', no: 'MA-CT261000099', applied: false, items: [{ stockId: 's1', sysQty: 5, countedQty: 3 }, { stockId: 's2', sysQty: 1, countedQty: 2 }] };
+    await put('DB.stockCounts', 'sc1', count);
+    const items = [count.items[0], { ...count.items[1], surplusCost: 150 }];
+    const surplus = { note: 'ใบกำกับภาษีที่ซื้อครั้งล่าสุด', date: '2026-10-13', by: '', byName: 'เจ้าของ' };
+    const approved = save(['DB.stockCounts', 'sc1', { ...count, applied: true, items, surplus }]);
+    assert.equal(await check('owner', approved), null);
+    assert.equal(await check('owner', save(['DB.stockCounts', 'sc1', { ...count, applied: true }])), 'DB.stockCounts|sc1: surplus cost');
+    assert.equal(await check('owner', save(['DB.stockCounts', 'sc1', { ...count, applied: true, items }])), 'DB.stockCounts|sc1: surplus cost');
+    assert.equal(await check('owner', save(['DB.stockCounts', 'sc1', { ...count, applied: true, items, surplus: { ...surplus, note: ' ' } }])), 'DB.stockCounts|sc1: surplus cost');
+    await grant('EMP008', 'apv.count');
+    assert.equal(await check('EMP008', approved), 'DB.stockCounts|sc1: surplus cost');
+    // Only a shortage: the approval needs no cost.
+    const short = { ...count, id: 'sc2', no: 'MA-CT261000097', items: [count.items[0]] };
+    await put('DB.stockCounts', 'sc2', short);
+    assert.equal(await check('EMP008', save(['DB.stockCounts', 'sc2', { ...short, applied: true }])), null);
+    await grant('EMP008', 'stock.cost');
+    assert.equal(await check('EMP008', approved), null);
+    // Saved already approved (sample data, a backup, an import): someone who sees costs.
+    const fresh = { ...count, id: 'sc3', no: 'MA-CT261000096', applied: true };
+    assert.equal(await check('owner', save(['DB.stockCounts', 'sc3', fresh])), null);
+  });
+  test('ผู้ที่ไม่เห็นทุนอนุมัติใบตรวจนับที่มีของเกินไม่ได้ แม้บันทึกและอนุมัติในคราวเดียว', async () => {
+    const { check, grant } = await shop();
+    await grant('EMP008', 'apv.count');
+    const fresh = { id: 'sc3', no: 'MA-CT261000098', applied: true, items: [{ stockId: 's2', sysQty: 1, countedQty: 2 }] };
+    assert.equal(await check('EMP008', save(['DB.stockCounts', 'sc3', fresh])), 'DB.stockCounts|sc3: surplus cost');
+    assert.equal(await check('EMP008', save(['DB.stockCounts', 'sc3', { ...fresh, items: [{ stockId: 's2', sysQty: 2, countedQty: 1 }] }])), null);
+  });
+});
+
 describe('เงินเดือน (งาน 3.7–3.9)', () => {
   const period = (id, month, more = {}) => ({ id, month, label: 'งวด', date: '2026-10-31', lines: [], totals: {}, ...more });
   test('บันทึกเงินเดือนต้องมีสิทธิ์บันทึกค่าใช้จ่ายและสิทธิ์ดูเงินเดือน เดือนหนึ่งมีงวดที่ใช้อยู่งวดเดียว', async () => {

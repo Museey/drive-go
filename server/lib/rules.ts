@@ -17,6 +17,9 @@
 //   selling short         a sale, a revision or a customer claim that takes stock below zero: the owner or an approval right (59-stock-fifo.js)
 //   shortage to cost      a stock count's shortage moved to the cost of goods sold (toCogs, accountant review 4.3): the owner
 //                         or "อนุมัติใบตรวจนับ" (apv.count), and only added to
+//   a count's surplus     approving a stored count that has goods over (applied): by someone who sees costs, with the unit cost
+//                         of each confirmed and the evidence noted (accountant review 4.2, 59-stock-fifo.js); a count saved
+//                         already applied (sample data, a backup, an import, or saved and approved at once): someone who sees costs
 //   payroll               DB.payroll: the owner, or "บันทึกค่าใช้จ่าย" with the pay right (60-payroll.js); one period per month
 //                         that is not cancelled
 //   expenses, assets,     "บันทึกค่าใช้จ่าย สินทรัพย์ และเงินลงทุน" (doc.acctEdit), except marking an expense paid and paying
@@ -31,6 +34,7 @@
 // that is not signed in as an employee.
 import type pg from 'pg';
 import type { Actor } from './permissions.ts';
+import { COST_JOBS } from './visibility.ts';
 import type { Changes } from './units.ts';
 
 type Rec = Record<string, unknown>;
@@ -213,6 +217,21 @@ async function toCogsRules(s: Save, who: Who): Promise<string | null> {
   return null;
 }
 
+// A count's surplus approved (accountant review 4.2): the approver sees costs and confirmed each unit cost with evidence.
+async function surplusRules(s: Save, who: Who): Promise<string | null> {
+  if (!s.units().has('DB.stockCounts')) return null;
+  const seesCost = who.owner || COST_JOBS.some(k => who.can(k));
+  for (const t of await s.touched('DB.stockCounts')) {
+    if (!t.now?.applied || t.now.cancelled || t.old?.applied) continue;
+    const over = ((t.now.items as Rec[] | undefined) || []).filter(it => isObj(it) && num(it.countedQty) > num(it.sysQty));
+    if (!over.length) continue;
+    if (!seesCost) return `DB.stockCounts|${t.key}: surplus cost`;
+    if (t.old && (over.some(it => !(num(it.surplusCost) > 0)) || !String((t.now.surplus as Rec | undefined)?.note ?? '').trim()))
+      return `DB.stockCounts|${t.key}: surplus cost`;
+  }
+  return null;
+}
+
 async function shortRules(s: Save, who: Who): Promise<string | null> {
   const approver = who.owner || ['quote', 'receipt', 'tax', 'gr', 'claim', 'issue', 'count', 'billing', 'invoice'].some(k => who.can(`apv.${k}`));
   if (approver || !s.units().has('DB.stock')) return null;
@@ -354,7 +373,7 @@ async function settingsRules(s: Save, who: Who, pkg: string): Promise<string | n
 export async function refuseRules(c: pg.ClientBase, a: Actor, branch: string, key: string, changes: Changes): Promise<string | null> {
   if (!/^garage\.v22/.test(key)) return null;
   const s = new Save(c, branch, changes), who = await whoOf(c, a);
-  for (const rule of [taxPeriodRules, creditNoteRules, noVatRules, shortRules, toCogsRules, payrollRules, moneyRules, cancelRules, peopleRules,
+  for (const rule of [taxPeriodRules, creditNoteRules, noVatRules, shortRules, toCogsRules, surplusRules, payrollRules, moneyRules, cancelRules, peopleRules,
     (x: Save, w: Who) => settingsRules(x, w, a.pkg)]) {
     const r = await rule(s, who);
     if (r) return r;

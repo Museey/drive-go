@@ -23,6 +23,7 @@
    post:d=>{if(!d.deducted&&isItemsClean(d).length){postIssue(d);logAudit('issue',d,'deduct3','ตัดสต๊อกเบิกใช้ภายใน '+isItemsClean(d).length+' รายการ');}},
    after:()=>{call('renderIssueList');call('renderStock');}},
   count:{list:()=>DB.stockCounts,row:()=>'stkCount',ok:()=>can('apv.count'),open:'SC',
+   hold:d=>window.PKG_STOCK_FIFO&&PKG_STOCK_FIFO.surplusOf(d).length?'มีของเกินที่ต้องยืนยันทุน (อนุมัติทีละใบ)':'',   /* accountant review 4.2 (59-stock-fifo.js) */
    post:d=>{if(!d.applied&&(d.items||[]).length){postCount(d);logAudit('count',d,'adjust','ปรับยอด '+(d.items||[]).filter(it=>n(it.countedQty)!==n(it.sysQty)).length+' รายการ');}},
    after:()=>{call('renderCountList');call('renderStock');}}};
  const REG={qOvTbl:['quote'],docOvTbl:['receipt','invoice'],bnTbl:['billing'],clTbl:['claim'],isTbl:['issue'],scTbl:['count']};
@@ -35,6 +36,7 @@
    if(window.PKG_BRANCH&&!PKG_BRANCH.here(d))return miss('เป็นเอกสารของสาขาอื่น — สลับสาขาก่อน');
    if(has('pkgOwnOk')&&!pkgOwnOk(k.row(d),d))return miss('ไม่ใช่เอกสารของตนเอง');   /* same limit as opening it */
    if(!k.ok(d))return miss('ไม่มีสิทธิ์อนุมัติ');
+   if(k.hold&&k.hold(d))return miss(k.hold(d));
    if(st==='approved')return miss('อนุมัติแล้ว');if(st==='rejected')return miss('ตีกลับ');ok.push({key,kind,d});});
   const skipped=Object.values(skip).reduce((a,b)=>a+b,0),why=Object.entries(skip).map(([k,v])=>k+' '+v).join(' · ');
   if(!ok.length)return toast('ไม่มีใบที่อนุมัติได้ในรายการที่เลือก'+(skipped?' — '+why:''));

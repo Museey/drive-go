@@ -129,6 +129,7 @@
   const k=docBook(d.no),L=shortLeft(d),sold=live(d),nos=[...new Set(sold.map(x=>x.no))],mv=d.toCogs||[],mc=movedOf(d);
   box.style.display='';
   box.innerHTML=(costOk()?'ลงบัญชีตามทุน FIFO: ค่าใช้จ่ายสินค้าขาด <b>'+money(r2(k.out-mc))+'</b> บาท'+(mv.length?' · ต้นทุนขาย <b>'+money(mc)+'</b> บาท':'')+' · รายได้อื่น (สินค้าเกิน) <b>'+money(k.in)+'</b> บาท':'')
+   +(costOk()&&d.surplus?'<div>ทุนของเกินยืนยันโดย '+esc(d.surplus.byName||'')+': '+surplusText(d)+' — หลักฐาน: '+esc(d.surplus.note||'')+'</div>':'')
    +(nos.length?'<div>ขายของที่ขาดให้ผู้รับผิดชอบแล้ว: '+nos.map(no=>esc(no)+' ('+sold.filter(x=>x.no===no).map(x=>{const s=stockOf(x.stockId);return esc(s?s.code:'')+' × '+qf(x.qty);}).join(', ')+')').join(' · ')+'</div>':'')
    +(mv.length?'<div>ปรับเป็นต้นทุนขายแล้ว: '+mv.map(x=>esc(x.code)+' × '+qf(x.qty)+' ('+esc(x.reason)+')').join(' · ')+'</div>':'')
    +(L.length?'<div style="margin-top:6px"><button type="button" class="btn gh sm" id="pkgScSell">เปิดใบขายให้ผู้รับผิดชอบ</button>'
@@ -157,6 +158,46 @@
  }
  if(typeof AUD_ACT==='object')AUD_ACT.cogs='ปรับของขาดเป็นต้นทุนขาย';
  if(typeof fillCountForm==='function'){const o=fillCountForm;window.fillCountForm=function(){const out=o.apply(this,arguments);try{countBox();}catch(e){}return out;};}
+
+ /* ---------- a count's surplus: its cost confirmed by the approver (accountant review 4.2, the owner's decision of 2026-10-29) ----------
+    The lot the surplus opens takes the unit cost the approver confirms — the register cost is filled in, to change when
+    the evidence says otherwise — with the evidence noted on the count and in its history. Whoever may not see costs
+    cannot approve such a count; the approval of several at once leaves it for its own window (24.js). */
+ const surplusOf=d=>(d&&!d.applied&&!d.cancelled?d.items||[]:[]).filter(it=>it&&n(it.countedQty)-n(it.sysQty)>EPS&&stockOf(it.stockId));
+ const surplusText=d=>(d.items||[]).filter(it=>it&&it.surplusCost!=null).map(it=>esc(it.code)+' × '+qf(n(it.countedQty)-n(it.sysQty))+' ทุน '+money(it.surplusCost)).join(', ');
+ let confirmed=null;   /* the answer for the count being approved: {id, costs: stock id → unit cost, note} */
+ function askSurplus(d){const L=surplusOf(d);
+  if(!costOk()){toast('ใบตรวจนับนี้มีของเกิน '+L.length+' รายการที่ต้องยืนยันทุน — ให้ผู้มีสิทธิ์เห็นต้นทุนอนุมัติ');return Promise.resolve(null);}
+  return new Promise(res=>{
+   const msg='<p>ของเกินเข้าสต๊อกเป็นล็อตใหม่และเป็นรายได้อื่นตามทุนที่ยืนยัน — ช่องทุนใส่ทุนเฉลี่ยในทะเบียนไว้ให้ แก้ตามหลักฐานได้ แล้วกรอกหลักฐานของทุนในช่องด้านล่าง</p>'
+    +'<table class="tbl"><thead><tr><th>รหัสสินค้า</th><th>ชื่อสินค้า</th><th class="num">เกิน</th><th class="num">ทุนเฉลี่ย</th><th class="num">ทุนต่อหน่วย</th></tr></thead><tbody>'
+    +L.map((it,k)=>{const s=stockOf(it.stockId);return `<tr><td class="mono">${esc(s.code)}</td><td>${esc(s.name||'')}</td><td class="num">${qf(n(it.countedQty)-n(it.sysQty))}</td><td class="num">${money(n(s.cost))}</td>`
+     +`<td class="num"><input type="number" min="0" step="0.01" class="pkg-surplus" data-k="${k}" value="${r2(n(s.cost))}" aria-label="ทุนต่อหน่วย ${esc(s.code)}" style="width:110px;text-align:right"></td></tr>`;}).join('')+'</tbody></table>';
+   askConfirm({title:'ยืนยันทุนของเกิน'+(d.no?' · ใบตรวจนับ '+d.no:''),msg,input:true,required:true,placeholder:'หลักฐานของทุน เช่น ใบกำกับภาษีที่ซื้อครั้งล่าสุด',
+    yes:'ยืนยันทุนและอนุมัติ',no:'ยังไม่อนุมัติ',
+    onYes:()=>{const costs={};let bad=0;
+     document.querySelectorAll('#askMsg .pkg-surplus').forEach(el=>{const it=L[+el.dataset.k],v=parseFloat(el.value);if(!(v>0))bad++;else costs[it.stockId]=r2(v);});
+     if(bad){toast('กรอกทุนต่อหน่วยของของเกินให้ครบทุกรายการ');return res(null);}
+     res({costs,note:String(($i('askInput')||{}).value||'').trim()});},
+    onNo:()=>res(null)});});}
+ if(typeof approveDoc==='function'){const o=window.approveDoc;
+  window.approveDoc=async function(kind){const d=kind==='count'&&typeof curDoc==='function'?curDoc(kind):null;
+   if(!d||!surplusOf(d).length||!can('apv.count')||apvOf(d).status==='approved')return o.apply(this,arguments);
+   const a=await askSurplus(d);if(!a)return;
+   confirmed=Object.assign({id:d.id},a);
+   try{return await o.apply(this,arguments);}finally{confirmed=null;}};}
+ /* the approval: the confirmed costs go to the lots (the move keeps no cost, as before) and are kept on the count */
+ if(typeof postCount==='function'){const o=window.postCount;
+  window.postCount=function(d){const c=confirmed&&d&&confirmed.id===d.id?confirmed:null,L=c?surplusOf(d):[];
+   if(!L.length)return o.apply(this,arguments);
+   const avg={},mv=pkgFifo.move;L.forEach(it=>{avg[it.stockId]=n(stockOf(it.stockId).cost);it.surplusCost=c.costs[it.stockId];});
+   d.surplus={note:c.note,date:iso(),by:DB.curEmp||'',byName:meName()};
+   pkgFifo.move=function(stockId,type,qty,date,ref,refNo,vendorId,cost){
+    return mv.call(this,stockId,type,qty,date,ref,refNo,vendorId,refNo===d.no&&n(qty)>0&&c.costs[stockId]!=null?c.costs[stockId]:cost);};
+   try{return o.apply(this,arguments);}
+   finally{pkgFifo.move=mv;
+    if(d.applied)logAudit('count',d,'surplus','ยืนยันทุนของเกิน '+L.map(it=>it.code+' × '+qf(n(it.countedQty)-n(it.sysQty))+' ทุน '+money(it.surplusCost)+' (ทุนเฉลี่ย '+money(avg[it.stockId])+')').join(', ')+' — หลักฐาน: '+c.note);}};}
+ if(typeof AUD_ACT==='object')AUD_ACT.surplus='ยืนยันทุนของเกิน';
  function sellShort(id){
   const d=(DB.stockCounts||[]).find(x=>x.id===id),L=shortLeft(d);if(!L.length)return toast('ไม่มีของขาดที่ยังไม่ได้เปิดใบขาย');
   const X=window.PKG_STOCK_CUT,W=X&&X.state;if(!W||typeof X.openNew!=='function')return;
@@ -238,5 +279,5 @@
   const v=q>0?(avg(lots)!=null?avg(lots):avg(al)):avg(al);
   return v!=null?v:(n(m.cost)>0?n(m.cost):null);}
 
- window.PKG_STOCK_FIFO={negOk,negRight,avgOf,book,docBook,shortLeft,sellShort,countBack,cutFromCount,uncutFromCount,newCosts,moveCost};
+ window.PKG_STOCK_FIFO={negOk,negRight,avgOf,book,docBook,shortLeft,sellShort,countBack,cutFromCount,uncutFromCount,newCosts,moveCost,surplusOf};
 })();

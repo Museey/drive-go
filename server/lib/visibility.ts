@@ -31,7 +31,7 @@ export function costRight(perms: unknown): boolean {
 }
 
 // Every place a cost of goods is kept (the register, FIFO lots and allocations, moves, goods receipts, the
-// documents' cost of goods, vendor claims' credit, the ProX catalogue, the sale-flow report, audit notes about them).
+// documents' cost of goods, a stock count's confirmed surplus cost, vendor claims' credit, the ProX catalogue, the sale-flow report, audit notes about them).
 export const COST_MASKS: Mask[] = [
   { unit: 'DB.stock', paths: ['cost'] },
   { unit: 'DB.fifo.lots', paths: ['cost'] },
@@ -41,6 +41,7 @@ export const COST_MASKS: Mask[] = [
   { unit: 'DB.stockCuts', paths: ['lines[].cost', 'cost'] },
   { unit: 'DB.transfers', paths: ['lines[].cost'] },
   { unit: 'DB.custClaims', paths: ['lines[].cost'] },
+  { unit: 'DB.stockCounts', paths: ['items[].surplusCost', 'surplus'] },   // a surplus's confirmed cost and its evidence (accountant review 4.2)
   { unit: 'DB.claims', paths: ['items[].result.amt', 'creditAmt', 'recvSummary'] },
   { unit: 'DB.px.catalog', paths: ['[].cost'] },
   { unit: 'DB.px.reqs', paths: ['[].cost'] },

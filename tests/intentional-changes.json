@@ -336,6 +336,12 @@
       "by": "S231-hq-cannot-renew-chain-date-everywhere.spec.ts",
       "decision": "A2, 15.1, 15.7 (task 3.15)",
       "why": "A chain has one licence, DriveGo's, on the server: HQ cannot renew in menu 10 (no button, dates read-only) and saves keep the licence's dates, so S120's renewal step cannot happen; HQ's menu 10 step, the branch head's sign-in and their home screen (without the licence line) are S120's."
+    },
+    {
+      "scenario": "S32-stock-count-adjust.spec.ts",
+      "by": "S257-count-surplus-cost-confirmed-by-approver.spec.ts",
+      "decision": "accountant review 4.2, owner decision 2026-10-29 (approver confirms the cost of a count's surplus)",
+      "why": "Approving a count with goods over asks the approver for each one's unit cost (register cost filled in) and the evidence; AC-230 is confirmed at 1,650.00, so the surplus lot, the register cost, the count (surplusCost, surplus) and its history differ from S32's. Every other step, screen and data change is checked against S32's goldens."
     }
   ],
   "added": [

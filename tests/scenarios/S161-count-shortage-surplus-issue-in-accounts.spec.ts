@@ -5,7 +5,7 @@ import { test, expect } from '../support/test';
 // what a stock count or an internal issue moved reaches the accounts at its FIFO cost, read from
 // the documents (nothing is added to the expense register, cash does not move):
 // a count's shortage is the expense "สินค้าขาดจากการตรวจนับ", its surplus other income at the
-// register cost, an issue an expense of the category chosen on it. The count and issue windows
+// register cost (the cost the approver confirms since accountant review 4.2, S257), an issue an expense of the category chosen on it. The count and issue windows
 // say what they booked. A shortage can be sold to whoever is responsible ("เปิดใบขายให้ผู้รับผิดชอบ"):
 // the sale takes the count's units back first, so stock is not cut twice and the cost moves from
 // the expense to the cost of sales; while that sale stands the count cannot be cancelled, and
@@ -51,6 +51,9 @@ test('S161 ระบบใหม่: ของขาด/เกินจากก
   const booked = page.getByText(/^ลงบัญชีตามทุน FIFO:/).filter({ visible: true });
   await expect(booked).toHaveCount(0);
   await page.getByRole('button', { name: 'อนุมัติเอกสาร' }).click();
+  // The approver confirms the register cost of what is over (accountant review 4.2, S257).
+  await page.getByPlaceholder('หลักฐาน', { exact: false }).fill('ทุนเฉลี่ยในทะเบียน ราคาซื้อล่าสุดเท่าเดิม');
+  await page.getByRole('button', { name: 'ยืนยันทุนและอนุมัติ' }).click();
   await page.getByRole('button', { name: 'ตกลง' }).click();
   await expect(booked).toContainText('ลงบัญชีตามทุน FIFO: ค่าใช้จ่ายสินค้าขาด 240.00 บาท · รายได้อื่น (สินค้าเกิน) 1,600.00 บาท');
   await page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).first().click();
