@@ -11,6 +11,7 @@
 import { userInfo } from 'node:os';
 import { parseArgs } from 'node:util';
 import pg from 'pg';
+import { pgConfig } from '../server/lib/pg-config.ts';
 import { carryOut, retentionDue } from '../server/lib/licence-admin.ts';
 import { isDay, today } from '../server/lib/licence.ts';
 
@@ -19,7 +20,7 @@ const url = o.db || process.env.MIGRATE_DATABASE_URL;
 if (!url) { console.error('give the owner database URL: --db URL or MIGRATE_DATABASE_URL'); process.exit(2); }
 if (o.day !== undefined && !isDay(o.day)) { console.error(`--day: not a day: ${o.day}`); process.exit(2); }
 const on = o.day ?? today();
-const db = new pg.Pool({ connectionString: url, max: 2 });
+const db = new pg.Pool({ ...pgConfig(url), max: 2 });
 
 // Until e-mail is chosen (3.16): what staff tell the shop.
 const tell = async (d, removalOn) => console.log(

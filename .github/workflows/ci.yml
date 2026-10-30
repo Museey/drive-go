@@ -1,7 +1,10 @@
 # Every push runs everything the project's rules count (CLAUDE.md, task T11):
 # checks and server tests, every scenario against the legacy app (its goldens)
 # and against the new system, and the referees' self-check. All jobs run in
-# the same pinned environment (.github/actions/setup).
+# the same pinned environment (.github/actions/setup). The test server's image
+# is built and tried too (task 3.16), and when all of it passed on the main
+# branch, deploy/test moves to the commit: DigitalOcean deploys that branch
+# (.do/app.yaml), so a push that fails a check never reaches the server.
 name: CI
 
 on:
@@ -71,3 +74,36 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
       - run: npm run selfcheck
+
+  image:
+    name: Test server image builds and runs
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.0
+          cache: npm
+      - run: npm ci
+      - run: docker build -t drivego:smoke .
+      # PostgreSQL 16 of the runner image (tools/pg-temp.mjs), TLS with a CA of its own as the managed database
+      - run: node tools/image-smoke.mjs drivego:smoke
+
+  deploy-branch:
+    name: Move deploy/test to this commit
+    needs: [checks, scenarios, selfcheck, image]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/claude/brave-goodall-0qn0qg'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # Forward only: an older run never moves the server back.
+      - run: |
+          if git fetch origin deploy/test 2>/dev/null; then
+            git merge-base --is-ancestor FETCH_HEAD HEAD || { echo "deploy/test is not behind this commit"; exit 0; }
+          fi
+          git push origin HEAD:refs/heads/deploy/test

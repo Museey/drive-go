@@ -7,7 +7,7 @@
 - **เฟสปัจจุบัน: เฟส 3 (ย้าย logic สำคัญไปทำที่ server)** งานย่อยอยู่ใน PLAN.md, คำตอบของเจ้าของโปรเจกต์อยู่ใน [docs/PHASE3-QUESTIONS.md](docs/PHASE3-QUESTIONS.md)
   (เฟส 2 เสร็จแล้ว ยกเว้น T12 server ทดสอบที่รอเลือกผู้ให้บริการ แบบของเฟส 2 อยู่ใน [docs/PHASE2-DESIGN.md](docs/PHASE2-DESIGN.md))
 - **สิ่งที่เหลือทั้งหมดก่อนให้ผู้ใช้จริงเข้าใช้: [docs/LAUNCH-CHECKLIST.md](docs/LAUNCH-CHECKLIST.md)** อ่านก่อนเริ่มงาน
-  ส่วน "สถานะล่าสุด" ต้นไฟล์บอกว่าตอนนี้รออะไรอยู่ (ณ 2026-10-29: เฟส 3 งาน 3.1–3.15 เสร็จ, 3.16 ใช้ DigitalOcean สิงคโปร์ App Platform + Managed PostgreSQL (ยืนยัน 2026-10-29) เจ้าของโปรเจกต์กำลังสมัครตาม docs/DIGITALOCEAN-SETUP.md,
+  ส่วน "สถานะล่าสุด" ต้นไฟล์บอกว่าตอนนี้รออะไรอยู่ (ณ 2026-10-30: เฟส 3 งาน 3.1–3.15 เสร็จ, 3.16 ใช้ DigitalOcean สิงคโปร์ App Platform + Managed PostgreSQL (ยืนยัน 2026-10-29) ไฟล์ deploy เสร็จ 2026-10-30 เจ้าของโปรเจกต์กำลังสมัครและสร้างแอปตาม docs/DIGITALOCEAN-SETUP.md,
   แก้ตามคำตอบผู้ทำบัญชีแล้ว (เอาตาม B, docs/ACCOUNTANT-ANSWERS.md "ทำแล้ว") ข้อความใหม่อนุมัติแล้ว 2026-10-29, ได้คำตอบรอบ 2 แล้ว: งานใหม่ก่อนนำร่องและบัญชีแยกประเภทที่ต้องให้ B ตรวจวิธีลงบัญชี ดู LAUNCH-CHECKLIST)
 - **session ไม่รู้กันเอง** สิ่งที่ session อื่นเห็นมีแค่ไฟล์ใน branch หลัก `claude/brave-goodall-0qn0qg` (branch ตั้งต้นของ repo)
   ทำอะไรเสร็จหรือได้คำตอบจากเจ้าของโปรเจกต์ ให้ขีดรายการใน LAUNCH-CHECKLIST.md (พร้อมวันที่) แก้ "สถานะล่าสุด" และสถานะใน PLAN.md
@@ -24,6 +24,7 @@
 | `tests/golden/<spec file>/` | เฉลยที่บันทึกจากระบบเดิม (`flow.json`, `*-state.json`, `*.png`) |
 | `tests/fixtures/` | ข้อมูลตั้งต้นที่ถูก restore ลงเบราว์เซอร์ก่อนทุก test |
 | `tests/support/` | ตัวช่วยของ test: กรรมการ 3 ตัว, ตัวขับระบบเดิม, การตั้งค่าเบราว์เซอร์ |
+| `Dockerfile`, `.do/app.yaml` | server ทดสอบบน DigitalOcean App Platform (งาน 3.16): image ของแอป และค่าตั้งของแอป (deploy จาก branch `deploy/test` ที่ CI ขยับหลังผ่านทุก job) คู่มือ: `docs/DIGITALOCEAN-SETUP.md` |
 | `tools/` | สคริปต์: static server, สร้าง fixture, ดึงฟอนต์, ทำรายการพฤติกรรม, รายงาน coverage, PostgreSQL ชั่วคราว (`pg-temp.mjs`), เปิดระบบใหม่ (`serve-new.mjs`) |
 
 ## คำสั่ง
@@ -39,6 +40,7 @@ npm run test:unit                          # test ของ server/lib (แบ�
 node tools/split-legacy.mjs --check        # พิสูจน์ว่า frontend/ ตรงกับระบบเดิมทุกไบต์ ยกเว้นจุดที่จดใน frontend/CHANGES.md
 node tools/build-client.mjs                # สร้าง frontend/js/00-server-storage.js จาก server/client/ (--check ตรวจว่าตรงกับต้นฉบับ)
 node tools/accountant-pack.mjs            # ชุดตรวจสำหรับผู้ทำบัญชี: คำถามจาก docs/ACCOUNTANT-REVIEW.md เป็น Excel ให้ตอบ + เอกสารที่ระบบใหม่พิมพ์ (PDF) รวมเป็น accountant-pack.zip
+docker build -t drivego:smoke . && node tools/image-smoke.mjs   # ลอง image ของ server ทดสอบแบบที่ DigitalOcean รัน (ฐานข้อมูล TLS, job migrate, เข้าระบบร้านตัวอย่าง)
 npm run test:record -- tests/scenarios/S05-xxx.spec.ts   # บันทึกเฉลยจากระบบเดิม (เฉพาะไฟล์ที่ระบุ)
 npm run fixture -- biz trial               # สร้างข้อมูลตั้งต้นใหม่ (biz | prox | franchise) — ปกติไม่ต้องสร้างใหม่ ใช้ไฟล์ที่ commit ไว้
 npm run inventory                          # สร้าง docs/behaviors.csv ใหม่

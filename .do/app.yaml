@@ -1,0 +1,75 @@
+# DigitalOcean App Platform: the test server (task 3.16, decision of 2026-10-29: App Platform + Managed PostgreSQL in
+# Singapore). How to create the app from this file: docs/DIGITALOCEAN-SETUP.md part 3.
+#
+# · web: the image of ./Dockerfile, `next start` on port 8080, 1 GB (Next.js needs more than 512 MB).
+# · migrate: runs before every deploy (PRE_DEPLOY) as the database owner: the schema, and the demo shops while the
+#   database has none (SEED_DEMO_SHOPS: a test server only). If it fails, the deploy stops and the running version stays.
+#   Its MIGRATE_DATABASE_URL (the connection string of doadmin) is a secret typed in the control panel, never here.
+# · db: the managed cluster drivego-test-db made by hand (part 2); the app connects as drivego_app (made in the control
+#   panel before the first deploy), which Row-Level Security applies to. The cluster only takes TLS: DATABASE_CA_CERT
+#   carries its CA (server/lib/pg-config.ts).
+# · Deploys follow the branch deploy/test, which CI moves only after every check passed (.github/workflows/ci.yml).
+name: drivego-test
+region: sgp
+services:
+  - name: web
+    github:
+      repo: Museey/drive-go
+      branch: deploy/test
+      deploy_on_push: true
+    source_dir: /
+    dockerfile_path: Dockerfile
+    http_port: 8080
+    instance_size_slug: apps-s-1vcpu-1gb
+    instance_count: 1
+    health_check:
+      http_path: /api/health
+      initial_delay_seconds: 10
+      period_seconds: 10
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 6
+    envs:
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        value: ${db.DATABASE_URL}
+      - key: DATABASE_CA_CERT
+        scope: RUN_TIME
+        value: ${db.CA_CERT}
+jobs:
+  - name: migrate
+    kind: PRE_DEPLOY
+    github:
+      repo: Museey/drive-go
+      branch: deploy/test
+      deploy_on_push: true
+    source_dir: /
+    dockerfile_path: Dockerfile
+    run_command: node tools/deploy-migrate.mjs
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    instance_count: 1
+    envs:
+      - key: DATABASE_CA_CERT
+        scope: RUN_TIME
+        value: ${db.CA_CERT}
+      - key: SEED_DEMO_SHOPS
+        scope: RUN_TIME
+        value: "1"
+databases:
+  - name: db
+    engine: PG
+    version: "16"
+    production: true
+    cluster_name: drivego-test-db
+    db_name: defaultdb
+    db_user: drivego_app
+ingress:
+  rules:
+    - component:
+        name: web
+      match:
+        path:
+          prefix: /
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED

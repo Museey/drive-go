@@ -19,6 +19,7 @@
 import { userInfo } from 'node:os';
 import { parseArgs } from 'node:util';
 import pg from 'pg';
+import { pgConfig } from '../server/lib/pg-config.ts';
 import { close, listShops, openLicence, postpone, renew, setContact, shopOf } from '../server/lib/licence-admin.ts';
 import { today } from '../server/lib/licence.ts';
 
@@ -36,7 +37,7 @@ const usage = () => { console.error('usage: see the top of tools/shop-admin.mjs'
 if (!cmd) usage();
 if (!url) { console.error('give the owner database URL: --db URL or MIGRATE_DATABASE_URL'); process.exit(2); }
 const actor = o.by || userInfo().username;
-const db = new pg.Pool({ connectionString: url, max: 2 });
+const db = new pg.Pool({ ...pgConfig(url), max: 2 });
 
 const line = s => {
   const l = s.licence;

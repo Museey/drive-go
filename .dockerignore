@@ -1,0 +1,18 @@
+# What the image (Dockerfile) does not need: build output, local runs, the legacy file and its goldens, the docs.
+**/node_modules
+.git
+.github
+server/.next
+server/tsconfig.tsbuildinfo
+coverage
+test-results
+playwright-report
+.explore
+accountant-pack
+accountant-pack.zip
+legacy
+docs
+tests
+!tests/fixtures/biz-trial.json
+!tests/fixtures/prox-trial.json
+!tests/fixtures/franchise-trial.json

@@ -10,6 +10,7 @@
 //   node tools/files.mjs purge [<shop code>]
 //        removes for good what was deleted more than 30 days ago (until the server has a scheduler, task 3.16)
 import pg from 'pg';
+import { pgConfig } from '../server/lib/pg-config.ts';
 import { withShop } from '../server/lib/db.ts';
 import { purgeFiles } from '../server/lib/files.ts';
 import { restoreFile } from '../server/lib/file-restore.ts';
@@ -22,7 +23,7 @@ if (!url || !['list', 'restore', 'purge'].includes(cmd)) {
   process.exit(2);
 }
 
-const pool = new pg.Pool({ connectionString: url, max: 1 });
+const pool = new pg.Pool({ ...pgConfig(url), max: 1 });
 const shopOf = async code => {
   const { rows } = await pool.query('select id, code from shops where code = $1', [code]);
   if (!rows.length) throw new Error(`no shop ${code}`);

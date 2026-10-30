@@ -1,4 +1,5 @@
 import pg from 'pg';
+import { pgConfig } from './pg-config.ts';
 
 // One pool per server process. Next.js dev reloads modules, so the pool lives
 // on globalThis instead of in this module. The app connects as drivego_app,
@@ -7,7 +8,7 @@ const holder = globalThis as typeof globalThis & { __drivegoPool?: pg.Pool };
 
 export function pool(): pg.Pool {
   if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set');
-  return (holder.__drivegoPool ??= new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 10 }));
+  return (holder.__drivegoPool ??= new pg.Pool({ ...pgConfig(process.env.DATABASE_URL), max: 10 }));
 }
 
 // Branch scope of a transaction: '' Biz/ProX, '*' franchise HQ (all

@@ -6,6 +6,7 @@
 // Several server processes each listen for themselves, so it works with more than one instance (docs/HOSTING.md).
 import pg from 'pg';
 import { pool, withShop } from './db.ts';
+import { pgConfig } from './pg-config.ts';
 import { inScope } from './storage.ts';
 
 // What a device hears about one save: the STORE key and branch, who and when, and the rows written (with their new
@@ -70,7 +71,7 @@ class Hub {
   private async connect(): Promise<void> {
     if (this.client || this.connecting || !this.listeners.size) return;
     this.connecting = true;
-    const c = new pg.Client({ connectionString: process.env.DATABASE_URL });
+    const c = new pg.Client(pgConfig(process.env.DATABASE_URL ?? ''));
     let lost = false;
     const drop = () => {
       if (lost) return;

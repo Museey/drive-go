@@ -14,6 +14,8 @@ HTTPS/โดเมน/รีสตาร์ต/log มีให้ รัน mig
 การสำรองและกู้คืนเป็นงานของเราทั้งหมด ราคาใกล้กัน (Droplet $6 กับ App Platform $5–12)
 ต้องระวังตอนตั้ง: การฟังการบันทึกของงาน 3.10 (`server/lib/live.ts`, LISTEN/NOTIFY) ต้องต่อฐานข้อมูลตรง หรือผ่าน connection pool แบบ session
 ไม่ใช่แบบ transaction, เครื่องแอปขนาด 512 MB อาจไม่พอสำหรับ Next.js เริ่มที่ 1 GB, การเชื่อมต่อค้างนาน (SSE) ทดสอบบน server จริง (LAUNCH-CHECKLIST ด่าน 1)
+ไฟล์ deploy (2026-10-30): `Dockerfile` + `.do/app.yaml` (แอป 1 GB + งาน migrate ก่อน deploy + ฐานข้อมูล drivego-test-db ผ่าน user drivego_app)
+ขั้นตอนสร้างแอป: DIGITALOCEAN-SETUP.md ส่วนที่ 3 รายละเอียดใน NOTES.md "ไฟล์ deploy ของ server ทดสอบ"
 ขนาดฐานข้อมูลที่แนะนำ (2026-10-29, เจ้าของโปรเจกต์ถามหน้าราคา Managed Databases): PostgreSQL แบบ Basic 1 GB RAM / 1 vCPU / 10 GB ราว $15/เดือน
 region สิงคโปร์ (SGP1) โหนดเดียวสำหรับ server ทดสอบ ใช้ได้ 22 การเชื่อมต่อ (25 ต่อ 1 GB หักสำรอง 3) แอปหนึ่งเครื่องใช้สูงสุด 11 (pool 10 + ฟังการบันทึก 1
 `server/lib/db.ts`) จึงพอสำหรับแอปเครื่องเดียว ถ้าเพิ่มเป็น 2 เครื่องต้องลด pool หรือขยายฐานข้อมูล โหนดสำรอง (standby) คิดราคาเท่าโหนดหลัก

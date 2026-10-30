@@ -18,6 +18,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { PORT } from '../tests/support/config.mjs';
 import { startTempPostgres } from './pg-temp.mjs';
 import { migrate } from '../server/db/migrate.ts';
+import { openDemoShops } from './demo-shops.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const serverDir = fileURLToPath(new URL('../server/', import.meta.url));
@@ -58,32 +59,6 @@ export async function startNewSystem({ port = PORT, build = true, dev = false, q
     if (pg) await pg.stop();
   })();
   return { ownerUrl, appUrl, exited, stop };
-}
-
-// The demo shops: the test fixtures' "ready to try" data of each package, with
-// their owner accounts (tests/support/config.mjs OWNERS) and, for Franchise,
-// the branch accounts b001 / 1234 and staff001 / 5678.
-const DEMO_SHOPS = [
-  { code: 'demo-biz', pkg: 'biz', dataset: 'biz-trial', who: 'dg1688 / 123456' },
-  { code: 'demo-prox', pkg: 'prox', dataset: 'prox-trial', who: 'dg1688 / 123456' },
-  { code: 'demo-franchise', pkg: 'franchise', dataset: 'franchise-trial', who: 'hq / 1234 (สาขา b001 / 1234)' },
-];
-
-async function openDemoShops(ownerUrl) {
-  const { default: pg } = await import('pg');
-  const { createShop, readFixture } = await import('../server/lib/seed.ts');
-  const { TRIAL_DAYS, addDays, today } = await import('../server/lib/licence.ts');
-  // A trial from today (task 3.15), not the fixtures' licence, which ends on a fixed day.
-  const licence = { kind: 'trial', start: today(), end: addDays(today(), TRIAL_DAYS) };
-  const pool = new pg.Pool({ connectionString: ownerUrl, max: 1 });
-  try {
-    if ((await pool.query('select count(*)::int as n from shops')).rows[0].n) return [];
-    for (const d of DEMO_SHOPS)
-      await createShop(pool, { code: d.code, pkg: d.pkg, licence, data: readFixture(new URL(`../tests/fixtures/${d.dataset}.json`, import.meta.url)) });
-    return DEMO_SHOPS;
-  } finally {
-    await pool.end();
-  }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

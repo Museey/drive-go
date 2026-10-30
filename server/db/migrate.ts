@@ -6,11 +6,12 @@
 // Also used by tools/serve-new.mjs and the database tests.
 import { readdirSync, readFileSync } from 'node:fs';
 import pg from 'pg';
+import { pgConfig } from '../lib/pg-config.ts';
 
 const DIR = new URL('./migrations/', import.meta.url);
 
 export async function migrate(url: string, log: (line: string) => void = () => {}): Promise<string[]> {
-  const client = new pg.Client({ connectionString: url });
+  const client = new pg.Client(pgConfig(url));
   await client.connect();
   const applied: string[] = [];
   try {

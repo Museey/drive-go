@@ -1125,3 +1125,26 @@ Claude ไม่เข้าบัญชี DigitalOcean และไม่ร�
 ซึ่งต้องมีวิธีลงบัญชีของเอกสารทุกชนิด: ร่างใน `docs/LEDGER-POSTING.md` ให้ B ตรวจในรอบ 3 ก่อนเขียนโปรแกรม
 ข้อสังเกตตอนออกแบบ: งบทดลองตอนนี้คิดจากยอดรวม (`trialBalance` ของระบบเดิม + ตัวครอบ) จึงมีบรรทัด "ผลต่างจากการประมาณการ"
 บัญชีแยกประเภทที่ทำจากรายการลงบัญชีรายเอกสารจะทำให้งบทดลองสมดุลเอง ตัวเลขงบทดลองจะเปลี่ยน (ต้องบอกเจ้าของโปรเจกต์ก่อนเปลี่ยน)
+
+## ไฟล์ deploy ของ server ทดสอบ (2026-10-30, งาน 3.16)
+
+- **image** (`Dockerfile`): Node 22.22.0 เท่า CI, build ด้วย `next build` แล้วรัน `next start` ที่ port 8080 (dependency เฉพาะของ server ไม่รวม
+  devDependencies ของ test), มี `frontend/`, `tools/deploy-migrate.mjs`, `tools/demo-shops.mjs` และ fixture "พร้อมทดลอง" 3 ชุดสำหรับร้านตัวอย่าง
+  `FILE_STORE=postgres` (ไฟล์แนบเก็บในฐานข้อมูลช่วงทดสอบและนำร่อง) รันเป็น user `node`
+- **App Platform** (`.do/app.yaml`): service web (1 GB, health check `/api/health` ที่ต้องต่อฐานข้อมูลได้), job migrate แบบ PRE_DEPLOY
+  (ไม่ผ่าน = ไม่ deploy เวอร์ชันใหม่) และฐานข้อมูล drivego-test-db ที่ผูกด้วย user `drivego_app` (`${db.DATABASE_URL}`, `${db.CA_CERT}`)
+  รหัสของ doadmin (`MIGRATE_DATABASE_URL`) เจ้าของโปรเจกต์ใส่ใน control panel แบบ Encrypt ไม่อยู่ในไฟล์และไม่ผ่านแชต
+- **TLS ของฐานข้อมูล**: DigitalOcean รับเฉพาะ TLS ด้วยใบรับรองที่ CA ของตัวเองออก ข้อความเชื่อมต่อมี `sslmode=require` ซึ่ง node-postgres 8.x
+  ถือเป็น verify-full และค่าในข้อความทับ option `ssl` ที่ส่งคู่กัน จึงต่อไม่ได้ถ้าไม่ทำอะไร `server/lib/pg-config.ts` เอาค่า ssl ออกจากข้อความ
+  แล้วตรวจใบรับรองกับ `DATABASE_CA_CERT` (ทั้ง CA และชื่อเครื่อง) ใช้ที่ pool ของแอป การฟังการบันทึก migration และเครื่องมือทีมงาน
+  test: `tests/db/tls.test.mjs` (PostgreSQL ชั่วคราวเปิด TLS ด้วย CA ที่สร้างตอน test: CA ถูกต่อได้, CA ผิดหรือไม่มีต่อไม่ได้)
+- **role**: migration รันเป็น doadmin (เจ้าของตาราง) `drivego_app` สร้างใน control panel ก่อน deploy ครั้งแรกเพื่อให้มีรหัสผ่าน
+  (migration สร้างให้ก็ได้แต่จะไม่มีรหัส) งาน migrate ตรวจว่า drivego_app มีและไม่ใช่ superuser/BYPASSRLS
+- **ร้านตัวอย่าง** (`SEED_DEMO_SHOPS=1` เฉพาะ server ทดสอบ): demo-biz demo-prox demo-franchise จาก fixture เปิดเฉพาะตอนยังไม่มีร้าน
+  รหัสเป็นค่าที่เปิดเผยในคู่มือ ใส่แต่ข้อมูลทดลอง (`tools/demo-shops.mjs` ใช้ร่วมกับ `npm run dev`)
+- **deploy เฉพาะ commit ที่ผ่าน**: CI job `image` build image แล้วลองแบบ DigitalOcean (`tools/image-smoke.mjs`: ฐานข้อมูล TLS + CA ของตัวเอง,
+  drivego_app มีรหัสผ่าน, job migrate 2 รอบ, web: health, หน้าร้าน, เข้าระบบได้ cookie Secure) และ job `deploy-branch` push commit ที่ผ่านทุก job
+  ไปที่ branch `deploy/test` (เดินหน้าอย่างเดียว) ซึ่งแอป deploy ตาม เจ้าของโปรเจกต์อนุมัติแผนนี้ในคู่มือส่วนที่ 3 (2026-10-29)
+- ทดสอบในเครื่อง: build image (docker ผ่าน proxy ของ session) แล้วรัน `tools/image-smoke.mjs` ผ่าน และเข้าระบบ demo-biz ผ่านเบราว์เซอร์ได้
+  (cookie Secure + HttpOnly, การฟังการเปลี่ยนแปลง `/api/live` ต่อได้)
+- ยังไม่รู้จนกว่าจะขึ้นจริง: การเชื่อมต่อค้างนานของ `/api/live` ผ่าน load balancer ของ App Platform, ชื่อปุ่มในคู่มือ (เขียนจากความรู้ เปิดเว็บ DigitalOcean จาก session ไม่ได้)

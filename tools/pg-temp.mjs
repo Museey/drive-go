@@ -6,6 +6,7 @@
 //
 //   import { startTempPostgres } from './pg-temp.mjs';
 //   const pg = await startTempPostgres();   // { url, port, stop(): Promise }
+//   startTempPostgres({ tls: { cert, key } })   // TLS on, with this certificate (PEM), as a managed database has
 //
 // initdb and postgres refuse to run as root, so as root they run as the
 // "postgres" system user (the cloud container runs everything as root).
@@ -69,7 +70,7 @@ function sweep() {
   }
 }
 
-export async function startTempPostgres({ database = 'drivego', user = 'drivego' } = {}) {
+export async function startTempPostgres({ database = 'drivego', user = 'drivego', tls = null } = {}) {
   const bin = binDir();
   // As root, every PostgreSQL program runs as the postgres user directly (no
   // runuser in between, so signals reach the server itself).
@@ -85,12 +86,20 @@ export async function startTempPostgres({ database = 'drivego', user = 'drivego'
   // C locale: sorting and comparisons are byte order, the same on every machine.
   run('initdb', ['-D', data, '-U', user, '--auth=trust', '-E', 'UTF8', '--locale=C']);
   const port = await freePort();
+  const ssl = [];
+  if (tls) {
+    for (const [file, pem] of [['server.crt', tls.cert], ['server.key', tls.key]]) {
+      writeFileSync(join(data, file), pem, { mode: 0o600 });
+      if (asUser.uid !== undefined) chownSync(join(data, file), asUser.uid, asUser.gid);
+    }
+    ssl.push('-c', 'ssl=on', '-c', 'ssl_cert_file=server.crt', '-c', 'ssl_key_file=server.key');
+  }
   // Durability settings off: a test database is thrown away anyway.
   // Clients connect over TCP; the socket goes in the cluster's own directory
   // (Windows: none).
   const socket = process.platform === 'win32' ? ['-c', 'unix_socket_directories='] : ['-k', dir];
   const proc = spawn(join(bin, 'postgres'), ['-D', data, '-p', String(port), ...socket, '-c', 'listen_addresses=127.0.0.1',
-    '-c', 'fsync=off', '-c', 'synchronous_commit=off', '-c', 'full_page_writes=off'], { ...asUser, stdio: 'ignore' });
+    '-c', 'fsync=off', '-c', 'synchronous_commit=off', '-c', 'full_page_writes=off', ...ssl], { ...asUser, stdio: 'ignore' });
   const exited = new Promise(r => proc.once('exit', r));
   for (let i = 0; ; i++) {
     try { run('pg_isready', ['-h', '127.0.0.1', '-p', String(port), '-U', user]); break; }

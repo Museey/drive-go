@@ -3,7 +3,7 @@
 ข้อตัดสิน 2026-10-29: **App Platform** รันแอป + **Managed PostgreSQL** เก็บข้อมูล ทั้งคู่อยู่ที่ **สิงคโปร์** (เหตุผลอยู่ใน [HOSTING.md](HOSTING.md))
 server ทดสอบนี้ใช้ข้อมูลทดลองเท่านั้น ข้อมูลจริงของอู่นำร่องต้องรอคำตอบเรื่อง PDPA ก่อน (LAUNCH-CHECKLIST.md ด่าน 2)
 
-ทำ 3 ส่วน: **ส่วนที่ 1–2 ทำได้เลย** (ราว 30 นาที) ส่วนที่ 3 ทำหลัง Claude เตรียมไฟล์สำหรับ deploy เสร็จ (Claude จะแก้ไฟล์นี้ให้มีขั้นตอนละเอียด)
+ทำ 3 ส่วน: **ส่วนที่ 1–2 ทำได้เลย** (ราว 30 นาที) ส่วนที่ 3 (สร้างแอป) ทำเมื่อ Claude บอกว่า branch `deploy/test` พร้อม
 ชื่อปุ่มและเมนูอาจต่างจากที่เขียนเล็กน้อยถ้า DigitalOcean เปลี่ยนหน้าเว็บ ถ้าหาไม่เจอ ถาม Claude พร้อมบอกว่าเห็นอะไรบนจอ
 
 ## ก่อนเริ่ม: เรื่องความปลอดภัย
@@ -41,17 +41,35 @@ server ทดสอบนี้ใช้ข้อมูลทดลองเท�
 หน้าถัดไปที่ชวนให้ทำ "Getting Started" (ตั้ง trusted sources, ดูข้อความเชื่อมต่อ) **ข้ามไปก่อน** ส่วนที่ 3 จะจำกัดให้แอปของเราเท่านั้นที่ต่อได้
 และไม่ต้องคัดลอกข้อความเชื่อมต่อไปไหน
 
-## ส่วนที่ 3: สร้างแอปจาก GitHub (รอ Claude)
+## ส่วนที่ 3: สร้างแอปจาก GitHub (ราว 30 นาที)
 
-Claude จะเพิ่มไฟล์ที่บอก DigitalOcean ว่าแอปของเราสร้างอย่างไร (container, ขนาดเครื่อง 1 GB, ตัวแปรของระบบ, งานปรับโครงสร้างฐานข้อมูลก่อน deploy)
-แล้วแก้ส่วนนี้ให้เป็นขั้นตอนละเอียด ภาพรวมคร่าว ๆ:
+ไฟล์ที่ DigitalOcean ใช้อยู่ใน repo แล้ว: `Dockerfile` (วิธีสร้างแอป) และ `.do/app.yaml` (ตั้งค่าแอป: เครื่อง 1 GB ที่สิงคโปร์,
+งาน migrate ที่ปรับโครงสร้างฐานข้อมูลก่อน deploy ทุกครั้ง, การผูกกับฐานข้อมูล) แอปจะ deploy จาก branch **`deploy/test`**
+ซึ่ง CI ขยับให้เองหลังทดสอบผ่านครบเท่านั้น **เริ่มส่วนนี้เมื่อ Claude บอกว่า branch `deploy/test` พร้อมแล้ว**
 
-1. Create → **Apps** → เลือก GitHub → อนุญาตให้ DigitalOcean เห็น**เฉพาะ repo `Museey/drive-go`** (เลือก "Only select repositories" ไม่ใช่ทั้งบัญชี)
-2. เลือก branch ที่ Claude บอก (แผน: branch สำหรับ deploy ที่ CI จะขยับให้เองหลังทดสอบผ่านเท่านั้น
-   push ที่ทำให้ test ไม่ผ่านจะได้ไม่ขึ้น server)
-3. ให้แอปใช้ไฟล์ตั้งค่าใน repo, region สิงคโปร์, ผูกกับฐานข้อมูล **drivego-test-db**
-4. กลับไปที่ฐานข้อมูล → **Settings** → **Trusted sources** → ใส่แอปของเรา (ฐานข้อมูลจะรับการเชื่อมต่อจากแอปเท่านั้น)
-5. บอก Claude ว่าเสร็จแล้ว พร้อม URL ของแอป (ลงท้ายด้วย `.ondigitalocean.app`)
+1. **สร้าง user ของแอปในฐานข้อมูล**: Databases → **drivego-test-db** → แท็บ **Users & Databases** → Add new user →
+   ชื่อ **`drivego_app`** (ตัวพิมพ์เล็ก มีขีดล่าง) → Save ไม่ต้องคัดลอกรหัสผ่าน DigitalOcean ส่งให้แอปเอง
+   (แอปต่อฐานข้อมูลด้วย user นี้ ซึ่งถูกกันให้เห็นข้อมูลได้เฉพาะร้านที่เข้าระบบอยู่)
+2. **สร้างแอป**: ปุ่ม **Create** → **Apps** → Git provider: **GitHub**
+   - ครั้งแรกจะให้ติดตั้ง DigitalOcean บน GitHub: เลือก **Only select repositories** → **Museey/drive-go** → Install
+   - Repository: **Museey/drive-go** · Branch: **deploy/test** · Source directory: `/` · Autodeploy: เปิด → Next
+   - DigitalOcean จะเห็น Dockerfile และเสนอค่าตั้ง กดผ่านไปได้ (ข้อ 3 จะแทนด้วยไฟล์ของเรา) Region: **Singapore**
+   - ชื่อแอป **drivego-test** โปรเจกต์ **DriveGo test** → Create Resources ครั้งแรกอาจ deploy ไม่ผ่าน ไม่เป็นไร
+3. **ใช้ไฟล์ตั้งค่าของเรา**: ในแอป → **Settings** → หัวข้อ **App Spec** → Edit
+   → ลบของเดิมทั้งหมด → วางเนื้อหาของ https://github.com/Museey/drive-go/blob/deploy/test/.do/app.yaml (กดปุ่ม Raw แล้วคัดลอกทั้งหมด) → Save
+   จะมีส่วนประกอบ **web** (แอป) และ **migrate** (งานก่อน deploy) และผูกกับ **drivego-test-db**
+4. **ใส่รหัสเจ้าของฐานข้อมูลให้งาน migrate** (ห้ามส่งในแชต):
+   - Databases → drivego-test-db → **Connection Details** → User: **doadmin** · แบบ **Connection string** → Copy
+   - แอป → Settings → ส่วนประกอบ **migrate** → **Environment Variables** → Edit → Add
+     Key: **`MIGRATE_DATABASE_URL`** · Value: วางที่คัดลอกมา · ติ๊ก **Encrypt** → Save
+5. **ให้ฐานข้อมูลรับเฉพาะแอป**: Databases → drivego-test-db → **Settings** → **Trusted sources** → Edit → เพิ่มแอป **drivego-test** → Save
+6. **Deploy**: แอป → ปุ่ม **Actions** → **Force rebuild and deploy** รอจนขึ้นสีเขียว (ราว 10 นาที)
+   ถ้าไม่ผ่าน: แท็บ **Activity** → deploy ล่าสุด → ดู log ของ **migrate** หรือ **web** แล้วคัดลอกข้อความ error ส่งให้ Claude ได้ (log ไม่มีรหัส)
+7. **ลองใช้**: เปิด URL ของแอป (ลงท้าย `.ondigitalocean.app`) ต่อด้วย `/demo-biz/` เข้าด้วย **dg1688 / 123456**
+   (ร้านตัวอย่าง demo-biz, demo-prox รหัสเดียวกัน, demo-franchise ใช้ hq / 1234) แล้วส่ง URL ให้ Claude
+
+**ข้อควรรู้**: ร้านตัวอย่างใช้รหัสที่เขียนไว้ในคู่มือนี้ ใครรู้ URL ก็เข้าได้ ใส่แต่ข้อมูลทดลอง ห้ามใส่ข้อมูลลูกค้าจริง
+งาน migrate เปิดร้านตัวอย่างเฉพาะตอนฐานข้อมูลยังไม่มีร้าน และ deploy ครั้งต่อ ๆ ไปเกิดเองทุกครั้งที่ CI ผ่าน
 
 ## เสร็จส่วนที่ 1–2 แล้วบอก Claude
 
