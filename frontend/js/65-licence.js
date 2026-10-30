@@ -23,6 +23,7 @@
   if(!LIC||!LIC.end)return;
   pin();
   try{renderLicense();}catch(e){}
+  sampleButtons();
   try{const v=$i('v-setting');if(v&&v.offsetParent!==null){fillLic();if(typeof dgbRenderEmpPanel==='function')dgbRenderEmpPanel();}}catch(e){}
  }
  const pin=()=>{if(LIC&&LIC.end&&typeof DB==='object'&&DB&&DB.shop){DB.shop.licStart=LIC.start;DB.shop.licEnd=LIC.end;}};
@@ -32,6 +33,10 @@
  ['sLicStart','sLicEnd'].forEach(id=>{const el=$i(id);if(el){el.readOnly=true;el.tabIndex=-1;}});
  document.querySelectorAll('#v-setting button').forEach(b=>{if(/^extendLic\(/.test(b.getAttribute('onclick')||''))b.style.visibility='hidden';});
  window.extendLic=function(){};
+ /* sample data (owner's decision of 2026-10-30): only a trial shop may load it over its data; a pilot or paying shop's
+    buttons stay in place, hidden (the server refuses it too) */
+ function sampleButtons(){const ok=!LIC||LIC.kind==='trial';
+  document.querySelectorAll('button').forEach(b=>{if(/^seedDemo(36)?\(/.test(b.getAttribute('onclick')||''))b.style.visibility=ok?'':'hidden';});}
 
  /* the server's dates, whatever the data set in hand says */
  const save0=window.save;window.save=async function(){pin();return save0.apply(this,arguments);};

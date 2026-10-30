@@ -719,6 +719,11 @@
       "scenario": "S259-staff-opens-empty-franchise-chain.spec.ts",
       "decision": "P3 (staff open shops), LAUNCH-CHECKLIST stage 2 (real shops, forgotten passwords), 2026-10-30",
       "why": "Staff open an empty franchise chain with only its HQ account; HQ adds the first branch and its head signs in to empty data; HQ's forgotten password is replaced by staff."
+    },
+    {
+      "scenario": "S260-real-shop-without-test-copy-parts.spec.ts",
+      "decision": "owner decision 2026-10-30 (remove the test copy's parts, option ก; sample data for trial shops only)",
+      "why": "The real system has no test-copy bar, no test-copy parts on the sign-in page and no test-copy tab title; only a trial shop sees the sample-data buttons and the server refuses sample data for a pilot or paying shop."
     }
   ]
 }

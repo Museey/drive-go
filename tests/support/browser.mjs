@@ -7,6 +7,8 @@ import { LEGACY_ORIGIN, seedRandomInitScript } from './config.mjs';
 const fontsDir = new URL('./fonts/', import.meta.url);
 const fonts = JSON.parse(readFileSync(new URL('manifest.json', fontsDir), 'utf8'));
 
+export const TEST_COPY_HIDDEN = '#pkg-copy-status,#studio-intro,.dg-steps,.dg-back-row,.dg-preview{display:none!important}';
+
 export async function prepareContext(context, { seed, now }) {
   await context.clock.setFixedTime(new Date(now));
   await context.addInitScript(seedRandomInitScript, seed);
@@ -19,6 +21,18 @@ export async function prepareContext(context, { seed, now }) {
     style.textContent = '#tabs .navchildren{transition:none!important}';
     document.head.append(style);
   }, { once: true }));
+  // The legacy file is the test copy: its bar ("สำเนาทดสอบแพ็กเกจ …", "เปลี่ยนแพ็กเกจ", "ทดสอบบัญชีอื่น") and its parts of the
+  // sign-in page (the "สำเนาทดสอบ" line, the steps, "กลับไปเลือกโปรแกรม", the footer's "สำเนาโปรแกรมจริง · ทดสอบแพ็กเกจ") are not in the real system (the owner's decision
+  // of 2026-10-30, NOTES.md), which hides them in frontend/css/01.css; hidden here in the legacy file the same way, so
+  // both draw the same screens (the goldens were recorded so).
+  await context.addInitScript(css => {
+    if (!/DRIVEGO_TRIAL_v\d+\.html$/.test(location.pathname)) return;
+    document.addEventListener('DOMContentLoaded', () => {
+      const style = document.createElement('style');
+      style.textContent = css;
+      document.head.append(style);
+    }, { once: true });
+  }, TEST_COPY_HIDDEN);
   // What the new system's live updates put into the app (task 3.10), for the report of a screenshot that differs.
   await context.addInitScript(() => {
     const log = window.__drivegoLive = [];

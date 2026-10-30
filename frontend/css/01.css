@@ -2829,4 +2829,5 @@ html[data-package] .pkg-r2card-hd b .pkg-svg{width:18px;height:18px;vertical-ali
 
 /* a toolbar button taken out of a document window stays in the page (its function is kept) but is not shown */
 html[data-package] .pkg-doc-tools .pkg-tool[hidden]{display:none!important}
-
+/* DriveGo new system (the owner's decision of 2026-10-30, NOTES.md "เอาส่วนของสำเนาทดสอบออก"): the test copy's bar and its parts of the sign-in page are not shown (tests/support/browser.mjs hides the same in the legacy file) */
+#pkg-copy-status,#studio-intro,.dg-steps,.dg-back-row,.dg-preview{display:none!important}

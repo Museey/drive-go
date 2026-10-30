@@ -72,6 +72,8 @@ export async function POST(req: Request, ctx: Ctx) {
     body.changes = pinData(body.changes, lic);
     const late = await refuseExpiredSave(c, actor, branch, key, body.changes, body.secrets || [], lic);
     if (late) return json(late, 403);
+    // Sample data over a shop's data (03.js seedDemo, seedDemo36): a trial shop only (the owner's decision of 2026-10-30).
+    if ((body.whole === 'sample' || body.whole === 'demo36') && lic?.kind !== 'trial') return json({ error: 'not allowed', what: 'sample data' }, 403);
     await traceWrite(c, actor, branch, key, body.changes, body.secrets || [], req.headers.get('x-drivego-test') || '');
     const refused = await refuseSave(c, actor, branch, key, body.changes, body.secrets || []);
     if (refused) return json({ error: 'not allowed', what: refused }, 403);

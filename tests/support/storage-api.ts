@@ -25,6 +25,11 @@ export function storageApi(page: Page) {
       const a = await call('POST', key, { base: {}, changes: { upsert: [{ unit, key: rowKey, data: JSON.stringify(data) }], remove: [], order: {} }, secrets });
       return { status: a.status, body: json(a) };
     },
+    // A save marked as replacing the whole data set (3.2d: wipe, restore, import, sample data), with no change in it.
+    async saveWhole(key: string, whole: string) {
+      const a = await call('POST', key, { base: {}, changes: { upsert: [], remove: [], order: {} }, whole });
+      return { status: a.status, body: json(a) };
+    },
     async remove(key: string) {
       const a = await call('DELETE', key);
       return { status: a.status, body: json(a) };
