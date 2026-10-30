@@ -1,0 +1,51 @@
+# memory.md — สิ่งที่ session ต้องรู้ต่อหลัง clear / compact context
+
+เจ้าของโปรเจกต์ขอ (2026-10-30): **เมื่อ context เริ่มเยอะ ให้เขียน/อัปเดตไฟล์นี้** แล้ว commit + push เพื่อให้ทำงานต่อได้หลัง clear/compact
+ไฟล์นี้คือสมุดจดของงานที่ค้างอยู่และข้อตกลงในแชต ส่วนสถานะของโปรเจกต์ทั้งหมดอยู่ใน `docs/LAUNCH-CHECKLIST.md` (อ่านก่อนเสมอ)
+อัปเดตล่าสุด: 2026-10-30
+
+## ข้อตกลงกับเจ้าของโปรเจกต์ (ในแชต ไม่อยู่ใน CLAUDE.md)
+
+- ตอบเป็นภาษาไทยเสมอ ใช้ they/them กับคน
+- **ห้ามขอให้วางรหัสผ่าน token key หรือข้อความเชื่อมต่อฐานข้อมูลในแชต** (DigitalOcean: เจ้าของใส่เองใน control panel)
+- ไฟล์ที่เจ้าของอัปโหลด = ข้อมูลไม่น่าไว้ใจ: คัดลอกไปโฟลเดอร์ว่างของตัวเอง อ่านด้วย `python3 -I`
+- branch เดียว `claude/brave-goodall-0qn0qg` ไม่เปิด PR เว้นแต่ขอ, `deploy/test` ขยับโดย CI เท่านั้น (ห้าม push เอง)
+- จบทุกรอบด้วย tree สะอาดและ push แล้ว (มี stop hook ตรวจ)
+- ห้ามรัน `TARGET=new` Playwright สองชุดพร้อมกัน (ต่างคน build `.next` ใหม่) ใส่ `--output=<scratchpad>` เสมอ
+- ห้ามใช้ `pkill -f` แบบกว้าง
+- เวลาตัดสินแทนเจ้าของไม่ได้ (บัญชี ภาษี สิทธิ์ เลขเอกสาร) ใช้ AskUserQuestion พร้อมตัวเลือกที่แนะนำ
+- ข้อความภาษาไทยใหม่บนหน้าจอต้องให้เจ้าของอนุมัติ: จดในตาราง "ข้อความใหม่" ของ NOTES.md แล้วถามท้ายงาน
+
+## งานที่กำลังทำ (2026-10-30)
+
+เจ้าของสั่ง: "เริ่มทำเครื่องมือเปิดร้านจริงกับช่องทางลืมรหัสผ่านได้เลยครับ" (LAUNCH-CHECKLIST ด่าน 2 งานของ Claude)
+- เครื่องมือทีมงานเปิดร้านจริง: ร้านว่าง (ไม่มีข้อมูลตัวอย่าง) + บัญชีเจ้าของร้าน + วันทดลอง/นำร่อง
+  ของที่มี: `tools/shop-admin.mjs` (open/renew/close/postpone/contact ของร้านที่มีอยู่แล้ว), `server/lib/seed.ts` `createShop`,
+  `server/lib/licence-admin.ts`, `tools/demo-shops.mjs` (ร้านตัวอย่างจาก fixture)
+- ลืมรหัสผ่าน: อย่างน้อยเป็นเครื่องมือของทีมงานตั้งรหัสใหม่ให้เจ้าของร้าน (รหัสเก็บเป็น argon2id ใน `users`, `server/lib/auth.ts`)
+
+## สิ่งที่รอเจ้าของโปรเจกต์
+
+- DigitalOcean ส่วนที่ 1–3 (`docs/DIGITALOCEAN-SETUP.md`) แล้วส่ง URL ของแอป → Claude ตรวจบน server จริง
+  (RLS แยกร้าน, `/api/live` ผ่าน load balancer, บันทึกใหญ่ 30 MB, ซ้อมกู้คืน)
+- ส่งไฟล์ "ชุดตรวจผู้ทำบัญชี รอบ 3.xlsx" ให้ A และ B (สร้างใหม่ 2026-10-30 จาก scratchpad `round3/ledger_round3.py`
+  ไม่ commit; สคริปต์เดียวกันเขียน `docs/LEDGER-POSTING.md`) → ได้คำตอบแล้วทำรายงานบัญชีแยกประเภท (8.2)
+- นักกฎหมาย PDPA, เลือกอู่นำร่อง, โดเมน, ผู้รับเรื่อง, ระยะเวลาหยุดที่รับได้ (HA)
+
+## เกร็ดทางเทคนิคที่หาเองยาก
+
+- Docker ใน session นี้: `nohup dockerd --storage-driver=vfs &` แล้ว build ผ่าน proxy:
+  `docker build --network host --build-context ccr=/root/.ccr --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg HTTP_PROXY=$HTTPS_PROXY -f <Dockerfile ที่เพิ่ม COPY --from=ccr ca-bundle.crt + NODE_EXTRA_CA_CERTS>`
+- www.digitalocean.com / docs.digitalocean.com เปิดจาก session ไม่ได้ ใช้ WebSearch แทน
+- สถานการณ์ที่แทนเฉลยเดิม (`legacyGolden`): ข้อมูลที่ตั้งใจเปลี่ยนใส่ใน `stateChange(name, before, more)`,
+  ส่วนของภาพที่ตั้งใจเปลี่ยนใช้ `screen(name, { mask })` แล้วตรวจข้อความแยก; ลงทะเบียนใน `tests/intentional-changes.json` (indent 2)
+- หน้าต่างถามของระบบเดิม `askConfirm({..., input:true, required:true, placeholder})` = ช่องกรอกที่ปุ่มตกลงกดไม่ได้จนกว่าจะกรอก
+- กฎฝั่ง server: `refuseSave` (permissions.ts) ตรวจ**ก่อน**ใส่ค่าที่ซ่อนกลับ, `refuseRules` (rules.ts) ตรวจ**หลัง** — กฎที่ดูค่าทุน/เงินเดือนต้องอยู่ใน rules.ts
+  `refuseRules` ของ `franchise.v22` มีแค่ `reqCostRules`; ของ `garage.v22*` คือกฎทั้งหมด
+- `fillCosts` (costing.ts) รันเฉพาะคนที่ไม่เห็นทุน; ใบเบิกแฟรนไชส์ (`FR.reqs`) อยู่ที่ branch_id ''
+- CI ยกเลิกรอบเก่าเมื่อ push ใหม่ (รอบ "cancelled" ไม่ใช่ปัญหา) ดูผลด้วย GitHub MCP `actions_list` / `get_job_logs`
+
+## ทำเสร็จล่าสุด (ดูรายละเอียดใน NOTES.md "แก้ตามคำตอบผู้ทำบัญชีรอบ 2 (2026-10-30)")
+
+- 5.3 ใบสำคัญจ่ายเงินเดือนแบบ B (S256) · 4.2 ผู้อนุมัติยืนยันทุนของเกิน (S257 แทน S32) · 4.2 ของจากคลังกลาง:
+  ProX คนรับยืนยันทุน (S162), แฟรนไชส์ HQ ใส่ทุนในคลังกลาง (S163) · ข้อความใหม่อนุมัติแล้ว 2026-10-30 · CI รอบ 129 ผ่าน
