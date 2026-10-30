@@ -84,7 +84,7 @@ test('S165 ระบบใหม่: บันทึกเงินเดือ�
   await app.settle();
   expect((await app.state()).DB.expenses.length).toBe(recorded.expenses.length);
 
-  // Salaries paid today by transfer: the voucher shows the employees' contribution taken off.
+  // Salaries paid today by transfer: the voucher takes the contributions off (its layout: S256).
   await page.getByRole('button', { name: 'จ่ายเงินเดือน', exact: true }).click();
   const pay = asked(page, 'จ่ายเงินเดือน งวด ต.ค. 2569');
   await expect(pay.getByText('จ่ายสุทธิให้พนักงาน 11 คน 207,700.00 บาท (รวมรายได้ 216,500.00 หักประกันสังคม 8,800.00)', { exact: true })).toBeVisible();

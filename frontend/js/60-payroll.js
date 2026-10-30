@@ -304,13 +304,17 @@
   if(p)return toast('รายจ่ายนี้เป็นของเงินเดือน '+p.label+' — ยกเลิกที่หน้า 06.4 จ่ายเงินเดือน');return dx0.apply(this,arguments);};
  const sx0=window.saveExp;window.saveExp=function(){const x=typeof editExpId!=='undefined'&&editExpId?expOf(editExpId):null,p=periodOfExp(x);
   if(p)return toast('รายจ่ายนี้เป็นของเงินเดือน '+p.label+' — แก้ไขที่หน้า 06.4 จ่ายเงินเดือน (ยกเลิกงวดแล้วบันทึกใหม่)');return sx0.apply(this,arguments);};
- /* its payment voucher: what was paid, net of the employee's contribution (58-payment-voucher.js) */
- function voucher(x){const p=periodOfExp(x);if(!p)return null;const T=p.totals;
+ /* its payment voucher: what was paid, net of the employee's contribution (58-payment-voucher.js). The salaries' is laid
+    out as the accountant asked (review 5.3, B's answer of round 2): both expenses of the period with their accounts as
+    in the trial balance, then the contributions owed (both parts) and the tax withheld taken off: paid the same net */
+ function voucher(x){const p=periodOfExp(x);if(!p)return null;const T=p.totals,M=DB.map||{},owe=M.sso||'2060';
   return x.payPart==='sso'
    ?{payee:'สำนักงานประกันสังคม',lines:[{text:'เงินสมทบประกันสังคมส่วนนายจ้าง '+p.label,ref:x.no,amt:T.er,wht:0,rate:0},
      {text:'เงินสมทบประกันสังคมส่วนลูกจ้าง (หักจากเงินเดือน '+p.label+')',ref:p.payNo,amt:T.emp,wht:0,rate:0}],ded:[]}
-   :{payee:'พนักงาน '+T.n+' คน',lines:[{text:'เงินเดือนและค่าจ้าง '+p.label+' ('+T.n+' คน)',ref:x.no,amt:T.gross,wht:0,rate:0}],
-     ded:[{text:'หัก เงินสมทบประกันสังคม (ส่วนลูกจ้าง)',amt:T.emp}].concat(n(T.tax)?[{text:'หัก ภาษีเงินได้หัก ณ ที่จ่าย (ภ.ง.ด.1)',amt:n(T.tax)}]:[])};}
+   :{payee:'พนักงาน '+T.n+' คน',lines:[{text:'เงินเดือนและค่าจ้าง '+p.label+' ('+T.n+' คน)',ref:x.no,acc:expAcc(PCAT),amt:T.gross,wht:0,rate:0}]
+      .concat(T.er?[{text:'เงินสมทบประกันสังคม (ส่วนนายจ้าง) '+p.label,ref:p.ssoNo,acc:M.ssoEr||'6011',amt:T.er,wht:0,rate:0}]:[]),
+     ded:(T.er?[{text:'หัก เงินสมทบประกันสังคม (ส่วนนายจ้าง)',acc:owe,amt:T.er}]:[]).concat([{text:'หัก เงินสมทบประกันสังคม (ส่วนลูกจ้าง)',acc:owe,amt:T.emp}],
+      n(T.tax)?[{text:'หัก ภาษีเงินได้หัก ณ ที่จ่าย (ภ.ง.ด.1)',acc:M.whtOut||'2050',amt:n(T.tax)}]:[])};}
 
  /* ---------- reports ---------- */
  const payExps=y=>(DB.expenses||[]).filter(x=>x&&x.cat===PCAT&&(y==null||inYear(x.date,y)));

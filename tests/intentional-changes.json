@@ -698,6 +698,11 @@
       "scenario": "S255-card-fee-other-income-with-vat.spec.ts",
       "decision": "accountant review 3.2, owner follows accountant B (2026-10-28), fee includes VAT, other income",
       "why": "The card fee charged to the customer is other income (4030) with output VAT in it: tax report, home tax card, statements, trial balance, monthly table, daily report, payment window note."
+    },
+    {
+      "scenario": "S256-payroll-voucher-both-expenses-with-account-codes.spec.ts",
+      "decision": "accountant review 5.3, B's answer of round 2, owner decision 2026-10-29",
+      "why": "The salaries' payment voucher shows both expenses of the period (salaries 6010, employer's social security 6011), takes off both contributions owed (2060) and the tax withheld (2050), with an account code column that matches the trial balance; paid the same net."
     }
   ]
 }
