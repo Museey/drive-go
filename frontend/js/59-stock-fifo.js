@@ -21,6 +21,7 @@
      such sales cannot be cancelled before them. d.sold = [{no, id, stockId, qty, cancelled?}], sale.fromCount.
    · Goods from the central warehouse (R11 = ก): ProX online (dcReceive) and Franchise (frReqReceive) receive into a
      FIFO lot with a stock move at the branch's register cost; an item new to a franchise branch asks its cost first.
+     ProX (accountant review 4.2): the receiver confirms each cost first, the chain request's filled in (below).
    · Stock moves (finding 9): the stock card and the move report show what leaves as minus whatever sign the flow
      stored, and a unit cost read from the FIFO ledger (moveCost). The stored moves are unchanged. */
 (function(){
@@ -270,6 +271,36 @@
     onNo:()=>res(null)});
   });
  }
+
+ /* ---------- goods from the ProX chain's central warehouse: the receiver confirms their cost (accountant review 4.2,
+    the owner's decision of 2026-10-29: until there is a real chain server) ----------
+    The cost on the chain's request is filled in (the register cost when it has none); the move and the lot of each item
+    take the cost confirmed, and the shop's history says what was confirmed. */
+ const codeKey=c=>String(c||'').toLowerCase();
+ if(typeof dcReceive==='function'){const o=window.dcReceive;
+  window.dcReceive=async function(id){
+   const r=(typeof DCREQS!=='undefined'?DCREQS:[]).find(x=>x&&String(x.id)===String(id)),L=(r&&r.items||[]).filter(i=>i&&n(i.qty)>0);
+   if(!L.length)return o.apply(this,arguments);
+   if(!costOk())return toast('ของที่รับจากคลังกลางต้องยืนยันทุน — ให้ผู้มีสิทธิ์เห็นต้นทุนรับของเข้าสต๊อก');
+   const costs=await new Promise(res=>{
+    const msg='<p>ยืนยันทุนต่อหน่วยของที่รับ (ใช้เป็นต้นทุน FIFO และทุนในทะเบียน) — ช่องทุนใส่ทุนตามคำขอของคลังกลางไว้ให้ (ถ้าไม่มีใช้ทุนในทะเบียน) แก้ตามหลักฐานได้</p>'
+     +'<table class="tbl"><thead><tr><th>รหัสสินค้า</th><th>ชื่อสินค้า</th><th class="num">จำนวน</th><th class="num">ทุนต่อหน่วย</th></tr></thead><tbody>'
+     +L.map((i,k)=>{const s=DB.stock.find(x=>codeKey(x.code)===codeKey(i.code)),c=n(i.cost)>0?n(i.cost):n(s&&s.cost);
+      return `<tr><td class="mono">${esc(i.code)}</td><td>${esc(i.name||'')}</td><td class="num">${qf(i.qty)} ${esc(i.unit||'')}</td>`
+       +`<td class="num"><input type="number" min="0" step="0.01" class="pkg-dccost" data-k="${k}" value="${c>0?r2(c):''}" aria-label="ทุนต่อหน่วย ${esc(i.code)}" style="width:110px;text-align:right"></td></tr>`;}).join('')+'</tbody></table>';
+    askConfirm({title:'ยืนยันทุนของที่รับจากคลังกลาง · คำขอ #'+id,msg,yes:'รับของเข้าสต๊อก',no:'ยังไม่รับ',
+     onYes:()=>{const out={};let bad=0;
+      document.querySelectorAll('#askMsg .pkg-dccost').forEach(el=>{const i=L[+el.dataset.k],v=parseFloat(el.value);if(!(v>0))bad++;else out[codeKey(i.code)]=r2(v);});
+      if(bad){toast('กรอกทุนต่อหน่วยให้ครบทุกรายการ');res(null);}else res(out);},
+     onNo:()=>res(null)});});
+   if(!costs)return;
+   const lm=logMove,ref='DC-'+id;let told=false;
+   logMove=function(stockId,type,qty,date,rf,refNo,vendorId,cost){
+    const s=refNo===ref&&type==='in'?stockOf(stockId):null,c=s?costs[codeKey(s.code)]:null;
+    if(c!=null&&!told){told=true;
+     logAudit('stock',{id:'',no:ref},'save','ยืนยันทุนรับของจากคลังกลาง ProX · คำขอ #'+id+' · '+L.map(i=>i.code+' × '+qf(i.qty)+' ทุน '+money(costs[codeKey(i.code)])).join(', '));}
+    return lm.call(this,stockId,type,qty,date,rf,refNo,vendorId,c!=null?c:cost);};
+   try{return await o.apply(this,arguments);}finally{logMove=lm;}};}
 
  /* ---------- a stock move's unit cost, read from the FIFO ledger (finding 9) ---------- */
  function moveCost(m){if(!m)return null;const no=m.refNo;
