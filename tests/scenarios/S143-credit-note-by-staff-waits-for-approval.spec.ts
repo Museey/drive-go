@@ -39,13 +39,13 @@ test('S143 ระบบใหม่: พนักงานที่ได้ส�
   const staff = page.getByRole('row').filter({ hasText: 'EMP005' });
   await staff.getByRole('button', { name: '+ ออกบัญชี (ตั้งรหัสผ่าน)' }).click();
   await page.locator('input:focus').waitFor();
-  await page.keyboard.type('5555');
+  await page.keyboard.type('55555555');
   await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).click();
   await expect(staff).toContainText('ใช้งานได้');
   await signOut(page);
 
   // She issues a price cut of 500.00 on an unpaid sale: it waits for approval and changes nothing yet.
-  await app.login('092-111-2233', '5555');
+  await app.login('092-111-2233', '55555555');
   const before = (await app.state()).DB;
   await newCreditNote(page, 'MA-SA261000003');
   await form(page).getByLabel('กรณี').selectOption('ลดราคาหลังขาย');

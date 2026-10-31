@@ -180,9 +180,9 @@ async function dgbOwnerPass(){
   const o=await askPromptP({title:'เปลี่ยนรหัสผ่านเจ้าของ',text:'ใส่รหัสผ่านเดิม',yes:'ต่อไป',no:'ยกเลิก'});
   if(o===null||o===undefined||o===false) return;
   if(!(await window.storage.checkSecret(DGBKEY,'DGB.shop','','pass',o))) return toast('รหัสผ่านเดิมไม่ถูกต้อง');
-  const np=await askPromptP({title:'เปลี่ยนรหัสผ่านเจ้าของ',text:'ตั้งรหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร)',yes:'บันทึก',no:'ยกเลิก'});
+  const np=await askPromptP({title:'เปลี่ยนรหัสผ่านเจ้าของ',text:'ตั้งรหัสผ่านใหม่ (อย่างน้อย 8 ตัวอักษร)',yes:'บันทึก',no:'ยกเลิก'});
   if(np===null||np===undefined||np===false) return;
-  if(String(np).length<6) return toast('รหัสผ่านสั้นเกินไป — อย่างน้อย 6 ตัวอักษร');
+  if(String(np).length<8) return toast('รหัสผ่านสั้นเกินไป — อย่างน้อย 8 ตัวอักษร');
   DGB.shop.pass=String(np); await dgbSave();
   toast('เปลี่ยนรหัสผ่านเรียบร้อย — ใช้รหัสใหม่ในการเข้าระบบครั้งถัดไป');
 }
@@ -354,11 +354,11 @@ async function dgbEmpPass(empId){
   const e=(DB.emp||[]).find(x=>x.id===empId); if(!e) return;
   if(!telNorm(e.tel)) return toast('พนักงานคนนี้ยังไม่มีเบอร์โทร — กรอกเบอร์ก่อน (เบอร์ = ชื่อผู้ใช้เข้าระบบ)');
   if(dgbTelDup(empId,e.tel)) return toast('เบอร์ของพนักงานคนนี้ซ้ำกับคนอื่นในร้าน — แก้เบอร์ให้ไม่ซ้ำก่อน');
-  const sug=String(Math.floor(1000+Math.random()*9000));
-  const p=await askPromptP({title:'ตั้งรหัสผ่านให้ '+e.name,text:'รหัสผ่านสำหรับเข้าระบบ (อย่างน้อย 4 ตัว)\nแนะนำ: '+sug,yes:'บันทึก',no:'ยกเลิก'});
+  const sug=String(Math.floor(10000000+Math.random()*90000000));
+  const p=await askPromptP({title:'ตั้งรหัสผ่านให้ '+e.name,text:'รหัสผ่านสำหรับเข้าระบบ (อย่างน้อย 8 ตัว)\nแนะนำ: '+sug,yes:'บันทึก',no:'ยกเลิก'});
   if(p===null||p===undefined||p===false) return;
   const pass=String(p||'').trim()||sug;
-  if(pass.length<4) return toast('รหัสผ่านสั้นเกินไป — อย่างน้อย 4 ตัวอักษร');
+  if(pass.length<8) return toast('รหัสผ่านสั้นเกินไป — อย่างน้อย 8 ตัวอักษร');
   e.dgbPass=pass; if(e.dgbActive===undefined) e.dgbActive=true;
   await save(); dgbRenderEmpPanel();
   toast('บัญชีพร้อมใช้ — แจ้งพนักงาน: รหัสร้าน '+DGB.shop.code+' · เบอร์ '+e.tel+' · รหัสผ่าน '+pass);

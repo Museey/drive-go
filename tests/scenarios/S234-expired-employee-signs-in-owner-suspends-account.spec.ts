@@ -24,7 +24,7 @@ test('S234 ระบบใหม่: ทีมงานปิดร้าน ห
   const cashier = page.getByRole('row').filter({ hasText: 'EMP008' });
   await cashier.getByRole('button', { name: '+ ออกบัญชี (ตั้งรหัสผ่าน)' }).click();
   await page.locator('input:focus').waitFor();
-  await page.keyboard.type('8888');
+  await page.keyboard.type('88888888');
   await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).click();
   await expect(cashier).toContainText('ใช้งานได้');
   await app.settle();
@@ -40,7 +40,7 @@ test('S234 ระบบใหม่: ทีมงานปิดร้าน ห
   // The cashier signs in and views.
   await page.getByText('ออกจากระบบ', { exact: true }).filter({ visible: true }).click();
   await page.getByPlaceholder('กรอกรหัสผ่าน').waitFor();
-  await app.login('092-333-4455', '8888');
+  await app.login('092-333-4455', '88888888');
   await expect(line(page)).toHaveText('⚠ Expired Date 12/10/2569 · หมดอายุการใช้งานแล้ว 1 วัน');
   await page.getByRole('button', { name: /^04 ใบเสร็จรับเงิน/ }).click();
   await page.getByRole('button', { name: /4\.3 ใบเสร็จรับเงิน/ }).click();
@@ -58,7 +58,7 @@ test('S234 ระบบใหม่: ทีมงานปิดร้าน ห
   expect((await app.serverDB()).emp.find((e: any) => e.code === 'EMP008').dgbActive).toBe(false);
   await page.getByText('ออกจากระบบ', { exact: true }).filter({ visible: true }).click();
   await page.getByPlaceholder('ชื่อผู้ใช้ อีเมล หรือเบอร์โทร').fill('092-333-4455');
-  await page.getByPlaceholder('กรอกรหัสผ่าน').fill('8888');
+  await page.getByPlaceholder('กรอกรหัสผ่าน').fill('88888888');
   await page.getByRole('button', { name: 'เข้าสู่ระบบ', exact: true }).click();
   await expect(page.getByText('บัญชีนี้ถูกระงับการใช้งาน — ติดต่อเจ้าของร้าน').filter({ visible: true })).toBeVisible();
 

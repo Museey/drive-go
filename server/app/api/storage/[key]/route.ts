@@ -9,12 +9,12 @@
 // removal the account may not make (lib/permissions.ts, task T10), and any
 // change but viewing while the shop's licence has run out (lib/licence.ts, task 3.15).
 import { inShop, json, readJson } from '@/lib/api';
-import { endStaleSessions, storeSecrets } from '@/lib/auth';
+import { MIN_PASSWORD, endStaleSessions, storeSecrets } from '@/lib/auth';
 import type { Claims } from '@/lib/numbers';
 import { actorOf, refuseRemoveKey, refuseSave, rightsOf, traceWrite } from '@/lib/permissions';
 import { saveSessionFields, sessionFields } from '@/lib/session';
 import { branchOfKey, inScope, isBackupKey, isDataCopyKey, isSafetyBackupKey, makeBackup, readBackup, readBlob, readMain, removeKey, restoreHidden, saveMain, writeBlob } from '@/lib/storage';
-import { type Changes, rootOf } from '@/lib/units';
+import { type Changes, SECRET_PLACEHOLDER, rootOf } from '@/lib/units';
 import { masksFor } from '@/lib/visibility';
 import { fillCosts } from '@/lib/costing';
 import { refuseRules } from '@/lib/rules';
@@ -76,6 +76,11 @@ export async function POST(req: Request, ctx: Ctx) {
     await traceWrite(c, actor, branch, key, body.changes, body.secrets || [], req.headers.get('x-drivego-test') || '');
     const refused = await refuseSave(c, actor, branch, key, body.changes, body.secrets || []);
     if (refused) return json({ error: 'not allowed', what: refused }, 403);
+    // New passwords: at least MIN_PASSWORD characters (the screens refuse them first), after the account's right to set
+    // them. PINs are not passwords; a save that replaces the whole data (restore, import, sample data: 3.2d) brings back
+    // passwords that were set before.
+    if (!body.whole && (body.secrets || []).some(x => x.field !== 'pin' && x.value !== '' && x.value !== SECRET_PLACEHOLDER && String(x.value).length < MIN_PASSWORD))
+      return json({ error: 'password too short', min: MIN_PASSWORD }, 400);
     // What the person could not see goes back in, and the costs they could not work out are worked out here (task 3.9).
     const rights = await rightsOf(c, actor);
     let changes = await restoreHidden(c, branch, body.changes, masksFor(rights));

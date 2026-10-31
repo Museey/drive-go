@@ -40,12 +40,12 @@ test('S178 ระบบใหม่: คนที่เปิดหน้าจ�
   const emp = ((await app.state()) as any).DB.emp;
   expect(emp.find((e: any) => e.code === 'EMP007').perms).toMatchObject({ sub: { buyPay: true }, doc: { fin: false, emp: false } });
   expect(emp.find((e: any) => e.code === 'EMP009').perms).toMatchObject({ doc: { export: true, backup: true } });
-  await issue('EMP007', '7777');
-  await issue('EMP009', '9999');
+  await issue('EMP007', '77777777');
+  await issue('EMP009', '99999999');
 
   await page.getByText('ออกจากระบบ', { exact: true }).filter({ visible: true }).first().click();
   await page.getByPlaceholder('กรอกรหัสผ่าน').waitFor();
-  await app.login('092-777-8899', '7777');
+  await app.login('092-777-8899', '77777777');
   await go(page, /^06 รายจ่าย/, '└ 4 · จ่ายเงินเดือน');
   await expect(page.locator('#payTbl').getByRole('cell', { name: NO_PAY, exact: true })).toBeVisible();
   await expect(page.locator('#payTbl').getByRole('row').filter({ hasText: 'EMP001' })).toHaveCount(0);
@@ -62,7 +62,7 @@ test('S178 ระบบใหม่: คนที่เปิดหน้าจ�
 
   await page.getByText('ออกจากระบบ', { exact: true }).filter({ visible: true }).first().click();
   await page.getByPlaceholder('กรอกรหัสผ่าน').waitFor();
-  await app.login('081-888-9900', '9999');
+  await app.login('081-888-9900', '99999999');
   await go(page, /^11 ตั้งค่าเพิ่มเติม/, '└ 11.3 นำเข้า / ส่งออกข้อมูล');
   await page.getByRole('button', { name: /^ส่งออกไฟล์สำรองทั้งระบบ/ }).click();
   await toast(page, 'ส่งออกไฟล์สำรองทั้งร้านได้เฉพาะเจ้าของร้าน');

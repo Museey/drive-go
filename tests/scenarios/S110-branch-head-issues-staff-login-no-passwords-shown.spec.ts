@@ -30,7 +30,9 @@ async function answerPrompt(page: Page, value: string, button: string) {
 
 test('S110 ระบบใหม่: หัวหน้าสาขาออกบัญชีให้พนักงานคลัง ตารางบัญชีไม่แสดงรหัสผ่าน รหัสใหม่แจ้งในข้อความครั้งเดียว พนักงานเข้าระบบได้', async ({ app, page }, testInfo) => {
   test.slow();
-  const steps = legacySteps(S96, app);
+  // Passwords the system makes are 8 digits, not 4 (security review proposal 2, the owner's decision of 2026-10-31):
+  // the messages that tell them are swapped.
+  const steps = legacySteps(S96, app, [['รหัสผ่าน 3220 ', 'รหัสผ่าน 32208179 '], ['คือ 9674', 'คือ 96748680']]);
   await app.open();
   await app.login('b001', '1234');
   await page.getByRole('button', { name: /10 ตั้งค่าองค์กร/ }).click();
@@ -41,7 +43,7 @@ test('S110 ระบบใหม่: หัวหน้าสาขาออก�
   // A3: every account that has a password shows ******** (the test copy showed 5678).
   const passwords = panel.getByRole('cell', { name: '********', exact: true });
   await expect(passwords).toHaveCount(1);
-  await expect(panel.getByRole('cell', { name: /^\d{4}$/ })).toHaveCount(0);
+  await expect(panel.getByRole('cell', { name: /^\d{8}$/ })).toHaveCount(0);
   await sameScreen(page, app, testInfo, S96, 'shb-panel', { mask: [passwords] });
   const before = await app.state();
 
@@ -62,7 +64,7 @@ test('S110 ระบบใหม่: หัวหน้าสาขาออก�
   await steps.same('เปลี่ยนชื่อผู้ใช้เป็น sompong');
   await row.getByRole('button', { name: 'รีเซ็ตรหัสผ่าน' }).click();
   // The new password is told once, in the message (the same message as S96's).
-  const told = page.getByText(/^รหัสผ่านใหม่ของ สมปอง คลังแน่น คือ \d{4}$/);
+  const told = page.getByText(/^รหัสผ่านใหม่ของ สมปอง คลังแน่น คือ \d{8}$/);
   await expect(told).toBeVisible();
   const password = (await told.innerText()).trim().split(' คือ ')[1];
   await steps.same('รีเซ็ตรหัสผ่าน ได้รหัสสุ่มใหม่');

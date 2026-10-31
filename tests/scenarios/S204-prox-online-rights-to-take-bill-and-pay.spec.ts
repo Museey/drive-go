@@ -17,7 +17,7 @@ test('S204 ระบบใหม่: ProX ออนไลน์ พนักง�
     ],
   });
   await app.loginAsOwner();
-  await signInAsEmployee(app, page, 'EMP009', '081-888-9900', '9999');
+  await signInAsEmployee(app, page, 'EMP009', '081-888-9900', '99999999');
   await page.getByRole('button', { name: /DriveGo ProX · Ecosystem/ }).click();
   await connectToChain(page, 'rangsit', '1234');
   await stockSynced(page);

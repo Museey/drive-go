@@ -14,7 +14,9 @@ const S41 = 'S41-cashier-account-limited-menus.spec.ts';
 const PRIVATE = ['idcard', 'birth', 'age', 'edu', 'hospital', 'salary', 'ot', 'bonus', 'regular', 'emg', 'addr'];
 
 test('S176 ระบบใหม่: แคชเชียร์เข้าระบบ เห็นเมนูตามสิทธิ์เหมือนเดิม แต่ไม่ได้รับเงินเดือนและข้อมูลส่วนตัวของพนักงานคนอื่น อ่านจุดสำรองไม่ได้', async ({ app, page }, testInfo) => {
-  const golden = legacyGolden(S41, { app, page, testInfo });
+  // A new password has at least 8 characters (security review proposal 2, the owner's decision of 2026-10-31): the
+  // account gets a longer one than the legacy scenario's, and the message that tells it is swapped.
+  const golden = legacyGolden(S41, { app, page, testInfo }, { numbers: [['รหัสผ่าน 8888', 'รหัสผ่าน 88888888']] });
   await app.loginAsOwner();
   await golden.step('หน้าแรก');
 
@@ -25,7 +27,7 @@ test('S176 ระบบใหม่: แคชเชียร์เข้าร�
 
   const before = await app.state() as any;
   await page.locator('input:focus').waitFor();
-  await page.keyboard.type('8888');
+  await page.keyboard.type('88888888');
   await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).click();
   await expect(cashierRow.getByRole('button', { name: 'ตั้งรหัสใหม่' })).toBeVisible();
   await golden.step('ออกบัญชีให้แคชเชียร์แล้ว');
@@ -34,7 +36,7 @@ test('S176 ระบบใหม่: แคชเชียร์เข้าร�
   await page.getByPlaceholder('กรอกรหัสผ่าน').waitFor();
   await golden.step('ออกจากระบบ กลับมาหน้าเข้าสู่ระบบ');
 
-  await app.login('092-333-4455', '8888');
+  await app.login('092-333-4455', '88888888');
   await golden.step('แคชเชียร์เข้าสู่ระบบ');
   // Finding 42 (approved): the cashier has no "ดูยอดเงินและมูลค่าในหน้าแรก", so the card of sales waiting for payment
   // keeps its count and drops the amount (legacy: "รวม ฿36,462.45 · …").

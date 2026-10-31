@@ -33,7 +33,7 @@ test('S160 ระบบใหม่: ขายเกินของที่ม�
 
   // The owner gives the front desk (no approval right) and the head technician (approves quotations) a login.
   await page.getByRole('button', { name: '10 ตั้งค่าองค์กร' }).click();
-  for (const [code, pass] of [['EMP005', '5555'], ['EMP001', '1111']]) {
+  for (const [code, pass] of [['EMP005', '55555555'], ['EMP001', '11111111']]) {
     const staff = page.getByRole('row').filter({ hasText: code });
     await staff.getByRole('button', { name: '+ ออกบัญชี (ตั้งรหัสผ่าน)' }).click();
     await page.locator('input:focus').waitFor();
@@ -54,7 +54,7 @@ test('S160 ระบบใหม่: ขายเกินของที่ม�
   await signOut(page);
 
   // The front desk sells 25 brake pads; 19 are in stock: refused, nothing is cut or saved.
-  await app.login('092-111-2233', '5555');
+  await app.login('092-111-2233', '55555555');
   const start = await app.serverDB();
   expect(brakePads(start)).toMatchObject({ qty: 19, cost: 850 });
   await sellBrakePads(page, '25');
@@ -67,7 +67,7 @@ test('S160 ระบบใหม่: ขายเกินของที่ม�
   await signOut(page);
 
   // The head technician holds an approval right: asked, and may go negative.
-  await app.login('081-555-1234', '1111');
+  await app.login('081-555-1234', '11111111');
   await sellBrakePads(page, '25');
   await expect(page.getByRole('heading', { name: 'สต๊อกไม่พอ' })).toBeVisible();
   await page.getByRole('button', { name: 'ตัดสต็อก (ยอมติดลบ)' }).click();

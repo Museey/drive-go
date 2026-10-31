@@ -12,7 +12,8 @@ const S03 = 'S03-owner-changes-password.spec.ts';
 
 test('S105 ระบบใหม่: เจ้าของร้านเปลี่ยนรหัสผ่าน (ตรวจและเก็บที่ server) รหัสเดิมใช้ไม่ได้ รหัสใหม่ใช้ได้ และไม่มีทางเข้าโดยไม่กรอกรหัส', async ({ app, page }, testInfo) => {
   test.slow();
-  const steps = legacySteps(S03, app);
+  // A new password has at least 8 characters, not 6 (security review proposal 2, the owner's decision of 2026-10-31).
+  const steps = legacySteps(S03, app, [['อย่างน้อย 6 ตัวอักษร', 'อย่างน้อย 8 ตัวอักษร']]);
   await app.loginAsOwner();
   await steps.same('หน้าแรก');
 
@@ -33,18 +34,19 @@ test('S105 ระบบใหม่: เจ้าของร้านเปล�
 
   await page.getByRole('button', { name: 'เปลี่ยนรหัสผ่าน' }).click();
   await answer('123456', 'ต่อไป');
-  await expect(page.getByText('ตั้งรหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร)')).toBeVisible();
+  await expect(page.getByText('ตั้งรหัสผ่านใหม่ (อย่างน้อย 8 ตัวอักษร)')).toBeVisible();
   await steps.same('ใส่รหัสผ่านเดิมถูก ระบบให้ตั้งรหัสใหม่');
   await answer('dg123', 'บันทึก');
   await steps.same('รหัสใหม่สั้นกว่า 6 ตัว');
 
   await page.getByRole('button', { name: 'เปลี่ยนรหัสผ่าน' }).click();
   await answer('123456', 'ต่อไป');
-  await expect(page.getByText('ตั้งรหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร)')).toBeVisible();
+  await expect(page.getByText('ตั้งรหัสผ่านใหม่ (อย่างน้อย 8 ตัวอักษร)')).toBeVisible();
   await page.locator('input:focus').waitFor();
   await page.keyboard.type('drive2026');
   // Task 3.15: the licence shown is the server's (tests/support/licence.ts), checked by its text and left out of the picture.
-  await sameScreen(page, app, testInfo, S03, 'new-password-typed', { mask: await ownerPanelLicence(page) });
+  // The prompt's line says 8 characters, not 6 (checked above): left out of the picture too.
+  await sameScreen(page, app, testInfo, S03, 'new-password-typed', { mask: [...await ownerPanelLicence(page), page.getByText('ตั้งรหัสผ่านใหม่ (อย่างน้อย 8 ตัวอักษร)')] });
   await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).click();
   await steps.same('เปลี่ยนรหัสผ่านเป็น drive2026');
   await app.settle();

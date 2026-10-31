@@ -17,7 +17,7 @@ function frUserNorm(u){ return String(u||'').trim().toLowerCase(); }
 function frUserValid(u){ return /^[a-z0-9][a-z0-9._-]{2,19}$/.test(frUserNorm(u)); }
 function frUserTaken(u,exceptId){ u=frUserNorm(u);
   return FR.accounts.some(a=>a.id!==exceptId&&frUserNorm(a.user)===u); }
-function frPassValid(p){ return String(p||'').length>=4; }
+function frPassValid(p){ return String(p||'').length>=8; }
 /* หา username ว่างจากคำตั้งต้น เช่น b001-emp003 → b001-emp003-2 ถ้าซ้ำ */
 function frUserFree(base){ base=frUserNorm(base).replace(/[^a-z0-9._-]/g,'')||'user';
   if(base.length<3) base=(base+'000').slice(0,3);
@@ -548,7 +548,7 @@ async function frBrAdd(){
   const id='B'+String(FR.seq.br).padStart(3,'0');
   FR.branches.push({id,code:id,name:String(nm),addr:'',tel:'',manager:'',active:true,perms:null});
   let u=frUserFree(id);
-  const pass=String(Math.floor(1000+Math.random()*9000));
+  const pass=String(Math.floor(10000000+Math.random()*90000000));
   FR.accounts.push({id:uid(),user:u,pass,role:'HB',branchId:id,name:'ผู้จัดการ'+String(nm),active:true});
   await frSave();
   frRenderBranchMgr('#frBrWrap'); frRenderSetBranch();
@@ -577,7 +577,7 @@ async function frAccAdd(brId){
   const nm=await askPromptP({title:'ออกรหัสผู้ใช้ HB',text:'ชื่อผู้ถือรหัส (เช่น ผู้จัดการสาขา / รองผู้จัดการ)',yes:'ออกรหัส',no:'ยกเลิก'});
   if(!nm) return;
   let u=frUserFree(brId||'hb');
-  const pass=String(Math.floor(1000+Math.random()*9000));
+  const pass=String(Math.floor(10000000+Math.random()*90000000));
   FR.accounts.push({id:uid(),user:u,pass,role:'HB',branchId:brId,name:String(nm),active:true});
   await frSave(); frRenderBranchMgr('#frBrWrap'); frRenderSetBranch();
   toast('ออกรหัสแล้ว — '+u+' / '+pass);
@@ -586,6 +586,7 @@ async function frAccReset(id){
   const a=FR.accounts.find(x=>x.id===id); if(!a) return;
   const p=await askPromptP({title:'รีเซ็ตรหัสผ่าน',text:'รหัสผ่านใหม่ของ '+a.user,yes:'บันทึก',no:'ยกเลิก'});
   if(!p) return;
+  if(!frPassValid(p)) return toast('รหัสผ่านสั้นเกินไป — อย่างน้อย 8 ตัวอักษร');
   a.pass=String(p); await frSave(); frRenderBranchMgr('#frBrWrap'); frRenderSetBranch();
   toast('เปลี่ยนรหัสผ่านของ '+a.user+' แล้ว');
 }
@@ -666,7 +667,7 @@ async function frShbCreate(empId){
   const user=frUserNorm(u)||sug;
   if(!frUserValid(user)) return toast('ชื่อผู้ใช้ไม่ถูกต้อง — ใช้ a-z 0-9 . _ - ยาว 3-20 ตัวอักษร');
   if(frUserTaken(user)) return toast('ชื่อผู้ใช้ "'+user+'" ถูกใช้แล้วในระบบ — ตั้งชื่ออื่น (แนะนำ: '+frUserFree(user)+')');
-  const pass=String(Math.floor(1000+Math.random()*9000));
+  const pass=String(Math.floor(10000000+Math.random()*90000000));
   FR.accounts.push({id:uid(),user,pass,role:'SHB',branchId:brId,empId:e.id,name:e.name,active:true});
   await frSave(); frRenderShbPanel();
   toast('ออกบัญชีแล้ว — ชื่อผู้ใช้ '+user+' · รหัสผ่าน '+pass+' (แจ้งพนักงานและให้เปลี่ยนรหัสเมื่อเข้าครั้งแรก)');
@@ -680,7 +681,7 @@ async function frShbUser(accId,val){
 }
 async function frShbReset(accId){
   const ac=FR.accounts.find(x=>x.id===accId); if(!ac) return;
-  const pass=String(Math.floor(1000+Math.random()*9000));
+  const pass=String(Math.floor(10000000+Math.random()*90000000));
   ac.pass=pass; await frSave(); frRenderShbPanel();
   toast('รหัสผ่านใหม่ของ '+ac.name+' คือ '+pass);
 }
@@ -695,9 +696,9 @@ async function frChangePass(){
   const o=await askPromptP({title:'เปลี่ยนรหัสผ่าน',text:'ใส่รหัสผ่านเดิมของ '+a.user,yes:'ต่อไป',no:'ยกเลิก'});
   if(o===null||o===undefined||o===false) return;
   if(!(await window.storage.checkSecret(FRKEY,'FR.accounts',a.id,'pass',o))) return toast('รหัสผ่านเดิมไม่ถูกต้อง');
-  const np=await askPromptP({title:'เปลี่ยนรหัสผ่าน',text:'ตั้งรหัสผ่านใหม่ (อย่างน้อย 4 ตัวอักษร)',yes:'บันทึก',no:'ยกเลิก'});
+  const np=await askPromptP({title:'เปลี่ยนรหัสผ่าน',text:'ตั้งรหัสผ่านใหม่ (อย่างน้อย 8 ตัวอักษร)',yes:'บันทึก',no:'ยกเลิก'});
   if(np===null||np===undefined||np===false) return;
-  if(!frPassValid(np)) return toast('รหัสผ่านสั้นเกินไป — อย่างน้อย 4 ตัวอักษร');
+  if(!frPassValid(np)) return toast('รหัสผ่านสั้นเกินไป — อย่างน้อย 8 ตัวอักษร');
   a.pass=String(np); await frSave(); toast('เปลี่ยนรหัสผ่านเรียบร้อย — ใช้รหัสใหม่ในการเข้าระบบครั้งถัดไป');
 }
 

@@ -33,14 +33,14 @@ test('S249 ระบบใหม่: พนักงานที่มีสา�
   const row = page.getByRole('row').filter({ hasText: 'EMP005' });
   await row.getByRole('button', { name: '+ ออกบัญชี (ตั้งรหัสผ่าน)' }).click();
   await page.locator('input:focus').waitFor();
-  await page.keyboard.type('5555');
+  await page.keyboard.type('55555555');
   await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).click();
   await expect(row).toContainText('ใช้งานได้');
   await app.settle();
 
   const desk = await secondDevice(browser, page);
   await desk.app.open();
-  await desk.app.login('092-111-2233', '5555');
+  await desk.app.login('092-111-2233', '55555555');
   await expect(workingBranch(desk.page).locator('option:checked')).toHaveText('BN · สาขาบางนา');
   await expect(workingBranch(page).locator('option:checked')).toHaveText('MA · สาขาหลัก');
   await desk.context.close();

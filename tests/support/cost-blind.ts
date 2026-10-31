@@ -25,12 +25,12 @@ export async function managerWithoutCost(app: App, page: Page) {
   const staff = page.getByRole('row').filter({ hasText: 'EMP004' });
   await staff.getByRole('button', { name: '+ ออกบัญชี (ตั้งรหัสผ่าน)' }).click();
   await page.locator('input:focus').waitFor();
-  await page.keyboard.type('4444');
+  await page.keyboard.type('44444444');
   await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).click();
   await expect(staff).toContainText('ใช้งานได้');
   await page.getByText('ออกจากระบบ', { exact: true }).filter({ visible: true }).first().click();
   await page.getByPlaceholder('กรอกรหัสผ่าน').waitFor();
-  await app.login('081-900-1122', '4444');
+  await app.login('081-900-1122', '44444444');
 }
 
 // Every cost in a change (fields named cost, cogs, creditAmt): where it is and what it is.

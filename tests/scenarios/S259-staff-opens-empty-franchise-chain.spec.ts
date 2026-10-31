@@ -29,7 +29,7 @@ test('S259 ระบบใหม่: ทีมงานเปิดเครื�
   await expect(page.getByText('0 สาขา', { exact: true }).filter({ visible: true })).toBeVisible();
   await page.getByRole('button', { name: '+ เพิ่มสาขาใหม่ + ออกรหัส HB อัตโนมัติ' }).click();
   await answerPrompt(page, 'สาขาหลัก ลำปาง', 'สร้างสาขา + ออกรหัส');
-  const created = page.getByText(/^สร้าง B001 · สาขาหลัก ลำปาง แล้ว — รหัส HB: b001 \/ \d{4}$/);
+  const created = page.getByText(/^สร้าง B001 · สาขาหลัก ลำปาง แล้ว — รหัส HB: b001 \/ \d{8}$/);
   await expect(created).toBeVisible();
   const headPass = (await created.innerText()).trim().split(' / ')[1];
   await real.settle();

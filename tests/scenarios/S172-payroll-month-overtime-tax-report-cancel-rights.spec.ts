@@ -103,7 +103,7 @@ test('S172 ระบบใหม่: เงินได้ประจำนั�
   const staff = page.getByRole('row').filter({ hasText: 'EMP009' });
   await staff.getByRole('button', { name: '+ ออกบัญชี (ตั้งรหัสผ่าน)' }).click();
   await page.locator('input:focus').waitFor();
-  await page.keyboard.type('9999');
+  await page.keyboard.type('99999999');
   await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).click();
   await expect(staff).toContainText('ใช้งานได้');
   await page.getByRole('button', { name: '09 งานบุคคล' }).click();
@@ -113,7 +113,7 @@ test('S172 ระบบใหม่: เงินได้ประจำนั�
   expect((await app.state()).DB.emp.find((e: any) => e.code === 'EMP009').perms).toMatchObject({ sub: { buyPay: true }, doc: { acctEdit: false } });
   await page.getByText('ออกจากระบบ', { exact: true }).filter({ visible: true }).first().click();
   await page.getByPlaceholder('กรอกรหัสผ่าน').waitFor();
-  await app.login('081-888-9900', '9999');
+  await app.login('081-888-9900', '99999999');
   await go(page, /^06 รายจ่าย/, '└ 4 · จ่ายเงินเดือน');
   await expect(page.getByText(/^บันทึกแล้ว · รายจ่าย MA-EX261000005/)).toBeVisible();
   for (const name of ['จ่ายเงินเดือน', 'นำส่งประกันสังคม', 'ยกเลิกงวดนี้'])

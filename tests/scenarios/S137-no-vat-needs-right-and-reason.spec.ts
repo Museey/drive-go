@@ -34,7 +34,7 @@ test('S137 ระบบใหม่: ร้านที่จด VAT เลื�
   const staff = page.getByRole('row').filter({ hasText: 'EMP005' });
   await staff.getByRole('button', { name: '+ ออกบัญชี (ตั้งรหัสผ่าน)' }).click();
   await page.locator('input:focus').waitFor();
-  await page.keyboard.type('5555');
+  await page.keyboard.type('55555555');
   await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).click();
   await expect(staff).toContainText('ใช้งานได้');
 
@@ -104,7 +104,7 @@ test('S137 ระบบใหม่: ร้านที่จด VAT เลื�
   // A Biz shop signs out at once, without asking (S101).
   await page.getByText('ออกจากระบบ', { exact: true }).filter({ visible: true }).first().click();
   await page.getByPlaceholder('กรอกรหัสผ่าน').waitFor();
-  await app.login('092-111-2233', '5555');
+  await app.login('092-111-2233', '55555555');
   await page.getByRole('button', { name: /^04 ใบเสร็จรับเงิน/ }).click();
   await page.getByRole('button', { name: '+ สร้างข้อมูลใหม่' }).filter({ visible: true }).click();
   await expect(vatBox(page)).toHaveValue('7');
@@ -132,7 +132,7 @@ test('S137 ระบบใหม่: ร้านที่จด VAT เลื�
   await expect(staff.getByRole('button', { name: '+ ออกบัญชี (ตั้งรหัสผ่าน)' })).toHaveCount(0);
   await page.getByText('ออกจากระบบ', { exact: true }).filter({ visible: true }).first().click();
   await page.getByPlaceholder('กรอกรหัสผ่าน').waitFor();
-  await app.login('092-111-2233', '5555');
+  await app.login('092-111-2233', '55555555');
   await page.getByRole('button', { name: /^04 ใบเสร็จรับเงิน/ }).click();
   await page.getByRole('button', { name: '+ สร้างข้อมูลใหม่' }).filter({ visible: true }).click();
   await vatBox(page).selectOption('ไม่มี');

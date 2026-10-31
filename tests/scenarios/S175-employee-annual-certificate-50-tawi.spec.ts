@@ -89,7 +89,7 @@ test('S175 ระบบใหม่: กรอกที่อยู่พนั�
   const staff = page.getByRole('row').filter({ hasText: 'EMP004' });
   await staff.getByRole('button', { name: '+ ออกบัญชี (ตั้งรหัสผ่าน)' }).click();
   await page.locator('input:focus').waitFor();
-  await page.keyboard.type('4444');
+  await page.keyboard.type('44444444');
   await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).click();
   await expect(staff).toContainText('ใช้งานได้');
   await page.getByRole('button', { name: '09 งานบุคคล' }).click();
@@ -100,7 +100,7 @@ test('S175 ระบบใหม่: กรอกที่อยู่พนั�
   expect((await app.state()).DB.emp.find((e: any) => e.code === 'EMP004').perms).toMatchObject({ sub: { acctTax: true }, doc: { acctEdit: false } });
   await page.getByText('ออกจากระบบ', { exact: true }).filter({ visible: true }).first().click();
   await page.getByPlaceholder('กรอกรหัสผ่าน').waitFor();
-  await app.login('081-900-1122', '4444');
+  await app.login('081-900-1122', '44444444');
   await go(page, /^08 บัญชี/, '└ รายงานภาษี');
   await page.getByRole('button', { name: 'พิมพ์ 50 ทวิ ประจำปีของพนักงาน' }).click();
   await toast(page, 'บัญชีนี้ไม่มีสิทธิ์ออก 50 ทวิ ของพนักงาน (ต้องมีสิทธิ์บันทึกค่าใช้จ่าย)');

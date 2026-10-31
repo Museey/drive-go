@@ -15,13 +15,13 @@ test('S121 ระบบใหม่: พนักงานเรียก API �
   const cashier = page.getByRole('row').filter({ hasText: 'EMP008' });
   await cashier.getByRole('button', { name: '+ ออกบัญชี (ตั้งรหัสผ่าน)' }).click();
   await page.locator('input:focus').waitFor();
-  await page.keyboard.type('8888');
+  await page.keyboard.type('88888888');
   await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).click();
   await expect(cashier.getByRole('button', { name: 'ตั้งรหัสใหม่' })).toBeVisible();
   await app.settle();
   await page.getByText('ออกจากระบบ', { exact: true }).filter({ visible: true }).click();
   await page.getByPlaceholder('กรอกรหัสผ่าน').waitFor();
-  await app.login('0923334455', '8888');
+  await app.login('0923334455', '88888888');
 
   const api = storageApi(page);
   const shopBefore = (await api.read('dgb.v22')).data.shop;

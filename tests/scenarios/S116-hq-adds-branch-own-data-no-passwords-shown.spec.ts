@@ -31,7 +31,9 @@ async function signOut(page: Page) {
 
 test('S116 ระบบใหม่: สำนักงานใหญ่ (ข้อมูลของ HQ เอง) เพิ่มสาขาใหม่ ออกรหัสหัวหน้าสาขา ทะเบียนไม่แสดงรหัสผ่าน รีเซ็ตรหัส แล้วหัวหน้าสาขาใหม่เข้าระบบ', async ({ app, page }, testInfo) => {
   test.slow();
-  const golden = legacyGolden(S94, { app, page, testInfo });
+  // Passwords the system makes are 8 digits, not 4 (security review proposal 2, the owner's decision of 2026-10-31):
+  // the messages that tell them are swapped.
+  const golden = legacyGolden(S94, { app, page, testInfo }, { numbers: [['b003 / 3220', 'b003 / 32208179'], ['b003-2 / 9674', 'b003-2 / 96748680']] });
   await app.loginAsOwner();
   await page.getByRole('button', { name: '🏬 สาขา · รหัสผู้ใช้ · สิทธิ' }).click();
   await expect(page.getByText('2 สาขา', { exact: true }).filter({ visible: true })).toBeVisible();
@@ -42,7 +44,7 @@ test('S116 ระบบใหม่: สำนักงานใหญ่ (ข�
   await golden.step('ถามชื่อสาขาใหม่');
   await answerPrompt(page, 'สาขาลาดพร้าว', 'สร้างสาขา + ออกรหัส');
   // The new head's password is told once, in the message (the same message as S94's).
-  const created = page.getByText(/^สร้าง B003 · สาขาลาดพร้าว แล้ว — รหัส HB: b003 \/ \d{4}$/);
+  const created = page.getByText(/^สร้าง B003 · สาขาลาดพร้าว แล้ว — รหัส HB: b003 \/ \d{8}$/);
   await expect(created).toBeVisible();
   const headPass = (await created.innerText()).trim().split(' / ')[1];
   // Both the HQ console and menu 10 draw the branch cards; use the one on screen.
@@ -78,7 +80,7 @@ test('S116 ระบบใหม่: สำนักงานใหญ่ (ข�
 
   await deputy.getByRole('button', { name: 'รีเซ็ตรหัสผ่าน' }).click();
   await golden.step('ถามรหัสผ่านใหม่');
-  await answerPrompt(page, '5555', 'บันทึก');
+  await answerPrompt(page, '55555555', 'บันทึก');
   // A3: the register shows ******** (the test copy showed 5555).
   await expect(deputy.getByRole('cell', { name: '********', exact: true })).toBeVisible();
   await golden.step('รีเซ็ตรหัสผ่านของ b003.deputy แล้ว');
@@ -105,7 +107,7 @@ test('S116 ระบบใหม่: สำนักงานใหญ่ (ข�
   await golden.screen('b003-home', { mask: [licenceLine(page)] });
 
   await signOut(page);
-  await app.login('b003.deputy', '5555');
+  await app.login('b003.deputy', '55555555');
   await golden.step('รองผู้จัดการเข้าสู่ระบบด้วยรหัสที่รีเซ็ต');
   golden.done();
 });

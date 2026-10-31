@@ -342,6 +342,12 @@
       "by": "S257-count-surplus-cost-confirmed-by-approver.spec.ts",
       "decision": "accountant review 4.2, owner decision 2026-10-29 (approver confirms the cost of a count's surplus)",
       "why": "Approving a count with goods over asks the approver for each one's unit cost (register cost filled in) and the evidence; AC-230 is confirmed at 1,650.00, so the surplus lot, the register cost, the count (surplusCost, surplus) and its history differ from S32's. Every other step, screen and data change is checked against S32's goldens."
+    },
+    {
+      "scenario": "S101-sign-in-outcomes-biz.spec.ts",
+      "by": "S263-sign-in-outcomes-biz-longer-passwords.spec.ts",
+      "decision": "security review proposal 2, owner's decision 2026-10-31 (passwords of at least 8 characters)",
+      "why": "EMP008's account is issued with an 8-character password instead of 8888; every step and message is checked against S101's goldens with that password."
     }
   ],
   "added": [

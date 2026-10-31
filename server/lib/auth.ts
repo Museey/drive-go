@@ -19,6 +19,9 @@ const frUserNorm = (u: unknown) => String(u || '').trim().toLowerCase();
 const hasSecret = (v: unknown) => typeof v === 'string' && v !== '';
 
 export const LOCKOUT = { failures: 5, minutes: 15 };   // decision Q2
+// A new password (not a PIN) set from the screens: at least this many characters (security review proposal 2, the
+// owner's decision of 2026-10-31; the screens say so first, 04.js 05.js). Passwords set before keep working.
+export const MIN_PASSWORD = 8;
 export const MESSAGES = { lockedOut: 'กรอกรหัสผิดหลายครั้ง กรุณารอ 15 นาทีแล้วลองใหม่' };   // decision Q5
 
 // Wrong sign-ins per device (security review proposal 1, owner's decision of 2026-10-31): from one address, more than

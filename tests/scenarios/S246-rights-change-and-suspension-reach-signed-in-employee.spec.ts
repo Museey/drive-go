@@ -12,14 +12,14 @@ test('S246 ระบบใหม่: เจ้าของเอาสิทธ�
   const staff = page.getByRole('row').filter({ hasText: 'EMP005' });
   await staff.getByRole('button', { name: '+ ออกบัญชี (ตั้งรหัสผ่าน)' }).click();
   await page.locator('input:focus').waitFor();
-  await page.keyboard.type('5555');
+  await page.keyboard.type('55555555');
   await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).click();
   await expect(staff).toContainText('ใช้งานได้');
   await app.settle();
 
   const desk = await secondDevice(browser, page);
   await desk.app.open();
-  await desk.app.login('092-111-2233', '5555');
+  await desk.app.login('092-111-2233', '55555555');
   const crm = desk.page.getByRole('button', { name: /^01 ลูกค้าสัมพันธ์/ });
   await expect(crm).toBeVisible();
 
