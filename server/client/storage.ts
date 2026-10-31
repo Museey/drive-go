@@ -24,6 +24,7 @@ import { type Split, SECRET_PLACEHOLDER, assemble, diff, eachRecord, rootOf, spl
 import { type Mask, maskRows } from '../lib/visibility.ts';
 import { type Refused, linkInPlace, setSpace, space, uploadFiles, withLinks } from './files.ts';
 import { createLive } from './live.ts';
+import { postError, reportErrors } from './errors.ts';
 import { dataToMain } from '../lib/branch-stock.ts';
 
 const API = '/api/storage';
@@ -439,3 +440,5 @@ const storage = {
 };
 
 (window as unknown as { storage: typeof storage }).storage = storage;
+// Errors the pages did not catch go to the server (LAUNCH-CHECKLIST stage 1).
+reportErrors(window, postError);

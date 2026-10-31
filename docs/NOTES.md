@@ -1286,3 +1286,32 @@ Claude ไม่เข้าบัญชี DigitalOcean และไม่ร�
 - `tools/retention.mjs` ยังใช้ดูเฉย ๆ ได้ (`--apply` จดการแจ้งทุกร้านพร้อมกัน ไม่ใช้แล้วในขั้นตอนของทีมงาน) image มี nightly, retention, files
 - ทดสอบ: `tests/db/nightly.test.mjs` (แจ้งไม่ถูกจดเอง, จดเมื่อถึงเวลาเท่านั้น, ลบ 30 วันหลังจด, purge 5 ปี, ร้านตัวอย่าง, ไฟล์)
   และ `tools/image-smoke.mjs` รันงานใน image กับฐานข้อมูล TLS: วันนี้จบด้วย 0, อีก 200 วันมี `CALL` ร้านจริงและ `DEMO` จบด้วย 3 และรันซ้ำยังเป็น 3 (ไม่จดเอง)
+
+## แจ้งเตือนเมื่อระบบมีปัญหา (2026-10-31, LAUNCH-CHECKLIST ด่าน 1)
+
+ไม่ใช้ผู้ให้บริการภายนอก (Sentry ฯลฯ) ตอนนี้: ไม่มีค่าใช้จ่ายเพิ่ม และข้อความ error อาจมีข้อมูลที่ผู้ใช้พิมพ์ จึงเก็บในฐานข้อมูลเดียวกับข้อมูลร้าน
+(รอคำตอบนักกฎหมาย PDPA ก่อนส่งออกนอก) ช่องทางถึงคนดูแลมีแค่อีเมลแจ้งเตือนของ DigitalOcean:
+- **เว็บล่ม**: Uptime check ของ DigitalOcean ที่ `/api/health` (แอปตอบและต่อฐานข้อมูลได้) เจ้าของสร้างใน control panel
+  (DIGITALOCEAN-SETUP.md ส่วนที่ 3 ข้อ 8) ทำใน `.do/app.yaml` ไม่ได้
+- **แอปล่มซ้ำ / เครื่องหนัก**: alert ของส่วนประกอบ web ใน `.do/app.yaml`: `RESTART_COUNT` > 1 ใน 5 นาที (ไม่ใช้ > 0 เพราะ godo ส่ง value 0 ไม่ได้
+  กลัว spec ถูกปฏิเสธตอนวาง), `MEM_UTILIZATION` / `CPU_UTILIZATION` > 85% 10 นาที ไม่ใช้กฎเวลาตอบ (`REQUEST_DURATION_P95_MS`)
+  เพราะการเชื่อมต่อค้างของงาน 3.10 (`/api/live`) ทำให้เวลาตอบยาวตลอด
+- **server ล้มกับคำขอ**: `server/instrumentation.ts` (`onRequestError` ของ Next.js 16) บันทึกทุกคำขอที่ route ไม่ได้จัดการ (ผู้ใช้ได้ 500)
+  ลงตาราง `errors` (0007) พร้อมร้านและผู้ใช้จาก session, หน้า (ไม่มี query string), ข้อความ, stack บันทึกไม่ได้ก็แค่ log ไม่ทำให้ล้มซ้ำ
+- **หน้าจอผิดพลาด**: `server/client/errors.ts` (อยู่ใน 00-server-storage.js, CHANGES ข้อ 130) ส่ง `error` / `unhandledrejection` ที่ไม่มีใครจับ
+  ไป `POST /api/errors` (ไม่ต้องเข้าระบบ: หน้าเข้าระบบก็ส่งได้) ข้อความเดียวกันไม่เกิน 2 ครั้ง ไม่เกิน 20 ครั้งต่อหน้า ไม่ส่งของสคริปต์เว็บอื่น
+  (ส่วนเสริมของเบราว์เซอร์ "Script error.") server จำกัด 20 ครั้ง/นาทีต่อคน (หรือต่อ IP ถ้าไม่ได้เข้าระบบ) และ 300 ครั้ง/นาทีรวม (นับในโปรเซส)
+- **ตาราง `errors`**: แอป (drivego_app) เพิ่มได้อย่างเดียว อ่าน/แก้/ลบไม่ได้ (RLS + grant insert) ทีมงานอ่านด้วย `tools/errors.mjs`
+  เก็บ 30 วัน (งาน nightly ลบที่เก่ากว่า) และลบพร้อมข้อมูลร้าน (`carryOut` ลบทุกตารางที่มี shop_id)
+- **งาน watch ทุกชั่วโมง** (`.do/app.yaml` job SCHEDULED นาทีที่ 7, `server/lib/watch.ts`, `tools/watch.mjs`): สรุปข้อผิดพลาดตั้งแต่ครั้งก่อน
+  (`watch_marks`, lock ไว้กันรันซ้อน) จัดกลุ่มตามร้าน หน้า ข้อความ แจ้งเตือน (จบด้วย 3 → `JOB_INVOCATION_FAILED` ส่งอีเมล) เมื่อ server ล้ม
+  แม้ครั้งเดียว หรือหน้าจอผิดพลาด ≥ 10 ครั้งในชั่วโมง (`BROWSER_ALERT`) ปรับได้เมื่อเห็นของจริงในช่วงนำร่อง
+  เกณฑ์นี้ตั้งจากการวัด 2026-10-31: รันสถานการณ์ของระบบเดิมทั้งชุด (90 สถานการณ์, 88 จบ อีก 2 ล้มเพราะดิสก์เต็มไม่ใช่โปรแกรม) พร้อมเก็บ
+  `pageerror` ชั่วคราว ไม่มีข้อผิดพลาดที่หน้าจอไม่ได้จับเลย การใช้งานปกติจึงไม่น่าแจ้งเตือน
+- ระวัง: สคริปต์ที่ Playwright ใส่ในหน้า (`addScriptTag`) มี `filename` ว่าง จึงกรองเฉพาะ error ที่ไม่มี error object ("Script error." ของเว็บอื่น)
+  หรือ filename เป็นเว็บอื่น ส่วน `page.request` ของ Playwright ไม่ส่ง cookie Secure ผ่าน http เรียก API ด้วย session ให้ใช้ `fetch` ในหน้า (S261)
+- เวลา `since`/`until` ของงาน watch อยู่ใน SQL (`now()` ของ transaction) เพราะ Date ของ JavaScript ตัดเหลือมิลลิวินาที (test พังครั้งคราวเพราะเรื่องนี้)
+- route ทดสอบ `/api/test-error` ล้มโดยตั้งใจเฉพาะเมื่อ `DRIVEGO_TEST_SERVER=1` (เหมือนวันที่ของ test) ที่อื่นตอบ 404 (image-smoke ตรวจ)
+- ทดสอบ: `tests/db/errors.test.mjs` (สิทธิ์ของแอป, ตัด query string และความยาว, จำกัดต่อนาที, watch, ลบ 30 วัน, ลบพร้อมร้าน),
+  `server/client/errors.test.ts`, S261 (หน้าจอและ server จริง), image-smoke (`/api/errors` + watch ใน image)
+

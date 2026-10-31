@@ -41,6 +41,15 @@ export async function closeTestShop(page, lastDay) {
   return close(pool, shopOfPage(page), { lastDay, actor: 'test' });
 }
 
+// The errors recorded for the shop the page is open at (table errors, server/lib/errors.ts), oldest first.
+export async function recordedErrors(page) {
+  pool ??= new pg.Pool({ connectionString: process.env.DRIVEGO_OWNER_DB, max: 2 });
+  const { rows } = await pool.query(
+    `select e.source, e.user_id, e.path, e.message, e.detail, e.agent from errors e join shops s on s.id = e.shop_id
+      where s.code = $1 order by e.id`, [shopOfPage(page)]);
+  return rows;
+}
+
 // What DriveGo's staff do with tools/shop-admin.mjs new / password (server/lib/shop-open.ts): a real, empty shop
 // with its owner's account, and a new password when it was forgotten. Returns the code, user and password.
 let realShops = 0;

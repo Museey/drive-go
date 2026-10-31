@@ -2,7 +2,8 @@
 // only takes TLS with a certificate of its own CA (as the managed database), the app's user drivego_app made beforehand
 // with a password (as in the control panel), then the pre-deploy job twice (the schema and the demo shops, then nothing
 // left to do) and the web container: health, a shop's page, signing in; then the staff tool opens a real shop and
-// gives its owner a new password (docs/STAFF-TOOLS.md), and the owner signs in; the scheduled job (tools/nightly.mjs).
+// gives its owner a new password (docs/STAFF-TOOLS.md), and the owner signs in; the scheduled jobs (tools/nightly.mjs,
+// tools/watch.mjs) and a page's error reaching the errors table.
 // Used by CI before the deploy branch moves.
 //
 //   docker build -t drivego:smoke . && node tools/image-smoke.mjs [image]
@@ -75,15 +76,14 @@ try {
   const admin = (...args) => docker(['run', '--rm', '--network', 'host', '-e', `MIGRATE_DATABASE_URL=${owner}`, '-e', 'DATABASE_CA_CERT',
     image, 'node', 'tools/shop-admin.mjs', ...args, '--by', 'smoke']);
   const passOf = r => (/temporary password (\S+)/.exec(r.stdout) || [])[1];
-  // A connection kept from before the (blocking) docker run may have been closed by the server meanwhile: try again.
-  const signInAs = async pass => {
+  // A connection kept from before a (blocking) docker run may have been closed by the server meanwhile: try again.
+  const fetchAgain = async (url, init) => {
     for (let i = 0; ; i++) {
-      try {
-        return await fetch(`${base}/api/auth/login`, { method: 'POST', headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ code: 'smoke-real', user: 'smokereal', pass }) });
-      } catch (e) { if (i > 1 || e.cause?.code !== 'UND_ERR_SOCKET') throw e; }
+      try { return await fetch(url, init); } catch (e) { if (i > 1 || e.cause?.code !== 'UND_ERR_SOCKET') throw e; }
     }
   };
+  const signInAs = pass => fetchAgain(`${base}/api/auth/login`, { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ code: 'smoke-real', user: 'smokereal', pass }) });
   const opened = admin('new', 'smoke-real', '--biz', '--trial', '--name', 'อู่ทดสอบ image', '--owner', 'ทดสอบ ระบบ');
   if (opened.status !== 0 || !passOf(opened)) fail(`shop-admin new:\n${opened.stdout}${opened.stderr}`);
   if ((await signInAs(passOf(opened))).status !== 200) fail('the new shop\'s owner could not sign in');
@@ -97,12 +97,23 @@ try {
   const nightly = (...args) => docker(['run', '--rm', '--network', 'host', '-e', `MIGRATE_DATABASE_URL=${owner}`, '-e', 'DATABASE_CA_CERT',
     image, 'node', 'tools/nightly.mjs', ...args]);
   const tonight = nightly();
-  if (tonight.status !== 0 || !/: 0 removal\(s\), 0 file\(s\) removed, 0 shop\(s\) to call/.test(tonight.stdout)) fail(`nightly:\n${tonight.stdout}${tonight.stderr}`);
+  if (tonight.status !== 0 || !/: 0 removal\(s\), 0 file\(s\) removed, 0 shop\(s\) to call, 0 old error\(s\) removed/.test(tonight.stdout)) fail(`nightly:\n${tonight.stdout}${tonight.stderr}`);
   const day = new Date(Date.now() + 200 * 86400_000).toISOString().slice(0, 10);   // trials (60 days) ended, removal (+90) near
   const later = nightly('--day', day);
   if (later.status !== 3 || !/^CALL {3}smoke-real /m.test(later.stdout) || !/^DEMO {3}demo-biz:/m.test(later.stdout)) fail(`nightly --day ${day}:\n${later.stdout}${later.stderr}`);
   if (nightly('--day', day).status !== 3) fail('nightly recorded a notice nobody gave');
   say('nightly job: nothing due today; later it lists the shop to call and the demo shops, and ends with 3');
+
+  // Errors (LAUNCH-CHECKLIST "แจ้งเตือนเมื่อระบบมีปัญหา"): the tests' failing route is not there; a page's error is
+  // recorded by the app (insert only) and the hourly job, as App Platform runs it, sees it without alerting for one.
+  if ((await fetchAgain(`${base}/api/test-error`)).status !== 404) fail('/api/test-error answers outside the tests');
+  const reported = await fetchAgain(`${base}/api/errors`, { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ message: 'image smoke: a page error', detail: 'Error: x\n    at y', path: '/smoke/?q=1' }) });
+  if (reported.status !== 204) fail(`/api/errors: ${reported.status}`);
+  const watched = docker(['run', '--rm', '--network', 'host', '-e', `MIGRATE_DATABASE_URL=${owner}`, '-e', 'DATABASE_CA_CERT', image, 'node', 'tools/watch.mjs']);
+  if (watched.status !== 0 || !/0 server error\(s\), 1 browser error\(s\)/.test(watched.stdout) || !/^BROWSER ×1 - \/smoke\/ .* image smoke: a page error$/m.test(watched.stdout))
+    fail(`watch:\n${watched.stdout}${watched.stderr}`);
+  say('errors: a page error recorded through /api/errors, the hourly job sees it (one: no alert), no test route');
   console.log('image smoke test passed');
 } catch (e) {
   if (web) console.error(docker(['logs', web]).stdout.slice(-3000), docker(['logs', web]).stderr.slice(-3000));

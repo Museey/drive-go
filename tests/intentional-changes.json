@@ -724,6 +724,11 @@
       "scenario": "S260-real-shop-without-test-copy-parts.spec.ts",
       "decision": "owner decision 2026-10-30 (remove the test copy's parts, option ก; sample data for trial shops only)",
       "why": "The real system has no test-copy bar, no test-copy parts on the sign-in page and no test-copy tab title; only a trial shop sees the sample-data buttons and the server refuses sample data for a pilot or paying shop."
+    },
+    {
+      "scenario": "S261-errors-recorded-for-staff.spec.ts",
+      "decision": "LAUNCH-CHECKLIST stage 1 (alerts when the system has a problem), owner's go-ahead 2026-10-31",
+      "why": "Errors pages did not catch and requests the server failed on are recorded with the shop and the signed-in person for staff and the hourly alert; the page shows nothing."
     }
   ]
 }

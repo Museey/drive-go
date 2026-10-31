@@ -876,6 +876,38 @@
     };
   }
 
+  // server/client/errors.ts
+  var MAX = 20;
+  var SAME = 2;
+  function reportErrors(win, post) {
+    const times = /* @__PURE__ */ new Map();
+    let sent = 0;
+    const send2 = (message, detail) => {
+      const n = (times.get(message) ?? 0) + 1;
+      times.set(message, n);
+      if (n > SAME || sent >= MAX) return;
+      sent++;
+      post(JSON.stringify({ message: message.slice(0, 1e3), detail: detail.slice(0, 4e3), path: win.location.pathname })).catch(() => {
+      });
+    };
+    win.addEventListener("error", (ev) => {
+      const e = ev;
+      let foreign = !e.error;
+      if (e.filename) try {
+        foreign || (foreign = new URL(e.filename, win.location.href).origin !== win.location.origin);
+      } catch {
+        foreign = true;
+      }
+      if (foreign) return;
+      send2(e.message || "error", e.error?.stack || `${e.filename}:${e.lineno}:${e.colno}`);
+    });
+    win.addEventListener("unhandledrejection", (ev) => {
+      const r = ev.reason;
+      send2(`unhandled rejection: ${typeof r === "object" && r ? r.message ?? String(r) : String(r)}`, typeof r === "object" && r ? r.stack ?? "" : "");
+    });
+  }
+  var postError = (body) => fetch("/api/errors", { method: "POST", headers: { "content-type": "application/json" }, body, keepalive: true, credentials: "same-origin" });
+
   // server/client/storage.ts
   var API = "/api/storage";
   var fetch0 = window.fetch.bind(window);
@@ -1231,4 +1263,5 @@
     }
   };
   window.storage = storage;
+  reportErrors(window, postError);
 })();

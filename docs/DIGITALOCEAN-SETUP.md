@@ -44,8 +44,9 @@ server ทดสอบนี้ใช้ข้อมูลทดลองเท�
 ## ส่วนที่ 3: สร้างแอปจาก GitHub (ราว 30 นาที)
 
 ไฟล์ที่ DigitalOcean ใช้อยู่ใน repo แล้ว: `Dockerfile` (วิธีสร้างแอป) และ `.do/app.yaml` (ตั้งค่าแอป: เครื่อง 1 GB ที่สิงคโปร์,
-งาน migrate ที่ปรับโครงสร้างฐานข้อมูลก่อน deploy ทุกครั้ง, งาน nightly ทุกคืน 03:17 น. (ลบข้อมูลร้านที่ครบกำหนดและไฟล์ที่ถูกลบเกิน 30 วัน
-ดู [STAFF-TOOLS.md](STAFF-TOOLS.md)), การผูกกับฐานข้อมูล) แอปจะ deploy จาก branch **`deploy/test`**
+งาน migrate ที่ปรับโครงสร้างฐานข้อมูลก่อน deploy ทุกครั้ง, งาน nightly ทุกคืน 03:17 น. (ลบข้อมูลร้านที่ครบกำหนดและไฟล์ที่ถูกลบเกิน 30 วัน),
+งาน watch ทุกชั่วโมง (ดูข้อผิดพลาดของระบบ) ดู [STAFF-TOOLS.md](STAFF-TOOLS.md), การแจ้งเตือนเมื่อแอปล่มซ้ำหรือหน่วยความจำ/CPU เต็ม,
+การผูกกับฐานข้อมูล) แอปจะ deploy จาก branch **`deploy/test`**
 ซึ่ง CI ขยับให้เองหลังทดสอบผ่านครบเท่านั้น **เริ่มส่วนนี้เมื่อ Claude บอกว่า branch `deploy/test` พร้อมแล้ว**
 
 1. **สร้าง user ของแอปในฐานข้อมูล**: Databases → **drivego-test-db** → แท็บ **Users & Databases** → Add new user →
@@ -58,19 +59,26 @@ server ทดสอบนี้ใช้ข้อมูลทดลองเท�
    - ชื่อแอป **drivego-test** โปรเจกต์ **DriveGo test** → Create Resources ครั้งแรกอาจ deploy ไม่ผ่าน ไม่เป็นไร
 3. **ใช้ไฟล์ตั้งค่าของเรา**: ในแอป → **Settings** → หัวข้อ **App Spec** → Edit
    → ลบของเดิมทั้งหมด → วางเนื้อหาของ https://github.com/Museey/drive-go/blob/deploy/test/.do/app.yaml (กดปุ่ม Raw แล้วคัดลอกทั้งหมด) → Save
-   จะมีส่วนประกอบ **web** (แอป), **migrate** (งานก่อน deploy) และ **nightly** (งานทุกคืน) และผูกกับ **drivego-test-db**
-4. **ใส่รหัสเจ้าของฐานข้อมูลให้งาน migrate และงาน nightly** (ห้ามส่งในแชต):
+   จะมีส่วนประกอบ **web** (แอป), **migrate** (งานก่อน deploy), **nightly** (งานทุกคืน) และ **watch** (งานทุกชั่วโมง) และผูกกับ **drivego-test-db**
+4. **ใส่รหัสเจ้าของฐานข้อมูลให้งาน migrate, nightly และ watch** (ห้ามส่งในแชต):
    - Databases → drivego-test-db → **Connection Details** → User: **doadmin** · แบบ **Connection string** → Copy
    - แอป → Settings → ส่วนประกอบ **migrate** → **Environment Variables** → Edit → Add
      Key: **`MIGRATE_DATABASE_URL`** · Value: วางที่คัดลอกมา · ติ๊ก **Encrypt** → Save
-   - ทำซ้ำกับส่วนประกอบ **nightly** (Key และ Value เดียวกัน ติ๊ก Encrypt)
-   - งาน nightly ที่ล้ม หรือที่มีร้านต้องโทรแจ้ง DigitalOcean ส่งอีเมลแจ้งเตือน (กฎ `JOB_INVOCATION_FAILED`) ถึงอีเมลของบัญชี
-     ว่าทำอะไรต่อดู [STAFF-TOOLS.md](STAFF-TOOLS.md) "งานทุกคืน"
+   - ทำซ้ำกับส่วนประกอบ **nightly** และ **watch** (Key และ Value เดียวกัน ติ๊ก Encrypt)
+   - งาน nightly / watch ที่ล้ม, มีร้านต้องโทรแจ้ง หรือระบบมีข้อผิดพลาด DigitalOcean ส่งอีเมลแจ้งเตือน (กฎ `JOB_INVOCATION_FAILED`)
+     ถึงอีเมลของบัญชี ว่าทำอะไรต่อดู [STAFF-TOOLS.md](STAFF-TOOLS.md) "งานทุกคืน" และ "เมื่อได้อีเมลแจ้งเตือน"
 5. **ให้ฐานข้อมูลรับเฉพาะแอป**: Databases → drivego-test-db → **Settings** → **Trusted sources** → Edit → เพิ่มแอป **drivego-test** → Save
 6. **Deploy**: แอป → ปุ่ม **Actions** → **Force rebuild and deploy** รอจนขึ้นสีเขียว (ราว 10 นาที)
    ถ้าไม่ผ่าน: แท็บ **Activity** → deploy ล่าสุด → ดู log ของ **migrate** หรือ **web** แล้วคัดลอกข้อความ error ส่งให้ Claude ได้ (log ไม่มีรหัส)
 7. **ลองใช้**: เปิด URL ของแอป (ลงท้าย `.ondigitalocean.app`) ต่อด้วย `/demo-biz/` เข้าด้วย **dg1688 / 123456**
    (ร้านตัวอย่าง demo-biz, demo-prox รหัสเดียวกัน, demo-franchise ใช้ hq / 1234) แล้วส่ง URL ให้ Claude
+8. **ตรวจว่าเว็บยังเปิดได้ (Uptime check)** หลังข้อ 7 ผ่านแล้ว:
+   - เมนูซ้าย **Monitoring** → **Uptime** → **Create Uptime Check** → แบบ **HTTPS** → URL: URL ของแอปต่อด้วย **`/api/health`**
+     (เช่น `https://drivego-test-xxxxx.ondigitalocean.app/api/health`) → Regions เลือก **Singapore** (และอีกที่ถ้ามี) → ชื่อ **drivego-test** → Create
+   - หน้า check ที่สร้าง → **Create Uptime Alert** → ชนิด **Downtime** (เว็บไม่ตอบ) ส่งอีเมล → Save
+     สร้างอีกอันชนิด **SSL Cert Expire** (ใบรับรองใกล้หมดอายุ) ก็ได้
+   - `/api/health` ตอบสำเร็จเมื่อแอปทำงานและต่อฐานข้อมูลได้ ถ้าฐานข้อมูลล่มก็นับว่าเว็บล่ม
+   - ราคา: ตรวจบนหน้าเว็บตอนสร้าง
 
 **ข้อควรรู้**: ร้านตัวอย่างใช้รหัสที่เขียนไว้ในคู่มือนี้ ใครรู้ URL ก็เข้าได้ ใส่แต่ข้อมูลทดลอง ห้ามใส่ข้อมูลลูกค้าจริง
 งาน migrate เปิดร้านตัวอย่างเฉพาะตอนฐานข้อมูลยังไม่มีร้าน และ deploy ครั้งต่อ ๆ ไปเกิดเองทุกครั้งที่ CI ผ่าน

@@ -28,6 +28,11 @@
 - **งานทุกคืน (nightly) เสร็จ 2026-10-30**: `.do/app.yaml` job SCHEDULED 03:17 Asia/Bangkok, `server/lib/nightly.ts`, `tools/nightly.mjs`,
   `shop-admin told`, `tests/db/nightly.test.mjs`, image-smoke · **งานไม่จดว่าแจ้งร้านเอง** (ทีมงานโทร 15.4) จบด้วย 3 ให้ DO ส่งอีเมลเตือน
   spec ของ DO ยืนยันจาก github.com/digitalocean/godo apps.gen.go (docs.digitalocean.com เปิดไม่ได้) · ต่อไป: แจ้งเตือนเมื่อระบบมีปัญหา → ตรวจความปลอดภัย → k6
+- **แจ้งเตือนเมื่อระบบมีปัญหา (2026-10-31)**: ตาราง `errors` (0007), `server/instrumentation.ts` (onRequestError), `server/client/errors.ts` → `/api/errors`,
+  งาน **watch** ทุกชั่วโมง (`server/lib/watch.ts`, `tools/watch.mjs`, จบด้วย 3 = อีเมลเตือน), `tools/errors.mjs`, alert ของ web ใน `.do/app.yaml`,
+  Uptime check ให้เจ้าของสร้างเอง (คู่มือส่วนที่ 3 ข้อ 8), S261, `tests/db/errors.test.mjs` · ต่อไป: ตรวจความปลอดภัย → k6
+- วัดแล้ว 2026-10-31: ระบบเดิมไม่มี error ที่หน้าจอไม่ได้จับในสถานการณ์ทดสอบ (88/90 จบ อีก 2 ล้มเพราะดิสก์เต็ม; page.on('pageerror') ชั่วคราว ไม่ commit)
+- ดิสก์ของ session เต็มได้: Docker vfs กินที่มาก ลบ image/`docker builder prune -af` และผล test เก่าใน scratchpad เมื่อเต็ม
 - Docker Hub ตอบ 429 (ดึง node base image ไม่ได้) ใน session นี้: ทดสอบ image ด้วย overlay บน `drivego:smoke` เดิม
   (`FROM drivego:smoke` + COPY server/lib, tools) ถ้าไม่ได้แก้ส่วนที่ build ของ web
 - ค้าง (ไม่เร่ง): S16 ระบบใหม่พังเป็นครั้งคราว แถบเลขหน้า "‹ 1 ›" ของรายการ 4.2 หายตอนถ่ายภาพ (NOTES.md "เกิดอีก 2026-10-30") ถ้าเกิดอีกให้หาสาเหตุ ไม่ใช่รันซ้ำ

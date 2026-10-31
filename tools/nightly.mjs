@@ -21,7 +21,7 @@ const db = new pg.Pool({ ...pgConfig(url), max: 2 });
 
 try {
   const n = await nightly(db, { on: o.day });
-  console.log(`${n.on}: ${n.done.length} removal(s), ${n.files.reduce((a, f) => a + f.removed, 0)} file(s) removed, ${n.call.length} shop(s) to call`);
+  console.log(`${n.on}: ${n.done.length} removal(s), ${n.files.reduce((a, f) => a + f.removed, 0)} file(s) removed, ${n.call.length} shop(s) to call, ${n.errors} old error(s) removed`);
   for (const d of n.done) console.log(`DONE   ${d.action.padEnd(6)} ${d.code} — ${d.why}`);
   for (const f of n.files) console.log(`FILES  ${f.code}: ${f.removed} removed for good`);
   for (const d of n.demo) console.log(`DEMO   ${d.shop.code}: the trial ended ${d.licence.end} (a new trial: node tools/shop-admin.mjs open ${d.shop.code} --trial)`);

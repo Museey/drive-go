@@ -8,6 +8,11 @@
 # · nightly: each night at 03:17 Bangkok time, the data removals that are due and the deleted attachments
 #   (tools/nightly.mjs, docs/STAFF-TOOLS.md). As the database owner too (its own MIGRATE_DATABASE_URL secret). It never
 #   tells a shop itself: shops staff must call end the run with status 3, so JOB_INVOCATION_FAILED e-mails the team.
+# · watch: each hour, the errors of the server and of the browsers recorded since (tools/watch.mjs): a server error
+#   or many browser errors end the run with status 3, so JOB_INVOCATION_FAILED e-mails the team. Owner role (secret).
+# · web alerts: the app restarting again and again (more than once in 5 minutes), or memory or CPU above 85% for
+#   10 minutes. Whether the site answers at all is DigitalOcean's uptime check on /api/health, made in the control
+#   panel (docs/DIGITALOCEAN-SETUP.md part 3).
 # · db: the managed cluster drivego-test-db made by hand (part 2); the app connects as drivego_app (made in the control
 #   panel before the first deploy), which Row-Level Security applies to. The cluster only takes TLS: DATABASE_CA_CERT
 #   carries its CA (server/lib/pg-config.ts).
@@ -39,6 +44,19 @@ services:
       - key: DATABASE_CA_CERT
         scope: RUN_TIME
         value: ${db.CA_CERT}
+    alerts:
+      - rule: RESTART_COUNT
+        operator: GREATER_THAN
+        value: 1
+        window: FIVE_MINUTES
+      - rule: MEM_UTILIZATION
+        operator: GREATER_THAN
+        value: 85
+        window: TEN_MINUTES
+      - rule: CPU_UTILIZATION
+        operator: GREATER_THAN
+        value: 85
+        window: TEN_MINUTES
 jobs:
   - name: migrate
     kind: PRE_DEPLOY
@@ -71,6 +89,27 @@ jobs:
     source_dir: /
     dockerfile_path: Dockerfile
     run_command: node tools/nightly.mjs
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    instance_count: 1
+    envs:
+      - key: DATABASE_CA_CERT
+        scope: RUN_TIME
+        value: ${db.CA_CERT}
+    alerts:
+      - rule: JOB_INVOCATION_FAILED
+  - name: watch
+    kind: SCHEDULED
+    schedule:
+      cron: "7 * * * *"
+      time_zone: Asia/Bangkok
+    timeout: 10m
+    github:
+      repo: Museey/drive-go
+      branch: deploy/test
+      deploy_on_push: true
+    source_dir: /
+    dockerfile_path: Dockerfile
+    run_command: node tools/watch.mjs
     instance_size_slug: apps-s-1vcpu-0.5gb
     instance_count: 1
     envs:
