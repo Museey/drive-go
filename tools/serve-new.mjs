@@ -24,7 +24,7 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const serverDir = fileURLToPath(new URL('../server/', import.meta.url));
 const nextBin = fileURLToPath(new URL('../node_modules/next/dist/bin/next', import.meta.url));
 
-// Returns { ownerUrl, appUrl, exited, stop() }. ownerUrl is null with your own
+// Returns { ownerUrl, appUrl, exited, stop(), pid }. ownerUrl is null with your own
 // database and no MIGRATE_DATABASE_URL.
 export async function startNewSystem({ port = PORT, build = true, dev = false, quiet = false } = {}) {
   const run = (args, cwd) => {
@@ -58,7 +58,7 @@ export async function startNewSystem({ port = PORT, build = true, dev = false, q
     await Promise.race([exited, new Promise(r => setTimeout(r, 5000))]);
     if (pg) await pg.stop();
   })();
-  return { ownerUrl, appUrl, exited, stop };
+  return { ownerUrl, appUrl, exited, stop, pid: next.pid };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

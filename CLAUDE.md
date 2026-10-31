@@ -44,6 +44,7 @@ node tools/accountant-pack.mjs            # ชุดตรวจสำหรั
 docker build -t drivego:smoke . && node tools/image-smoke.mjs   # ลอง image ของ server ทดสอบแบบที่ DigitalOcean รัน (ฐานข้อมูล TLS, job migrate, เข้าระบบร้านตัวอย่าง, เปิดร้านจริง)
 node tools/shop-admin.mjs new|password|list|show|renew|close|told …   # เครื่องมือทีมงาน: เปิดร้านจริง ลืมรหัสผ่าน วันหมดอายุ จดว่าโทรแจ้งร้านแล้ว (คู่มือ docs/STAFF-TOOLS.md)
 node tools/nightly.mjs                     # งานทุกคืนของ server (.do/app.yaml job nightly): ลบข้อมูลร้านที่ครบกำหนด ไฟล์ที่ถูกลบเกิน 30 วัน และบอกร้านที่ทีมงานต้องโทรแจ้ง (จบด้วย 3)
+npm run load                               # ทดสอบรับโหลดด้วย k6: อู่ 3 อู่ × 5 เครื่อง ข้อมูล 36 เดือน (--node ถ้าไม่มี k6, --url กับ server ทดสอบ; docs/LOAD-TEST.md)
 node tools/watch.mjs                       # งานทุกชั่วโมง (.do/app.yaml job watch): ข้อผิดพลาดของ server และหน้าจอตั้งแต่ครั้งก่อน (จบด้วย 3 = แจ้งเตือน) · รายละเอียด: node tools/errors.mjs
 npm run test:record -- tests/scenarios/S05-xxx.spec.ts   # บันทึกเฉลยจากระบบเดิม (เฉพาะไฟล์ที่ระบุ)
 npm run fixture -- biz trial               # สร้างข้อมูลตั้งต้นใหม่ (biz | prox | franchise) — ปกติไม่ต้องสร้างใหม่ ใช้ไฟล์ที่ commit ไว้

@@ -11,6 +11,7 @@
     "typecheck": "npm run typecheck -w server",
     "test:record": "TARGET=legacy playwright test --update-snapshots=all",
     "fixture": "node tools/make-fixture.mjs",
+    "load": "node tools/load-test.mjs",
     "fonts": "node tools/vendor-fonts.mjs",
     "inventory": "node tools/inventory.mjs",
     "coverage": "rm -rf coverage/raw && COVERAGE=1 playwright test; node tools/inventory.mjs",
