@@ -1,9 +1,11 @@
 // What the sign-in screen may know before anyone signs in (design §4.6): the
-// shop account without its sign-in names and password, and whether the
+// shop account's code, name and dates (PUBLIC_SHOP), and whether the
 // franchise mode is on, without branches, accounts, requests or stock.
 // No shop data (garage.v22) at all.
 import type pg from 'pg';
 import { readMain } from './storage.ts';
+
+const PUBLIC_SHOP = ['code', 'name', 'created', 'trialStart', 'licensed', 'licEnd'];
 
 export async function publicValue(c: pg.ClientBase, storeKey: string): Promise<string | null> {
   if (storeKey !== 'dgb.v22' && storeKey !== 'franchise.v22') return null;
@@ -11,7 +13,9 @@ export async function publicValue(c: pg.ClientBase, storeKey: string): Promise<s
   if (!main) return null;
   const v = JSON.parse(main.json);
   if (storeKey === 'dgb.v22') {
-    if (v.shop) { delete v.shop.pass; delete v.shop.email; delete v.shop.ownerUser; delete v.shop.idcard; }   /* idcard: task 3.9 */
+    // Only what the sign-in screen uses; nothing personal (the owner's name, tax ID — a person's ID number for a sole
+    // trader —, address, phone, payments: security review 2026-10-31). Signed in, the app reads the shop account again.
+    if (v.shop) v.shop = Object.fromEntries(PUBLIC_SHOP.filter(k => k in v.shop).map(k => [k, v.shop[k]]));
     v.session = { who: '' };
   } else {
     for (const k of ['branches', 'accounts', 'reqs', 'hqStock']) if (Array.isArray(v[k])) v[k] = [];

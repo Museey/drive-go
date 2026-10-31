@@ -114,6 +114,15 @@ try {
   if (watched.status !== 0 || !/0 server error\(s\), 1 browser error\(s\)/.test(watched.stdout) || !/^BROWSER ×1 - \/smoke\/ .* image smoke: a page error$/m.test(watched.stdout))
     fail(`watch:\n${watched.stdout}${watched.stderr}`);
   say('errors: a page error recorded through /api/errors, the hourly job sees it (one: no alert), no test route');
+
+  // Security review (docs/SECURITY-REVIEW.md): the headers on every answer, and nothing personal before signing in.
+  const shopPage = await fetchAgain(`${base}/demo-biz/`);
+  for (const [h, v] of [['strict-transport-security', 'max-age=31536000'], ['x-content-type-options', 'nosniff'], ['x-frame-options', 'SAMEORIGIN'],
+    ['referrer-policy', 'same-origin']]) if (shopPage.headers.get(h) !== v) fail(`header ${h}: ${shopPage.headers.get(h)}`);
+  if (!/frame-ancestors 'self'/.test(shopPage.headers.get('content-security-policy') || '')) fail('no content-security-policy');
+  const pub = await (await fetchAgain(`${base}/api/public/smoke-real/dgb.v22`)).json();
+  if (JSON.stringify(Object.keys(pub.shop)) !== JSON.stringify(['code', 'name', 'created', 'trialStart', 'licensed', 'licEnd'])) fail(`public shop: ${JSON.stringify(pub.shop)}`);
+  say('security: headers on the pages, the sign-in data has no owner, tax ID, address or phone');
   console.log('image smoke test passed');
 } catch (e) {
   if (web) console.error(docker(['logs', web]).stdout.slice(-3000), docker(['logs', web]).stderr.slice(-3000));

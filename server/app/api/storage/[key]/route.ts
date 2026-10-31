@@ -8,7 +8,7 @@
 // data for a branch account) answers 403 to every method; so does a save or a
 // removal the account may not make (lib/permissions.ts, task T10), and any
 // change but viewing while the shop's licence has run out (lib/licence.ts, task 3.15).
-import { inShop, json } from '@/lib/api';
+import { inShop, json, readJson } from '@/lib/api';
 import { endStaleSessions, storeSecrets } from '@/lib/auth';
 import type { Claims } from '@/lib/numbers';
 import { actorOf, refuseRemoveKey, refuseSave, rightsOf, traceWrite } from '@/lib/permissions';
@@ -56,10 +56,9 @@ export async function GET(req: Request, ctx: Ctx) {
 export async function POST(req: Request, ctx: Ctx) {
   const { key } = await ctx.params;
   if (!rootOf(key)) return json({ error: 'not a main data key' }, 400);
-  const raw = await readBody(req, MAX_SAVE_BYTES);
-  if (!raw) return json({ error: 'too-large' }, 413);
-  const body = JSON.parse(raw.toString('utf8')) as { base: Record<string, number>; changes: Changes; session?: Record<string, string>;
-    secrets?: { unit: string; key: string; field: string; value: string }[]; numbers?: Claims; whole?: unknown };
+  const body = await readJson<{ base: Record<string, number>; changes: Changes; session?: Record<string, string>;
+    secrets?: { unit: string; key: string; field: string; value: string }[]; numbers?: Claims; whole?: unknown }>(req, MAX_SAVE_BYTES);
+  if (body instanceof Response) return body;
   // Files are uploaded before a save, the data keeps links (task 3.11).
   const inline = inlineFile(body.changes);
   if (inline) return json({ error: 'file inside the data', what: inline }, 400);

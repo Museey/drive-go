@@ -31,6 +31,8 @@
 - **แจ้งเตือนเมื่อระบบมีปัญหา (2026-10-31)**: ตาราง `errors` (0007), `server/instrumentation.ts` (onRequestError), `server/client/errors.ts` → `/api/errors`,
   งาน **watch** ทุกชั่วโมง (`server/lib/watch.ts`, `tools/watch.mjs`, จบด้วย 3 = อีเมลเตือน), `tools/errors.mjs`, alert ของ web ใน `.do/app.yaml`,
   Uptime check ให้เจ้าของสร้างเอง (คู่มือส่วนที่ 3 ข้อ 8), S261, `tests/db/errors.test.mjs` · ต่อไป: ตรวจความปลอดภัย → k6
+- **ตรวจความปลอดภัย (2026-10-31)**: `docs/SECURITY-REVIEW.md` แก้ public data (whitelist), header (next.config.ts), readJson
+  **ถามเจ้าของ 4 ข้อเสนอ** (จำกัดเข้าระบบต่อ IP, รหัสผ่าน ≥ 8, ร้านตัวอย่างบน server ที่มีร้านจริง, esc ' + CSP report-only) · ต่อไป: k6
 - วัดแล้ว 2026-10-31: ระบบเดิมไม่มี error ที่หน้าจอไม่ได้จับในสถานการณ์ทดสอบ (88/90 จบ อีก 2 ล้มเพราะดิสก์เต็ม; page.on('pageerror') ชั่วคราว ไม่ commit)
 - ดิสก์ของ session เต็มได้: Docker vfs กินที่มาก ลบ image/`docker builder prune -af` และผล test เก่าใน scratchpad เมื่อเต็ม
 - Docker Hub ตอบ 429 (ดึง node base image ไม่ได้) ใน session นี้: ทดสอบ image ด้วย overlay บน `drivego:smoke` เดิม

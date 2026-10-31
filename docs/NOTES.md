@@ -1315,3 +1315,19 @@ Claude ไม่เข้าบัญชี DigitalOcean และไม่ร�
 - ทดสอบ: `tests/db/errors.test.mjs` (สิทธิ์ของแอป, ตัด query string และความยาว, จำกัดต่อนาที, watch, ลบ 30 วัน, ลบพร้อมร้าน),
   `server/client/errors.test.ts`, S261 (หน้าจอและ server จริง), image-smoke (`/api/errors` + watch ใน image)
 
+## ตรวจความปลอดภัยก่อนเปิดใช้ (2026-10-31)
+
+รายงานเต็ม: [SECURITY-REVIEW.md](SECURITY-REVIEW.md) แก้แล้ว:
+- **ข้อมูลก่อนเข้าระบบ** (`server/lib/public.ts`): เดิมตัดแค่ pass email ownerUser idcard ร้านจริงที่เปิดด้วย `shop-admin new` จึงส่งชื่อเจ้าของ
+  เลขผู้เสียภาษี ที่อยู่ เบอร์ ให้ใครก็ได้ที่รู้รหัสร้าน เปลี่ยนเป็นรายการที่อนุญาต `PUBLIC_SHOP` (code name created trialStart licensed licEnd)
+  หน้าเข้าระบบใช้เท่านี้ (DGB.shop.owner ใช้หลังเข้าระบบซึ่งอ่านข้อมูลใหม่ทั้งหมด) สถานการณ์เข้าระบบ S101–S108 S258 ผ่าน
+- **header** (`server/next.config.ts`): HSTS, nosniff, X-Frame-Options SAMEORIGIN, Referrer-Policy same-origin, Permissions-Policy,
+  CSP แบบไม่จำกัดสคริปต์ (frame-ancestors 'self', base-uri, object-src 'none', form-action) ไม่ใช้กับ `/api/files/` ที่มี CSP ของตัวเอง
+  ใช้ `frame-ancestors 'self'` ไม่ใช่ `'none'` เพราะ 03.js เปิดไฟล์ PDF แนบใน iframe ของหน้าเดียวกัน
+  ไม่จำกัด `connect-src` เพราะ ProX ออนไลน์ต่อ server เครือจากเบราว์เซอร์ (test ใช้ `https://chain.drivego.test` ที่ Playwright ดักไว้)
+- **`readJson`** (`server/lib/api.ts`): เข้าระบบ 16 KB, ตรวจรหัส 64 KB, ขอแถว 4 MB, บันทึกข้อมูล 30 MB เกิน 413 ไม่ใช่ JSON 400
+  (เดิม JSON ผิดรูปที่ `/api/storage/<key>` ได้ 500 ซึ่งงาน watch จะแจ้งเตือน)
+- ลอง XSS กับหน้าจอเดิม (สคริปต์ชั่วคราว ไม่ commit): ข้อความโจมตี 4 แบบ (HTML, ปิดสตริง JS ด้วย `'`, `\'`, ปิด attribute) ในชื่อลูกค้า ทะเบียนรถ
+  สินค้า รหัสสินค้า พนักงาน ผู้ขาย อาการเสีย หมายเหตุใบตัดสต็อก เปิด 50 หน้าจอ (เมนูและเมนูย่อยทั้งหมด) และกดแถวแรก 2 แถวของแต่ละรายการ: ไม่มีสคริปต์ทำงาน
+- รอเจ้าของโปรเจกต์ตัดสิน: จำกัดการลองเข้าระบบต่อเครื่อง, รหัสผ่านขั้นต่ำ 8 ตัว, ร้านตัวอย่างบน server ที่มีร้านจริง, `esc()` + CSP Report-Only
+

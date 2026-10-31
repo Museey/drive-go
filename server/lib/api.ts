@@ -2,9 +2,18 @@
 // through inShop(), which finds the session and opens the shop's transaction.
 import type pg from 'pg';
 import { pool, withShop } from './db.ts';
+import { readBody } from './files.ts';
 import { type Session, getSession } from './session.ts';
 
 export const json = (body: unknown, status = 200) => Response.json(body, { status });
+
+// A request's JSON body of at most `limit` bytes: too large → 413, not JSON → 400 — never the 500 of an exception,
+// which the error alert would count (security review 2026-10-31). The caller checks `instanceof Response`.
+export async function readJson<T>(req: Request, limit: number): Promise<T | Response> {
+  const raw = await readBody(req, limit);
+  if (!raw) return json({ error: 'too-large' }, 413);
+  try { return (JSON.parse(raw.toString('utf8')) ?? {}) as T; } catch { return json({ error: 'not json' }, 400); }
+}
 
 export async function inShop(req: Request, fn: (c: pg.ClientBase, s: Session) => Promise<Response>): Promise<Response> {
   const s = await getSession(req);

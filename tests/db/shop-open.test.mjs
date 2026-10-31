@@ -14,6 +14,7 @@ import { startSession } from '../../server/lib/session.ts';
 import { readMain } from '../../server/lib/storage.ts';
 import { PILOT_YEARS, TRIAL_DAYS, addDays, addYears, today } from '../../server/lib/licence.ts';
 import { openRealShop, resetPassword, temporaryPassword } from '../../server/lib/shop-open.ts';
+import { publicValue } from '../../server/lib/public.ts';
 
 let db, ownerPool, appPool;
 const asApp = (shopId, fn) => withShop(appPool, shopId, '*', fn);
@@ -121,3 +122,14 @@ describe('ลืมรหัสผ่าน (เครื่องมือท�
     for (const p of many) assert.doesNotMatch(p, /[0O1lI]/);
   });
 });
+
+describe('ข้อมูลก่อนเข้าระบบ (/api/public)', () => {
+  test('หน้าเข้าระบบได้แค่รหัสร้าน ชื่อร้าน และวันที่ ไม่มีชื่อเจ้าของ เลขผู้เสียภาษี ที่อยู่ เบอร์ อีเมล รหัสผ่าน (ตรวจความปลอดภัย 2026-10-31)', async () => {
+    await openRealShop(ownerPool, { ...garage, code: 'public-check' });
+    const shop = (await ownerPool.query('select id from shops where code = $1', ['public-check'])).rows[0];
+    const v = JSON.parse(await asApp(shop.id, c => publicValue(c, 'dgb.v22')));
+    assert.deepEqual(v, { shop: { code: 'PUBLIC-CHECK', name: 'อู่ช่างแดง', created: today(), trialStart: today(), licensed: false, licEnd: '' }, session: { who: '' } });
+    assert.equal(await asApp(shop.id, c => publicValue(c, 'garage.v22')), null);
+  });
+});
+

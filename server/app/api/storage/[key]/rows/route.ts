@@ -3,7 +3,7 @@
 //   POST { rows: [[unit, key], …], ordered: [unit, …] }
 //     -> { rows: [{ unit, key, data, version }], gone: [[unit, key]], order: { unit: [key, …] } }
 // With what the person may not see left out (task 3.9), like GET /api/storage/<key>.
-import { inShop, json } from '@/lib/api';
+import { inShop, json, readJson } from '@/lib/api';
 import { actorOf, rightsOf } from '@/lib/permissions';
 import { branchOfKey, inScope, readRows } from '@/lib/storage';
 import { rootOf } from '@/lib/units';
@@ -18,7 +18,8 @@ type Ctx = { params: Promise<{ key: string }> };
 export async function POST(req: Request, ctx: Ctx) {
   const { key } = await ctx.params;
   if (!rootOf(key)) return json({ error: 'not a main data key' }, 400);
-  const body = await req.json().catch(() => null) as { rows?: unknown; ordered?: unknown } | null;
+  const body = await readJson<{ rows?: unknown; ordered?: unknown }>(req, 4 * 1024 * 1024);
+  if (body instanceof Response) return body;
   const rows = Array.isArray(body?.rows) ? body!.rows.filter((r): r is [string, string] =>
     Array.isArray(r) && r.length === 2 && typeof r[0] === 'string' && typeof r[1] === 'string') : null;
   const ordered = Array.isArray(body?.ordered) ? body!.ordered.filter((u): u is string => typeof u === 'string') : [];
