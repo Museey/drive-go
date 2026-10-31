@@ -21,6 +21,23 @@ const hasSecret = (v: unknown) => typeof v === 'string' && v !== '';
 export const LOCKOUT = { failures: 5, minutes: 15 };   // decision Q2
 export const MESSAGES = { lockedOut: 'กรอกรหัสผิดหลายครั้ง กรุณารอ 15 นาทีแล้วลองใหม่' };   // decision Q5
 
+// Wrong sign-ins per device (security review proposal 1, owner's decision of 2026-10-31): from one address, more than
+// DEVICE.failures failed sign-ins in DEVICE.minutes, across accounts and shops, and that address waits with the same
+// message as a locked account. Counted in this process (the app runs one web instance, .do/app.yaml).
+export const DEVICE = { failures: 30, minutes: 15 };
+const deviceFailures = new Map<string, number[]>();
+const recentFailures = (address: string, now: number) => {
+  const list = (deviceFailures.get(address) ?? []).filter(t => t > now - DEVICE.minutes * 60_000);
+  if (list.length) deviceFailures.set(address, list); else deviceFailures.delete(address);
+  return list;
+};
+export const deviceLocked = (address: string, now = Date.now()) => recentFailures(address, now).length >= DEVICE.failures;
+export function deviceFailed(address: string, now = Date.now()): void {
+  deviceFailures.set(address, [...recentFailures(address, now), now]);
+  // Never more than a day's worth of addresses: the oldest go first.
+  if (deviceFailures.size > 100_000) deviceFailures.delete(deviceFailures.keys().next().value!);
+}
+
 export interface Account { kind: 'owner' | 'emp' | 'fr'; ref: string; branch: string }
 export type SignIn = { ok: true; account: Account; scope: string } | { ok: false; error: string };
 

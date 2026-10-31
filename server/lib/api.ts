@@ -7,6 +7,10 @@ import { type Session, getSession } from './session.ts';
 
 export const json = (body: unknown, status = 200) => Response.json(body, { status });
 
+// The address a request came from: the last entry of X-Forwarded-For, which DigitalOcean's load balancer adds (the
+// ones before it are whatever the browser sent). '' when there is none (a local run).
+export const clientAddress = (req: Request) => (req.headers.get('x-forwarded-for') ?? '').split(',').pop()!.trim();
+
 // A request's JSON body of at most `limit` bytes: too large → 413, not JSON → 400 — never the 500 of an exception,
 // which the error alert would count (security review 2026-10-31). The caller checks `instanceof Response`.
 export async function readJson<T>(req: Request, limit: number): Promise<T | Response> {

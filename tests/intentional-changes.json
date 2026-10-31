@@ -729,6 +729,11 @@
       "scenario": "S261-errors-recorded-for-staff.spec.ts",
       "decision": "LAUNCH-CHECKLIST stage 1 (alerts when the system has a problem), owner's go-ahead 2026-10-31",
       "why": "Errors pages did not catch and requests the server failed on are recorded with the shop and the signed-in person for staff and the hourly alert; the page shows nothing."
+    },
+    {
+      "scenario": "S262-too-many-wrong-sign-ins-from-one-device.spec.ts",
+      "decision": "security review proposal 1, owner's decision 2026-10-31",
+      "why": "One device that fails to sign in 30 times within 15 minutes, across accounts, waits 15 minutes with the lockout message; other devices still sign in."
     }
   ]
 }

@@ -126,8 +126,11 @@ export const test = base.extend<{ dataset: string; licence: TestLicence | undefi
     const shop = await openTestShop(dataset, licence);
     // Tells window.storage to also check the server's copy when signing out.
     await context.addInitScript(() => { (window as any).__drivegoTest = true; });
-    // Working out the server's rules (DRIVEGO_WRITE_TRACE, lib/permissions.ts): which scenario made each save.
-    if (process.env.DRIVEGO_WRITE_TRACE) await context.setExtraHTTPHeaders({ 'x-drivego-test': encodeURIComponent(testInfo.titlePath[0] || '') });
+    // Each test is a device of its own (the sign-in limit per device, server/lib/auth.ts DEVICE: every test comes from
+    // this machine's address). Working out the server's rules (DRIVEGO_WRITE_TRACE, lib/permissions.ts): which
+    // scenario made each save.
+    await context.setExtraHTTPHeaders({ 'x-forwarded-for': `test-${testInfo.testId}-${testInfo.retry}`,
+      ...process.env.DRIVEGO_WRITE_TRACE ? { 'x-drivego-test': encodeURIComponent(testInfo.titlePath[0] || '') } : {} });
     const app = legacyApp(page, { dataset, url: `${LEGACY_ORIGIN}/${shop.code}/`, restore: restoreLocalStorage });
     await use(Object.assign(app, { serverDB: async () => { await app.settle(); return readTestShop(shop.code); } }));
     if (testInfo.status !== testInfo.expectedStatus || page.isClosed()) return;
