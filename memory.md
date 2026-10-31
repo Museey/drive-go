@@ -46,6 +46,9 @@
   **เจ้าของเลือก 2026-10-31: แก้โปรแกรม + k6 บน GitHub Actions** ทำแล้ว: heavy.ts (ก), makeBackup ข้ามเมื่อไม่มีอะไรเปลี่ยน (ข แบบแก้:
   ปุ่มสร้างจุดสำรองเดี๋ยวนี้ใช้ key เดียวกัน), gzip async (ค), workflow load-test.yml (grafana/setup-k6-action) → สั่งรันด้วย
   mcp actions_run_trigger แล้วอ่าน summary · secrets LOAD_USER/LOAD_PASS สำหรับยิง server ทดสอบ ให้เจ้าของตั้งที่ GitHub เอง
+  **k6 1.3.0 บน GitHub ผ่าน** (run 41190499592: 711 MB, login p95 387 ms, save p95 21 ms) รอบแรกล้มเพราะ --out สัมพัทธ์ (แก้แล้ว)
+  ตัวอัดรองรับข้อมูลร้านทดลอง (ปุ่มข้าง ชำระเงิน → ปิดการขาย|ตัดสต็อกและบันทึกรับชำระ → การ์ด|ใบเสร็จ #mSaleRcpt)
+  เหลือ: ยิง server ทดสอบเมื่อได้ URL (ร้านทดสอบ + secrets) · log ท้ายมี request timeout 15 บรรทัด = ช่อง live ที่ k6 ตัดตอนจบ ปกติ
 - วัดแล้ว 2026-10-31: ระบบเดิมไม่มี error ที่หน้าจอไม่ได้จับในสถานการณ์ทดสอบ (88/90 จบ อีก 2 ล้มเพราะดิสก์เต็ม; page.on('pageerror') ชั่วคราว ไม่ commit)
 - ดิสก์ของ session เต็มได้: Docker vfs กินที่มาก ลบ image/`docker builder prune -af` และผล test เก่าใน scratchpad เมื่อเต็ม
 - Docker Hub ตอบ 429 (ดึง node base image ไม่ได้) ใน session นี้: ทดสอบ image ด้วย overlay บน `drivego:smoke` เดิม
