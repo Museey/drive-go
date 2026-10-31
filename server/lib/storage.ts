@@ -5,7 +5,8 @@
 // query also names the shop (app_shop()) itself, so it stays right for a role
 // that RLS does not apply to (the owner opening a shop, tools/new-shop.mjs).
 import type pg from 'pg';
-import { gunzipSync, gzipSync } from 'node:zlib';
+import { promisify } from 'node:util';
+import { gunzip as gunzipCb, gzip as gzipCb } from 'node:zlib';
 import { COUNTERS, type Claims, type Counters, type Renumbered, numberOf, numbersIn, renumberText, seqOf } from './numbers.ts';
 import { type Changes, type Row, assemble, rootOf } from './units.ts';
 import { type Mask, maskRows, masksUnit, restoreRow } from './visibility.ts';
@@ -322,24 +323,42 @@ export async function branchOfKey(c: pg.ClientBase, key: string): Promise<string
 
 // A backup point is a copy of the server's own data at that moment (design
 // §4.5): the browser asks for one by writing its key, but nothing is uploaded.
+// Compressed in the thread pool: 14 MB compressed in the request would stop the server for everyone meanwhile.
+const gzip = promisify(gzipCb), gunzip = promisify(gunzipCb);
+
+// A day's backup point is made again whenever the program asks (every device's first save of the day, and the
+// "สร้างจุดสำรองเดี๋ยวนี้" button: the data as it is now), unless no save has changed the branch's data since it was
+// made: then it already holds the data as it is now and making it again would only cost the server (every device
+// opening the program in the morning asks; tools/load-test.mjs). A minute's margin covers saves still committing
+// while it was made. Copies kept before a wipe, restore, import or sample data are always new.
+async function unchangedSince(c: pg.ClientBase, branch: string, key: string): Promise<boolean> {
+  const { rows } = await c.query<{ unchanged: boolean }>(
+    `select not exists (select 1 from write_log where shop_id = app_shop() and branch_id = $1 and at > b.created_at - interval '1 minute')
+        and not exists (select 1 from records where shop_id = app_shop() and branch_id = $1 and updated_at > b.created_at - interval '1 minute')
+        as unchanged
+       from backups b where b.shop_id = app_shop() and b.branch_id = $1 and b.key = $2`, [branch, key]);
+  return rows[0]?.unchanged === true;
+}
+
 export async function makeBackup(c: pg.ClientBase, branch: string, key: string, session: Record<string, string> = {}): Promise<boolean> {
+  const safety = isSafetyBackupKey(key);
+  if (!safety && await unchangedSince(c, branch, key)) return true;
   const main = await readMain(c, branch, mainOfBackup(key), session);
   if (!main) return false;
-  const safety = isSafetyBackupKey(key);
   if (safety) await c.query(
     `delete from backups where shop_id = app_shop() and branch_id = $1 and key like '%.bak.safety-%'
         and created_at < now() - make_interval(days => $2)`, [branch, SAFETY_DAYS]);
   const made = await c.query(
     `insert into backups (shop_id, branch_id, key, data) values (app_shop(), $1, $2, $3)
      on conflict (shop_id, branch_id, key) do ${safety ? 'nothing' : 'update set data = excluded.data, created_at = now()'}`,
-    [branch, key, gzipSync(Buffer.from(main.json))]);
+    [branch, key, await gzip(Buffer.from(main.json))]);
   if (made.rowCount) await keepForBackup(c, branch, key, main.json);   // its files stay as long as it does (task 3.11)
   return true;
 }
 
 export async function readBackup(c: pg.ClientBase, branch: string, key: string): Promise<string | null> {
   const { rows } = await c.query<{ data: Buffer }>('select data from backups where shop_id = app_shop() and branch_id = $1 and key = $2', [branch, key]);
-  return rows.length ? gunzipSync(rows[0].data).toString() : null;
+  return rows.length ? (await gunzip(rows[0].data)).toString() : null;
 }
 
 export async function readBlob(c: pg.ClientBase, branch: string, key: string): Promise<string | null> {

@@ -423,6 +423,36 @@ describe('จุดสำรองและ key อื่น', () => {
     });
   });
 
+  test('จุดสำรองของวันทำใหม่เมื่อข้อมูลเปลี่ยนตั้งแต่ทำครั้งก่อน (บันทึกหรือแก้แถว) ข้อมูลไม่เปลี่ยนก็ไม่ทำซ้ำ (ทดสอบรับโหลด)', async () => {
+    const { shopId } = await newShop('biz-trial', 'biz');
+    const key = 'garage.v22.bak.2026-10-13';
+    // One transaction: now() is the same all through; times are moved back instead of waiting.
+    await asApp(shopId, '', async c => {
+      const madeAt = async () => (await c.query('select created_at from backups where shop_id = app_shop() and key = $1', [key])).rows[0].created_at;
+      const now = (await c.query('select now() as t')).rows[0].t;
+      const quiet = async () => {
+        await c.query("update records set updated_at = now() - interval '2 hours' where shop_id = app_shop()");
+        await c.query("update write_log set at = now() - interval '2 hours' where shop_id = app_shop()");
+        await c.query("update backups set created_at = now() - interval '1 hour' where shop_id = app_shop() and key = $1", [key]);
+      };
+      assert.equal(await makeBackup(c, '', key), true);
+      await quiet();
+      const hourAgo = await madeAt();
+      assert.equal(await makeBackup(c, '', key), true);
+      assert.deepEqual(await madeAt(), hourAgo, 'nothing changed since: not made again');
+      // A row changed (as a licence's dates are written): made again, with the data as it is now.
+      await c.query(`update records set data = '"เปลี่ยนแล้ว"', updated_at = now() where shop_id = app_shop() and unit = 'DB.pkgCutsV'`);
+      assert.equal(await makeBackup(c, '', key), true);
+      assert.deepEqual(await madeAt(), now);
+      assert.equal(await readBackup(c, '', key), (await readMain(c, '', 'garage.v22')).json);
+      // A save (write_log: removals and order changes leave no row behind): made again.
+      await quiet();
+      await c.query("insert into write_log (shop_id, branch_id, units) values (app_shop(), '', '{}')");
+      assert.equal(await makeBackup(c, '', key), true);
+      assert.deepEqual(await madeAt(), now);
+    });
+  });
+
   test('สำรองก่อนล้าง/กู้คืน/นำเข้า (3.2, F1): ไม่ถูกเขียนทับ อยู่ในรายชื่อ key และที่เก่ากว่า 90 วันถูกลบเมื่อสำรองครั้งใหม่', async () => {
     const { shopId } = await newShop('biz-trial', 'biz');
     const key = 'garage.v22.bak.safety-2026-10-13T09-00-00-wipe';

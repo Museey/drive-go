@@ -16,7 +16,7 @@
 // opens the program within RAMP seconds, keeps the live stream open and does jobs until MINUTES are up → the results,
 // with the server's highest memory (this computer only). Ends with k6's status: 0 all thresholds met, 99 not.
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -38,6 +38,7 @@ const S = {
   url: opt('url', ''), shopCodes: opt('shop', ''), node: flag('node'), k6: opt('k6', process.env.K6 || 'k6'),
 };
 const out = opt('out', '') || mkdtempSync(join(tmpdir(), 'drivego-load-'));
+mkdirSync(out, { recursive: true });
 const say = m => console.log(`[load] ${m}`);
 
 function k6Command() {
@@ -56,14 +57,16 @@ const freePort = () => new Promise((ok, no) => {
   const s = createServer().listen(0, '127.0.0.1', () => { const { port } = s.address(); s.close(() => ok(port)); }).on('error', no);
 });
 
-// The resident memory of a process and its children, in MB.
+// The resident memory of a process and its children, in MB (from /proc: no tools needed in a container).
 function rssMb(pid) {
   let kb = 0;
   const pids = [pid];
   for (let i = 0; i < pids.length; i++) {
-    try { kb += Number(/VmRSS:\s+(\d+)/.exec(readFileSync(`/proc/${pids[i]}/status`, 'utf8'))?.[1] || 0); } catch { /* gone */ }
-    const kids = spawnSync('pgrep', ['-P', String(pids[i])], { encoding: 'utf8' }).stdout.split('\n').filter(Boolean).map(Number);
-    pids.push(...kids);
+    try { kb += Number(/VmRSS:\s+(\d+)/.exec(readFileSync(`/proc/${pids[i]}/status`, 'utf8'))?.[1] || 0); } catch { continue; }
+    try {
+      for (const t of readdirSync(`/proc/${pids[i]}/task`))
+        pids.push(...readFileSync(`/proc/${pids[i]}/task/${t}/children`, 'utf8').split(' ').filter(Boolean).map(Number));
+    } catch { /* gone */ }
   }
   return kb / 1024;
 }
@@ -126,7 +129,9 @@ try {
   if (sys) {
     report.memory = { peakMb: Math.round(memory.peakMb), limitMb: S.memoryMb, everySecond: memory.samples.filter((_, i) => i % 2 === 0) };
     const ok = memory.peakMb < S.memoryMb * 0.85;
-    say(`server memory: highest ${Math.round(memory.peakMb)} MB of ${S.memoryMb} MB${ok ? '' : ' — MORE THAN 85%'}`);
+    const line = `server memory: highest ${Math.round(memory.peakMb)} MB of ${S.memoryMb} MB${ok ? '' : ' — MORE THAN 85%'}`;
+    say(line);
+    try { writeFileSync(join(out, 'summary.txt'), `${readFileSync(join(out, 'summary.txt'), 'utf8').trimEnd()}\n${line}\n`); } catch { /* k6 wrote none */ }
     if (!ok && code === 0) report.k6Status = 99;
   }
   writeFileSync(join(out, 'report.json'), JSON.stringify(report, null, 1));

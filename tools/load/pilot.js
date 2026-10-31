@@ -256,6 +256,9 @@ export function handleSummary(data) {
     '',
   ];
   const out = { stdout: lines.join('\n') };
-  if (__ENV.SUMMARY) out[__ENV.SUMMARY] = JSON.stringify(data, null, 1);
+  if (__ENV.SUMMARY) {
+    out[__ENV.SUMMARY] = JSON.stringify(data, null, 1);
+    out[__ENV.SUMMARY.replace(/\.json$/, '') + '.txt'] = lines.join('\n');
+  }
   return out;
 }

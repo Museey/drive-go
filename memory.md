@@ -42,7 +42,10 @@
 - **k6 (2026-10-31)**: `npm run load` (tools/load-test.mjs → capture.mjs อัดจากหน้าจอจริง → pilot.js k6; `--node` ใช้ tools/load/k6-node)
   ดาวน์โหลด k6 ใน session ถูกปฏิเสธ (auto mode: Code from External) อย่าลองอ้อม ถามเจ้าของว่ารัน k6 จริงที่ไหน (GitHub Actions / อนุญาต / เครื่องเจ้าของ)
   ผลแรก: ระหว่างวันดี, เช้า 15 เครื่องเปิดพร้อมกัน server ถึง 1,009 MB (1 GB) → ข้อเสนอ ก จำกัดอ่านทั้งก้อน/สำรองพร้อมกัน 2 ตัว,
-  ข สำรองประจำวันครั้งเดียวต่อร้านต่อวัน, ค gzip แบบ async (LOAD-TEST.md) รอเจ้าของตัดสิน แล้วรันซ้ำ
+  ข สำรองประจำวันครั้งเดียวต่อร้านต่อวัน, ค gzip แบบ async (LOAD-TEST.md)
+  **เจ้าของเลือก 2026-10-31: แก้โปรแกรม + k6 บน GitHub Actions** ทำแล้ว: heavy.ts (ก), makeBackup ข้ามเมื่อไม่มีอะไรเปลี่ยน (ข แบบแก้:
+  ปุ่มสร้างจุดสำรองเดี๋ยวนี้ใช้ key เดียวกัน), gzip async (ค), workflow load-test.yml (grafana/setup-k6-action) → สั่งรันด้วย
+  mcp actions_run_trigger แล้วอ่าน summary · secrets LOAD_USER/LOAD_PASS สำหรับยิง server ทดสอบ ให้เจ้าของตั้งที่ GitHub เอง
 - วัดแล้ว 2026-10-31: ระบบเดิมไม่มี error ที่หน้าจอไม่ได้จับในสถานการณ์ทดสอบ (88/90 จบ อีก 2 ล้มเพราะดิสก์เต็ม; page.on('pageerror') ชั่วคราว ไม่ commit)
 - ดิสก์ของ session เต็มได้: Docker vfs กินที่มาก ลบ image/`docker builder prune -af` และผล test เก่าใน scratchpad เมื่อเต็ม
 - Docker Hub ตอบ 429 (ดึง node base image ไม่ได้) ใน session นี้: ทดสอบ image ด้วย overlay บน `drivego:smoke` เดิม

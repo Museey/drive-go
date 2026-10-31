@@ -1,0 +1,73 @@
+# The load test at pilot size with k6 (docs/LOAD-TEST.md), started by hand (Actions → Load test (k6) → Run workflow).
+# Without a URL: on this runner, the new system and a temporary PostgreSQL, the server held to one CPU like the test
+# server (npm run load). With the test server's URL: the shops DriveGo's staff opened for the test, signed in with the
+# repository secrets LOAD_USER and LOAD_PASS. The results are in the run's summary and its load-results artifact.
+name: Load test (k6)
+
+on:
+  workflow_dispatch:
+    inputs:
+      shops:
+        description: Shops (this runner only)
+        default: '3'
+      devices:
+        description: Devices per shop
+        default: '5'
+      minutes:
+        description: Minutes of work after opening the program
+        default: '5'
+      think:
+        description: Seconds between two saves of a device (min-max)
+        default: '5-15'
+      url:
+        description: The test server (empty = this runner)
+        default: ''
+      shop:
+        description: With a URL, the codes of the shops opened for the test (comma separated)
+        default: ''
+
+concurrency:
+  group: load-test
+  cancel-in-progress: false
+
+env:
+  NEXT_TELEMETRY_DISABLED: '1'
+
+jobs:
+  load:
+    name: Load test
+    runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.56.1-noble
+      options: --shm-size=2g
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - uses: grafana/setup-k6-action@v1
+        with:
+          k6-version: '1.3.0'
+      - name: Load test
+        env:
+          SHOPS: ${{ inputs.shops }}
+          DEVICES: ${{ inputs.devices }}
+          MINUTES: ${{ inputs.minutes }}
+          THINK: ${{ inputs.think }}
+          URL: ${{ inputs.url }}
+          SHOP: ${{ inputs.shop }}
+          LOAD_USER: ${{ secrets.LOAD_USER }}
+          LOAD_PASS: ${{ secrets.LOAD_PASS }}
+        run: |
+          set -- --devices "$DEVICES" --minutes "$MINUTES" --think "$THINK" --out load-results
+          if [ -n "$URL" ]; then set -- "$@" --url "$URL" --shop "$SHOP"; else set -- "$@" --shops "$SHOPS"; fi
+          mkdir -p load-results
+          npm run load -- "$@"
+      - name: Summary
+        if: always()
+        run: |
+          { echo '```'; cat load-results/summary.txt 2>/dev/null || echo 'no results'; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-results
+          path: load-results/

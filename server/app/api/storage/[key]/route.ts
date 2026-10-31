@@ -21,6 +21,7 @@ import { refuseRules } from '@/lib/rules';
 import { MAX_SAVE_BYTES, inlineFile, readBody } from '@/lib/files';
 import { licenceOf, pinData, refuseExpiredKey, refuseExpiredSave } from '@/lib/licence';
 import { liveCursor } from '@/lib/live';
+import { heavy } from '@/lib/heavy';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,7 +34,9 @@ const forbidden = () => json({ error: 'another branch' }, 403);
 
 export async function GET(req: Request, ctx: Ctx) {
   const { key } = await ctx.params;
-  return inShop(req, async (c, s) => {
+  // The whole data, or a backup point: one of the few at a time (lib/heavy.ts).
+  const turn = rootOf(key) || isBackupKey(key) ? heavy : <T>(work: () => Promise<T>) => work();
+  return turn(() => inShop(req, async (c, s) => {
     const branch = await branchOfKey(c, key);
     if (!inScope(s.scope, branch)) return forbidden();
     // What this person may see (task 3.9): the masks go with the data, so the browser can compare its copy.
@@ -50,7 +53,7 @@ export async function GET(req: Request, ctx: Ctx) {
     if (isDataCopyKey(key) && !rights.owner) return json({ error: 'not allowed', what: key }, 403);
     const value = isBackupKey(key) ? await readBackup(c, branch, key) : await readBlob(c, branch, key);
     return value === null ? missing() : text(value);
-  });
+  }));
 }
 
 export async function POST(req: Request, ctx: Ctx) {
@@ -112,7 +115,9 @@ export async function PUT(req: Request, ctx: Ctx) {
   const raw = await readBody(req, MAX_SAVE_BYTES);
   if (!raw) return json({ error: 'too-large' }, 413);
   const value = raw.toString('utf8');
-  return inShop(req, async (c, s) => {
+  // A backup point is made from the whole data: one of the few at a time (lib/heavy.ts).
+  const turn = isBackupKey(key) ? heavy : <T>(work: () => Promise<T>) => work();
+  return turn(() => inShop(req, async (c, s) => {
     const branch = await branchOfKey(c, key);
     if (!inScope(s.scope, branch)) return forbidden();
     const late = await refuseExpiredKey(c, key, 'PUT', isBackupKey(key), isSafetyBackupKey(key), await licenceOf(c));
@@ -123,7 +128,7 @@ export async function PUT(req: Request, ctx: Ctx) {
     }
     await writeBlob(c, branch, key, value);
     return json({ ok: true });
-  });
+  }));
 }
 
 export async function DELETE(req: Request, ctx: Ctx) {
