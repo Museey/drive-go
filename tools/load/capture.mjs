@@ -104,20 +104,28 @@ export async function captureJob({ url, user, pass }) {
       quoteNo = await page.evaluate(() => DB.quotes[DB.quotes.length - 1].no);
       await visible(page.getByRole('button', { name: 'ปิด', exact: true })).click();
 
-      // The stock cut from the quotation; the side bar's "บันทึก" opens the payment panel: paid in cash in full and
-      // the sale closed (the cut and its payment).
+        // The stock cut from the quotation; the side bar's "ชำระเงิน" (in the trial's window and the 36-month data's
+      // alike) opens the payment panel: paid in cash in full and the sale closed (the cut and its payment).
       step = 'sale';
       await visible(page.getByRole('button', { name: /^04 ใบเสร็จรับเงิน/ })).click();
       // (the sub-menu's number differs between the trial and the 36-month data)
       await visible(page.getByText(/^4\.\d ตัดสต็อกสินค้า$/)).click();
       await page.getByRole('button', { name: /^ใบเสนอราคาที่รอตัดสต็อก/ }).click();
       await visible(page.getByText(quoteNo, { exact: true })).click();
-      await page.getByRole('button', { name: 'ชำระเงิน / บันทึก' }).click();
+      await visible(page.getByRole('button', { name: 'ชำระเงิน', exact: true })).click();
       await page.getByRole('button', { name: 'ชำระเงินสดเต็มจำนวน' }).click();
-      await page.getByRole('button', { name: 'ปิดการขาย' }).click();
-      await visible(page.getByText('บันทึกข้อมูลสำเร็จ')).waitFor();
+      // (the 36-month data's panel says "ปิดการขาย", the trial's "ตัดสต็อกและบันทึกรับชำระ")
+      await visible(page.getByRole('button', { name: /^(ปิดการขาย|ตัดสต็อกและบันทึกรับชำระ)$/ })).click();
+      // The 36-month data shows the saved card; a shop of the new system the receipt it issued at once (task 3.5).
+      const card = page.getByText('บันทึกข้อมูลสำเร็จ').filter({ visible: true }).first();
+      const receipt = page.locator('#mSaleRcpt').filter({ visible: true });
+      await card.or(receipt).first().waitFor();
       await quiet(page);
-      await visible(page.getByRole('button', { name: 'กลับไปยังหน้าค้นหาเอกสาร' })).click();
+      if (await card.isVisible()) await visible(page.getByRole('button', { name: 'กลับไปยังหน้าค้นหาเอกสาร' })).click();
+      else {
+        await receipt.getByRole('button', { name: 'ปิด', exact: true }).last().click();
+        await visible(page.getByRole('button', { name: 'ปิดหน้าต่าง' })).click();
+      }
 
       const bad = saves.filter(s => s.status !== 200);
       if (bad.length) throw new Error(`the server refused a save: ${bad.map(s => `${s.step} ${s.status} ${JSON.stringify(s.answer)}`).join('; ')}`);

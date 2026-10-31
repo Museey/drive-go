@@ -19,7 +19,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 import { startNewSystem } from './serve-new.mjs';
@@ -37,7 +37,8 @@ const S = {
   cpus: Number(opt('cpus', 1)), memoryMb: Number(opt('memory-mb', 1024)),
   url: opt('url', ''), shopCodes: opt('shop', ''), node: flag('node'), k6: opt('k6', process.env.K6 || 'k6'),
 };
-const out = opt('out', '') || mkdtempSync(join(tmpdir(), 'drivego-load-'));
+// An absolute path: k6 reads files relative to the script's folder, not this one.
+const out = resolve(opt('out', '') || mkdtempSync(join(tmpdir(), 'drivego-load-')));
 mkdirSync(out, { recursive: true });
 const say = m => console.log(`[load] ${m}`);
 
