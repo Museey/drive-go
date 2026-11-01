@@ -72,11 +72,18 @@ server ทดสอบนี้ใช้ข้อมูลทดลองเท�
    ถ้าไม่ผ่าน: แท็บ **Activity** → deploy ล่าสุด → ดู log ของ **migrate** หรือ **web** แล้วคัดลอกข้อความ error ส่งให้ Claude ได้ (log ไม่มีรหัส)
 7. **ลองใช้**: เปิด URL ของแอป (ลงท้าย `.ondigitalocean.app`) ต่อด้วย `/demo-biz/` เข้าด้วย **dg1688 / 123456**
    (ร้านตัวอย่าง demo-biz, demo-prox รหัสเดียวกัน, demo-franchise ใช้ hq / 1234) แล้วส่ง URL ให้ Claude
-8. **ตรวจว่าเว็บยังเปิดได้ (Uptime check)** หลังข้อ 7 ผ่านแล้ว:
-   - เมนูซ้าย **Monitoring** → **Uptime** → **Create Uptime Check** → แบบ **HTTPS** → URL: URL ของแอปต่อด้วย **`/api/health`**
-     (เช่น `https://drivego-test-xxxxx.ondigitalocean.app/api/health`) → Regions เลือก **Singapore** (และอีกที่ถ้ามี) → ชื่อ **drivego-test** → Create
-   - หน้า check ที่สร้าง → **Create Uptime Alert** → ชนิด **Downtime** (เว็บไม่ตอบ) ส่งอีเมล → Save
-     สร้างอีกอันชนิด **SSL Cert Expire** (ใบรับรองใกล้หมดอายุ) ก็ได้
+8. **ตรวจว่าเว็บยังเปิดได้ (Uptime check)** หลังข้อ 7 ผ่านแล้ว (ตามคู่มือ DigitalOcean ฉบับ 2026-10-06):
+   - เมนูซ้าย **Insights** → แท็บ **Uptime** (หรือ https://cloud.digitalocean.com/insights/uptime/checks หรือพิมพ์ Uptime ในช่องค้นหาด้านบน)
+     → **Create a new Uptime Check**
+   - ชนิด **HTTPS** · URL: URL ของแอปต่อด้วย **`/api/health`** (เช่น `https://drivego-test-xxxxx.ondigitalocean.app/api/health`)
+   - Regions: มี Asia East, Europe, USA East, USA West (ติ๊กไว้ทั้งหมดเป็นค่าเริ่ม) เลือก **Asia East** อย่างเดียวพอ
+     (ผู้ใช้อยู่ไทย ยิ่งหลาย region ยิ่งมีโอกาสเตือนเพราะเน็ตระหว่างทวีป)
+   - ชื่อ **drivego-test** → **Create Uptime Check**
+   - หน้าสถานะของ check → **Create Uptime Alert**
+     - ชนิด **Downtime** ช่วงเวลา **5** นาที
+     - อีเมลของบัญชีถูกใส่ให้แล้ว
+     - ชื่อ **drivego-test down** → **Create**
+   - สร้างอีกอันชนิด **SSL Cert Expire** **14** วันก็ได้ (App Platform ต่ออายุใบรับรองเอง เตือนเผื่อไว้)
    - `/api/health` ตอบสำเร็จเมื่อแอปทำงานและต่อฐานข้อมูลได้ ถ้าฐานข้อมูลล่มก็นับว่าเว็บล่ม
    - ราคา: ตรวจบนหน้าเว็บตอนสร้าง
 

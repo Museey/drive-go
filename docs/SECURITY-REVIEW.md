@@ -52,6 +52,21 @@ CSP ยังไม่จำกัดสคริปต์และการเ�
 
 ## ต้องตรวจบน server จริงเมื่อได้ URL
 
+**ตรวจแล้ว 2026-11-01** บน `https://drivego-test-asaao.ondigitalocean.app` (จาก session ของ Claude หลังเจ้าของโปรเจกต์เพิ่ม host ใน Allowed domains):
+- header ทั้ง 6 ตัวออกมาจริงผ่าน load balancer (Cloudflare ของ DigitalOcean): HSTS, nosniff, X-Frame-Options, CSP, Referrer-Policy,
+  Permissions-Policy ✓
+- `/api/test-error` ตอบ 404 ✓
+- `/api/public/demo-biz/dgb.v22` มีแค่ code, name, created, trialStart, licensed, licEnd ✓
+- cookie ของ session `HttpOnly; SameSite=Lax; Secure` ✓
+- ออกจากระบบแล้ว cookie เดิมได้ 401 ✓
+- ช่องการอัปเดตสด (`/api/live`) มาถึงทันทีไม่ถูกพัก ping ทุก 3 วินาที ✓
+- ยังไม่ได้ตรวจ:
+  - http → https: เครือข่ายของ session ไม่ให้ใช้ http ธรรมดา (HSTS บังคับ https ในเบราว์เซอร์อยู่แล้ว)
+  - ล็อกบัญชีเมื่อผิด 5 ครั้ง: จะล็อกบัญชีร้านตัวอย่างที่เจ้าของใช้อยู่ 15 นาที (มี test S108)
+- Trusted sources: เจ้าของโปรเจกต์เพิ่มแอปแล้ว (หน้าตาใหม่อยู่ในหัวข้อ Network Access ของฐานข้อมูล)
+
+รายการเดิม:
+
 - header ข้างบนออกมาจริงผ่าน load balancer ของ DigitalOcean และ http เปลี่ยนเป็น https เอง (`curl -sI`)
 - ฐานข้อมูลรับเฉพาะแอป (Trusted sources ตามคู่มือส่วนที่ 3 ข้อ 5) และต่อด้วย TLS
 - `/api/test-error` ตอบ 404, `/api/public/<รหัสร้าน>/dgb.v22` ไม่มีข้อมูลส่วนตัว
