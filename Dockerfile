@@ -6,6 +6,7 @@
 #   docker run -e MIGRATE_DATABASE_URL=… [-e SEED_DEMO_SHOPS=1] drivego node tools/deploy-migrate.mjs
 #   docker run -e MIGRATE_DATABASE_URL=… drivego node tools/shop-admin.mjs …   (staff: docs/STAFF-TOOLS.md)
 #   docker run -e MIGRATE_DATABASE_URL=… drivego node tools/nightly.mjs|watch.mjs   (the scheduled jobs)
+#   docker run -it drivego node tools/restore-check.mjs   (the restore drill: docs/RESTORE-DRILL.md)
 FROM node:22.22.0-bookworm-slim AS build
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -24,7 +25,7 @@ RUN npm ci --workspace server --include-workspace-root=false --omit=dev --no-aud
 COPY server server
 COPY --from=build --chown=node:node /app/server/.next server/.next
 COPY frontend frontend
-COPY tools/deploy-migrate.mjs tools/demo-shops.mjs tools/shop-admin.mjs tools/nightly.mjs tools/retention.mjs tools/files.mjs tools/watch.mjs tools/errors.mjs tools/
+COPY tools/deploy-migrate.mjs tools/demo-shops.mjs tools/shop-admin.mjs tools/nightly.mjs tools/retention.mjs tools/files.mjs tools/watch.mjs tools/errors.mjs tools/restore-check.mjs tools/
 COPY tests/fixtures/biz-trial.json tests/fixtures/prox-trial.json tests/fixtures/franchise-trial.json tests/fixtures/
 USER node
 EXPOSE 8080
