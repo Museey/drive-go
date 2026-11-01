@@ -115,6 +115,13 @@ try {
     fail(`watch:\n${watched.stdout}${watched.stderr}`);
   say('errors: a page error recorded through /api/errors, the hourly job sees it (one: no alert), no test route');
 
+  // The restore drill's check (docs/RESTORE-DRILL.md) as staff run it from the app's Console: counts per shop, nothing personal.
+  const check = docker(['run', '--rm', '--network', 'host', '-e', `MIGRATE_DATABASE_URL=${owner}`, '-e', 'DATABASE_CA_CERT', image,
+    'node', 'tools/restore-check.mjs', '--marker', 'อู่ทดสอบ image']);
+  if (check.status !== 0 || !/^ร้าน \d+$/m.test(check.stdout) || !/^ {2}demo-biz /m.test(check.stdout) || !/"อู่ทดสอบ image": /.test(check.stdout)
+    || /postgres(ql)?:\/\//.test(check.stdout)) fail(`restore-check:\n${check.stdout}${check.stderr}`);
+  say('restore check: counts per shop over TLS as the owner, the drill\'s marker searched, no connection string printed');
+
   // Security review (docs/SECURITY-REVIEW.md): the headers on every answer, and nothing personal before signing in.
   const shopPage = await fetchAgain(`${base}/demo-biz/`);
   for (const [h, v] of [['strict-transport-security', 'max-age=31536000'], ['x-content-type-options', 'nosniff'], ['x-frame-options', 'SAMEORIGIN'],

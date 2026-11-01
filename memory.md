@@ -83,3 +83,6 @@
 - **DigitalOcean (2026-11-01)**: เจ้าของทำส่วน 1–2 เสร็จ, แอป drivego-test สร้างแล้ว https://drivego-test-asaao.ondigitalocean.app (root 404 ปกติ: โปรแกรมอยู่ที่ /<รหัสร้าน>/)
   web 512 MB (เจ้าของเลือก, HEAVY_AT_ONCE=1) · **ขึ้นเขียวแล้ว เข้า demo-biz ได้ (2026-11-01)** ทำขั้น 3–7 ครบ (Trusted sources อยู่ใน Network Access) · ขั้น 8 Uptime + Alert Rule (probe_success <= 0) เสร็จ · session เข้า URL แอปและ docs.digitalocean.com ได้แล้ว (เจ้าของเพิ่ม Allowed domains)
   session นี้เปิด URL ของแอปไม่ได้ (proxy 403) ต้องให้เจ้าของเพิ่ม host ใน network policy ถ้าจะให้ Claude ตรวจเอง
+- **ซ้อมกู้คืน (2026-11-01)**: คู่มือ docs/RESTORE-DRILL.md + tools/restore-check.mjs (ลายนิ้วมือต่อร้าน, รันใน Console ของ web, วาง doadmin ตอนถูกถาม)
+  แผน: ลูกค้า "ซ้อมกู้คืน" T1 → ลบ T2 → Restore from backup (point in time) เป็น drivego-test-db2 → ย้ายแอป (cluster_name, MIGRATE_DATABASE_URL x3, trusted) → ตรวจ
+  หลังซ้อม: เก็บ db2 เป็นหลัก แก้ .do/app.yaml cluster_name + คู่มือ แล้วลบชุดเดิม · ฐานข้อมูลที่เพิ่งสร้างอาจต้องรอ backup แรก (≤1 วัน)

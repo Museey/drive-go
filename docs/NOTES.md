@@ -1398,3 +1398,19 @@ Claude ไม่เข้าบัญชี DigitalOcean และไม่ร�
   - รันทดสอบรับโหลดด้วยข้อมูล 36 เดือน
   - เปิดอู่นำร่อง
   - alert หน่วยความจำ > 85% ส่งอีเมลเตือนอยู่แล้ว
+
+## ซ้อมกู้ข้อมูลคืน (2026-11-01, LAUNCH-CHECKLIST ด่าน 1)
+
+- คู่มือ `docs/RESTORE-DRILL.md` (อ่านคู่มือ DigitalOcean ฉบับ ก.ค.–ส.ค. 2026 ได้แล้วหลังเจ้าของเพิ่ม `docs.digitalocean.com` ใน Allowed domains)
+  - Managed PostgreSQL สำรองทุกวัน เก็บ 7 วัน และกู้ย้อนเวลาได้ภายใน 7 วัน
+  - การกู้สร้าง**ฐานข้อมูลชุดใหม่** แอปต้องย้ายไปเอง: แก้ `cluster_name` ใน App Spec, `MIGRATE_DATABASE_URL` ของ 3 job, Trusted sources
+- `tools/restore-check.mjs` (+ `server/lib/fingerprint.ts`, `tests/db/restore-check.test.mjs`, image-smoke)
+  - ให้ลายนิ้วมือต่อร้าน: จำนวนแถว ผลรวม version การเปลี่ยน การบันทึก จุดสำรอง ไฟล์ เลขเอกสาร
+  - ไม่พิมพ์ข้อมูลร้าน
+  - รันใน Console ของแอป เพราะฐานข้อมูลรับเฉพาะแอปและมีใบรับรองอยู่ในแอป
+  - ข้อความเชื่อมต่อของ doadmin วางตอนถูกถาม ไม่แสดงบนจอ
+- **พบระหว่างเขียน: เจ้าของฐานข้อมูลใน PostgreSQL ชั่วคราวของ test เป็น superuser จึงข้าม RLS**
+  - ลายนิ้วมือร่างแรกพึ่ง RLS ในการแยกร้าน จึงนับรวมทุกร้าน แก้แล้วให้ทุกคำสั่งระบุ `shop_id` เอง
+  - ตรวจแล้วทุกคำสั่งที่ลบหรือแก้ข้อมูลของเครื่องมือทีมงาน (licence-admin, nightly, files, storage, licence, auth, session)
+    ระบุร้านเอง (`shop_id = app_shop()`) ไม่พึ่ง RLS อย่างเดียว
+  - ลายนิ้วมือรายงานด้วยว่าบัญชีที่ใช้ตรวจข้าม RLS หรือไม่ จะได้รู้ว่า doadmin ของ DigitalOcean เป็นแบบไหน
