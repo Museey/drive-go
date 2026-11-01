@@ -1270,8 +1270,12 @@ Claude ไม่เข้าบัญชี DigitalOcean และไม่ร�
 ## งานทุกคืนของ server (2026-10-30, LAUNCH-CHECKLIST ด่าน 1 "ตารางเวลางานเบื้องหลัง")
 
 - DigitalOcean App Platform มีงานตามเวลา: job `kind: SCHEDULED` + `schedule: {cron, time_zone}` + `timeout` และกฎแจ้งเตือน
-  `JOB_INVOCATION_FAILED` ของส่วนประกอบ (ยืนยันจากโค้ดของ client ทางการ `digitalocean/godo` apps.gen.go เพราะ docs.digitalocean.com
+  `JOB_INVOCATION_FAILED` (ยืนยันจากโค้ดของ client ทางการ `digitalocean/godo` apps.gen.go เพราะ docs.digitalocean.com
   เปิดจาก session ไม่ได้ ต้องลองบน server จริงว่าวาง spec ได้และอีเมลแจ้งเตือนมาถึง)
+  - **วางจริง 2026-11-01 พบ 2 จุดที่ godo ไม่บอก** (แก้แล้ว):
+    - `timeout` เป็น protobuf Duration ต้องเขียนเป็นวินาที (`1800s`) ไม่ใช่ `30m`
+    - `JOB_INVOCATION_FAILED` ใส่ได้เฉพาะ alerts ระดับแอป ใต้ job ไม่ได้
+      ("not supported at the component scope")
 - `.do/app.yaml` job **nightly**: ทุกคืน 03:17 Asia/Bangkok, เครื่อง 0.5 GB, หมดเวลา 30 นาที, รันเป็นเจ้าของฐานข้อมูล
   (`MIGRATE_DATABASE_URL` เป็น secret ของ job นี้อีกตัว ใส่ใน control panel ตามคู่มือส่วนที่ 3 ข้อ 4) คิดเงินเฉพาะเวลาที่รัน
 - งาน (`server/lib/nightly.ts`, `tools/nightly.mjs`): ลบข้อมูลร้านที่ครบกำหนด (`delete`) และลบประวัติที่เก็บครบ 5 ปี (`purge`) ตาม 15.5 15.6
