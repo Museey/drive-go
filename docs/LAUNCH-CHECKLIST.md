@@ -36,7 +36,8 @@
   หน่วยความจำของ server ถึง 1,009 MB จาก 1 GB → แก้แล้ว (เจ้าของเลือกแก้โปรแกรม)
   k6 ตัวจริงบน GitHub Actions ผ่านทุกเกณฑ์ (สูงสุด 711 MB) เหลือรันกับ server ทดสอบเมื่อได้ URL
 - **server ทดสอบขึ้นแล้ว 2026-11-01**: https://drivego-test-asaao.ondigitalocean.app (ร้านตัวอย่าง demo-biz, demo-prox, demo-franchise)
-  เหลือ: Uptime check และตรวจบน server จริง (header, ร้านแยกกัน, อีเมลแจ้งเตือน, k6, ซ้อมกู้คืน)
+  Uptime check ตั้งแล้ว, ตรวจ header/ข้อมูลก่อนเข้าระบบ/cookie/การอัปเดตสดบน server จริงผ่าน (SECURITY-REVIEW.md)
+  เหลือ: อีเมลแจ้งเตือนมาถึงจริง, k6 กับ server, ซ้อมกู้คืน, ลองบนอุปกรณ์จริงและเครื่องพิมพ์
 - ยังไม่เริ่ม: นักกฎหมาย PDPA, เลือกอู่นำร่อง, งานอื่นของ Claude ในด่าน 2–3
 
 แบ่งเป็น 3 ด่าน: **ด่าน 1** server ทดสอบ (มีแต่ข้อมูลทดลอง) → **ด่าน 2** อู่นำร่อง (ใช้ฟรี 1 ปี ข้อมูลจริง) → **ด่าน 3** ร้านแรกที่จ่ายเงิน
@@ -51,7 +52,7 @@
   - วาง spec จริงเจอ 2 จุด (แก้แล้ว): job timeout ต้องเป็นวินาที, `JOB_INVOCATION_FAILED` อยู่ระดับแอปเท่านั้น (NOTES.md)
   - session ของ Claude ยังเปิด URL นี้ไม่ได้ (เครือข่ายของ session ปฏิเสธ) การตรวจบน server จริงของ Claude ต้องเพิ่ม host
     ใน Allowed domains ของ environment
-  - เหลือข้อ 8 (Uptime check)
+  - ข้อ 8 Uptime check + กฎเตือนเมื่อเว็บล่ม (`probe_success <= 0` 5 นาที ส่งอีเมล) **เสร็จ 2026-11-01**
 
 Claude
 - [x] ไฟล์สำหรับ deploy (container, ค่าตั้งของผู้ให้บริการ) deploy เองทุกครั้งที่ push และรัน migration ตอน deploy (2026-10-30:

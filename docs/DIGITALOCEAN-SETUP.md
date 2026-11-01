@@ -79,11 +79,17 @@ server ทดสอบนี้ใช้ข้อมูลทดลองเท�
    - Regions: มี Asia East, Europe, USA East, USA West (ติ๊กไว้ทั้งหมดเป็นค่าเริ่ม) เลือก **Asia East** อย่างเดียวพอ
      (ผู้ใช้อยู่ไทย ยิ่งหลาย region ยิ่งมีโอกาสเตือนเพราะเน็ตระหว่างทวีป)
    - ชื่อ **drivego-test** → **Create Uptime Check**
-   - หน้าสถานะของ check → **Create Uptime Alert**
-     - ชนิด **Downtime** ช่วงเวลา **5** นาที
-     - อีเมลของบัญชีถูกใส่ให้แล้ว
-     - ชื่อ **drivego-test down** → **Create**
-   - สร้างอีกอันชนิด **SSL Cert Expire** **14** วันก็ได้ (App Platform ต่ออายุใบรับรองเอง เตือนเผื่อไว้)
+   - การแจ้งเตือน: หน้าจอเดือน พ.ย. 2026 ใหม่กว่าคู่มือของ DigitalOcean ใช้ "Alert Rules" ตามตัววัด (ทำจริง 2026-11-01)
+     - หน้าสถานะของ check → **Create Alert Rule**
+     - Resource type **Uptime**
+     - Metric **`do.uptime.probe_success`** (Uptime: Probe Success; 1 = ตอบปกติ, 0 = ไม่ตอบ)
+       - ไม่ใช่ `probe_duration` ที่ขึ้นมาเป็นค่าเริ่ม ตัวนั้นวัดความช้า
+     - Resource **drivego-test**
+     - Condition **`<=` `0`** ระดับ Critical
+     - Evaluation window **5 minutes**, Re-notify **Every 4 hours**
+     - Notification method: **+ Create New Notification Channel** → Email → อีเมลของทีม แล้วเลือกช่องทางนั้น
+     - Name **drivego-test down** → สร้าง
+   - กฎใบรับรองใกล้หมดอายุ (`do.uptime.ssl_cert_expiry`) ไม่จำเป็น: App Platform ต่ออายุใบรับรองเอง
    - `/api/health` ตอบสำเร็จเมื่อแอปทำงานและต่อฐานข้อมูลได้ ถ้าฐานข้อมูลล่มก็นับว่าเว็บล่ม
    - ราคา: ตรวจบนหน้าเว็บตอนสร้าง
 
