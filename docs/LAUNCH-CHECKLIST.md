@@ -3,7 +3,7 @@
 รวบรวมเมื่อ 2026-10-27 จาก PLAN.md, NOTES.md, PHASE3-QUESTIONS.md, HOSTING.md และโค้ด · ทำเสร็จข้อไหนให้ขีด [x] และจดวันที่
 ไฟล์นี้คือรายการกลางที่ทุก session ใช้ร่วมกัน (CLAUDE.md ชี้มาที่นี่) แก้ "สถานะล่าสุด" ทุกครั้งที่มีอะไรเปลี่ยน
 
-## สถานะล่าสุด (2026-10-31)
+## สถานะล่าสุด (2026-11-01)
 
 - โค้ด: เฟส 3 งาน 3.1–3.15 เสร็จ CI ผ่าน ข้อความใหม่ของเฟส 3 อนุมัติครบ (PHASE3-NEW-TEXTS.md)
 - **DigitalOcean สิงคโปร์ แบบ App Platform + Managed PostgreSQL ยืนยันแล้ว 2026-10-29** (HOSTING.md "ข้อตัดสิน 2026-10-27")
@@ -35,6 +35,8 @@
 - **ทดสอบรับโหลด: เครื่องมือเสร็จ 2026-10-31** (`npm run load`, LOAD-TEST.md) ผลแรก: ตอนเช้าที่ 15 เครื่องเปิดพร้อมกัน
   หน่วยความจำของ server ถึง 1,009 MB จาก 1 GB → แก้แล้ว (เจ้าของเลือกแก้โปรแกรม)
   k6 ตัวจริงบน GitHub Actions ผ่านทุกเกณฑ์ (สูงสุด 711 MB) เหลือรันกับ server ทดสอบเมื่อได้ URL
+- **server ทดสอบขึ้นแล้ว 2026-11-01**: https://drivego-test-asaao.ondigitalocean.app (ร้านตัวอย่าง demo-biz, demo-prox, demo-franchise)
+  เหลือ: Uptime check และตรวจบน server จริง (header, ร้านแยกกัน, อีเมลแจ้งเตือน, k6, ซ้อมกู้คืน)
 - ยังไม่เริ่ม: นักกฎหมาย PDPA, เลือกอู่นำร่อง, งานอื่นของ Claude ในด่าน 2–3
 
 แบ่งเป็น 3 ด่าน: **ด่าน 1** server ทดสอบ (มีแต่ข้อมูลทดลอง) → **ด่าน 2** อู่นำร่อง (ใช้ฟรี 1 ปี ข้อมูลจริง) → **ด่าน 3** ร้านแรกที่จ่ายเงิน
@@ -44,8 +46,12 @@
 เจ้าของโปรเจกต์
 - [x] เลือกผู้ให้บริการ: DigitalOcean สิงคโปร์ (2026-10-27) — แบบ App Platform + Managed PostgreSQL ยืนยันแล้ว (2026-10-29)
 - [x] สมัครบัญชีและสร้างฐานข้อมูลตาม [DIGITALOCEAN-SETUP.md](DIGITALOCEAN-SETUP.md) ส่วนที่ 1–2 (**เสร็จ 2026-11-01**: 2FA, เตือนค่าใช้จ่าย, ทีม DriveGo, โปรเจกต์ DriveGo test, drivego-test-db)
-- [ ] สร้างแอปจาก GitHub ตามส่วนที่ 3 ของคู่มือ (ไฟล์ deploy และ branch deploy/test พร้อมแล้ว 2026-10-30) — **กำลังทำ 2026-11-01** (Claude พาทำทีละขั้นในแชต) แอป **drivego-test** สร้างแล้ว URL `https://drivego-test-asaao.ondigitalocean.app` (ยังไม่ได้วางไฟล์ตั้งค่า)
-  session ของ Claude เปิด URL นี้ไม่ได้ (เครือข่ายของ session ปฏิเสธ 403) การตรวจบน server จริงต้องเพิ่ม host นี้ในเครือข่ายของ environment หรือให้เจ้าของโปรเจกต์ส่งผลมา
+- [x] สร้างแอปจาก GitHub ตามส่วนที่ 3 ของคู่มือ (**เสร็จ 2026-11-01**, Claude พาทำในแชต) แอป **drivego-test** ขึ้นเขียว
+  URL `https://drivego-test-asaao.ondigitalocean.app` เจ้าของโปรเจกต์เข้า `/demo-biz/` ได้ เครื่อง web 512 MB
+  - วาง spec จริงเจอ 2 จุด (แก้แล้ว): job timeout ต้องเป็นวินาที, `JOB_INVOCATION_FAILED` อยู่ระดับแอปเท่านั้น (NOTES.md)
+  - session ของ Claude ยังเปิด URL นี้ไม่ได้ (เครือข่ายของ session ปฏิเสธ) การตรวจบน server จริงของ Claude ต้องเพิ่ม host
+    ใน Allowed domains ของ environment
+  - เหลือข้อ 8 (Uptime check)
 
 Claude
 - [x] ไฟล์สำหรับ deploy (container, ค่าตั้งของผู้ให้บริการ) deploy เองทุกครั้งที่ push และรัน migration ตอน deploy (2026-10-30:
