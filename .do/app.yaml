@@ -1,7 +1,10 @@
 # DigitalOcean App Platform: the test server (task 3.16, decision of 2026-10-29: App Platform + Managed PostgreSQL in
 # Singapore). How to create the app from this file: docs/DIGITALOCEAN-SETUP.md part 3.
 #
-# · web: the image of ./Dockerfile, `next start` on port 8080, 1 GB (Next.js needs more than 512 MB).
+# · web: the image of ./Dockerfile, `next start` on port 8080. 512 MB while the test server has only the demo shops and
+#   trial data (the owner's choice of 2026-11-01; the app uses 150–250 MB then): reading a shop's whole data runs one at a
+#   a time (HEAVY_AT_ONCE=1, server/lib/heavy.ts). 1 GB (apps-s-1vcpu-1gb) before a pilot shop or a load test with the
+#   36-month data, which took up to 711 MB with 15 devices opening the program at once (docs/LOAD-TEST.md).
 # · migrate: runs before every deploy (PRE_DEPLOY) as the database owner: the schema, and the demo shops while the
 #   database has none (SEED_DEMO_SHOPS: a test server only). If it fails, the deploy stops and the running version stays.
 #   Its MIGRATE_DATABASE_URL (the connection string of doadmin) is a secret typed in the control panel, never here.
@@ -28,7 +31,7 @@ services:
     source_dir: /
     dockerfile_path: Dockerfile
     http_port: 8080
-    instance_size_slug: apps-s-1vcpu-1gb
+    instance_size_slug: apps-s-1vcpu-0.5gb
     instance_count: 1
     health_check:
       http_path: /api/health
@@ -38,6 +41,9 @@ services:
       success_threshold: 1
       failure_threshold: 6
     envs:
+      - key: HEAVY_AT_ONCE
+        scope: RUN_TIME
+        value: "1"
       - key: DATABASE_URL
         scope: RUN_TIME
         value: ${db.DATABASE_URL}
