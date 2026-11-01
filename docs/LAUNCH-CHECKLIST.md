@@ -44,7 +44,8 @@
 เจ้าของโปรเจกต์
 - [x] เลือกผู้ให้บริการ: DigitalOcean สิงคโปร์ (2026-10-27) — แบบ App Platform + Managed PostgreSQL ยืนยันแล้ว (2026-10-29)
 - [x] สมัครบัญชีและสร้างฐานข้อมูลตาม [DIGITALOCEAN-SETUP.md](DIGITALOCEAN-SETUP.md) ส่วนที่ 1–2 (**เสร็จ 2026-11-01**: 2FA, เตือนค่าใช้จ่าย, ทีม DriveGo, โปรเจกต์ DriveGo test, drivego-test-db)
-- [ ] สร้างแอปจาก GitHub ตามส่วนที่ 3 ของคู่มือ (ไฟล์ deploy และ branch deploy/test พร้อมแล้ว 2026-10-30) — **กำลังทำ 2026-11-01** (Claude พาทำทีละขั้นในแชต)
+- [ ] สร้างแอปจาก GitHub ตามส่วนที่ 3 ของคู่มือ (ไฟล์ deploy และ branch deploy/test พร้อมแล้ว 2026-10-30) — **กำลังทำ 2026-11-01** (Claude พาทำทีละขั้นในแชต) แอป **drivego-test** สร้างแล้ว URL `https://drivego-test-asaao.ondigitalocean.app` (ยังไม่ได้วางไฟล์ตั้งค่า)
+  session ของ Claude เปิด URL นี้ไม่ได้ (เครือข่ายของ session ปฏิเสธ 403) การตรวจบน server จริงต้องเพิ่ม host นี้ในเครือข่ายของ environment หรือให้เจ้าของโปรเจกต์ส่งผลมา
 
 Claude
 - [x] ไฟล์สำหรับ deploy (container, ค่าตั้งของผู้ให้บริการ) deploy เองทุกครั้งที่ push และรัน migration ตอน deploy (2026-10-30:

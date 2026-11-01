@@ -80,3 +80,6 @@
 
 - 5.3 ใบสำคัญจ่ายเงินเดือนแบบ B (S256) · 4.2 ผู้อนุมัติยืนยันทุนของเกิน (S257 แทน S32) · 4.2 ของจากคลังกลาง:
   ProX คนรับยืนยันทุน (S162), แฟรนไชส์ HQ ใส่ทุนในคลังกลาง (S163) · ข้อความใหม่อนุมัติแล้ว 2026-10-30 · CI รอบ 129 ผ่าน
+- **DigitalOcean (2026-11-01)**: เจ้าของทำส่วน 1–2 เสร็จ, แอป drivego-test สร้างแล้ว https://drivego-test-asaao.ondigitalocean.app (root 404 ปกติ: โปรแกรมอยู่ที่ /<รหัสร้าน>/)
+  web 512 MB (เจ้าของเลือก, HEAVY_AT_ONCE=1) · ต่อไป: ขั้น 3 วาง spec (ลิงก์ branch หลัก) → ขั้น 4 MIGRATE_DATABASE_URL (Encrypt) migrate/nightly/watch → 5 Trusted sources → 6 deploy → 7 ลอง demo-biz → 8 Uptime
+  session นี้เปิด URL ของแอปไม่ได้ (proxy 403) ต้องให้เจ้าของเพิ่ม host ใน network policy ถ้าจะให้ Claude ตรวจเอง
