@@ -86,3 +86,4 @@
 - **ซ้อมกู้คืน (2026-11-01)**: คู่มือ docs/RESTORE-DRILL.md + tools/restore-check.mjs (ลายนิ้วมือต่อร้าน, รันใน Console ของ web, วาง doadmin ตอนถูกถาม)
   แผน: ลูกค้า "ซ้อมกู้คืน" T1 → ลบ T2 → Restore from backup (point in time) เป็น drivego-test-db2 → ย้ายแอป (cluster_name, MIGRATE_DATABASE_URL x3, trusted) → ตรวจ
   หลังซ้อม: เก็บ db2 เป็นหลัก แก้ .do/app.yaml cluster_name + คู่มือ แล้วลบชุดเดิม · ฐานข้อมูลที่เพิ่งสร้างอาจต้องรอ backup แรก (≤1 วัน)
+  **สถานะ 2026-11-03**: เครื่องมืออยู่บน server แล้ว (d321c6b, CI 159 ผ่าน) เจ้าของพักการซ้อมไว้ จะกลับมาทำต่อ → เริ่มที่ขั้น 0 (เช็ก backups) และขั้น ก
