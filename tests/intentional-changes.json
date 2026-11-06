@@ -740,6 +740,11 @@
       "scenario": "S262-too-many-wrong-sign-ins-from-one-device.spec.ts",
       "decision": "security review proposal 1, owner's decision 2026-10-31",
       "why": "One device that fails to sign in 30 times within 15 minutes, across accounts, waits 15 minutes with the lockout message; other devices still sign in."
+    },
+    {
+      "scenario": "S264-pnd3-pnd53-return-and-attachment.spec.ts",
+      "decision": "owner's request and answers of 2026-11-06 (return + attachment, payee branch blank, buttons on the tax report)",
+      "why": "The tax report prints a month's ภ.ง.ด.3 / ภ.ง.ด.53 on the Revenue Department's forms: the return (payer's tax id and branch, the month ticked, (1) มาตรา 3 เตรส ticked, the attachment's ราย and แผ่น, income paid and tax withheld) and its attachment, six ลำดับที่ a sheet numbered on from sheet to sheet, one per payment in the order of the tax report and the 50 ทวิ, each sheet with its totals; the PDF is named ภ.ง.ด.3_<yyyy-mm>; a month without withholding has no buttons."
     }
   ]
 }

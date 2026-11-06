@@ -286,7 +286,9 @@
   .sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.no).localeCompare(String(b.no)));
   const k={};rows.forEach(v=>{k[v.form]=(k[v.form]||0)+1;v.seq=k[v.form];});return rows;}
  const seqOf=v=>{const r=whtOutMonth(String(v.date).slice(0,7)).find(z=>z.id===v.id);return r?r.seq:0;};
- window.PKG_WHT_OUT={all:whtOutAll,month:whtOutMonth,sheet:(v,copy)=>sheetWhtCert(v,copy)};
+ /* also for ภ.ง.ด.3 / 53 and their attachments (68-pnd-attach.js): the income type as the 50 ทวิ prints it, and the payee's
+    tax id and address (an expense's payee found in the vendor register by name) */
+ window.PKG_WHT_OUT={all:whtOutAll,month:whtOutMonth,sheet:(v,copy)=>sheetWhtCert(v,copy),income:v=>INCOME[v.rate]||v.desc,party:v=>partyOf(v)};
  function whtVen(){
   const q=qOf('swhtOut'),st=stOf('swhtOut');
   return whtOutAll().filter(v=>(st==='wait'?!v.remit:st==='got'?v.remit:true)&&hit(q,[v.no,v.payee,v.tax,v.cert,v.desc])).sort(byDate);
@@ -400,9 +402,11 @@
  const FORMS=[['1','ภ.ง.ด.1ก'],['2','ภ.ง.ด.1ก พิเศษ'],['3','ภ.ง.ด.2'],['4','ภ.ง.ด.3'],['5','ภ.ง.ด.2ก'],['6','ภ.ง.ด.3ก'],['7','ภ.ง.ด.53']];
  const tickBox=on=>`<span style="display:inline-block;width:11px;height:11px;border:1px solid #000;text-align:center;line-height:10px;font-size:10px;vertical-align:middle;margin-right:2px">${on?'✓':''}</span>`;
  const DOTS='.................................................';
+ function partyOf(v){const vn=v.addr||v.form==='1'?null:(DB.vendors||[]).find(z=>String(z.name||'').trim()===String(v.payee||'').trim());
+  return {tax:v.tax||(vn&&vn.tax)||'',addr:v.addr||(vn&&vn.addr)||null};}
  function sheetWhtCert(v,copy){
   /* an employee's of the year (task 3.8, 60-payroll.js): v.form '1' — ภ.ง.ด.1ก, income type 1, v.when, the address as typed, v.seq, v.sso */
-  const emp=v.form==='1',s=DB.shop||{},vn=v.addr||emp?null:(DB.vendors||[]).find(z=>String(z.name||'').trim()===String(v.payee||'').trim()),addr=v.addr||(vn&&vn.addr),tax=v.tax||(vn&&vn.tax)||'',seq=emp?v.seq:seqOf(v);
+  const emp=v.form==='1',s=DB.shop||{},{tax,addr}=partyOf(v),seq=emp?v.seq:seqOf(v);
   const tick=k=>(k==='1'&&emp)||(k==='4'&&v.form==='3')||(k==='7'&&v.form==='53'),blank=t=>`<tr><td>${t}</td><td></td><td></td><td></td></tr>`;
   const T5='5. การจ่ายเงินได้ที่ต้องหักภาษี ณ ที่จ่าย ตามคำสั่งกรมสรรพากรที่ออกตามมาตรา 3 เตรส เช่น รางวัล ส่วนลดหรือประโยชน์ใด ๆ เนื่องจากการส่งเสริมการขาย รางวัลในการประกวด การแข่งขัน การชิงโชค ค่าแสดงของนักแสดงสาธารณะ ค่าจ้างทำของ ค่าโฆษณา ค่าเช่า ค่าขนส่ง ค่าบริการ ค่าเบี้ยประกันวินาศภัย ฯลฯ';
   return `<div class="sheetpage"><div style="text-align:right;font-size:11px">${COPY[copy]}</div>

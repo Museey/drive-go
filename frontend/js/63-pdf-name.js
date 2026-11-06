@@ -62,6 +62,8 @@
  const draft=no=>!no||no==='-'||/^\(.*\)$/.test(no);
  function nameOf(stage){
   const S=[...stage.querySelectorAll('.sheetpage')];if(!S.length)return '';
+  if(S[0].dataset.pdfName)return S[0].dataset.pdfName.split('|');   /* a sheet that names itself (68-pnd-attach.js: ภ.ง.ด.3_<yyyy-mm>) */
+  if(S[0].dataset.pdfName)return S[0].dataset.pdfName.split('|');   /* a sheet that names itself (68-pnd-attach.js: ภ.ง.ด.3_<yyyy-mm>) */
   const R=S.map(read),a=R[0];if(!a.type)return '';
   if(a.blank){const k=[...new Set(R.map(r=>r.type))];return ['แบบฟอร์มเปล่า',k.length>1?k.length+' ชนิด':k[0]];}
   const today=typeof iso==='function'?iso():new Date().toISOString().slice(0,10);
