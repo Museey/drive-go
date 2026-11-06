@@ -113,6 +113,36 @@ describe('ใบลดหนี้ (งาน 3.3)', () => {
     await put('DB.taxPeriods', '', { '2026-10': { closed: true, hist: [] } });
     assert.equal(await check('owner', save(['DB.creditNotes', 'cn1', note(cut, 'approved')], ['DB.stockCuts', cut.id, adj])), null);
   });
+
+  // The owner's decision of 2026-11-06: cancelling one in effect — the owner or apv.tax; "ออกใบลดหนี้" only asks; never in a closed month.
+  test('ยกเลิกใบลดหนี้ที่มีผลแล้ว: ผู้มีสิทธิ์ออกใบลดหนี้ได้แค่ขอยกเลิก ผู้อนุมัติใบกำกับภาษีหรือเจ้าของยกเลิกได้ ไม่ได้ในเดือนที่ปิดงวด', async () => {
+    const { DB, check, grant, put } = await shop();
+    const cut = DB.stockCuts.find(x => x.no === 'MA-SA261000003');
+    const done = note(cut, 'approved'), voided = { ...done, voided: { reason: 'ผิด', date: '2026-10-13' } };
+    const asked = { ...done, voidReq: { status: 'pending', reason: 'ผิด', date: '2026-10-13' } };
+    await put('DB.creditNotes', 'cn1', done);
+    await grant('EMP008', 'doc.creditNote');
+    assert.equal(await check('EMP008', save(['DB.creditNotes', 'cn1', voided])), 'DB.creditNotes|cn1: cancel');
+    assert.equal(await check('EMP008', save(['DB.creditNotes', 'cn1', asked])), null);
+    assert.equal(await check('EMP008', save(['DB.creditNotes', 'cn1', { ...asked, voidReq: { ...asked.voidReq, status: 'rejected' } }])), 'DB.creditNotes|cn1: cancel');
+    await grant('EMP004', 'apv.tax');
+    assert.equal(await check('EMP004', save(['DB.creditNotes', 'cn1', voided])), null);
+    assert.equal(await check('owner', save(['DB.creditNotes', 'cn1', voided])), null);
+    await put('DB.taxPeriods', '', { '2026-10': { closed: true, hist: [] } });
+    assert.equal(await check('owner', save(['DB.creditNotes', 'cn1', voided])), 'DB.creditNotes|cn1: tax period closed');
+  });
+});
+
+describe('ขายสินทรัพย์ (เจ้าของตัดสิน 2026-11-06)', () => {
+  test('ขายสินทรัพย์ที่มี VAT ในเดือนที่ปิดงวดภาษีไม่ได้ พนักงานต้องมีสิทธิ์บันทึกสินทรัพย์', async () => {
+    const { DB, check, put, grant } = await shop();
+    const a = DB.assets[0], sold = { ...a, status: 'sold', out: '2026-10-13', sale: { date: '2026-10-13', base: 40000, vat: 2800, gross: 42800, taxNo: 'MA-TX261000099' } };
+    assert.equal(await check('EMP008', save(['DB.assets', a.id, sold])), `DB.assets|${a.id}`);
+    await grant('EMP008', 'doc.acctEdit');
+    assert.equal(await check('EMP008', save(['DB.assets', a.id, sold])), null);
+    await put('DB.taxPeriods', '', { '2026-10': { closed: true, hist: [] } });
+    assert.equal(await check('owner', save(['DB.assets', a.id, sold])), `DB.assets|${a.id}: tax period closed`);
+  });
 });
 
 describe('ไม่คิด VAT (งาน 3.3)', () => {

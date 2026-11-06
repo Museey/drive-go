@@ -11,7 +11,7 @@
  if(!PERM_DOC.some(([k])=>k==='discount'))PERM_DOC.push(['discount','ให้ส่วนลดในเอกสาร (ใบเสนอราคา · ใบเสร็จ · ขายหน้าร้าน)']);
  /* DriveGo new system (task 3.3, decisions R4-ข, T3, T10, T12): three tax rights under "การเงิน", which no staff member has
     until the owner ticks them (existing staff get nothing, the manager set leaves them off) */
- const TAX=[['noVat','เลือกไม่คิด VAT (ต้องใส่เหตุผล)'],['taxClose','ปิดงวดภาษี'],['creditNote','ออกใบลดหนี้']];
+ const TAX=[['noVat','เลือกไม่คิด VAT (ต้องใส่เหตุผล)'],['taxClose','ปิดงวดภาษี'],['creditNote','ออกใบลดหนี้ / ใบเพิ่มหนี้']];
  TAX.forEach(r=>{if(!PERM_DOC.some(([k])=>k===r[0]))PERM_DOC.push(r);});
  /* staff who exist already could give discounts: keep that */
  (DB.emp||[]).forEach(e=>{if(e.perms&&e.perms.doc&&e.perms.doc.discount===undefined)e.perms.doc.discount=true;});

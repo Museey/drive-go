@@ -32,7 +32,7 @@ test('S139 ระบบใหม่: เพิ่มพนักงานให�
   await field('เบอร์โทรติดต่อ').fill('092-555-0012');
   await field('อัตราเงินเดือน (บาท)').fill('13000');
   await page.getByRole('button', { name: 'ชุดช่างซ่อม' }).click();
-  for (const right of ['เลือกไม่คิด VAT (ต้องใส่เหตุผล)', 'ปิดงวดภาษี', 'ออกใบลดหนี้'])
+  for (const right of ['เลือกไม่คิด VAT (ต้องใส่เหตุผล)', 'ปิดงวดภาษี', 'ออกใบลดหนี้ / ใบเพิ่มหนี้'])
     await expect(page.getByRole('checkbox', { name: right, exact: true })).not.toBeChecked();
   await golden.step('เลือกสิทธิชุดช่างซ่อม');
   await expect(field('เงินได้ประจำ (บาท/เดือน)')).toHaveValue('0');

@@ -10,7 +10,9 @@
 //                         or removing them, and no new one — for everyone (56-tax-period.js); money in and out still goes;
 //                         a full tax invoice issued late (T2-ก) and a credit note's adjustment go too
 //   credit notes          DB.creditNotes: the owner or "ออกใบลดหนี้" (doc.creditNote); one that takes effect (approved) and
-//                         approving or rejecting: the owner or "อนุมัติใบกำกับภาษี" (apv.tax) (57-credit-note.js)
+//                         approving or rejecting: the owner or "อนุมัติใบกำกับภาษี" (apv.tax) (57-credit-note.js); cancelling
+//                         one in effect (voided): the owner or apv.tax ("ออกใบลดหนี้" only asks: voidReq), never in a
+//                         closed month (the owner's decision of 2026-11-06)
 //   VAT left off          a sales document of a VAT-registered shop without VAT (a quotation, a receipt, a stock cut):
 //                         the owner or "เลือกไม่คิด VAT" (doc.noVat), or taken over from the document it came from (the
 //                         reason is the screens' to ask: the sample data and older data have documents without one)
@@ -154,6 +156,14 @@ async function taxPeriodRules(s: Save, who: Who): Promise<string | null> {
       if (changed) return `${unit}|${t.key}: tax period closed`;
     }
   }
+  // An asset sold (its tax invoice) in a closed month (70-asset-sale.js).
+  if (s.units().has('DB.assets')) for (const t of await s.touched('DB.assets')) {
+    const sale = isObj(t.now?.sale) ? t.now!.sale as Rec : undefined;
+    if (sale && num(sale.vat) > 0 && !same(t.old?.sale, sale) && closed(sale.date)) return `DB.assets|${t.key}: tax period closed`;
+  }
+  // A credit note cancelled in a closed month (its own date's month).
+  if (s.units().has('DB.creditNotes')) for (const t of await s.touched('DB.creditNotes'))
+    if (t.now?.voided && !t.old?.voided && closed(t.now.date)) return `DB.creditNotes|${t.key}: tax period closed`;
   // A revision of a sale of a closed month.
   for (const t of s.units().has('DB.stockCuts') ? await s.touched('DB.stockCuts') : []) {
     if (t.old || !t.now?.revOf) continue;
@@ -179,6 +189,11 @@ async function creditNoteRules(s: Save, who: Who): Promise<string | null> {
     if (!t.now) return `DB.creditNotes|${t.key}`;
     if (status(t.now) !== status(t.old) && status(t.now) !== 'pending' && !who.can('apv.tax')) return `DB.creditNotes|${t.key}`;
     if (!t.old && !who.can('doc.creditNote')) return `DB.creditNotes|${t.key}`;
+    if (!same(t.old?.voided, t.now.voided) && !who.can('apv.tax')) return `DB.creditNotes|${t.key}: cancel`;
+    const req = (x?: Rec) => (isObj(x?.voidReq) ? (x!.voidReq as Rec).status : undefined);
+    if (req(t.now) !== req(t.old) && req(t.now) !== 'pending' && !who.can('apv.tax'))
+      return `DB.creditNotes|${t.key}: cancel`;
+    if (req(t.now) === 'pending' && req(t.old) !== 'pending' && !who.can('doc.creditNote')) return `DB.creditNotes|${t.key}: cancel`;
   }
   return null;
 }

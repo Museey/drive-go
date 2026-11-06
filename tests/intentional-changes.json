@@ -745,6 +745,26 @@
       "scenario": "S264-pnd3-pnd53-return-and-attachment.spec.ts",
       "decision": "owner's request and answers of 2026-11-06 (return + attachment, payee branch blank, buttons on the tax report)",
       "why": "The tax report prints a month's ภ.ง.ด.3 / ภ.ง.ด.53 on the Revenue Department's forms: the return (payer's tax id and branch, the month ticked, (1) มาตรา 3 เตรส ticked, the attachment's ราย and แผ่น, income paid and tax withheld) and its attachment, six ลำดับที่ a sheet numbered on from sheet to sheet, one per payment in the order of the tax report and the 50 ทวิ, each sheet with its totals; the PDF is named ภ.ง.ด.3_<yyyy-mm>; a month without withholding has no buttons."
+    },
+    {
+      "scenario": "S265-remit-pnd3-pnd53-voucher-trial-balance.spec.ts",
+      "decision": "owner's decision 2026-11-06 (remaining accounting work 1: a button to record the remittance)",
+      "why": "The tax report records the remittance of a month's ภ.ง.ด.3 / 53 with one payment voucher to กรมสรรพากร for the form's rows not remitted yet; 4.4 shows them remitted with their tick locked; the trial balance's 2050 has the tax withheld from vendors and loses what was remitted, cash keeps the tax withheld until it is remitted; the owner may cancel a remittance with a reason."
+    },
+    {
+      "scenario": "S266-cancel-credit-note-in-effect.spec.ts",
+      "decision": "owner's decision 2026-11-06 (remaining accounting work 2: cancelling a credit note in effect reverses everything)",
+      "why": "A credit note in effect is cancelled with a reason while its month is open: the returned goods leave stock again, the sale is back to its amount, money paid back is owed again, it keeps its number marked cancelled and leaves the sales tax report; staff with the credit note right ask and the owner approves the request from the pending approvals."
+    },
+    {
+      "scenario": "S267-debit-note.spec.ts",
+      "decision": "owner's decision 2026-11-06 (remaining accounting work 3, in place of T11-ก) and the register (4)",
+      "why": "A debit note (MA-DN…) on an unpaid sale takes effect at once, raises what the customer owes, prints with the original tax invoice, the right value and the difference, adds its VAT to the sales tax of its month and can be cancelled; the register of credit and debit notes on 4.6 lists it and exports to Excel."
+    },
+    {
+      "scenario": "S268-sell-fixed-asset.spec.ts",
+      "decision": "owner's decision 2026-11-06 (remaining accounting work 4: selling an asset, gain 4030 / loss 6190)",
+      "why": "An asset is sold from its window: a VAT-registered shop issues a full tax invoice MA-TX… that prints, the asset is sold on that day, its VAT is in the month's sales tax, the trial balance takes its cost and depreciation out and adds the gain to 4030 and the money to cash; the sale cannot be edited."
     }
   ]
 }

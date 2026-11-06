@@ -133,7 +133,8 @@
     lines:[{text:x.desc+(x.cat?' ('+x.cat+')':''),ref:[x.no,x.inv].filter(Boolean).join(' · '),amt:t.gross,wht:t.wht,rate:n(x.wht)}],doc:x,kind:'expense'};}
   const ps=[];(DB.purchases||[]).forEach(g=>(g.payments||[]).forEach(p=>{if(p&&p.pvNo===no&&!p.cancelled)ps.push({g,p});}));
   const A=window.PKG_ASSETS;if(A)ps.push(...A.paymentsOf(no));   /* fixed assets bought (task 3.13, 62-assets.js) */
-  if(!ps.length)return window.PKG_PAYROLL&&PKG_PAYROLL.remitVoucher?PKG_PAYROLL.remitVoucher(no):null;   /* a payroll period's ภ.ง.ด.1 (task 3.8) */
+  if(!ps.length)return (window.PKG_PAYROLL&&PKG_PAYROLL.remitVoucher&&PKG_PAYROLL.remitVoucher(no))   /* a payroll period's ภ.ง.ด.1 (task 3.8) */
+   ||(window.PKG_PND_REMIT?PKG_PND_REMIT.voucher(no):null);   /* a month's ภ.ง.ด.3 / 53 (69-pnd-remit.js) */
   const g0=ps[0].g,p0=ps[0].p,v=ven(g0.vendorId);
   return {date:p0.date,payee:(v&&v.name)||'-',tax:(v&&v.tax)||'',addr:v&&v.addr,method:payMethodDetail(p0),by:p0.by||'',note:p0.note||'',
    lines:ps.map(({g,p})=>({text:A&&A.isAsset(g)?A.pvText(g):'ค่าสินค้าตามใบรับสินค้า'+(g.inv?' (ใบกำกับ / ใบส่งของ '+g.inv+')':''),ref:A&&A.isAsset(g)?A.pvRef(g):g.no||'',amt:r2(n(p.amt)+(p.wht?n(p.wht.amt):0)),wht:p.wht?n(p.wht.amt):0,rate:p.wht?n(p.wht.rate):0})),doc:g0,kind:'gr'};

@@ -289,6 +289,8 @@
  /* also for ภ.ง.ด.3 / 53 and their attachments (68-pnd-attach.js): the income type as the 50 ทวิ prints it, and the payee's
     tax id and address (an expense's payee found in the vendor register by name) */
  window.PKG_WHT_OUT={all:whtOutAll,month:whtOutMonth,sheet:(v,copy)=>sheetWhtCert(v,copy),income:v=>INCOME[v.rate]||v.desc,party:v=>partyOf(v)};
+ /* remitted with a voucher on the tax report (69-pnd-remit.js): its number; the tick and the form stay as recorded */
+ const sentPv=v=>v&&v.x&&v.x.whtRemit&&v.x.whtRemit.done&&v.x.whtRemit.pvNo||'';
  function whtVen(){
   const q=qOf('swhtOut'),st=stOf('swhtOut');
   return whtOutAll().filter(v=>(st==='wait'?!v.remit:st==='got'?v.remit:true)&&hit(q,[v.no,v.payee,v.tax,v.cert,v.desc])).sort(byDate);
@@ -297,8 +299,8 @@
   const mo=iso().slice(0,7),due=whtOutAll().filter(v=>v.paid&&here(v.doc)&&String(v.date).slice(0,7)===mo&&!v.remit);
   if($i('swhtOutDue'))$i('swhtOutDue').textContent='ต้องนำส่งของเดือนนี้ ฿'+money(due.reduce((a,v)=>a+v.amt,0))+' · '+due.length+' รายการที่ยังไม่นำส่ง';
   return std('swhtOut','swhtOutTbl',whtVen(),'รายการ',v=>`<tr data-x="${esc(v.id)}"><td class="ctr">${thDate(v.date)}</td><td class="mono" data-no-translate data-xv="${esc(v.no)}" data-xv2="${esc(v.cert)}">${esc(v.no)}${v.cert?`<div class="hint pkg-sf-sub" title="เลขที่หนังสือรับรอง (50 ทวิ)">50 ทวิ ${esc(v.cert)}</div>`:''}</td><td data-no-translate>${esc(v.payee||'-')}${v.tax?'<div class="hint">'+esc(v.tax)+'</div>':''}</td><td data-no-translate>${esc(v.desc)}</td><td class="num" data-xv="${money(v.base)}" data-xv2="${v.rate}%">${money(v.base)}<div class="hint pkg-sf-sub"><span>อัตรา</span> ${v.rate}%</div></td><td class="num"><b>${money(v.amt)}</b></td>
-     <td class="ctr" data-xv="ภ.ง.ด.${v.form}"><select data-rv="form" aria-label="แบบ ภ.ง.ด."${mayFin()?'':' disabled'}><option value="3"${v.form==='3'?' selected':''}>ภ.ง.ด.3</option><option value="53"${v.form==='53'?' selected':''}>ภ.ง.ด.53</option></select></td>
-     <td class="ctr" data-xv="${v.remit?'นำส่งแล้ว'+(v.x.whtRemit.date?' '+thDate(v.x.whtRemit.date):''):'ยังไม่นำส่ง'}"><input type="checkbox" data-rv="remit" aria-label="นำส่งแล้ว"${v.remit?' checked':''}${mayFin()?'':' disabled'}><div class="hint pkg-sf-sub">${v.remit?(v.x.whtRemit.date?thDate(v.x.whtRemit.date):'นำส่งแล้ว'):'ยังไม่นำส่ง'}</div></td><td class="ctr">${mayPrint()?'<button type="button" class="btn sm gh" data-rv="print">พิมพ์ 50 ทวิ</button>':''}</td></tr>`);
+     <td class="ctr" data-xv="ภ.ง.ด.${v.form}"><select data-rv="form" aria-label="แบบ ภ.ง.ด."${mayFin()&&!sentPv(v)?'':' disabled'}><option value="3"${v.form==='3'?' selected':''}>ภ.ง.ด.3</option><option value="53"${v.form==='53'?' selected':''}>ภ.ง.ด.53</option></select></td>
+     <td class="ctr" data-xv="${v.remit?'นำส่งแล้ว'+(v.x.whtRemit.date?' '+thDate(v.x.whtRemit.date):''):'ยังไม่นำส่ง'}"><input type="checkbox" data-rv="remit" aria-label="นำส่งแล้ว"${v.remit?' checked':''}${mayFin()&&!sentPv(v)?'':' disabled'}><div class="hint pkg-sf-sub">${v.remit?(v.x.whtRemit.date?thDate(v.x.whtRemit.date):'นำส่งแล้ว')+(sentPv(v)?' · '+esc(sentPv(v)):''):'ยังไม่นำส่ง'}</div></td><td class="ctr">${mayPrint()?'<button type="button" class="btn sm gh" data-rv="print">พิมพ์ 50 ทวิ</button>':''}</td></tr>`);
  };
  /* Excel / PDF: what the screen shows as a second line of a cell (4.3 หัก ณ ที่จ่าย · 4.4 อัตรา, เลขที่หนังสือรับรอง) keeps its own
     column in the file; data-xv = the cell's own value, data-xv2 = the value of the column added right after it */
@@ -439,6 +441,7 @@
  MINE.forEach(k=>{const P=$i('rOv-'+k);
   P.addEventListener('change',e=>{const t=e.target,tr=t.closest('tr[data-x]'),v=tr&&whtOutAll().find(z=>z.id===tr.dataset.x),x=v&&v.x;if(!x||!t.dataset.rv)return;
    if(!mayFin()){toast('บัญชีนี้ไม่มีสิทธิ์แก้ไขรายการนี้');return pkgRenderWhtOut();}
+   if(sentPv(v))return pkgRenderWhtOut();
    if(t.dataset.rv==='form')x.whtForm=t.value;if(t.dataset.rv==='remit')x.whtRemit=t.checked?{done:true,date:iso(),by:meName()}:{done:false,date:''};
    logAudit(v.kind,v.doc,'save',t.dataset.rv==='form'?'แบบนำส่ง ภ.ง.ด.'+x.whtForm:(t.checked?'นำส่งภาษีหัก ณ ที่จ่ายแล้ว':'ยกเลิกสถานะนำส่ง'));save();pkgRenderWhtOut();});
   P.addEventListener('click',e=>{const t=e.target;

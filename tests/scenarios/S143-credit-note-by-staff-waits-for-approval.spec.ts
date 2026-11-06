@@ -33,7 +33,7 @@ test('S143 ระบบใหม่: พนักงานที่ได้ส�
   // The owner gives the front desk (EMP005) the right, then her login.
   await page.getByRole('button', { name: '09 งานบุคคล' }).click();
   await page.getByRole('row').filter({ hasText: 'EMP005' }).getByRole('button', { name: 'แก้ไข / สิทธิ' }).click();
-  await page.getByRole('checkbox', { name: 'ออกใบลดหนี้', exact: true }).check();
+  await page.getByRole('checkbox', { name: 'ออกใบลดหนี้ / ใบเพิ่มหนี้', exact: true }).check();
   await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).last().click();
   await page.getByRole('button', { name: '10 ตั้งค่าองค์กร' }).click();
   const staff = page.getByRole('row').filter({ hasText: 'EMP005' });
