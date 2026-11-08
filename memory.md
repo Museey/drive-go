@@ -69,8 +69,9 @@
 
 - DigitalOcean ส่วนที่ 1–3 (`docs/DIGITALOCEAN-SETUP.md`) แล้วส่ง URL ของแอป → Claude ตรวจบน server จริง
   (RLS แยกร้าน, `/api/live` ผ่าน load balancer, บันทึกใหญ่ 30 MB, ซ้อมกู้คืน)
-- ส่งไฟล์ "ชุดตรวจผู้ทำบัญชี รอบ 3.xlsx" ให้ A และ B (สร้างใหม่ 2026-10-30 จาก scratchpad `round3/ledger_round3.py`
-  ไม่ commit; สคริปต์เดียวกันเขียน `docs/LEDGER-POSTING.md`) → ได้คำตอบแล้วทำรายงานบัญชีแยกประเภท (8.2)
+- ส่ง "ชุดตรวจผู้ทำบัญชี รอบ 3" (zip: Excel + ตัวอย่าง 22–26) ให้ A และ B — สร้างใหม่ 2026-11-08 ส่งให้เจ้าของแล้ว
+  สร้างซ้ำ: `python3 -I tools/accountant-round3.py . <out.xlsx>` (เขียน `docs/LEDGER-POSTING.md` ด้วย ต้องมี openpyxl)
+  + PDF จาก `TARGET=new PRINT_CAPTURE=<dir> npx playwright test S264 S265 S267 S268` → ได้คำตอบแล้วทำรายงานบัญชีแยกประเภท (8.2)
 - นักกฎหมาย PDPA, เลือกอู่นำร่อง, โดเมน, ผู้รับเรื่อง, ระยะเวลาหยุดที่รับได้ (HA)
 
 ## เกร็ดทางเทคนิคที่หาเองยาก
