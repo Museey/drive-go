@@ -308,9 +308,13 @@ n = 0;
 // A handler or listener needs no scenario when it sits in a part no action
 // shows (unreachable.json "_lines"), or when every saving function it calls
 // cannot be reached either.
+const unreachableBodies = Object.keys(UNREACHABLE).filter(nm => fns.has(nm))
+  .flatMap(nm => fns.get(nm).decls.map(d => ({ nm, from: d.line, to: lineAt(d.end) })));
 const entryUnreachable = (line, calls) => {
   const why = unreachableLine(line);
   if (why) return why;
+  const inside = unreachableBodies.find(b => line > b.from && line <= b.to);
+  if (inside) return 'อยู่ในฟังก์ชัน ' + inside.nm + ' ซึ่งกดจากหน้าจอไม่ถึง';
   const saving = calls.filter(c => savesVia(c));
   return saving.length && saving.every(c => UNREACHABLE[c]) ? 'เรียกเฉพาะ ' + saving.join(', ') + ' ซึ่งกดจากหน้าจอไม่ถึง' : '';
 };
@@ -332,11 +336,12 @@ for (const l of listeners) {
     id: 'L' + String(++n).padStart(4, '0'), kind: 'listener:' + l.event, name: '', line: l.line,
     declared_lines: '', replaced_at: '', live_line: '', live_note: '', saves: calls.some(c => savesVia(c)) ? 'indirect' : '',
     label: l.target, code: l.code.replace(/\s+/g, ' ').slice(0, 160), calls: calls.sort().join(' '),
-    tested_by: ranBy([l.line]).join(' '), unreachable: entryUnreachable(l.line, calls),
+    // (a handler given by name, el.onchange = impFileChanged, runs at that function's own lines)
+    tested_by: ranBy(fns.has(l.code) ? fnLines(fns.get(l.code)) : [l.line]).join(' '), unreachable: entryUnreachable(l.line, calls),
   });
 }
 // A scenario that used a part marked unreachable proves the mark wrong.
-for (const r of rows.filter(r => r.unreachable && r.tested_by))
+for (const r of rows.filter(r => r.unreachable && r.tested_by && r.saves))
   console.warn(`marked unreachable but used by ${r.tested_by}: ${r.id} line ${r.line} ${r.name || r.code.slice(0, 60)}`);
 const COLS = ['id', 'kind', 'name', 'line', 'declared_lines', 'replaced_at', 'live_line', 'live_note', 'saves', 'label', 'code', 'calls', 'tested_by', 'unreachable'];
 writeFileSync(new URL('docs/behaviors.csv', ROOT), [COLS.join(','), ...rows.map(r => COLS.map(c => csv(r[c])).join(','))].join('\n') + '\n');
@@ -382,7 +387,7 @@ const summary = `# รายการพฤติกรรมของระบ�
 ฟังก์ชันที่บันทึกข้อมูล ${saveF.length} ตัว: ถูกเรียกแล้ว ${tested(saveF)} ตัว, กดจากหน้าจอไม่ถึง ${saveF.filter(r => r.unreachable && !r.tested_by).length} ตัว (โค้ดที่ไม่ได้ใช้งานแล้ว ไม่ต้องย้าย),
 **ยังต้องมีสถานการณ์ ${todo.length} ตัว**
 
-ปุ่มและตัวรับเหตุการณ์ที่นำไปสู่การบันทึกข้อมูล ${saveE.length} จุด: ใช้ในสถานการณ์แล้ว ${tested(saveE)} จุด, กดจากหน้าจอไม่ถึง ${unreachE.length} จุด,
+ปุ่มและตัวรับเหตุการณ์ที่นำไปสู่การบันทึกข้อมูล ${saveE.length} จุด: ใช้ในสถานการณ์แล้ว ${tested(saveE)} จุด, กดจากหน้าจอไม่ถึงหรือระบบใหม่เอาออกแล้ว ${unreachE.length} จุด,
 **ยังต้องมีสถานการณ์ ${todoE.length} จุด**
 
 ## จุดที่ต้องระวังตอนย้ายระบบ
@@ -426,7 +431,7 @@ ${todoE.map(r => `| ${r.id} | ${r.line} | ${(r.label.replace(/^<[^>]*>\s*/, '').
 |---|---|---|
 ${unreach.map(r => `| \`${r.name}\` | ${r.line} | ${r.unreachable.replace(/\|/g, '/')} |`).join('\n')}
 
-ปุ่มและตัวรับเหตุการณ์ที่บันทึกข้อมูลแต่กดจากหน้าจอไม่ถึง (${unreachE.length} จุด: อยู่ในส่วนของหน้าจอที่ไม่เคยแสดง ดู \`_lines\` ใน \`tools/unreachable.json\`
+ปุ่มและตัวรับเหตุการณ์ที่บันทึกข้อมูลแต่กดจากหน้าจอไม่ถึง หรือระบบใหม่เอาออกตามที่อนุมัติ (${unreachE.length} จุด: อยู่ในส่วนของหน้าจอที่ไม่เคยแสดง ดู \`_lines\` ใน \`tools/unreachable.json\`
 หรือเรียกเฉพาะฟังก์ชันในตารางข้างบน)
 
 | id | บรรทัด | ปุ่ม / ตัวรับ | เหตุผล |
