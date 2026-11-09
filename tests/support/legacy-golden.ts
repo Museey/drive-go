@@ -50,6 +50,7 @@ export function legacySteps(scenario: string, app: App, numbers: Numbers = []) {
 export async function sameScreen(page: Page, app: App, testInfo: TestInfo, scenario: string, name: string,
   { mask = [] }: { mask?: Locator[] } = {}) {
   await app.settle();
+  if (process.env.SKIP_SCREENS) return; // as golden.screen() (tests/support/test.ts)
   await page.mouse.move(0, 0);
   await app.layoutStable();
   const boxes: { x: number; y: number; width: number; height: number }[] = [];

@@ -159,6 +159,9 @@ export const test = base.extend<{ dataset: string; licence: TestLicence | undefi
       },
       async screen(name) {
         await app.settle();
+        // SKIP_SCREENS=1: a machine whose Chromium is not CI's (tests/support/config.mjs CHROMIUM_PATH) draws a few
+        // pixels differently; every other golden is still checked. Never set in CI.
+        if (process.env.SKIP_SCREENS) return;
         // Park the pointer so hover effects never depend on the last click.
         await page.mouse.move(0, 0);
         await app.layoutStable();
