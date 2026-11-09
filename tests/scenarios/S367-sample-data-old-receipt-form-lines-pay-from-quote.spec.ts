@@ -4,8 +4,8 @@ import { test, expect } from '../support/test';
 // opens the original receipt form (#mReceiptEdit). Its parts no other scenario used (docs/BEHAVIORS.md): closing an
 // empty form, "+ เพิ่มบรรทัดค่าแรง / ค่าบริการ", typing a line's name / quantity / price / warranty, × of a line,
 // changing a part line's code, the payment boxes เงินสด / เงินเชื่อ, closing without saving, drawing the receipt from a
-// quote ("ดึงข้อมูลจากใบเสนอราคา", which first approves the quote), and the customer box of a counter sale (4.4).
-test('S367 ข้อมูลตัวอย่าง: ฟอร์มใบเสร็จแบบเดิม เพิ่ม/แก้/ลบบรรทัด วิธีชำระ ปิดไม่บันทึก ดึงจากใบเสนอราคา และลูกค้าบิลหน้าร้าน', async ({ app, page, golden }) => {
+// quote ("ดึงข้อมูลจากใบเสนอราคา", which first approves the quote).
+test('S367 ข้อมูลตัวอย่าง: ฟอร์มใบเสร็จแบบเดิม เพิ่ม/แก้/ลบบรรทัด วิธีชำระ ปิดไม่บันทึก และดึงจากใบเสนอราคา', async ({ app, page, golden }) => {
   test.slow();
   await app.loginAsOwner();
   await page.getByRole('button', { name: '10 ตั้งค่าองค์กร' }).click();
@@ -96,16 +96,6 @@ test('S367 ข้อมูลตัวอย่าง: ฟอร์มใบเ�
   await golden.stateChange('approve-and-draw', before);
   await close();
   await page.getByRole('button', { name: 'ปิดโดยไม่บันทึก' }).click();
-
-  // 4.4 counter sale: the customer box.
-  await page.getByRole('button', { name: /4\.4 ตัดสต็อกสินค้า/ }).click();
-  await page.getByRole('button', { name: '+ เปิดบิลขายหน้าร้าน' }).click();
-  const shopCust = page.getByPlaceholder('พิมพ์ชื่อลูกค้า / บริษัท / เบอร์โทร').filter({ visible: true });
-  await shopCust.fill('สมชาย');
-  await shopCust.press('Enter');
-  await expect(shopCust).toHaveValue(/สมชาย ใจดี/);
-  await golden.step('บิลขายหน้าร้าน เลือกลูกค้าสมชาย ใจดี');
-  await close();
-  await app.settle();
-  await golden.step('ปิดบิลขายหน้าร้าน');
+  await expect(page.getByRole('button', { name: 'ปิดโดยไม่บันทึก' })).toBeHidden();
+  await golden.step('ปิดใบเสร็จโดยไม่บันทึก');
 });

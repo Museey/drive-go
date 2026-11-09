@@ -51,7 +51,7 @@ test('S326 รับชำระลูกหนี้: แนบสลิปด�
 
   // Close without saving.
   const before = await app.state();
-  await page.locator('#mPartPay').getByRole('button', { name: 'ปิด', exact: true }).click();
+  await page.locator('#mPartPay').getByRole('button', { name: 'ปิด', exact: true }).filter({ hasText: 'ปิด' }).click();
   await golden.step('ปิดหน้าต่างรับชำระโดยไม่บันทึก');
   await golden.stateChange('close-without-saving', before);
 });

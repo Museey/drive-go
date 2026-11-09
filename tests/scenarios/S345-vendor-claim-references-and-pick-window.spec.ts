@@ -74,7 +74,8 @@ test('S345 ใบเคลมผู้ขาย: เลือกและล้�
 
   const lines = page.getByRole('row').filter({ has: page.getByRole('button', { name: '×' }) }).filter({ visible: true });
   await expect(lines).toHaveCount(2);
-  await lines.filter({ hasText: 'EL-118' }).getByRole('button', { name: '×' }).click();
+  await expect(lines.nth(0).getByPlaceholder('พิมพ์รหัส')).toHaveValue('EL-118');
+  await lines.nth(0).getByRole('button', { name: '×' }).click();
   await expect(lines).toHaveCount(1);
   await golden.step('กด × เอาแบตเตอรี่ออกจากใบเคลม');
 

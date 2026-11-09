@@ -93,7 +93,7 @@ test('S323 ชุดอะไหล่ซ่อมบำรุง: สร้า�
   await kitBox.fill('กรองแอร์');
   await page.getByRole('option', { name: /ชุดเปลี่ยนกรองแอร์/ }).click();
   await golden.step('เลือกชุดเปลี่ยนกรองแอร์จากรายการ');
-  await page.getByRole('button', { name: 'เลือกจากตารางชุดอะไหล่ทั้งหมด' }).filter({ visible: true }).click();
+  await page.getByRole('button', { name: 'เปิดตารางชุดอะไหล่' }).filter({ visible: true }).click();
   const table = page.getByRole('dialog', { name: 'เลือกชุดอะไหล่ซ่อมบำรุง' });
   await table.getByRole('searchbox', { name: 'ค้นหาในตาราง' }).fill('Revo');
   await golden.step('ตารางชุดอะไหล่ ค้นหา Revo');

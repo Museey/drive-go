@@ -9,7 +9,7 @@ test('S405 ตั้งค่าองค์กร เพิ่มบัญช�
   await page.getByRole('button', { name: '10 ตั้งค่าองค์กร' }).click();
   await golden.step('ตั้งค่าองค์กร');
 
-  await page.getByRole('button', { name: 'บุคคลธรรมดา', exact: true }).filter({ visible: true }).click();
+  await page.getByRole('button').filter({ hasText: /^บุคคลธรรมดา$/ }).filter({ visible: true }).click();
   await golden.step('กดบุคคลธรรมดา ช่องนิติบุคคลจางลง');
   await page.getByRole('button', { name: 'นิติบุคคล', exact: true }).filter({ visible: true }).click();
   await golden.step('กลับเป็นนิติบุคคล');
@@ -44,7 +44,7 @@ test('S405 ตั้งค่าองค์กร เพิ่มบัญช�
   await golden.screen('banks-edited');
 
   before = await app.state();
-  await page.getByRole('button', { name: 'บันทึกการตั้งค่า' }).click();
+  await page.getByRole('button', { name: 'บันทึกการตั้งค่า' }).filter({ visible: true }).first().click();
   await app.settle();
   await golden.step('บันทึกการตั้งค่า');
   await golden.stateChange('save-settings', before);

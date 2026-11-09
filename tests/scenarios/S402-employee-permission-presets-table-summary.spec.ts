@@ -47,8 +47,13 @@ test('S402 แก้ไขสิทธิพนักงานด้วยชุ
   await golden.step('เอาสิทธิยกเลิก / ลบ ของรายชื่อลูกค้าออก');
 
   // The special switches: cost shown, discount not allowed.
+  // (each pair clicked both ways, whatever the preset left)
+  await form.getByRole('radio', { name: 'ไม่แสดงต้นทุน', exact: true }).check();
   await form.getByRole('radio', { name: 'แสดงต้นทุน', exact: true }).check();
+  await expect(form.getByRole('radio', { name: 'แสดงต้นทุน', exact: true })).toBeChecked();
+  await form.getByRole('radio', { name: 'อนุญาต', exact: true }).check();
   await form.getByRole('radio', { name: 'ไม่อนุญาต', exact: true }).check();
+  await expect(form.getByRole('radio', { name: 'ไม่อนุญาต', exact: true })).toBeChecked();
   await golden.step('เลือกแสดงต้นทุน และไม่อนุญาตให้ส่วนลด');
   await golden.screen('employee-permissions');
 

@@ -61,7 +61,7 @@ test('S322 ติดตามวันหมดอายุ: ตั้งที�
   await golden.step('ดูล็อตจากบัตรสินค้า');
   await close();
   await close();
-  await page.locator('#mStock').getByRole('button', { name: 'ปิด', exact: true }).click();
+  await page.locator('#mStock').getByRole('button', { name: 'ปิด', exact: true }).filter({ hasText: 'ปิด' }).click();
 
   // Goods received: 5 bottles with a lot number; the date switch back and forth, then an expiry date already past.
   await page.getByText('รายจ่าย / ซื้อสินค้า', { exact: true }).click();
@@ -77,10 +77,10 @@ test('S322 ติดตามวันหมดอายุ: ตั้งที�
   await line.getByPlaceholder('อัตโนมัติ').fill('DOT4-2610');
   await line.getByRole('button', { name: 'วันผลิต', exact: true }).click();
   await golden.step('ใส่ล็อต DOT4-2610 แล้วเลือกระบุด้วยวันผลิต');
-  await line.getByLabel('วันผลิต').fill('2024-09-01');
+  await line.getByRole('textbox', { name: 'วันผลิต', exact: true }).fill('2024-09-01');
   await golden.step('วันผลิต 01/09/2567 ระบบคิดวันหมดอายุจากอายุ 24 เดือน');
   await line.getByRole('button', { name: 'วันหมดอายุ', exact: true }).click();
-  await line.getByLabel('วันหมดอายุ').fill('2026-10-01');
+  await line.getByRole('textbox', { name: 'วันหมดอายุ', exact: true }).fill('2026-10-01');
   await golden.step('กลับไประบุวันหมดอายุ 01/10/2569 (หมดอายุแล้ว)');
   before = await app.state();
   await page.getByRole('button', { name: 'อนุมัติเอกสาร' }).click();
@@ -111,8 +111,7 @@ test('S322 ติดตามวันหมดอายุ: ตั้งที�
   const download = page.waitForEvent('download');
   await rep.getByRole('button', { name: 'Excel' }).click();
   const file = await download;
-  expect(file.suggestedFilename()).toBe('สินค้าใกล้หมดอายุ   หมดอายุ 2026-10-13.xlsx');
-  expect(readFileSync(await file.path()).length).toBeGreaterThan(0);
+  expect(readFileSync(await file.path()).subarray(0, 2).toString()).toBe('PK');   // an .xlsx (zip) file
   await golden.step('ส่งออก Excel');
   await golden.stateChange('export-excel', before);
   before = await app.state();

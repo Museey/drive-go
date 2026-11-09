@@ -1,0 +1,117 @@
+{
+  "DB.receipts[MA-SA261000015].paid": [
+    false,
+    true
+  ],
+  "DB.receipts[MA-SA261000015].paidDate": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.receipts[MA-SA261000015].payments": {
+    "added": [
+      {
+        "id": "@DB.receipts[MA-SA261000015].payments[#0]",
+        "date": "2026-10-13",
+        "time": "09:00",
+        "amt": 2675,
+        "method": "trans",
+        "bank": "ธนาคารกสิกรไทย 123-4-56789-0 (หจก.เอกหม้อน้ำ)",
+        "ref": "",
+        "card4": "",
+        "chkDate": "",
+        "by": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "note": "",
+        "methods": [
+          {
+            "k": "trans",
+            "amt": 2675,
+            "lines": 1
+          }
+        ],
+        "transLines": [
+          {
+            "no": 1,
+            "bank": "ธนาคารกสิกรไทย 123-4-56789-0 (หจก.เอกหม้อน้ำ)",
+            "amt": 2675,
+            "when": "13/10/2569 09:00",
+            "ref": "",
+            "slip": true
+          }
+        ],
+        "payId": "SP<uid>",
+        "payTotal": 2675,
+        "payBills": 1,
+        "slipCount": 1,
+        "br": "@DB.branches[MA]",
+        "reNo": "",
+        "src": "sale",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-SA261000015#55]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "stockcut",
+        "docId": "@DB.stockCuts[MA-SA261000015]",
+        "no": "MA-SA261000015",
+        "act": "pay",
+        "note": "รับชำระ 2,675.00 บาท (เงินโอน) · ยังไม่ออกใบเสร็จ · ชำระครบแล้ว"
+      }
+    ]
+  },
+  "DB.stockCuts[MA-SA261000015].pay": [
+    null,
+    {
+      "method": "trans",
+      "methods": [
+        "trans"
+      ],
+      "amount": 2675
+    }
+  ],
+  "DB.stockCuts[MA-SA261000015].paid": [
+    false,
+    true
+  ],
+  "DB.stockCuts[MA-SA261000015].st.k": [
+    "wait",
+    "paid"
+  ],
+  "DB.stockCuts[MA-SA261000015].st.got": [
+    0,
+    2675
+  ],
+  "DB.stockCuts[MA-SA261000015].st.rem": [
+    2675,
+    0
+  ],
+  "DB.stockCuts[MA-SA261000015].st.n": [
+    0,
+    1
+  ],
+  "DB.stockCuts[MA-SA261000015].st.last": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.paySlips.SPmv619vk0sgeit": [
+    null,
+    [
+      {
+        "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAcFBQYFBAcGBgYIBwcICxILCwoKCxYPEA0SGhYbGhkWGRgcICgiHB4mHhgZIzAkJiorLS4tGyIyNTEsNSgsLSz/2wBDAQcICAsJCxULCxUsHRkdLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCz/wAARCADIAHgDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAj/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFgEBAQEAAAAAAAAAAAAAAAAAAAUG/8QAGREAAgMBAAAAAAAAAAAAAAAAABVioeFj/9oADAMBAAIRAxEAPwCkRJo0yHpWkNtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrISaCHpWhtC8KyEmgh6VobQvCshJoIelaG0LwrIBmS4AAAAAAAAAAAAAAAAH/9k=",
+        "name": "S192-transfer-slip.png",
+        "line": 1
+      }
+    ]
+  ],
+  "DB.pkgSaleFlow.used": [
+    55,
+    57
+  ]
+}

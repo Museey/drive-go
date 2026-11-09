@@ -1,0 +1,139 @@
+{
+  "DB.stock[BR-025].qty": [
+    19,
+    24
+  ],
+  "DB.purchases": {
+    "added": [
+      {
+        "id": "@DB.purchases[MA-RC261000002]",
+        "no": "MA-RC261000002",
+        "date": "2026-10-13",
+        "vendorId": "@DB.vendors[V00002]",
+        "inv": "",
+        "invDate": "2026-10-13",
+        "term": "credit",
+        "days": 15,
+        "due": "2026-10-28",
+        "paid": false,
+        "payDate": "",
+        "by": "",
+        "check": "",
+        "note": "",
+        "items": [
+          {
+            "stockId": "@DB.stock[BR-025]",
+            "code": "BR-025",
+            "oem": "DOT4-1L",
+            "name": "น้ำมันเบรก DOT4 (1 ลิตร)",
+            "cat": "ระบบเบรก",
+            "qty": 5,
+            "cost": 180,
+            "lotNo": "DOT4-2610",
+            "expSrc": "exp",
+            "exp": "2026-10-01",
+            "mfg": "",
+            "mfgYr": "",
+            "mfgWk": ""
+          }
+        ],
+        "disc": 0,
+        "vat": 7,
+        "posted": true,
+        "apv": {
+          "status": "approved",
+          "by": "",
+          "byName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+          "date": "2026-10-13",
+          "note": ""
+        },
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.moves": {
+    "added": [
+      {
+        "id": "@DB.moves[#44]",
+        "stockId": "@DB.stock[BR-025]",
+        "type": "in",
+        "qty": 5,
+        "date": "2026-10-13",
+        "ref": "รับเข้าจากใบรับสินค้า",
+        "refNo": "MA-RC261000002",
+        "vendorId": "@DB.vendors[V00002]",
+        "cost": 180,
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-RC261000002]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "gr",
+        "docId": "@DB.purchases[MA-RC261000002]",
+        "no": "MA-RC261000002",
+        "act": "save",
+        "note": "ยอดสุทธิ 963.00 บาท"
+      },
+      {
+        "id": "@DB.audit[MA-RC261000002#54]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "gr",
+        "docId": "@DB.purchases[MA-RC261000002]",
+        "no": "MA-RC261000002",
+        "act": "approve",
+        "note": "อนุมัติโดย เจ้าของกิจการ / ผู้ดูแลระบบ"
+      },
+      {
+        "id": "@DB.audit[MA-RC261000002#55]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "gr",
+        "docId": "@DB.purchases[MA-RC261000002]",
+        "no": "MA-RC261000002",
+        "act": "post",
+        "note": "รับเข้าสต๊อก 1 รายการ"
+      }
+    ]
+  },
+  "DB.seq.MA-RC2610": [
+    1,
+    2
+  ],
+  "DB.fifo.lots": {
+    "added": [
+      {
+        "id": "@DB.fifo.lots[#25]",
+        "seq": 1791856800000000,
+        "br": "@DB.branches[MA]",
+        "stockId": "@DB.stock[BR-025]",
+        "date": "2026-10-13",
+        "ref": "รับเข้าจากใบรับสินค้า",
+        "refNo": "MA-RC261000002",
+        "vendorId": "@DB.vendors[V00002]",
+        "src": "gr",
+        "cost": 180,
+        "qty": 5,
+        "left": 5,
+        "exp": "2026-10-01",
+        "mfg": "",
+        "expSrc": "exp",
+        "lotNo": "DOT4-2610"
+      }
+    ]
+  }
+}

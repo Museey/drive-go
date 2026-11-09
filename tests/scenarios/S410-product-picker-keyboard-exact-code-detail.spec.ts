@@ -2,7 +2,7 @@ import { test, expect } from '../support/test';
 
 // The product picker of a new quotation, used every other way than a click on a suggestion: the quick search opened
 // and moved through with ↓ / ↑ and taken with Enter, closed with Esc; a full code typed in "รหัสสินค้าเต็ม" with Enter
-// (a wrong code first); "ค้นหาสินค้าละเอียด" with its search box, next / previous page, two items added, closed.
+// (a wrong code first); "ค้นหาสินค้าละเอียด" with its search box, next / previous page, one item chosen, closed.
 test('S410 เลือกสินค้าเข้าใบเสนอราคาด้วยแป้นพิมพ์ รหัสสินค้าเต็ม และหน้าค้นหาสินค้าละเอียดพร้อมเปลี่ยนหน้า', async ({ app, page, golden }) => {
   test.slow();
   await app.loginAsOwner();
@@ -11,6 +11,7 @@ test('S410 เลือกสินค้าเข้าใบเสนอรา
   await golden.step('ใบเสนอราคาใหม่');
 
   const lines = page.getByRole('row').filter({ has: page.getByRole('button', { name: '×' }) }).filter({ visible: true });
+  const start = await lines.count();
 
   // Quick search with the keyboard.
   const quick = page.getByRole('combobox', { name: 'ค้นหาสินค้าเร็ว' }).filter({ visible: true });
@@ -23,7 +24,7 @@ test('S410 เลือกสินค้าเข้าใบเสนอรา
   await quick.press('ArrowUp');
   await golden.step('เลื่อนรายการด้วยลูกศรลง ลง ขึ้น');
   await quick.press('Enter');
-  await expect(lines).toHaveCount(1);
+  await expect(lines).toHaveCount(start + 1);
   await golden.step('กด Enter เลือกสินค้ารายการแรก');
   await quick.fill('น้ำมันเครื่อง');
   await expect(found.first()).toBeVisible();
@@ -39,7 +40,7 @@ test('S410 เลือกสินค้าเข้าใบเสนอรา
   await golden.step('พิมพ์รหัสไม่เต็ม EL-11 แล้วกด Enter');
   await exact.fill('EL-118');
   await exact.press('Enter');
-  await expect(lines).toHaveCount(2);
+  await expect(lines).toHaveCount(start + 2);
   await golden.step('พิมพ์รหัสเต็ม EL-118 แล้วกด Enter ได้แบตเตอรี่เข้าใบเสนอราคา');
 
   // The detailed search.
@@ -54,10 +55,10 @@ test('S410 เลือกสินค้าเข้าใบเสนอรา
   await dialog.getByRole('searchbox', { name: 'ค้นหาในรายการ' }).fill('ผ้าเบรก');
   await golden.step('ค้นหาผ้าเบรก');
   await golden.screen('detail-search');
-  await dialog.getByRole('button', { name: 'เลือก', exact: true }).first().click();
-  await expect(lines).toHaveCount(3);
-  await golden.step('เพิ่มผ้าเบรกรายการแรก');
-  await dialog.getByRole('button', { name: 'ปิด', exact: true }).click();
+  await dialog.getByRole('button', { name: 'เลือก BR-001' }).click();
+  await expect(lines).toHaveCount(start + 3);
+  await golden.step('เลือกผ้าเบรกหน้า BR-001');
+  await dialog.getByRole('banner').getByRole('button', { name: 'ปิด', exact: true }).click();
   await expect(dialog).toBeHidden();
   await golden.step('ปิดหน้าค้นหาสินค้าละเอียด ใบเสนอราคามี 3 รายการ');
 });
