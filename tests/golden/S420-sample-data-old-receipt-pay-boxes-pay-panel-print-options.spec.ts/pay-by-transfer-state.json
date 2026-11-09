@@ -1,0 +1,143 @@
+{
+  "DB.receipts[RE.69-10-11-30].tech1Name": [
+    "ศักดิ์ชัย มั่นคง",
+    "ศักดิ์ชัย มั่นคง (หัวหน้าช่าง)"
+  ],
+  "DB.receipts[RE.69-10-11-30].pay.trans": [
+    false,
+    true
+  ],
+  "DB.receipts[RE.69-10-11-30].pay.credit": [
+    true,
+    false
+  ],
+  "DB.receipts[RE.69-10-11-30].pay.due": [
+    "2026-10-18",
+    "2026-10-11"
+  ],
+  "DB.receipts[RE.69-10-11-30].pay.bank": [
+    "",
+    "ธนาคารกสิกรไทย 123-4-56789-0 (หจก.เอกหม้อน้ำ)"
+  ],
+  "DB.receipts[RE.69-10-11-30].pay.when": [
+    "",
+    "13/10/2569 09:00"
+  ],
+  "DB.receipts[RE.69-10-11-30].pay.chk": [
+    null,
+    false
+  ],
+  "DB.receipts[RE.69-10-11-30].pay.chkBank": [
+    null,
+    ""
+  ],
+  "DB.receipts[RE.69-10-11-30].pay.chkNo": [
+    null,
+    ""
+  ],
+  "DB.receipts[RE.69-10-11-30].pay.chkDate": [
+    null,
+    ""
+  ],
+  "DB.receipts[RE.69-10-11-30].pay.cashAmt": [
+    null,
+    0
+  ],
+  "DB.receipts[RE.69-10-11-30].pay.transAmt": [
+    null,
+    2568
+  ],
+  "DB.receipts[RE.69-10-11-30].pay.cardAmt": [
+    null,
+    0
+  ],
+  "DB.receipts[RE.69-10-11-30].pay.chkAmt": [
+    null,
+    0
+  ],
+  "DB.receipts[RE.69-10-11-30].pay.transLines": [
+    null,
+    [
+      {
+        "amt": "2568",
+        "bank": "ธนาคารกสิกรไทย 123-4-56789-0 (หจก.เอกหม้อน้ำ)",
+        "when": "13/10/2569 09:00"
+      }
+    ]
+  ],
+  "DB.receipts[RE.69-10-11-30].pay.cardLines": [
+    null,
+    []
+  ],
+  "DB.receipts[RE.69-10-11-30].pay.cardType": [
+    null,
+    ""
+  ],
+  "DB.receipts[RE.69-10-11-30].pay.cashGiven": [
+    null,
+    ""
+  ],
+  "DB.receipts[RE.69-10-11-30].pay.changeMode": [
+    null,
+    "cash"
+  ],
+  "DB.receipts[RE.69-10-11-30].paid": [
+    false,
+    true
+  ],
+  "DB.receipts[RE.69-10-11-30].paidDate": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.receipts[RE.69-10-11-30].printOpt": [
+    null,
+    {
+      "code": "code",
+      "bank": "",
+      "noHead": false
+    }
+  ],
+  "DB.receipts[RE.69-10-11-30].createdBy": [
+    null,
+    ""
+  ],
+  "DB.receipts[RE.69-10-11-30].createdByName": [
+    null,
+    "เจ้าของกิจการ / ผู้ดูแลระบบ"
+  ],
+  "DB.receipts[RE.69-10-11-30].createdAt": [
+    null,
+    "2026-10-13T02:00:00.000Z"
+  ],
+  "DB.receipts[RE.69-10-11-30].updatedBy": [
+    null,
+    ""
+  ],
+  "DB.receipts[RE.69-10-11-30].updatedByName": [
+    null,
+    "เจ้าของกิจการ / ผู้ดูแลระบบ"
+  ],
+  "DB.receipts[RE.69-10-11-30].updatedAt": [
+    null,
+    "2026-10-13T02:00:00.000Z"
+  ],
+  "DB.receipts[RE.69-10-11-30].br": [
+    null,
+    "@DB.branches[MA]"
+  ],
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[RE.69-10-11-30#2]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "receipt",
+        "docId": "@DB.receipts[RE.69-10-11-30]",
+        "no": "RE.69-10-11-30",
+        "act": "save",
+        "note": "รับชำระสุทธิ 2,568.00 บาท"
+      }
+    ]
+  }
+}
