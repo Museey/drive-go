@@ -133,6 +133,14 @@ export async function writeMain(c: pg.ClientBase, branch: string, storeKey: stri
   if (conflicts.length) return { ok: false, conflicts };
 
   const versions: Versions = {};
+  // Removed records go first: a save may remove a document and add or change another that takes its number (the
+  // unique document numbers, records_doc_no, are checked row by row).
+  if (changes.remove.length) {
+    await c.query(
+      `delete from records r using unnest($2::text[], $3::text[]) as d(unit, key)
+        where r.shop_id = app_shop() and r.branch_id = $1 and r.unit = d.unit and r.key = d.key`,
+      [branch, changes.remove.map(r => r.unit), changes.remove.map(r => r.key)]);
+  }
   const updates = upsert.filter(r => current.has(vkey(r.unit, r.key)));
   const inserts = upsert.filter(r => !current.has(vkey(r.unit, r.key)));
   if (updates.length) {
@@ -157,12 +165,6 @@ export async function writeMain(c: pg.ClientBase, branch: string, storeKey: stri
          from unnest($2::text[], $3::text[], $4::bigint[], $5::text[]) as u(unit, key, pos, data)`,
       [branch, inserts.map(r => r.unit), inserts.map(r => r.key), pos, inserts.map(r => r.data), userId]);
     for (const r of inserts) versions[vkey(r.unit, r.key)] = 1;
-  }
-  if (changes.remove.length) {
-    await c.query(
-      `delete from records r using unnest($2::text[], $3::text[]) as d(unit, key)
-        where r.shop_id = app_shop() and r.branch_id = $1 and r.unit = d.unit and r.key = d.key`,
-      [branch, changes.remove.map(r => r.unit), changes.remove.map(r => r.key)]);
   }
   for (const [unit, keys] of Object.entries(changes.order)) {
     await c.query(
