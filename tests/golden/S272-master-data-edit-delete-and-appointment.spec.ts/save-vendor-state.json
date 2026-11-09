@@ -1,0 +1,53 @@
+{
+  "DB.vendors[V00009].contact": [
+    "คุณมาลี",
+    "คุณมาลี (ฝ่ายขาย)"
+  ],
+  "DB.vendors[V00009].code": [
+    "V00002",
+    "V00009"
+  ],
+  "DB.vendors[V00009].createdBy": [
+    null,
+    ""
+  ],
+  "DB.vendors[V00009].createdByName": [
+    null,
+    "เจ้าของกิจการ / ผู้ดูแลระบบ"
+  ],
+  "DB.vendors[V00009].createdAt": [
+    null,
+    "2026-10-13T02:00:00.000Z"
+  ],
+  "DB.vendors[V00009].updatedBy": [
+    null,
+    ""
+  ],
+  "DB.vendors[V00009].updatedByName": [
+    null,
+    "เจ้าของกิจการ / ผู้ดูแลระบบ"
+  ],
+  "DB.vendors[V00009].updatedAt": [
+    null,
+    "2026-10-13T02:00:00.000Z"
+  ],
+  "DB.vendors[V00009].br": [
+    null,
+    "@DB.branches[MA]"
+  ],
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[หจก. ไทยพาร์ท ซัพพลาย]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "vendor",
+        "docId": "@DB.vendors[V00002]",
+        "no": "หจก. ไทยพาร์ท ซัพพลาย",
+        "act": "save",
+        "note": "แก้ไขข้อมูลผู้ขาย"
+      }
+    ]
+  }
+}

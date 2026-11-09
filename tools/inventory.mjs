@@ -242,6 +242,10 @@ const ranBy = lines => {
 const ENTITY = { amp: '&', quot: '"', apos: "'", lt: '<', gt: '>', '#39': "'", '#039': "'" };
 const norm = t => t.replace(/\s+/g, ' ').trim();
 function handlerPattern(code) {
+  // A handler whose text has quotes of the attribute's own kind inside a ${…} is cut there by the scan above
+  // (onclick="catMgrDel('${esc(c).replace(/'/g,"\\'")}')"): what is left after the open ${ matches anything.
+  const open = code.lastIndexOf('${');
+  if (open >= 0 && code.indexOf('}', open) < 0) code = code.slice(0, open) + '${…}';
   const parts = code.split(/\$\{(?:[^{}]|\{[^{}]*\})*\}|\\?'\s*\+[\s\S]*?\+\s*\\?'|\\?"\s*\+[\s\S]*?\+\s*\\?"/);
   const lit = p => norm(p.replace(/\\(['"\\])/g, '$1').replace(/&(amp|quot|apos|lt|gt|#0?39);/g, (_, e) => ENTITY[e]))
     .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

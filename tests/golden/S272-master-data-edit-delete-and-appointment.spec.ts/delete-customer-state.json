@@ -1,0 +1,44 @@
+{
+  "DB.cust": {
+    "removed": [
+      {
+        "id": "@DB.cust[C00028]",
+        "type": "person",
+        "tax": "1106700625023",
+        "name": "บุญมี แสงทอง",
+        "company": "",
+        "branch": "",
+        "tier": "C",
+        "stars": 3,
+        "addr": {
+          "no": "172",
+          "village": "",
+          "moo": "8",
+          "soi": "",
+          "road": "เอกชัย",
+          "sub": "บางมด",
+          "dist": "จอมทอง",
+          "prov": "กรุงเทพมหานคร",
+          "zip": "10150"
+        },
+        "tel": "082-517-7143",
+        "tel2": "",
+        "vehicles": [
+          {
+            "brand": "Suzuki (ซูซูกิ)",
+            "model": "Swift GLX",
+            "color": "เทา",
+            "plateL": "ฆด",
+            "plateN": "3700",
+            "plateProv": "นนทบุรี",
+            "mile": "130845",
+            "engine": "4N15-143571",
+            "vin": "MR0730480",
+            "year": "2565"
+          }
+        ],
+        "code": "C00028"
+      }
+    ]
+  }
+}
