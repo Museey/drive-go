@@ -33,6 +33,11 @@ test('S423 ข้อมูลตัวอย่าง: ใบวางบิล�
   await app.settle();
   await golden.step('บันทึกใบวางบิล MA-BL261000001');
   await golden.stateChange('save-billing-note', before);
+  const open = note.getByPlaceholder('ค้นหา เลขที่ / ชื่อลูกค้า').filter({ visible: true });
+  await open.fill('MA-BL261000001');
+  await open.press('Enter');
+  await app.settle();
+  await golden.step('พิมพ์ MA-BL261000001 ในช่องค้นหาที่หัวหน้าต่าง + Enter');
   await note.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).first().click();
   await golden.step('ปิดใบวางบิล กลับมาที่ทะเบียน 4.2 (รอรับชำระ)');
 

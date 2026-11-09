@@ -59,6 +59,11 @@ test('S424 ข้อมูลทดสอบ 36 เดือน: ค้นหา
   await golden.step('พิมพ์ RE.69-09 ในช่องค้นหาเลขที่เอกสาร');
   await win.getByPlaceholder('ค้นหาเลขที่เอกสาร').fill('ไม่มีเลขนี้');
   await golden.step('พิมพ์คำที่ไม่ตรงกับเอกสารใด');
+  const open = win.getByPlaceholder('ค้นหา เลขที่ / ชื่อลูกค้า');
+  await open.fill('IV.69-09-25-01');
+  await open.press('Enter');
+  await app.settle();
+  await golden.step('พิมพ์ IV.69-09-25-01 ในช่องค้นหาที่หัวหน้าต่าง + Enter');
   await win.getByRole('button', { name: 'ปิด', exact: true }).first().click();
   await expect(win).toBeHidden();
   await golden.step('กดปิดที่หัวหน้าต่าง');
