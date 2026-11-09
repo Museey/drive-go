@@ -41,6 +41,17 @@ export function legacySteps(scenario: string, app: App, numbers: Numbers = []) {
   };
 }
 
+// Counts in the order stateCounts() writes them (store, then key), so a count the new system adds on purpose
+// (`more`) sits where it would be taken.
+export function inCountsOrder(counts: Record<string, unknown>): Record<string, unknown> {
+  const split = (k: string) => { const i = k.indexOf('.'); return i < 0 ? [k, ''] : [k.slice(0, i), k.slice(i + 1)]; };
+  const cmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+  return Object.fromEntries(Object.entries(counts).sort(([a], [b]) => {
+    const [sa, ka] = split(a), [sb, kb] = split(b);
+    return cmp(sa, sb) || cmp(ka, kb);
+  }));
+}
+
 // The screen must be the replaced scenario's screenshot, pixel for pixel:
 // taken and compared the way golden.screen() (toHaveScreenshot with
 // maxDiffPixels 0) does it, against the legacy PNG.
@@ -109,7 +120,7 @@ export function legacyGolden(scenario: string, { app, page, testInfo }: { app: A
     // golden.counts() takes them; `more`: counts the new system has on purpose.
     async counts(name: string, more: Record<string, unknown> = {}) {
       await app.settle();
-      const expected = { ...JSON.parse(readFileSync(golden(scenario, `${name}-counts.json`), 'utf8')), ...more };
+      const expected = inCountsOrder({ ...JSON.parse(readFileSync(golden(scenario, `${name}-counts.json`), 'utf8')), ...more });
       expect(formatDiff(stateCounts(await app.state())), `record counts ${name}`).toBe(formatDiff(expected));
     },
     async stateChange(name: string, before: object, more: Record<string, unknown> = {}) {

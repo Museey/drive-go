@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { test, expect } from '../support/test';
 import { formatDiff, stateCounts } from '../support/state-diff.mjs';
 import { auditNote, confirmWithShopName } from '../support/whole-data';
+import { inCountsOrder } from '../support/legacy-golden';
 
 // Replaces S74 in the new system (tests/intentional-changes.json, decision Q6):
 // the data lives on the server, so the settings page shows the legacy app's
@@ -16,7 +17,7 @@ import { auditNote, confirmWithShopName } from '../support/whole-data';
 const S74 = new URL('../golden/S74-backup-wipe-restore.spec.ts/', import.meta.url);
 const legacyFlow: { step: string }[] = JSON.parse(readFileSync(new URL('flow.json', S74), 'utf8'));
 const legacyCounts = (name: string, more: Record<string, unknown>) =>
-  formatDiff({ ...JSON.parse(readFileSync(new URL(`${name}-counts.json`, S74), 'utf8')), ...more });
+  formatDiff(inCountsOrder({ ...JSON.parse(readFileSync(new URL(`${name}-counts.json`, S74), 'utf8')), ...more }));
 
 test('S100 ระบบใหม่: สร้างจุดสำรองบน server ล้างข้อมูลทั้งหมด แล้วกู้คืน ข้อมูลกลับมาครบเหมือน S74', async ({ app, page }) => {
   test.slow();

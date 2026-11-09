@@ -396,6 +396,30 @@
       "by": "S104-no-way-in-without-password.spec.ts",
       "decision": "A1, owner decision 2026-10-30 (S260)",
       "why": "The legacy app's first open shows the program-choosing page and then opens as the owner without a password; the new system has no program-choosing page (S260) and no way in without a password (S104)."
+    },
+    {
+      "scenario": "S361-quotation-edit-sections-presets-tier-totals.spec.ts",
+      "by": "S442-quotation-edit-no-vat-asks-reason.spec.ts",
+      "decision": "R4-ข (task 3.3)",
+      "why": "In a VAT-registered shop choosing \"ไม่คิด VAT\" on the quotation asks \"เหตุผลที่ไม่คิด VAT\" first (S137); the quotation keeps the reason (noVatReason) and the audit line of the save ends with it. Every step, the screen and every other data change is checked against S361's goldens."
+    },
+    {
+      "scenario": "S368-kit-sold-through-quote-cut-and-paid-with-slip.spec.ts",
+      "by": "S443-kit-sold-paid-with-slip-receipt-at-once.spec.ts",
+      "decision": "R2, R8, F3 and answers of 2026-10-25 (task 3.5); R19-ค (task 3.11)",
+      "why": "Money received in the sale window has its receipt at once (MA-RE261000004, named in the audit line and the message) and the receipt window opens instead of the done card (S151); the transfer slip is kept by the server as a file and DB.paySlips holds its link (S193). Every other step, the screen and every other data change is checked against S368's goldens."
+    },
+    {
+      "scenario": "S382-tax-report-pages-month-print.spec.ts",
+      "by": "S444-tax-report-asset-purchase-from-registered-vendor.spec.ts",
+      "decision": "R17 and answers 13.1–13.11 of 2026-10-26 (task 3.13)",
+      "why": "An asset bought with VAT needs a vendor of the register: the typed name is refused and the 11 tools are bought from ร้านยางเจริญยนต์ (cash), paid when saved with payment voucher MA-PV261000001 (named in the asset window's title), as S210. Every other step, message and data change is checked against S382's goldens; the tax report's screen is S382's but for the vendor's name on the purchase rows."
+    },
+    {
+      "scenario": "S385-buy-menu-utilities-payroll-office-other.spec.ts",
+      "by": "S445-buy-menu-payroll-owed-expenses-with-vouchers.spec.ts",
+      "decision": "R12, R13, F5, X2 and answers of 2026-10-25 (task 3.7); R7-ข (task 3.4)",
+      "why": "PLACEHOLDER"
     }
   ],
   "added": [
