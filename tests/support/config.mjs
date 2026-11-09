@@ -41,7 +41,12 @@ export const CONTEXT_OPTIONS = {
 // one the screenshot goldens were recorded on, fully hinted (glyphs snapped to
 // whole pixels) in CI's container, which changes every line of text in every
 // screenshot (task T11, NOTES.md). Naming it keeps text the same everywhere.
-export const LAUNCH_OPTIONS = { args: ['--font-render-hinting=none'] };
+// CHROMIUM_PATH: a machine whose Chromium is not the one Playwright pins (a cloud
+// session's preinstalled browser). Screenshots taken there may differ from CI's.
+export const LAUNCH_OPTIONS = {
+  args: ['--font-render-hinting=none'],
+  ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}),
+};
 
 // Demo owner accounts printed on the legacy login screen of each package
 // (?package=biz|prox|franchise). Franchise signs in as head office (HQ).

@@ -18,6 +18,7 @@
 //   - which scenarios executed each function
 //
 // Usage: node tools/inventory.mjs [--no-runtime]
+//   INVENTORY_OUT=<dir>: write behaviors.csv and BEHAVIORS.md there instead of docs/ (a check while writing scenarios)
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import * as acorn from 'acorn';
@@ -34,6 +35,8 @@ const lineAt = off => {
   while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (lineStarts[mid] <= off) lo = mid; else hi = mid - 1; }
   return lo + 1;
 };
+
+const outFile = name => process.env.INVENTORY_OUT ? `${process.env.INVENTORY_OUT}/${name}` : new URL(`docs/${name}`, ROOT);
 
 const SAVE_FNS = new Set(['save', 'pxSave', 'frSave', 'dgbSave']);
 
@@ -352,7 +355,7 @@ for (const l of listeners) {
 for (const r of rows.filter(r => r.unreachable && r.tested_by && r.saves))
   console.warn(`marked unreachable but used by ${r.tested_by}: ${r.id} line ${r.line} ${r.name || r.code.slice(0, 60)}`);
 const COLS = ['id', 'kind', 'name', 'line', 'declared_lines', 'replaced_at', 'live_line', 'live_note', 'saves', 'label', 'code', 'calls', 'tested_by', 'unreachable'];
-writeFileSync(new URL('docs/behaviors.csv', ROOT), [COLS.join(','), ...rows.map(r => COLS.map(c => csv(r[c])).join(','))].join('\n') + '\n');
+writeFileSync(outFile('behaviors.csv'), [COLS.join(','), ...rows.map(r => COLS.map(c => csv(r[c])).join(','))].join('\n') + '\n');
 
 // ---------- summary ----------
 const F = rows.filter(r => r.id.startsWith('F'));
@@ -461,5 +464,5 @@ ${unreachE.map(r => `| ${r.id} | ${r.line} | ${(r.label.replace(/^<[^>]*>\s*/, '
 | unreachable | ถ้ามีค่า = กดจากหน้าจอไม่ถึง พร้อมเหตุผล (จาก tools/unreachable.json) |
 | tested_by | สถานการณ์ที่ทำให้โค้ดนี้ทำงาน (จาก \`npm run coverage\`) สำหรับ H คือสถานการณ์ที่กดหรือกรอกที่จุดนั้นจริง |
 `;
-writeFileSync(new URL('docs/BEHAVIORS.md', ROOT), summary);
+writeFileSync(outFile('BEHAVIORS.md'), summary);
 console.log(`functions ${F.length} (save ${saveF.length}), handlers ${H.length}, listeners ${L.length}, runtime ${live.size ? 'yes' : 'no'}, coverage ${haveCoverage ? 'yes' : 'no'}`);
