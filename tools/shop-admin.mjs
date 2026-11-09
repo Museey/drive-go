@@ -1,5 +1,6 @@
 // DriveGo staff's tool for shops (task 3.15, decisions 15.1, 15.2, 15.5; opening real shops and forgotten passwords,
-// LAUNCH-CHECKLIST stage 2): run on the server with the database owner's connection — never part of the web app.
+// LAUNCH-CHECKLIST stage 2): run on the server with the database owner's connection — never part of the shops' app (the
+// staff web page, server/app/staff, does the same as drivego_staff from an app of its own; its accounts are made here).
 // Every action is logged (table licence_log) with who ran it (--by, or the operating system user). How to run it on
 // the test server and what to check before giving a password: docs/STAFF-TOOLS.md.
 //
@@ -24,6 +25,13 @@
 //   node tools/shop-admin.mjs told CODE [--note TEXT]          the shop was told (by phone) that its data will be removed:
 //                                                             the 30 days to the removal start (the nightly job lists whom to call)
 //
+// The staff web page's accounts (docs/STAFF-TOOLS.md "หน้าเว็บของทีมงาน"; only here, never on the page itself):
+//   node tools/shop-admin.mjs staff list                      the accounts, whether their app is set up, last sign-in
+//   node tools/shop-admin.mjs staff add LOGIN --name TEXT     a new account; shows its temporary password once
+//   node tools/shop-admin.mjs staff reset LOGIN               a new temporary password and the authenticator app to
+//                                                             set up again (a forgotten password, a lost phone)
+//   node tools/shop-admin.mjs staff off LOGIN | on LOGIN      turn an account off (signed out at once) or on again
+//
 // Connection: --db URL or MIGRATE_DATABASE_URL (the owner, as for migrations). Days are yyyy-mm-dd.
 import { userInfo } from 'node:os';
 import { parseArgs } from 'node:util';
@@ -32,6 +40,7 @@ import { pgConfig } from '../server/lib/pg-config.ts';
 import { close, listShops, openLicence, postpone, recordNotice, renew, setContact, shopOf } from '../server/lib/licence-admin.ts';
 import { today } from '../server/lib/licence.ts';
 import { openRealShop, resetPassword } from '../server/lib/shop-open.ts';
+import { addStaff, listStaff, resetStaff, setStaffActive } from '../server/lib/staff.ts';
 
 const { values: o, positionals: [cmd, code, ...rest] } = parseArgs({
   allowPositionals: true,
@@ -60,6 +69,7 @@ const line = s => {
 const show = l => console.log(`${code}: ${l.kind} ${l.start} → ${l.end} · removal ${l.deleteOn}${l.noticeSentOn ? ` (told ${l.noticeSentOn})` : ''}`);
 const need = (v, what) => { if (v === undefined || v === '') { console.error(`${cmd}: ${what} is required`); process.exit(2); } return v; };
 // A password is shown once, here; DriveGo's staff tell it to the owner by phone (docs/STAFF-TOOLS.md).
+const tellStaff = (u, pass) => console.log(`  user ${u}\n  temporary password ${pass}\n  (shown once: tell it in person or by phone, never by chat or e-mail)`);
 const tell = (u, pass) => console.log(`  user ${u}\n  temporary password ${pass}\n` +
   '  (shown once: tell it to the owner by phone, never by chat or e-mail; ask them to change it after signing in)');
 
@@ -116,6 +126,25 @@ try {
     case 'told': {
       const r = await recordNotice(db, need(code, 'CODE'), { actor, note: o.note });
       console.log(`${code}: told; its data will be removed on ${r.removalOn} unless it renews (node tools/shop-admin.mjs renew …)`);
+      break;
+    }
+    case 'staff': {
+      const login = rest[0];
+      if (code === 'list') {
+        for (const a of await listStaff(db)) console.log(`${a.login.padEnd(20)} ${a.active ? 'on ' : 'off'} ${a.must_change ? 'temporary password' : a.app ? 'app set up' : 'app not set up'}`.padEnd(60) +
+          ` ${a.name}  last sign-in ${a.last_in ? a.last_in.toISOString() : '-'}`);
+      } else if (code === 'add') {
+        const r = await addStaff(db, { login: need(login, 'LOGIN'), name: need(o.name, '--name'), actor });
+        console.log(`staff account ${r.login}: added; on first sign-in it sets its own password and the authenticator app`);
+        tellStaff(r.login, r.password);
+      } else if (code === 'reset') {
+        const r = await resetStaff(db, need(login, 'LOGIN'), { actor });
+        console.log(`staff account ${r.login}: new temporary password, the authenticator app to set up again, signed out everywhere`);
+        tellStaff(r.login, r.password);
+      } else if (code === 'off' || code === 'on') {
+        await setStaffActive(db, need(login, 'LOGIN'), code === 'on', { actor });
+        console.log(`staff account ${login}: ${code === 'on' ? 'on' : 'off, signed out everywhere'}`);
+      } else usage();
       break;
     }
     default:

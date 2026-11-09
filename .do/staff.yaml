@@ -1,0 +1,66 @@
+# DigitalOcean App Platform: the staff web page's own app (docs/NOTES.md "หน้าเว็บของทีมงาน", docs/STAFF-TOOLS.md,
+# how to create it: docs/DIGITALOCEAN-SETUP.md part 4). The same image as the test server's app (.do/app.yaml) with
+# DRIVEGO_PORTAL=staff: only /staff/ and /api/staff/ answer (server/lib/portal.ts), at an address of its own, so nothing
+# that runs in a shop's page (the legacy screens) can reach it, and the shops' app never holds this connection.
+#
+# · web: 512 MB is plenty: the page lists shops and changes licences, it never reads a shop's whole data.
+# · db: the test server's cluster as user drivego_staff (made in the control panel, or by App Platform for this
+#   component): a shop's tables through Row-Level Security as the app, plus opening shops and changing licences
+#   across shops; never doadmin, so it cannot change the schema, read the errors nor remove a shop. Its rights are
+#   given by the test server's migrate job after every deploy (server/db/migrations/0008_staff.sql): after creating
+#   this app, deploy drivego-test once. Its failed requests go to the same errors table (the watch job alerts).
+# · No jobs: the migrations, the nightly and the hourly jobs stay the test server's app's.
+# · Deploys follow the branch deploy/test, as the test server's app.
+name: drivego-staff
+region: sgp
+services:
+  - name: web
+    github:
+      repo: Museey/drive-go
+      branch: deploy/test
+      deploy_on_push: true
+    source_dir: /
+    dockerfile_path: Dockerfile
+    http_port: 8080
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    instance_count: 1
+    health_check:
+      http_path: /api/health
+      initial_delay_seconds: 10
+      period_seconds: 10
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 6
+    envs:
+      - key: DRIVEGO_PORTAL
+        scope: RUN_TIME
+        value: staff
+      - key: STAFF_DATABASE_URL
+        scope: RUN_TIME
+        value: ${db.DATABASE_URL}
+      - key: DATABASE_CA_CERT
+        scope: RUN_TIME
+        value: ${db.CA_CERT}
+    alerts:
+      - rule: RESTART_COUNT
+        operator: GREATER_THAN
+        value: 1
+        window: FIVE_MINUTES
+databases:
+  - name: db
+    engine: PG
+    version: "16"
+    production: true
+    cluster_name: drivego-test-db
+    db_name: defaultdb
+    db_user: drivego_staff
+ingress:
+  rules:
+    - component:
+        name: web
+      match:
+        path:
+          prefix: /
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED

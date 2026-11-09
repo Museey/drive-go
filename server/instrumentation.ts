@@ -7,12 +7,17 @@ export const onRequestError: Instrumentation.onRequestError = async (error, requ
   if (process.env.NEXT_RUNTIME !== 'nodejs') return;
   // Recording must never fail the request a second time nor hide the first error.
   try {
-    const [{ pool }, { recordError }, { getSession }] = await Promise.all([import('@/lib/db'), import('@/lib/errors'), import('@/lib/session')]);
+    const [{ pool }, { recordError }, { getSession }, { portalOf }, { getStaffSession, staffPool }] = await Promise.all([
+      import('@/lib/db'), import('@/lib/errors'), import('@/lib/session'), import('@/lib/portal'), import('@/lib/staff')]);
     const headers = new Headers();
     for (const [k, v] of Object.entries(request.headers)) if (v !== undefined) headers.set(k, Array.isArray(v) ? v.join(', ') : v);
-    const s = await getSession(new Request(new URL(request.path, 'http://app'), { headers })).catch(() => null);
+    const req = new Request(new URL(request.path, 'http://app'), { headers });
+    // The staff web page's own app has only the staff page's connection (0008_staff.sql lets it add errors).
+    const staffApp = portalOf(process.env['DRIVEGO_PORTAL']) === 'staff';
+    const s = staffApp ? null : await getSession(req).catch(() => null);
+    const st = staffApp || request.path.startsWith('/api/staff/') ? await getStaffSession(req).catch(() => null) : null;
     const e = error as { message?: string; stack?: string; digest?: string };
-    await recordError(pool(), { source: 'server', shopId: s?.shopId, userId: s?.userId, path: request.path,
+    await recordError(staffApp ? staffPool() : pool(), { source: 'server', shopId: s?.shopId, userId: st ? `staff:${st.staff.login}` : s?.userId, path: request.path,
       message: `${request.method} ${context.routePath}: ${e?.message ?? String(error)}`, detail: e?.stack ?? '',
       agent: headers.get('user-agent') ?? '' });
   } catch (e) {

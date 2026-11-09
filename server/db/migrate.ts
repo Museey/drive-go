@@ -31,6 +31,8 @@ export async function migrate(url: string, log: (line: string) => void = () => {
       applied.push(name);
       log(`applied ${name}`);
     }
+    // The staff page's role gets its rights after every run (0008_staff.sql): it may have been made since the last.
+    await client.query('select drivego_staff_grants()');
   } finally {
     await client.end();
   }

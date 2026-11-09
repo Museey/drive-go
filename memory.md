@@ -2,7 +2,7 @@
 
 เจ้าของโปรเจกต์ขอ (2026-10-30): **เมื่อ context เริ่มเยอะ ให้เขียน/อัปเดตไฟล์นี้** แล้ว commit + push เพื่อให้ทำงานต่อได้หลัง clear/compact
 ไฟล์นี้คือสมุดจดของงานที่ค้างอยู่และข้อตกลงในแชต ส่วนสถานะของโปรเจกต์ทั้งหมดอยู่ใน `docs/LAUNCH-CHECKLIST.md` (อ่านก่อนเสมอ)
-อัปเดตล่าสุด: 2026-11-09 (หลังทำรายการลองบนอุปกรณ์จริง)
+อัปเดตล่าสุด: 2026-11-09 (หลังทำหน้าเว็บของทีมงาน)
 
 ## ข้อตกลงกับเจ้าของโปรเจกต์ (ในแชต ไม่อยู่ใน CLAUDE.md)
 
@@ -107,3 +107,9 @@
   ถ้าจะแก้ให้ Artifact read แล้ว publish ทับ URL เดิม) + docs/DEVICE-TEST.md (สร้างจากรายการเดียวกัน) · เมื่อเจ้าของบอกว่า "ลองเสร็จแล้ว":
   ArtifactData list collection `results` (เอกสาร `<pc|tablet|phone>__<ข้อ>` มี status pass/fail/skip, note) และ `devices` (รุ่นเครื่อง)
   แล้วแก้ข้อที่ไม่ผ่าน ขีด LAUNCH-CHECKLIST "เจ้าของโปรเจกต์ลองใช้"
+- **หน้าเว็บของทีมงาน (2026-11-09, เจ้าของ: "ทำหน้าเว็บเลยครับ")**: แอปที่ 2 `.do/staff.yaml` (`DRIVEGO_PORTAL=staff`, lib/portal.ts + proxy.ts),
+  user drivego_staff (0008_staff.sql, `drivego_staff_grants()` ทุก migrate), lib/staff.ts (รหัสผ่าน + TOTP), lib/staff-shops.ts, API `app/api/staff/*`,
+  หน้า `server/staff-ui/` (JS ล้วน ไม่มี inline, CSP ใน next.config.ts) · บัญชีทีมงาน: `shop-admin staff list|add|reset|off|on`
+  · local: `npm run dev` → `/staff/` บัญชี `staff` รหัสพิมพ์ตอนเปิด · test: S284 S285, tests/db/staff.test.mjs, totp/portal unit, image-smoke ส่วน staff
+  (session นี้ไม่มี Docker daemon) · **รอเจ้าของ**: สร้างแอปตาม DIGITALOCEAN-SETUP ส่วนที่ 4 + อนุมัติข้อความ (ส่งภาพหน้าจอแล้ว)
+- P4 (บันทึกภาพเฉลยใหม่) ห้าม push ระหว่างรัน: ถ้าต้อง push ให้ cancel run แล้วสั่งใหม่หลัง push (ทำแล้ว 2026-11-09 สองครั้ง)

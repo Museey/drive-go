@@ -25,7 +25,7 @@
 | `tests/golden/<spec file>/` | เฉลยที่บันทึกจากระบบเดิม (`flow.json`, `*-state.json`, `*.png`) |
 | `tests/fixtures/` | ข้อมูลตั้งต้นที่ถูก restore ลงเบราว์เซอร์ก่อนทุก test |
 | `tests/support/` | ตัวช่วยของ test: กรรมการ 3 ตัว, ตัวขับระบบเดิม, การตั้งค่าเบราว์เซอร์ |
-| `Dockerfile`, `.do/app.yaml` | server ทดสอบบน DigitalOcean App Platform (งาน 3.16): image ของแอป และค่าตั้งของแอป (deploy จาก branch `deploy/test` ที่ CI ขยับหลังผ่านทุก job) คู่มือ: `docs/DIGITALOCEAN-SETUP.md` |
+| `Dockerfile`, `.do/app.yaml`, `.do/staff.yaml` | server ทดสอบบน DigitalOcean App Platform (งาน 3.16): image ของแอป และค่าตั้งของแอป (deploy จาก branch `deploy/test` ที่ CI ขยับหลังผ่านทุก job) คู่มือ: `docs/DIGITALOCEAN-SETUP.md` · `staff.yaml` = แอปหน้าเว็บทีมงาน (`/staff/`, `server/staff-ui/`, image เดียวกันกับ `DRIVEGO_PORTAL=staff`) |
 | `tools/` | สคริปต์: static server, สร้าง fixture, ดึงฟอนต์, ทำรายการพฤติกรรม, รายงาน coverage, PostgreSQL ชั่วคราว (`pg-temp.mjs`), เปิดระบบใหม่ (`serve-new.mjs`) |
 
 ## คำสั่ง
@@ -42,7 +42,7 @@ node tools/split-legacy.mjs --check        # พิสูจน์ว่า fron
 node tools/build-client.mjs                # สร้าง frontend/js/00-server-storage.js จาก server/client/ (--check ตรวจว่าตรงกับต้นฉบับ)
 node tools/accountant-pack.mjs            # ชุดตรวจสำหรับผู้ทำบัญชี: คำถามจาก docs/ACCOUNTANT-REVIEW.md เป็น Excel ให้ตอบ + เอกสารที่ระบบใหม่พิมพ์ (PDF) รวมเป็น accountant-pack.zip
 docker build -t drivego:smoke . && node tools/image-smoke.mjs   # ลอง image ของ server ทดสอบแบบที่ DigitalOcean รัน (ฐานข้อมูล TLS, job migrate, เข้าระบบร้านตัวอย่าง, เปิดร้านจริง)
-node tools/shop-admin.mjs new|password|list|show|renew|close|told …   # เครื่องมือทีมงาน: เปิดร้านจริง ลืมรหัสผ่าน วันหมดอายุ จดว่าโทรแจ้งร้านแล้ว (คู่มือ docs/STAFF-TOOLS.md)
+node tools/shop-admin.mjs new|password|list|show|renew|close|told|staff …   # เครื่องมือทีมงาน: เปิดร้านจริง ลืมรหัสผ่าน วันหมดอายุ จดว่าโทรแจ้งร้านแล้ว บัญชีของหน้าเว็บทีมงาน (คู่มือ docs/STAFF-TOOLS.md)
 node tools/nightly.mjs                     # งานทุกคืนของ server (.do/app.yaml job nightly): ลบข้อมูลร้านที่ครบกำหนด ไฟล์ที่ถูกลบเกิน 30 วัน และบอกร้านที่ทีมงานต้องโทรแจ้ง (จบด้วย 3)
 node tools/restore-check.mjs [--marker ข้อความ]   # ซ้อมกู้ข้อมูลคืน: จำนวนข้อมูลต่อร้าน + ลายนิ้วมือ ไว้เทียบฐานข้อมูลที่กู้มา (รันใน Console ของแอป, docs/RESTORE-DRILL.md)
 npm run load                               # ทดสอบรับโหลดด้วย k6: อู่ 3 อู่ × 5 เครื่อง ข้อมูล 36 เดือน (--node ถ้าไม่มี k6, --url กับ server ทดสอบ; docs/LOAD-TEST.md)

@@ -21,7 +21,8 @@ export const TEST_SEED = 1013;
 // runs on the same machine never stop each other's server. The first process
 // picks the port and its children (Playwright workers, serve.mjs) inherit it.
 // Set LEGACY_PORT yourself to reuse a server you started by hand.
-if (!process.env.LEGACY_PORT) process.env.LEGACY_PORT = String(4200 + Math.floor(Math.random() * 1500));
+// Next.js refuses 5060 and 5061 (SIP), which are in this range: the new system would not start (seen 2026-11-09).
+if (!process.env.LEGACY_PORT) process.env.LEGACY_PORT = String([4200 + Math.floor(Math.random() * 1500)].map(p => p === 5060 || p === 5061 ? p + 2 : p)[0]);
 export const PORT = Number(process.env.LEGACY_PORT);
 export const LEGACY_ORIGIN = `http://127.0.0.1:${PORT}`;
 export const LEGACY_URL = `${LEGACY_ORIGIN}/DRIVEGO_TRIAL_v24.html`;

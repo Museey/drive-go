@@ -8,6 +8,9 @@
 //                                   (NO_BUILD=1 reuses the last build)
 //   node tools/serve-new.mjs --dev  `next dev` instead (npm run dev): reloads on every change
 //
+// The staff web page (/staff/) runs in the same server (DRIVEGO_PORTAL=both, server/proxy.ts) as drivego_staff; run by
+// hand with a temporary database it gets an account `staff` whose temporary password is printed.
+//
 // Attachments are kept in the database (FILE_STORE=postgres, task 3.11) unless FILE_STORE says otherwise.
 // With your own database, set DATABASE_URL (the app's role, drivego_app) and
 // MIGRATE_DATABASE_URL (the owner, to apply the schema; demo shops are only
@@ -19,6 +22,8 @@ import { PORT } from '../tests/support/config.mjs';
 import { startTempPostgres } from './pg-temp.mjs';
 import { migrate } from '../server/db/migrate.ts';
 import { openDemoShops } from './demo-shops.mjs';
+import { addStaff } from '../server/lib/staff.ts';
+import PG from 'pg';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const serverDir = fileURLToPath(new URL('../server/', import.meta.url));
@@ -35,11 +40,17 @@ export async function startNewSystem({ port = PORT, build = true, dev = false, q
   if (build && !dev) run([nextBin, 'build'], serverDir);
   const pg = process.env.DATABASE_URL ? null : await startTempPostgres();
   const ownerUrl = pg ? pg.url : process.env.MIGRATE_DATABASE_URL || null;
+  // The staff web page's role (0008_staff.sql; on DigitalOcean the staff app's database component makes it).
+  if (pg) await withClient(pg.url, c => c.query('create role drivego_staff login'));
   if (ownerUrl) await migrate(ownerUrl);
   const appUrl = process.env.DATABASE_URL || pg.url.replace('//drivego@', '//drivego_app@');
+  const staffUrl = process.env.STAFF_DATABASE_URL || (pg ? pg.url.replace('//drivego@', '//drivego_staff@') : '');
   // Quiet runs keep the last of Next.js's output, to say why it did not start.
   const next = spawn(process.execPath, [nextBin, dev ? 'dev' : 'start', '-p', String(port), '-H', '127.0.0.1'],
-    { cwd: serverDir, env: { ...process.env, DATABASE_URL: appUrl, FILE_STORE: process.env.FILE_STORE || 'postgres' }, stdio: quiet ? ['ignore', 'pipe', 'pipe'] : 'inherit' });
+    { cwd: serverDir, env: { ...process.env, DATABASE_URL: appUrl, FILE_STORE: process.env.FILE_STORE || 'postgres',
+      // Both the shops' app and the staff web page in this one server (proxy.ts), as they are two apps on DigitalOcean.
+      DRIVEGO_PORTAL: process.env.DRIVEGO_PORTAL || 'both', ...staffUrl ? { STAFF_DATABASE_URL: staffUrl } : {} },
+    stdio: quiet ? ['ignore', 'pipe', 'pipe'] : 'inherit' });
   let said = '';
   for (const out of [next.stdout, next.stderr]) out?.on('data', d => { said = (said + d).slice(-4000); });
   const exited = new Promise(r => next.once('exit', r));
@@ -61,6 +72,12 @@ export async function startNewSystem({ port = PORT, build = true, dev = false, q
   return { ownerUrl, appUrl, exited, stop, pid: next.pid };
 }
 
+async function withClient(url, fn) {
+  const c = new PG.Client({ connectionString: url });
+  await c.connect();
+  try { return await fn(c); } finally { await c.end(); }
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const port = Number(process.env.PORT) || 3000;
   const dev = process.argv.includes('--dev') || !!process.env.DEV;
@@ -71,6 +88,14 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const temporary = !process.env.DATABASE_URL;
   console.log(`\nDriveGo พร้อมใช้ที่ http://127.0.0.1:${port}/<รหัสร้าน>/${temporary ? ' (ฐานข้อมูลชั่วคราว: ข้อมูลหายเมื่อปิดด้วย Ctrl+C)' : ''}`);
   for (const d of demos) console.log(`  ${d.pkg.padEnd(10)} ${`http://127.0.0.1:${port}/${d.code}/`.padEnd(42)} ${d.who}`);
+  // The staff web page, with an account to try it (a temporary database only).
+  if (temporary) {
+    const pool = new PG.Pool({ connectionString: sys.ownerUrl, max: 1 });
+    try {
+      const s = await addStaff(pool, { login: 'staff', name: 'ทีมงานทดลอง', actor: 'serve-new' });
+      console.log(`  ${'ทีมงาน'.padEnd(10)} ${`http://127.0.0.1:${port}/staff/`.padEnd(42)} ${s.login} / ${s.password} (ครั้งแรก: ตั้งรหัสใหม่และตั้งค่าแอปยืนยันตัวตน)`);
+    } finally { await pool.end(); }
+  }
   console.log(`  owner database: ${sys.ownerUrl ?? '(yours)'}\n`);
   sys.exited.then(() => end(1));
   for (const s of ['SIGTERM', 'SIGINT', 'SIGHUP']) process.on(s, () => end(0));

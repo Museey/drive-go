@@ -7,6 +7,9 @@ import { withShop } from '../../server/lib/db.ts';
 import { readMain } from '../../server/lib/storage.ts';
 import { close, renew } from '../../server/lib/licence-admin.ts';
 import { openRealShop, resetPassword } from '../../server/lib/shop-open.ts';
+import { addStaff } from '../../server/lib/staff.ts';
+import { codeAt, newSecret, stepAt } from '../../server/lib/totp.ts';
+import { hash } from '@node-rs/argon2';
 
 let pool, n = 0;
 
@@ -63,3 +66,17 @@ export async function resetTestPassword(code, o = {}) {
   pool ??= new pg.Pool({ connectionString: process.env.DRIVEGO_OWNER_DB, max: 2 });
   return resetPassword(pool, code, { actor: 'test', ...o });
 }
+
+// A staff account of the staff web page (server/lib/staff.ts; tools/shop-admin.mjs staff add): with its temporary
+// password, or (ready) with its own password and its authenticator app already set up, as after a first sign-in.
+let staffAccounts = 0;
+export async function addTestStaff({ ready = false } = {}) {
+  pool ??= new pg.Pool({ connectionString: process.env.DRIVEGO_OWNER_DB, max: 2 });
+  const r = await addStaff(pool, { login: `st${process.pid.toString(36)}-${++staffAccounts}`, name: `ทีมงาน ${staffAccounts}`, actor: 'test' });
+  if (!ready) return r;
+  const password = `${r.password}-own-password`, secret = newSecret();
+  await pool.query('update staff set password_hash = $2, must_change = false, totp_secret = $3 where login = $1', [r.login, await hash(password), secret]);
+  return { login: r.login, password, secret };
+}
+// The code the authenticator app shows now, or `ahead` steps of 30 seconds later (a code works once).
+export const appCode = (secret, ahead = 0) => codeAt(secret, stepAt(Date.now()) + ahead);
