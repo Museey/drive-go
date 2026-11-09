@@ -1,0 +1,37 @@
+{
+  "DB.receipts[MA-RE261000001].paid": [
+    true,
+    false
+  ],
+  "DB.receipts[MA-RE261000001].paidDate": [
+    "2026-10-13",
+    ""
+  ],
+  "DB.receipts[MA-RE261000001].cancelled": [
+    null,
+    true
+  ],
+  "DB.receipts[MA-RE261000001].cancelReason": [
+    null,
+    "ลูกค้าขอเปลี่ยนรายการ"
+  ],
+  "DB.receipts[MA-RE261000001].cancelDate": [
+    null,
+    "2026-10-13"
+  ],
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-RE261000001#4]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "receipt",
+        "docId": "@DB.receipts[MA-RE261000001]",
+        "no": "MA-RE261000001",
+        "act": "del",
+        "note": "ยกเลิกเอกสาร — ลูกค้าขอเปลี่ยนรายการ"
+      }
+    ]
+  }
+}
