@@ -22,6 +22,10 @@ test('S309 เปิดโปรแกรมครั้งแรกบนเบ
   // Biz's sign-in page shows "กำลังเตรียมโปรแกรม…" for a moment (how long depends on the machine, so no step is
   // recorded there); on a browser that never had the program it then opens by itself as the owner, no password asked.
   await expect(page.getByRole('button', { name: /00 Mr\.DriveGo/ })).toBeVisible({ timeout: 120_000 });
+  // On a slow machine the pop-up "ข้อมูลทดลองพร้อมใช้งาน" can still be up for a moment before the home page's own
+  // "รับชำระเงินลูกหนี้" takes its place: wait for that.
+  await expect(page.getByText('ข้อมูลทดลองพร้อมใช้งาน', { exact: true }).filter({ visible: true })).toHaveCount(0, { timeout: 120_000 });
+  await expect(page.getByText('รับชำระเงินลูกหนี้', { exact: true }).filter({ visible: true }).first()).toBeVisible({ timeout: 120_000 });
   await app.settle();
   await golden.step('เลือก Biz โปรแกรมเปิดเข้าหน้าแรกในนามเจ้าของร้านเอง');
 });
