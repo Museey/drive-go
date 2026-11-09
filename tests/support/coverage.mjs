@@ -41,7 +41,9 @@ export function triggerRecorderInitScript(events) {
     document.addEventListener(type, e => {
       for (const el of e.composedPath()) {
         if (!el || el.nodeType !== 1) continue;
-        const code = el.getAttribute('on' + type);
+        let code = el.getAttribute('on' + type);
+        // A handler set as a property (el.onchange = fn): "<event>\nfn:<the function's source>"
+        if (code == null && typeof el['on' + type] === 'function') code = 'fn:' + Function.prototype.toString.call(el['on' + type]);
         if (code == null) continue;
         const key = type + '\n' + code;
         if (seen.has(key)) continue;

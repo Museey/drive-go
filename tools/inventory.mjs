@@ -161,6 +161,30 @@ for (const { base, ast } of scripts) {
   });
 }
 
+// el.onchange = fn where fn is a parameter of [[…, () => …], …].forEach(([p, fn]) => …): the property holds one
+// of the array's functions; the coverage run records "<event>\nfn:<source>" when such a property handler fires.
+const paramSources = new Map(); // "<line>\n<event>" -> [source of each function the parameter can be]
+for (const { base, ast } of scripts)
+  walk.ancestor(ast, {
+    AssignmentExpression(n, _st, anc) {
+      if (n.left.type !== 'MemberExpression' || n.left.computed || !/^on[a-z]+$/.test(n.left.property.name) || n.right.type !== 'Identifier') return;
+      for (let i = anc.length - 2; i >= 0; i--) {
+        const fnNode = anc[i];
+        if (!/Function|Arrow/.test(fnNode.type)) continue;
+        const call = anc[i - 1];
+        const pat = fnNode.params[0];
+        if (!call || call.type !== 'CallExpression' || call.callee.type !== 'MemberExpression' || call.callee.property.name !== 'forEach'
+          || call.callee.object.type !== 'ArrayExpression' || pat?.type !== 'ArrayPattern') return;
+        const idx = pat.elements.findIndex(e => e?.type === 'Identifier' && e.name === n.right.name);
+        if (idx < 0) return;
+        const srcs = call.callee.object.elements.map(e => e?.type === 'ArrayExpression' && e.elements[idx]).filter(Boolean)
+          .map(e => html.slice(base + e.start, base + e.end));
+        paramSources.set(lineAt(base + n.start) + '\n' + n.left.property.name.slice(2), srcs);
+        return;
+      }
+    },
+  });
+
 // Named functions inside other functions (function x(){…} or const x = () => …): a listener given
 // by such a name (addEventListener('resize', mHideRItems)) runs at that function's lines, the nearest
 // declaration of the name in the same script.
@@ -368,7 +392,9 @@ for (const l of listeners) {
     declared_lines: '', replaced_at: '', live_line: '', live_note: '', saves: calls.some(c => savesVia(c)) ? 'indirect' : '',
     label: l.target, code: l.code.replace(/\s+/g, ' ').slice(0, 160), calls: calls.sort().join(' '),
     // (a handler given by name, el.onchange = impFileChanged, runs at that function's own lines)
-    tested_by: ranBy(fns.has(l.code) ? fnLines(fns.get(l.code)) : (/^[$\w]+$/.test(l.code) && nestedLines(l.code, l.line)) || [l.line]).join(' '),
+    tested_by: (paramSources.has(l.line + '\n' + l.event)
+      ? [...new Set(paramSources.get(l.line + '\n' + l.event).flatMap(src => [...(fired.get(l.event + '\nfn:' + src) || [])]))].sort()
+      : ranBy(fns.has(l.code) ? fnLines(fns.get(l.code)) : (/^[$\w]+$/.test(l.code) && nestedLines(l.code, l.line)) || [l.line])).join(' '),
   });
   rows[rows.length - 1].unreachable = entryUnreachable(l.line, calls, rows[rows.length - 1].tested_by);
 }
