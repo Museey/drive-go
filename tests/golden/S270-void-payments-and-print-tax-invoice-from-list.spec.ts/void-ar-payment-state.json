@@ -1,0 +1,75 @@
+{
+  "DB.receipts[MA-SA261000006].payments[#0].cancelled": [
+    null,
+    true
+  ],
+  "DB.receipts[MA-SA261000006].payments[#0].cancelDate": [
+    null,
+    "2026-10-13"
+  ],
+  "DB.receipts[MA-SA261000006].payments[#0].cancelBy": [
+    null,
+    "เจ้าของกิจการ / ผู้ดูแลระบบ"
+  ],
+  "DB.receipts[MA-SA261000006].payments[#0].cancelReason": [
+    null,
+    "โอนผิดบัญชี ลูกค้าขอคืน"
+  ],
+  "DB.receipts[MA-SA261000006].payments[#0].cancelAt": [
+    null,
+    "2026-10-13T02:00:00.000Z"
+  ],
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-SA261000006#50]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "receipt",
+        "docId": "@DB.receipts[MA-SA261000006]",
+        "no": "MA-SA261000006",
+        "act": "payvoid",
+        "note": "ยกเลิกรายการชำระ 1,500.00 บาท (ตัดยอดเมื่อ 08/10/2569) · เหตุผล: โอนผิดบัญชี ลูกค้าขอคืน · ใบกลับเป็นค้างชำระ 4,654.50 บาท"
+      }
+    ]
+  },
+  "DB.stockCuts[MA-SA261000006].pay": [
+    {
+      "method": "trans",
+      "methods": [
+        "trans"
+      ],
+      "amount": 1500
+    },
+    null
+  ],
+  "DB.stockCuts[MA-SA261000006].st.k": [
+    "part",
+    "wait"
+  ],
+  "DB.stockCuts[MA-SA261000006].st.got": [
+    1500,
+    0
+  ],
+  "DB.stockCuts[MA-SA261000006].st.wht": [
+    60,
+    0
+  ],
+  "DB.stockCuts[MA-SA261000006].st.rem": [
+    3094.5,
+    4654.5
+  ],
+  "DB.stockCuts[MA-SA261000006].st.n": [
+    1,
+    0
+  ],
+  "DB.stockCuts[MA-SA261000006].st.last": [
+    "2026-10-08",
+    ""
+  ],
+  "DB.pkgSaleFlow.used": [
+    53,
+    54
+  ]
+}

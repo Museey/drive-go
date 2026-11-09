@@ -1,0 +1,294 @@
+{
+  "DB.purchases": {
+    "added": [
+      {
+        "id": "@DB.purchases[MA-RC261000002]",
+        "no": "MA-RC261000002",
+        "date": "2026-10-13",
+        "vendorId": "@DB.vendors[V00001]",
+        "inv": "INV-OPEN-MA",
+        "invDate": "2026-10-01",
+        "term": "cash",
+        "days": 30,
+        "due": "2026-10-13",
+        "paid": false,
+        "payDate": "",
+        "by": "",
+        "check": "",
+        "note": "สต๊อกตั้งต้นของข้อมูลทดลอง · คัดลอกจาก MA-RC261000001",
+        "items": [
+          {
+            "stockId": "@DB.stock[EL-101]",
+            "code": "EL-101",
+            "oem": "27060-0L080",
+            "name": "ไดชาร์จ Toyota Revo",
+            "cat": "อะไหล่ไฟฟ้า",
+            "qty": 20,
+            "cost": 4200
+          },
+          {
+            "stockId": "@DB.stock[EL-105]",
+            "code": "EL-105",
+            "oem": "28100-0L090",
+            "name": "ไดสตาร์ท D-Max",
+            "cat": "อะไหล่ไฟฟ้า",
+            "qty": 20,
+            "cost": 3600
+          },
+          {
+            "stockId": "@DB.stock[EL-118]",
+            "code": "EL-118",
+            "oem": "GS-75D26L",
+            "name": "แบตเตอรี่ 75Ah",
+            "cat": "อะไหล่ไฟฟ้า",
+            "qty": 20,
+            "cost": 2350
+          },
+          {
+            "stockId": "@DB.stock[EL-125]",
+            "code": "EL-125",
+            "oem": "90919-01253",
+            "name": "ชุดคอยล์จุดระเบิด",
+            "cat": "อะไหล่ไฟฟ้า",
+            "qty": 20,
+            "cost": 980
+          },
+          {
+            "stockId": "@DB.stock[EL-133]",
+            "code": "EL-133",
+            "oem": "81110-0K450",
+            "name": "ไฟหน้า LED Revo (ข้าง)",
+            "cat": "อะไหล่ไฟฟ้า",
+            "qty": 20,
+            "cost": 5400
+          },
+          {
+            "stockId": "@DB.stock[EV-101]",
+            "code": "EV-101",
+            "oem": "-",
+            "name": "สายชาร์จ AC Type 2 (7.4 kW)",
+            "cat": "อะไหล่รถไฟฟ้า",
+            "qty": 20,
+            "cost": 4200
+          },
+          {
+            "stockId": "@DB.stock[EV-110]",
+            "code": "EV-110",
+            "oem": "-",
+            "name": "น้ำยาหล่อเย็นชุดแบตเตอรี่ EV (5 ลิตร)",
+            "cat": "อะไหล่รถไฟฟ้า",
+            "qty": 20,
+            "cost": 850
+          },
+          {
+            "stockId": "@DB.stock[EV-120]",
+            "code": "EV-120",
+            "oem": "-",
+            "name": "ฟิวส์แรงดันสูง 500V ชุดแบตเตอรี่",
+            "cat": "อะไหล่รถไฟฟ้า",
+            "qty": 20,
+            "cost": 1250
+          },
+          {
+            "stockId": "@DB.stock[EV-130]",
+            "code": "EV-130",
+            "oem": "-",
+            "name": "ชุดกรองแอร์ EV พร้อมฟิลเตอร์ PM2.5",
+            "cat": "อะไหล่รถไฟฟ้า",
+            "qty": 20,
+            "cost": 380
+          },
+          {
+            "stockId": "@DB.stock[AC-204]",
+            "code": "AC-204",
+            "oem": "88320-0K330",
+            "name": "คอมเพรสเซอร์แอร์ D-Max",
+            "cat": "อะไหล่แอร์",
+            "qty": 20,
+            "cost": 5600
+          },
+          {
+            "stockId": "@DB.stock[AC-215]",
+            "code": "AC-215",
+            "oem": "87139-0K030",
+            "name": "กรองแอร์ในห้องโดยสาร",
+            "cat": "อะไหล่แอร์",
+            "qty": 20,
+            "cost": 120
+          },
+          {
+            "stockId": "@DB.stock[AC-222]",
+            "code": "AC-222",
+            "oem": "88460-0K160",
+            "name": "แผงคอยล์ร้อน Revo",
+            "cat": "อะไหล่แอร์",
+            "qty": 20,
+            "cost": 2900
+          },
+          {
+            "stockId": "@DB.stock[AC-230]",
+            "code": "AC-230",
+            "oem": "R134a-13.6",
+            "name": "น้ำยาแอร์ R134a (ถัง 13.6 กก.)",
+            "cat": "อะไหล่แอร์",
+            "qty": 20,
+            "cost": 1600
+          },
+          {
+            "stockId": "@DB.stock[SU-330]",
+            "code": "SU-330",
+            "oem": "48510-0K190",
+            "name": "โช้คอัพหน้า Hilux",
+            "cat": "อะไหล่ช่วงล่าง",
+            "qty": 20,
+            "cost": 1750
+          },
+          {
+            "stockId": "@DB.stock[SU-335]",
+            "code": "SU-335",
+            "oem": "48530-0K080",
+            "name": "โช้คอัพหลัง Hilux",
+            "cat": "อะไหล่ช่วงล่าง",
+            "qty": 20,
+            "cost": 1450
+          },
+          {
+            "stockId": "@DB.stock[SU-341]",
+            "code": "SU-341",
+            "oem": "48815-0K010",
+            "name": "ยางกันโคลงหน้า",
+            "cat": "อะไหล่ช่วงล่าง",
+            "qty": 20,
+            "cost": 180
+          },
+          {
+            "stockId": "@DB.stock[SU-350]",
+            "code": "SU-350",
+            "oem": "43330-09510",
+            "name": "ลูกหมากปีกนกล่าง",
+            "cat": "อะไหล่ช่วงล่าง",
+            "qty": 20,
+            "cost": 650
+          },
+          {
+            "stockId": "@DB.stock[SU-360]",
+            "code": "SU-360",
+            "oem": "48654-0K040",
+            "name": "บูชปีกนก (ชุด)",
+            "cat": "อะไหล่ช่วงล่าง",
+            "qty": 20,
+            "cost": 320
+          },
+          {
+            "stockId": "@DB.stock[BR-001]",
+            "code": "BR-001",
+            "oem": "04465-0K260",
+            "name": "ผ้าเบรกหน้า Toyota Revo",
+            "cat": "ระบบเบรก",
+            "qty": 20,
+            "cost": 850
+          },
+          {
+            "stockId": "@DB.stock[BR-005]",
+            "code": "BR-005",
+            "oem": "04466-0K120",
+            "name": "ผ้าเบรกหลัง D-Max",
+            "cat": "ระบบเบรก",
+            "qty": 20,
+            "cost": 780
+          },
+          {
+            "stockId": "@DB.stock[BR-014]",
+            "code": "BR-014",
+            "oem": "43512-0K090",
+            "name": "จานเบรกหน้า",
+            "cat": "ระบบเบรก",
+            "qty": 20,
+            "cost": 1450
+          },
+          {
+            "stockId": "@DB.stock[BR-020]",
+            "code": "BR-020",
+            "oem": "47201-0K040",
+            "name": "แม่ปั๊มเบรกบน",
+            "cat": "ระบบเบรก",
+            "qty": 20,
+            "cost": 2200
+          },
+          {
+            "stockId": "@DB.stock[BR-025]",
+            "code": "BR-025",
+            "oem": "DOT4-1L",
+            "name": "น้ำมันเบรก DOT4 (1 ลิตร)",
+            "cat": "ระบบเบรก",
+            "qty": 20,
+            "cost": 180
+          },
+          {
+            "stockId": "@DB.stock[CO-402]",
+            "code": "CO-402",
+            "oem": "16400-0L340",
+            "name": "หม้อน้ำ D-Max",
+            "cat": "หม้อน้ำ / ระบบระบายความร้อน",
+            "qty": 20,
+            "cost": 3200
+          },
+          {
+            "stockId": "@DB.stock[CO-410]",
+            "code": "CO-410",
+            "oem": "16100-0L090",
+            "name": "ปั๊มน้ำ",
+            "cat": "หม้อน้ำ / ระบบระบายความร้อน",
+            "qty": 20,
+            "cost": 1600
+          }
+        ],
+        "disc": 0,
+        "vat": 0,
+        "posted": false,
+        "apv": {
+          "status": "pending",
+          "by": "",
+          "byName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+          "date": "2026-10-13",
+          "note": ""
+        },
+        "br": "@DB.branches[MA]",
+        "payMethod": "",
+        "payBank": "",
+        "payRef": "",
+        "payCard4": "",
+        "chkDate": "",
+        "cancelled": false,
+        "cancelReason": "",
+        "cancelDate": "",
+        "copiedFrom": "MA-RC261000001",
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-RC261000002]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "gr",
+        "docId": "@DB.purchases[MA-RC261000002]",
+        "no": "MA-RC261000002",
+        "act": "save",
+        "note": "ยอดสุทธิ 960,800.00 บาท"
+      }
+    ]
+  },
+  "DB.seq.MA-RC2610": [
+    1,
+    2
+  ]
+}

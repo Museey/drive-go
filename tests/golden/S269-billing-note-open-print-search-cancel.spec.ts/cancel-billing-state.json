@@ -1,0 +1,29 @@
+{
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-BL261000001#52]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "billing",
+        "docId": "@DB.billings[MA-BL261000001]",
+        "no": "MA-BL261000001",
+        "act": "del",
+        "note": "ยกเลิกใบวางบิล — ลูกค้าขอรวมบิลเดือนหน้า"
+      }
+    ]
+  },
+  "DB.billings[MA-BL261000001].cancelled": [
+    null,
+    true
+  ],
+  "DB.billings[MA-BL261000001].cancelReason": [
+    null,
+    "ลูกค้าขอรวมบิลเดือนหน้า"
+  ],
+  "DB.billings[MA-BL261000001].cancelDate": [
+    null,
+    "2026-10-13"
+  ]
+}
