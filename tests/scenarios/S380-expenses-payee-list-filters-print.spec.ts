@@ -2,7 +2,8 @@ import type { Page } from '@playwright/test';
 import { test, expect } from '../support/test';
 
 // 08 · ค่าใช้จ่ายกิจการ: no scenario opened an expense to look at it ("แก้ไข"), picked a payee from the list in the
-// expense window, used "ดูทั้งหมด" (the document list with its own filters and print) or printed the expense register.
+// expense window, used "ดูทั้งหมด" (the document list with its own filters and print) or printed the expense register
+// ("PDF" on the register prints it with printExpReport, whose own button is hidden).
 const combo = (page: Page, scope: string, option: string) =>
   page.locator(scope).getByRole('combobox').filter({ hasText: option }).filter({ visible: true });
 
@@ -59,12 +60,14 @@ test('S380 ค่าใช้จ่ายกิจการ: เปิดดู�
   await expect(docs.getByRole('heading', { name: 'ค่าใช้จ่ายกิจการ — ดูทั้งหมด' })).toBeHidden();
   await golden.step('ปิดหน้าต่างดูทั้งหมด');
 
-  // The expense register of the year, printed.
-  await page.getByRole('button', { name: 'พิมพ์รายงาน', exact: true }).filter({ visible: true }).click();
+  // The expense register of the year, printed with "PDF" (the old "พิมพ์รายงาน" button is hidden and leads here).
+  const before2 = await app.state();
+  await page.getByRole('button', { name: /^PDF/ }).filter({ visible: true }).first().click();
   await expect(sheet).toContainText('ทะเบียนค่าใช้จ่ายกิจการ');
   await expect(sheet).toContainText('ค่าเช่าอาคารประจำเดือน — คุณสุนทร เจ้าของอาคาร');
   await expect(sheet).toContainText('27,145.00');
-  await golden.step('พิมพ์ทะเบียนค่าใช้จ่ายกิจการ');
+  await golden.step('กด PDF พิมพ์ทะเบียนค่าใช้จ่ายกิจการ');
+  await golden.stateChange('print-register', before2);
   await page.emulateMedia({ media: 'print' });
   await page.evaluate(() => window.scrollTo(0, 0));
   await golden.screen('expense-register-printed');

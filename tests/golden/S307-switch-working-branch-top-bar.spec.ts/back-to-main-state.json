@@ -1,0 +1,2282 @@
+{
+  "DB.stock[EL-101].qty": [
+    0,
+    20
+  ],
+  "DB.stock[EL-101].min": [
+    0,
+    2
+  ],
+  "DB.stock[EL-101].max": [
+    0,
+    8
+  ],
+  "DB.stock[EL-101].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[EL-101].zone": [
+    "",
+    "A"
+  ],
+  "DB.stock[EL-101].shelf": [
+    "",
+    1
+  ],
+  "DB.stock[EL-101].bq.@DB.branches[MA]": [
+    {
+      "qty": 20,
+      "min": 2,
+      "max": 8,
+      "zone": "A",
+      "shelf": 1,
+      "loc": "",
+      "lastMove": "2026-10-13"
+    },
+    null
+  ],
+  "DB.stock[EL-101].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[EL-105].qty": [
+    0,
+    20
+  ],
+  "DB.stock[EL-105].min": [
+    0,
+    2
+  ],
+  "DB.stock[EL-105].max": [
+    0,
+    6
+  ],
+  "DB.stock[EL-105].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[EL-105].zone": [
+    "",
+    "A"
+  ],
+  "DB.stock[EL-105].shelf": [
+    "",
+    1
+  ],
+  "DB.stock[EL-105].bq.@DB.branches[MA]": [
+    {
+      "qty": 20,
+      "min": 2,
+      "max": 6,
+      "zone": "A",
+      "shelf": 1,
+      "loc": "",
+      "lastMove": "2026-10-13"
+    },
+    null
+  ],
+  "DB.stock[EL-105].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[EL-118].qty": [
+    0,
+    20
+  ],
+  "DB.stock[EL-118].min": [
+    0,
+    4
+  ],
+  "DB.stock[EL-118].max": [
+    0,
+    16
+  ],
+  "DB.stock[EL-118].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[EL-118].zone": [
+    "",
+    "A"
+  ],
+  "DB.stock[EL-118].shelf": [
+    "",
+    2
+  ],
+  "DB.stock[EL-118].bq.@DB.branches[MA]": [
+    {
+      "qty": 20,
+      "min": 4,
+      "max": 16,
+      "zone": "A",
+      "shelf": 2,
+      "loc": "",
+      "lastMove": "2026-10-13"
+    },
+    null
+  ],
+  "DB.stock[EL-118].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[EL-125].qty": [
+    0,
+    20
+  ],
+  "DB.stock[EL-125].min": [
+    0,
+    4
+  ],
+  "DB.stock[EL-125].max": [
+    0,
+    12
+  ],
+  "DB.stock[EL-125].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[EL-125].zone": [
+    "",
+    "A"
+  ],
+  "DB.stock[EL-125].shelf": [
+    "",
+    2
+  ],
+  "DB.stock[EL-125].bq.@DB.branches[MA]": [
+    {
+      "qty": 20,
+      "min": 4,
+      "max": 12,
+      "zone": "A",
+      "shelf": 2,
+      "loc": "",
+      "lastMove": "2026-10-13"
+    },
+    null
+  ],
+  "DB.stock[EL-125].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[EL-133].qty": [
+    0,
+    20
+  ],
+  "DB.stock[EL-133].min": [
+    0,
+    1
+  ],
+  "DB.stock[EL-133].max": [
+    0,
+    4
+  ],
+  "DB.stock[EL-133].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[EL-133].zone": [
+    "",
+    "A"
+  ],
+  "DB.stock[EL-133].shelf": [
+    "",
+    4
+  ],
+  "DB.stock[EL-133].bq.@DB.branches[MA]": [
+    {
+      "qty": 20,
+      "min": 1,
+      "max": 4,
+      "zone": "A",
+      "shelf": 4,
+      "loc": "",
+      "lastMove": "2026-10-13"
+    },
+    null
+  ],
+  "DB.stock[EL-133].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[EV-101].qty": [
+    0,
+    20
+  ],
+  "DB.stock[EV-101].min": [
+    0,
+    2
+  ],
+  "DB.stock[EV-101].max": [
+    0,
+    8
+  ],
+  "DB.stock[EV-101].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[EV-101].zone": [
+    "",
+    "A"
+  ],
+  "DB.stock[EV-101].shelf": [
+    "",
+    5
+  ],
+  "DB.stock[EV-101].bq.@DB.branches[MA]": [
+    {
+      "qty": 20,
+      "min": 2,
+      "max": 8,
+      "zone": "A",
+      "shelf": 5,
+      "loc": "",
+      "lastMove": "2026-10-13"
+    },
+    null
+  ],
+  "DB.stock[EV-101].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[EV-110].qty": [
+    0,
+    19
+  ],
+  "DB.stock[EV-110].min": [
+    0,
+    3
+  ],
+  "DB.stock[EV-110].max": [
+    0,
+    12
+  ],
+  "DB.stock[EV-110].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[EV-110].zone": [
+    "",
+    "G"
+  ],
+  "DB.stock[EV-110].shelf": [
+    "",
+    3
+  ],
+  "DB.stock[EV-110].bq.@DB.branches[MA]": [
+    {
+      "qty": 19,
+      "min": 3,
+      "max": 12,
+      "zone": "G",
+      "shelf": 3,
+      "loc": "",
+      "lastMove": "2026-10-13"
+    },
+    null
+  ],
+  "DB.stock[EV-110].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[EV-120].qty": [
+    0,
+    18
+  ],
+  "DB.stock[EV-120].min": [
+    0,
+    2
+  ],
+  "DB.stock[EV-120].max": [
+    0,
+    6
+  ],
+  "DB.stock[EV-120].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[EV-120].zone": [
+    "",
+    "A"
+  ],
+  "DB.stock[EV-120].shelf": [
+    "",
+    6
+  ],
+  "DB.stock[EV-120].bq.@DB.branches[MA]": [
+    {
+      "qty": 18,
+      "min": 2,
+      "max": 6,
+      "zone": "A",
+      "shelf": 6,
+      "loc": "",
+      "lastMove": "2026-10-13"
+    },
+    null
+  ],
+  "DB.stock[EV-120].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[EV-130].qty": [
+    0,
+    19
+  ],
+  "DB.stock[EV-130].min": [
+    0,
+    4
+  ],
+  "DB.stock[EV-130].max": [
+    0,
+    16
+  ],
+  "DB.stock[EV-130].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[EV-130].zone": [
+    "",
+    "B"
+  ],
+  "DB.stock[EV-130].shelf": [
+    "",
+    5
+  ],
+  "DB.stock[EV-130].bq.@DB.branches[MA]": [
+    {
+      "qty": 19,
+      "min": 4,
+      "max": 16,
+      "zone": "B",
+      "shelf": 5,
+      "loc": "",
+      "lastMove": "2026-10-13"
+    },
+    null
+  ],
+  "DB.stock[EV-130].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[AC-204].qty": [
+    0,
+    19
+  ],
+  "DB.stock[AC-204].min": [
+    0,
+    1
+  ],
+  "DB.stock[AC-204].max": [
+    0,
+    4
+  ],
+  "DB.stock[AC-204].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[AC-204].zone": [
+    "",
+    "B"
+  ],
+  "DB.stock[AC-204].shelf": [
+    "",
+    1
+  ],
+  "DB.stock[AC-204].bq.@DB.branches[MA]": [
+    {
+      "qty": 19,
+      "min": 1,
+      "max": 4,
+      "zone": "B",
+      "shelf": 1,
+      "loc": "",
+      "lastMove": "2026-10-13"
+    },
+    null
+  ],
+  "DB.stock[AC-204].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[AC-215].qty": [
+    0,
+    19
+  ],
+  "DB.stock[AC-215].min": [
+    0,
+    10
+  ],
+  "DB.stock[AC-215].max": [
+    0,
+    40
+  ],
+  "DB.stock[AC-215].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[AC-215].zone": [
+    "",
+    "B"
+  ],
+  "DB.stock[AC-215].shelf": [
+    "",
+    2
+  ],
+  "DB.stock[AC-215].bq.@DB.branches[MA]": [
+    {
+      "qty": 19,
+      "min": 10,
+      "max": 40,
+      "zone": "B",
+      "shelf": 2,
+      "loc": "",
+      "lastMove": "2026-10-13"
+    },
+    null
+  ],
+  "DB.stock[AC-215].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[AC-222].qty": [
+    0,
+    18
+  ],
+  "DB.stock[AC-222].min": [
+    0,
+    1
+  ],
+  "DB.stock[AC-222].max": [
+    0,
+    4
+  ],
+  "DB.stock[AC-222].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[AC-222].zone": [
+    "",
+    "B"
+  ],
+  "DB.stock[AC-222].shelf": [
+    "",
+    1
+  ],
+  "DB.stock[AC-222].bq.@DB.branches[MA]": [
+    {
+      "qty": 18,
+      "min": 1,
+      "max": 4,
+      "zone": "B",
+      "shelf": 1,
+      "loc": "",
+      "lastMove": "2026-10-13"
+    },
+    null
+  ],
+  "DB.stock[AC-222].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[AC-230].qty": [
+    0,
+    19
+  ],
+  "DB.stock[AC-230].min": [
+    0,
+    2
+  ],
+  "DB.stock[AC-230].max": [
+    0,
+    6
+  ],
+  "DB.stock[AC-230].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[AC-230].zone": [
+    "",
+    "G"
+  ],
+  "DB.stock[AC-230].shelf": [
+    "",
+    4
+  ],
+  "DB.stock[AC-230].bq.@DB.branches[MA]": [
+    {
+      "qty": 19,
+      "min": 2,
+      "max": 6,
+      "zone": "G",
+      "shelf": 4,
+      "loc": "",
+      "lastMove": "2026-10-13"
+    },
+    null
+  ],
+  "DB.stock[AC-230].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[SU-330].qty": [
+    0,
+    19
+  ],
+  "DB.stock[SU-330].min": [
+    0,
+    4
+  ],
+  "DB.stock[SU-330].max": [
+    0,
+    16
+  ],
+  "DB.stock[SU-330].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[SU-330].zone": [
+    "",
+    "C"
+  ],
+  "DB.stock[SU-330].shelf": [
+    "",
+    1
+  ],
+  "DB.stock[SU-330].bq.@DB.branches[MA]": [
+    {
+      "qty": 19,
+      "min": 4,
+      "max": 16,
+      "zone": "C",
+      "shelf": 1,
+      "loc": "",
+      "lastMove": "2026-10-13"
+    },
+    null
+  ],
+  "DB.stock[SU-330].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[SU-335].qty": [
+    0,
+    19
+  ],
+  "DB.stock[SU-335].min": [
+    0,
+    4
+  ],
+  "DB.stock[SU-335].max": [
+    0,
+    16
+  ],
+  "DB.stock[SU-335].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[SU-335].zone": [
+    "",
+    "C"
+  ],
+  "DB.stock[SU-335].shelf": [
+    "",
+    1
+  ],
+  "DB.stock[SU-335].bq.@DB.branches[MA]": [
+    {
+      "qty": 19,
+      "min": 4,
+      "max": 16,
+      "zone": "C",
+      "shelf": 1,
+      "loc": "",
+      "lastMove": "2026-10-13"
+    },
+    null
+  ],
+  "DB.stock[SU-335].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[SU-341].qty": [
+    0,
+    18
+  ],
+  "DB.stock[SU-341].min": [
+    0,
+    8
+  ],
+  "DB.stock[SU-341].max": [
+    0,
+    30
+  ],
+  "DB.stock[SU-341].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[SU-341].zone": [
+    "",
+    "C"
+  ],
+  "DB.stock[SU-341].shelf": [
+    "",
+    2
+  ],
+  "DB.stock[SU-341].bq.@DB.branches[MA]": [
+    {
+      "qty": 18,
+      "min": 8,
+      "max": 30,
+      "zone": "C",
+      "shelf": 2,
+      "loc": "",
+      "lastMove": "2026-10-13"
+    },
+    null
+  ],
+  "DB.stock[SU-341].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[SU-350].qty": [
+    0,
+    19
+  ],
+  "DB.stock[SU-350].min": [
+    0,
+    6
+  ],
+  "DB.stock[SU-350].max": [
+    0,
+    20
+  ],
+  "DB.stock[SU-350].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[SU-350].zone": [
+    "",
+    "C"
+  ],
+  "DB.stock[SU-350].shelf": [
+    "",
+    2
+  ],
+  "DB.stock[SU-350].bq.@DB.branches[MA]": [
+    {
+      "qty": 19,
+      "min": 6,
+      "max": 20,
+      "zone": "C",
+      "shelf": 2,
+      "loc": "",
+      "lastMove": "2026-10-13"
+    },
+    null
+  ],
+  "DB.stock[SU-350].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[SU-360].qty": [
+    0,
+    19
+  ],
+  "DB.stock[SU-360].min": [
+    0,
+    6
+  ],
+  "DB.stock[SU-360].max": [
+    0,
+    24
+  ],
+  "DB.stock[SU-360].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[SU-360].zone": [
+    "",
+    "C"
+  ],
+  "DB.stock[SU-360].shelf": [
+    "",
+    3
+  ],
+  "DB.stock[SU-360].bq.@DB.branches[MA]": [
+    {
+      "qty": 19,
+      "min": 6,
+      "max": 24,
+      "zone": "C",
+      "shelf": 3,
+      "loc": "",
+      "lastMove": "2026-10-13"
+    },
+    null
+  ],
+  "DB.stock[SU-360].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[BR-001].qty": [
+    0,
+    19
+  ],
+  "DB.stock[BR-001].min": [
+    0,
+    6
+  ],
+  "DB.stock[BR-001].max": [
+    0,
+    24
+  ],
+  "DB.stock[BR-001].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[BR-001].zone": [
+    "",
+    "A"
+  ],
+  "DB.stock[BR-001].shelf": [
+    "",
+    3
+  ],
+  "DB.stock[BR-001].bq.@DB.branches[MA]": [
+    {
+      "qty": 19,
+      "min": 6,
+      "max": 24,
+      "zone": "A",
+      "shelf": 3,
+      "loc": "",
+      "lastMove": "2026-10-13"
+    },
+    null
+  ],
+  "DB.stock[BR-001].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[BR-005].qty": [
+    0,
+    19
+  ],
+  "DB.stock[BR-005].min": [
+    0,
+    6
+  ],
+  "DB.stock[BR-005].max": [
+    0,
+    24
+  ],
+  "DB.stock[BR-005].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[BR-005].zone": [
+    "",
+    "A"
+  ],
+  "DB.stock[BR-005].shelf": [
+    "",
+    3
+  ],
+  "DB.stock[BR-005].bq.@DB.branches[MA]": [
+    {
+      "qty": 19,
+      "min": 6,
+      "max": 24,
+      "zone": "A",
+      "shelf": 3,
+      "loc": "",
+      "lastMove": "2026-10-13"
+    },
+    null
+  ],
+  "DB.stock[BR-005].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[BR-014].qty": [
+    0,
+    20
+  ],
+  "DB.stock[BR-014].min": [
+    0,
+    4
+  ],
+  "DB.stock[BR-014].max": [
+    0,
+    12
+  ],
+  "DB.stock[BR-014].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[BR-014].zone": [
+    "",
+    "A"
+  ],
+  "DB.stock[BR-014].shelf": [
+    "",
+    3
+  ],
+  "DB.stock[BR-014].bq.@DB.branches[MA]": [
+    {
+      "qty": 20,
+      "min": 4,
+      "max": 12,
+      "zone": "A",
+      "shelf": 3,
+      "loc": "",
+      "lastMove": "2026-10-13"
+    },
+    null
+  ],
+  "DB.stock[BR-014].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[BR-020].qty": [
+    0,
+    19
+  ],
+  "DB.stock[BR-020].min": [
+    0,
+    2
+  ],
+  "DB.stock[BR-020].max": [
+    0,
+    6
+  ],
+  "DB.stock[BR-020].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[BR-020].zone": [
+    "",
+    "A"
+  ],
+  "DB.stock[BR-020].shelf": [
+    "",
+    4
+  ],
+  "DB.stock[BR-020].bq.@DB.branches[MA]": [
+    {
+      "qty": 19,
+      "min": 2,
+      "max": 6,
+      "zone": "A",
+      "shelf": 4,
+      "loc": "",
+      "lastMove": "2026-10-13"
+    },
+    null
+  ],
+  "DB.stock[BR-020].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[BR-025].qty": [
+    0,
+    19
+  ],
+  "DB.stock[BR-025].min": [
+    0,
+    8
+  ],
+  "DB.stock[BR-025].max": [
+    0,
+    30
+  ],
+  "DB.stock[BR-025].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[BR-025].zone": [
+    "",
+    "G"
+  ],
+  "DB.stock[BR-025].shelf": [
+    "",
+    2
+  ],
+  "DB.stock[BR-025].bq.@DB.branches[MA]": [
+    {
+      "qty": 19,
+      "min": 8,
+      "max": 30,
+      "zone": "G",
+      "shelf": 2,
+      "loc": "",
+      "lastMove": "2026-10-13"
+    },
+    null
+  ],
+  "DB.stock[BR-025].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[CO-402].qty": [
+    0,
+    20
+  ],
+  "DB.stock[CO-402].min": [
+    0,
+    2
+  ],
+  "DB.stock[CO-402].max": [
+    0,
+    6
+  ],
+  "DB.stock[CO-402].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[CO-402].zone": [
+    "",
+    "D"
+  ],
+  "DB.stock[CO-402].shelf": [
+    "",
+    1
+  ],
+  "DB.stock[CO-402].bq.@DB.branches[MA]": [
+    {
+      "qty": 20,
+      "min": 2,
+      "max": 6,
+      "zone": "D",
+      "shelf": 1,
+      "loc": "",
+      "lastMove": "2026-10-13"
+    },
+    null
+  ],
+  "DB.stock[CO-402].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[CO-410].qty": [
+    0,
+    20
+  ],
+  "DB.stock[CO-410].min": [
+    0,
+    3
+  ],
+  "DB.stock[CO-410].max": [
+    0,
+    10
+  ],
+  "DB.stock[CO-410].lastMove": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.stock[CO-410].zone": [
+    "",
+    "D"
+  ],
+  "DB.stock[CO-410].shelf": [
+    "",
+    1
+  ],
+  "DB.stock[CO-410].bq.@DB.branches[MA]": [
+    {
+      "qty": 20,
+      "min": 3,
+      "max": 10,
+      "zone": "D",
+      "shelf": 1,
+      "loc": "",
+      "lastMove": "2026-10-13"
+    },
+    null
+  ],
+  "DB.stock[CO-410].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[CO-415].min": [
+    0,
+    4
+  ],
+  "DB.stock[CO-415].max": [
+    0,
+    16
+  ],
+  "DB.stock[CO-415].zone": [
+    "",
+    "D"
+  ],
+  "DB.stock[CO-415].shelf": [
+    "",
+    2
+  ],
+  "DB.stock[CO-415].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 4,
+      "max": 16,
+      "zone": "D",
+      "shelf": 2,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[CO-415].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[CO-420].min": [
+    0,
+    6
+  ],
+  "DB.stock[CO-420].max": [
+    0,
+    24
+  ],
+  "DB.stock[CO-420].zone": [
+    "",
+    "G"
+  ],
+  "DB.stock[CO-420].shelf": [
+    "",
+    3
+  ],
+  "DB.stock[CO-420].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 6,
+      "max": 24,
+      "zone": "G",
+      "shelf": 3,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[CO-420].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[EN-501].min": [
+    0,
+    20
+  ],
+  "DB.stock[EN-501].max": [
+    0,
+    80
+  ],
+  "DB.stock[EN-501].zone": [
+    "",
+    "B"
+  ],
+  "DB.stock[EN-501].shelf": [
+    "",
+    2
+  ],
+  "DB.stock[EN-501].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 20,
+      "max": 80,
+      "zone": "B",
+      "shelf": 2,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[EN-501].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[EN-505].min": [
+    0,
+    20
+  ],
+  "DB.stock[EN-505].max": [
+    0,
+    80
+  ],
+  "DB.stock[EN-505].zone": [
+    "",
+    "B"
+  ],
+  "DB.stock[EN-505].shelf": [
+    "",
+    2
+  ],
+  "DB.stock[EN-505].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 20,
+      "max": 80,
+      "zone": "B",
+      "shelf": 2,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[EN-505].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[EN-512].min": [
+    0,
+    10
+  ],
+  "DB.stock[EN-512].max": [
+    0,
+    40
+  ],
+  "DB.stock[EN-512].zone": [
+    "",
+    "B"
+  ],
+  "DB.stock[EN-512].shelf": [
+    "",
+    1
+  ],
+  "DB.stock[EN-512].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 10,
+      "max": 40,
+      "zone": "B",
+      "shelf": 1,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[EN-512].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[EN-520].min": [
+    0,
+    2
+  ],
+  "DB.stock[EN-520].max": [
+    0,
+    6
+  ],
+  "DB.stock[EN-520].zone": [
+    "",
+    "B"
+  ],
+  "DB.stock[EN-520].shelf": [
+    "",
+    4
+  ],
+  "DB.stock[EN-520].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 2,
+      "max": 6,
+      "zone": "B",
+      "shelf": 4,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[EN-520].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[EN-530].min": [
+    0,
+    1
+  ],
+  "DB.stock[EN-530].max": [
+    0,
+    4
+  ],
+  "DB.stock[EN-530].zone": [
+    "",
+    "B"
+  ],
+  "DB.stock[EN-530].shelf": [
+    "",
+    4
+  ],
+  "DB.stock[EN-530].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 1,
+      "max": 4,
+      "zone": "B",
+      "shelf": 4,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[EN-530].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[EN-540].min": [
+    0,
+    2
+  ],
+  "DB.stock[EN-540].max": [
+    0,
+    8
+  ],
+  "DB.stock[EN-540].zone": [
+    "",
+    "B"
+  ],
+  "DB.stock[EN-540].shelf": [
+    "",
+    6
+  ],
+  "DB.stock[EN-540].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 2,
+      "max": 8,
+      "zone": "B",
+      "shelf": 6,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[EN-540].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[TR-601].min": [
+    0,
+    2
+  ],
+  "DB.stock[TR-601].max": [
+    0,
+    6
+  ],
+  "DB.stock[TR-601].zone": [
+    "",
+    "E"
+  ],
+  "DB.stock[TR-601].shelf": [
+    "",
+    1
+  ],
+  "DB.stock[TR-601].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 2,
+      "max": 6,
+      "zone": "E",
+      "shelf": 1,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[TR-601].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[TR-610].min": [
+    0,
+    4
+  ],
+  "DB.stock[TR-610].max": [
+    0,
+    16
+  ],
+  "DB.stock[TR-610].zone": [
+    "",
+    "G"
+  ],
+  "DB.stock[TR-610].shelf": [
+    "",
+    2
+  ],
+  "DB.stock[TR-610].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 4,
+      "max": 16,
+      "zone": "G",
+      "shelf": 2,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[TR-610].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[TR-620].min": [
+    0,
+    3
+  ],
+  "DB.stock[TR-620].max": [
+    0,
+    10
+  ],
+  "DB.stock[TR-620].zone": [
+    "",
+    "E"
+  ],
+  "DB.stock[TR-620].shelf": [
+    "",
+    2
+  ],
+  "DB.stock[TR-620].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 3,
+      "max": 10,
+      "zone": "E",
+      "shelf": 2,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[TR-620].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[BD-701].min": [
+    0,
+    1
+  ],
+  "DB.stock[BD-701].max": [
+    0,
+    4
+  ],
+  "DB.stock[BD-701].zone": [
+    "",
+    "F"
+  ],
+  "DB.stock[BD-701].shelf": [
+    "",
+    1
+  ],
+  "DB.stock[BD-701].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 1,
+      "max": 4,
+      "zone": "F",
+      "shelf": 1,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[BD-701].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[BD-710].min": [
+    0,
+    1
+  ],
+  "DB.stock[BD-710].max": [
+    0,
+    4
+  ],
+  "DB.stock[BD-710].zone": [
+    "",
+    "F"
+  ],
+  "DB.stock[BD-710].shelf": [
+    "",
+    1
+  ],
+  "DB.stock[BD-710].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 1,
+      "max": 4,
+      "zone": "F",
+      "shelf": 1,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[BD-710].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[BD-720].min": [
+    0,
+    2
+  ],
+  "DB.stock[BD-720].max": [
+    0,
+    6
+  ],
+  "DB.stock[BD-720].zone": [
+    "",
+    "F"
+  ],
+  "DB.stock[BD-720].shelf": [
+    "",
+    2
+  ],
+  "DB.stock[BD-720].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 2,
+      "max": 6,
+      "zone": "F",
+      "shelf": 2,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[BD-720].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[OI-801].min": [
+    0,
+    10
+  ],
+  "DB.stock[OI-801].max": [
+    0,
+    40
+  ],
+  "DB.stock[OI-801].zone": [
+    "",
+    "G"
+  ],
+  "DB.stock[OI-801].shelf": [
+    "",
+    1
+  ],
+  "DB.stock[OI-801].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 10,
+      "max": 40,
+      "zone": "G",
+      "shelf": 1,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[OI-801].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[OI-805].min": [
+    0,
+    6
+  ],
+  "DB.stock[OI-805].max": [
+    0,
+    24
+  ],
+  "DB.stock[OI-805].zone": [
+    "",
+    "G"
+  ],
+  "DB.stock[OI-805].shelf": [
+    "",
+    1
+  ],
+  "DB.stock[OI-805].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 6,
+      "max": 24,
+      "zone": "G",
+      "shelf": 1,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[OI-805].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[TY-901].min": [
+    0,
+    8
+  ],
+  "DB.stock[TY-901].max": [
+    0,
+    32
+  ],
+  "DB.stock[TY-901].zone": [
+    "",
+    "H"
+  ],
+  "DB.stock[TY-901].shelf": [
+    "",
+    1
+  ],
+  "DB.stock[TY-901].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 8,
+      "max": 32,
+      "zone": "H",
+      "shelf": 1,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[TY-901].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[TY-905].min": [
+    0,
+    4
+  ],
+  "DB.stock[TY-905].max": [
+    0,
+    16
+  ],
+  "DB.stock[TY-905].zone": [
+    "",
+    "H"
+  ],
+  "DB.stock[TY-905].shelf": [
+    "",
+    1
+  ],
+  "DB.stock[TY-905].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 4,
+      "max": 16,
+      "zone": "H",
+      "shelf": 1,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[TY-905].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[TY-910].min": [
+    0,
+    8
+  ],
+  "DB.stock[TY-910].max": [
+    0,
+    30
+  ],
+  "DB.stock[TY-910].zone": [
+    "",
+    "H"
+  ],
+  "DB.stock[TY-910].shelf": [
+    "",
+    2
+  ],
+  "DB.stock[TY-910].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 8,
+      "max": 30,
+      "zone": "H",
+      "shelf": 2,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[TY-910].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[CS-950].min": [
+    0,
+    8
+  ],
+  "DB.stock[CS-950].max": [
+    0,
+    30
+  ],
+  "DB.stock[CS-950].zone": [
+    "",
+    "B"
+  ],
+  "DB.stock[CS-950].shelf": [
+    "",
+    3
+  ],
+  "DB.stock[CS-950].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 8,
+      "max": 30,
+      "zone": "B",
+      "shelf": 3,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[CS-950].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[CS-961].min": [
+    0,
+    10
+  ],
+  "DB.stock[CS-961].max": [
+    0,
+    40
+  ],
+  "DB.stock[CS-961].zone": [
+    "",
+    "B"
+  ],
+  "DB.stock[CS-961].shelf": [
+    "",
+    3
+  ],
+  "DB.stock[CS-961].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 10,
+      "max": 40,
+      "zone": "B",
+      "shelf": 3,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[CS-961].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[CS-970].min": [
+    0,
+    8
+  ],
+  "DB.stock[CS-970].max": [
+    0,
+    30
+  ],
+  "DB.stock[CS-970].zone": [
+    "",
+    "B"
+  ],
+  "DB.stock[CS-970].shelf": [
+    "",
+    3
+  ],
+  "DB.stock[CS-970].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 8,
+      "max": 30,
+      "zone": "B",
+      "shelf": 3,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[CS-970].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[MS-980].min": [
+    0,
+    30
+  ],
+  "DB.stock[MS-980].max": [
+    0,
+    150
+  ],
+  "DB.stock[MS-980].zone": [
+    "",
+    "G"
+  ],
+  "DB.stock[MS-980].shelf": [
+    "",
+    5
+  ],
+  "DB.stock[MS-980].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 30,
+      "max": 150,
+      "zone": "G",
+      "shelf": 5,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[MS-980].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[MS-985].min": [
+    0,
+    50
+  ],
+  "DB.stock[MS-985].max": [
+    0,
+    200
+  ],
+  "DB.stock[MS-985].zone": [
+    "",
+    "G"
+  ],
+  "DB.stock[MS-985].shelf": [
+    "",
+    6
+  ],
+  "DB.stock[MS-985].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 50,
+      "max": 200,
+      "zone": "G",
+      "shelf": 6,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[MS-985].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[MS-990].min": [
+    0,
+    4
+  ],
+  "DB.stock[MS-990].max": [
+    0,
+    15
+  ],
+  "DB.stock[MS-990].zone": [
+    "",
+    "G"
+  ],
+  "DB.stock[MS-990].shelf": [
+    "",
+    2
+  ],
+  "DB.stock[MS-990].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 4,
+      "max": 15,
+      "zone": "G",
+      "shelf": 2,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[MS-990].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[MS-995].min": [
+    0,
+    4
+  ],
+  "DB.stock[MS-995].max": [
+    0,
+    16
+  ],
+  "DB.stock[MS-995].zone": [
+    "",
+    "G"
+  ],
+  "DB.stock[MS-995].shelf": [
+    "",
+    2
+  ],
+  "DB.stock[MS-995].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 4,
+      "max": 16,
+      "zone": "G",
+      "shelf": 2,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[MS-995].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.stock[OT-999].zone": [
+    "",
+    "G"
+  ],
+  "DB.stock[OT-999].shelf": [
+    "",
+    9
+  ],
+  "DB.stock[OT-999].bq.@DB.branches[MA]": [
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "G",
+      "shelf": 9,
+      "loc": "",
+      "lastMove": ""
+    },
+    null
+  ],
+  "DB.stock[OT-999].bq.@DB.branches[BN]": [
+    null,
+    {
+      "qty": 0,
+      "min": 0,
+      "max": 0,
+      "zone": "",
+      "shelf": "",
+      "loc": "",
+      "lastMove": ""
+    }
+  ],
+  "DB.curBranch": [
+    "@DB.branches[BN]",
+    "@DB.branches[MA]"
+  ],
+  "DB.stockCtx": [
+    "@DB.branches[BN]",
+    "@DB.branches[MA]"
+  ]
+}

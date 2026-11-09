@@ -14,8 +14,8 @@ test('S345 ใบเคลมผู้ขาย: เลือกและล้�
 
   await page.getByRole('button', { name: 'ดูทั้งหมด' }).filter({ visible: true }).click();
   await golden.step('กดดูทั้งหมด เห็นรายการใบเคลม');
-  await page.getByRole('heading', { name: 'ใบเคลมสินค้า — ดูทั้งหมด' }).locator('xpath=ancestor::div[.//button][1]')
-    .getByRole('button', { name: '✕' }).click();
+  await page.getByRole('banner').filter({ has: page.getByRole('heading', { name: 'ใบเคลมสินค้า — ดูทั้งหมด' }) })
+    .getByRole('button', { name: 'ปิด' }).click();
   await golden.step('ปิดรายการใบเคลมทั้งหมด');
 
   const field = (label: string) => page.locator('label').filter({ hasText: label }).filter({ visible: true });
@@ -34,9 +34,9 @@ test('S345 ใบเคลมผู้ขาย: เลือกและล้�
 
   await page.getByLabel('ดึงรายการจาก').selectOption('all');
   await golden.step('ดึงรายการจากสินค้าทั้งคลัง');
-  await page.getByLabel(/^แสดง/).filter({ visible: true }).last().selectOption('25');
+  await page.getByRole('combobox').filter({ has: page.getByRole('option', { name: '25', exact: true }) }).filter({ visible: true }).selectOption('25');
   await golden.step('แสดงหน้าละ 25 รายการ');
-  await page.getByRole('columnheader', { name: /^รหัสสินค้า/ }).focus();
+  await page.getByTitle('กดเพื่อเรียงลำดับ').filter({ hasText: 'รหัสสินค้า' }).focus();
   await page.keyboard.press('Enter');
   await golden.step('กด Enter ที่หัวคอลัมน์รหัสสินค้า เรียงตามรหัส');
   const q = page.getByPlaceholder('ค้นหา รหัส / OEM / ชื่อ / แบรนด์');
@@ -46,7 +46,7 @@ test('S345 ใบเคลมผู้ขาย: เลือกและล้�
   await expect(page.getByRole('button', { name: 'อยู่ในใบเคลมแล้ว' })).toBeVisible();
   await golden.step('กด Enter เพิ่มแบตเตอรี่เข้าใบเคลม');
   await golden.screen('pick-window');
-  await page.getByRole('button', { name: /✕/ }).filter({ visible: true }).last().click();
+  await page.getByRole('heading', { name: 'หยิบรายการเข้าใบเคลม' }).locator('xpath=ancestor::div[.//button][1]').getByRole('button', { name: 'ปิด', exact: true }).first().click();
   await golden.step('กด ✕ ปิดหน้าต่างหยิบรายการ');
 
   // อ้างอิงใบเสร็จขาย: ล้างอ้างอิงใบรับสินค้าให้ และดึงทะเบียนรถ

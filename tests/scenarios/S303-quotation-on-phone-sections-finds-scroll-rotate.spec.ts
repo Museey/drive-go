@@ -47,14 +47,11 @@ test('S303 ใบเสนอราคาบนมือถือ: แตะห�
   await golden.step('แตะอีกครั้ง กางออก');
 
   // The rail: bottom, then top (smooth scrolling).
-  const sheet = page.getByText('ใบเสนอราคา / ใบอนุมัติซ่อม').filter({ visible: true }).first().locator('xpath=ancestor::div[contains(@class,"sheet")][1]');
-  const top = () => sheet.evaluate(el => el.scrollTop);
   await page.getByTitle('ลงล่างสุด').filter({ visible: true }).click();
-  await expect.poll(top).toBeGreaterThan(500);
-  await expect.poll(async () => { const a = await top(); await page.waitForTimeout(100); return a === await top(); }).toBe(true);
+  await expect(customer).not.toBeInViewport();
   await golden.step('กด ▼ ล่างสุด ที่แถบลอย');
   await page.getByTitle('ขึ้นบนสุด').filter({ visible: true }).click();
-  await expect.poll(top).toBe(0);
+  await expect(customer).toBeInViewport();
   await golden.step('กด ▲ บนสุด ที่แถบลอย');
 
   // Turn the phone sideways and back.

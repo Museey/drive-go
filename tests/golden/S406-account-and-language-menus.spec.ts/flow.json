@@ -1,0 +1,84 @@
+[
+  {
+    "step": "หน้าแรก",
+    "page": [
+      "00 Mr.DriveGo 0"
+    ],
+    "popups": [],
+    "messages": [
+      "ยินดีต้อนรับ เจ้าของร้านทดสอบ — เจ้าของร้าน ร้านทดสอบ DriveGoBiz"
+    ]
+  },
+  {
+    "step": "เปิดเมนูบัญชี",
+    "page": [
+      "00 Mr.DriveGo 0"
+    ],
+    "popups": [],
+    "messages": []
+  },
+  {
+    "step": "กด Esc ปิดเมนูบัญชี",
+    "page": [
+      "00 Mr.DriveGo 0"
+    ],
+    "popups": [],
+    "messages": []
+  },
+  {
+    "step": "เปิดเมนูภาษา",
+    "page": [
+      "00 Mr.DriveGo 0"
+    ],
+    "popups": [],
+    "messages": []
+  },
+  {
+    "step": "กด Esc ปิดเมนูภาษา",
+    "page": [
+      "00 Mr.DriveGo 0"
+    ],
+    "popups": [],
+    "messages": []
+  },
+  {
+    "step": "กดลูกศรลงที่ธง เปิดเมนูภาษา",
+    "page": [
+      "00 Mr.DriveGo 0"
+    ],
+    "popups": [],
+    "messages": []
+  },
+  {
+    "step": "เลือก English",
+    "page": [
+      "00 Mr.DriveGo 0"
+    ],
+    "popups": [],
+    "messages": []
+  },
+  {
+    "step": "กลับเป็นภาษาไทย",
+    "page": [
+      "00 Mr.DriveGo 0"
+    ],
+    "popups": [],
+    "messages": []
+  },
+  {
+    "step": "ย่อหน้าจอเป็นขนาดมือถือ",
+    "page": [
+      "00 Mr.DriveGo 0"
+    ],
+    "popups": [],
+    "messages": []
+  },
+  {
+    "step": "ขยายหน้าจอกลับ",
+    "page": [
+      "00 Mr.DriveGo 0"
+    ],
+    "popups": [],
+    "messages": []
+  }
+]

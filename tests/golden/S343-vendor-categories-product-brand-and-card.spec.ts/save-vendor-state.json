@@ -1,0 +1,59 @@
+{
+  "DB.vendors": {
+    "added": [
+      {
+        "id": "@DB.vendors[V00009]",
+        "type": "person",
+        "name": "นายสมศักดิ์ ไดนาโม",
+        "tax": "",
+        "days": 0,
+        "contact": "",
+        "tel": "081-555-2020",
+        "tel2": "",
+        "cash": true,
+        "bankName": "",
+        "bankNo": "",
+        "bankAcc": "",
+        "bank": "",
+        "note": "",
+        "cats": [
+          "อะไหล่ไฟฟ้า"
+        ],
+        "addr": {
+          "no": "",
+          "village": "",
+          "moo": "",
+          "soi": "",
+          "road": "",
+          "sub": "",
+          "dist": "",
+          "prov": "กรุงเทพมหานคร",
+          "zip": ""
+        },
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]",
+        "code": "V00009"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[นายสมศักดิ์ ไดนาโม]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "vendor",
+        "docId": "@DB.vendors[V00009]",
+        "no": "นายสมศักดิ์ ไดนาโม",
+        "act": "save",
+        "note": "เพิ่มผู้ขายใหม่"
+      }
+    ]
+  }
+}

@@ -1,7 +1,7 @@
 import { test, expect } from '../support/test';
 
 // 08 · ทะเบียนสินทรัพย์, เงินลงทุน / เงินสด and สุขภาพการเงิน: no scenario opened a saved asset or capital entry to look
-// at it, added or removed a line in the asset window, changed its VAT, printed the asset register or the health report,
+// at it, added or removed a line in the asset window, changed its VAT, printed the asset register ("PDF": its own button is hidden) or the health report,
 // or used the health page's shortcut "บันทึกเงินลงทุน / เงินสด".
 test('S381 ทะเบียนสินทรัพย์ เงินลงทุน และสุขภาพการเงิน: เปิดดูรายการเดิม เพิ่ม/ลบบรรทัด เปลี่ยน VAT แล้วปิด พิมพ์ทะเบียนทรัพย์สินและรายงานสุขภาพการเงิน', async ({ app, page, golden }) => {
   test.slow();
@@ -62,10 +62,13 @@ test('S381 ทะเบียนสินทรัพย์ เงินลง�
   await golden.step('ปิดหน้าต่างสินทรัพย์โดยไม่บันทึก');
   await golden.stateChange('close-asset', before);
 
-  await page.getByRole('button', { name: 'พิมพ์ทะเบียนทรัพย์สิน' }).click();
+  // "PDF" prints the asset register (the old "พิมพ์ทะเบียนทรัพย์สิน" button is hidden and leads here).
+  before = await app.state();
+  await page.getByRole('button', { name: /^PDF/ }).filter({ visible: true }).first().click();
   await expect(sheet).toContainText('ทะเบียนทรัพย์สินและค่าเสื่อมราคา');
   await expect(sheet).toContainText('MA-FA260400001');
-  await golden.step('พิมพ์ทะเบียนทรัพย์สิน');
+  await golden.step('กด PDF พิมพ์ทะเบียนทรัพย์สิน');
+  await golden.stateChange('print-register', before);
   await page.emulateMedia({ media: 'print' });
   await page.evaluate(() => window.scrollTo(0, 0));
   await golden.screen('asset-register-printed');

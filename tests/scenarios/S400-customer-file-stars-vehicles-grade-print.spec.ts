@@ -80,7 +80,7 @@ test('S400 ค้นหาลูกค้า แก้ไขดาวและ�
   await page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).last().click();
 
   // The customer list report (the register's PDF button), with the search still on.
-  await page.getByRole('button', { name: 'รายชื่อลูกค้า', exact: true }).click();
+  await page.getByRole('button', { name: '└ รายชื่อลูกค้า', exact: true }).click();
   await page.getByRole('group', { name: 'ส่งออกรายการ' }).filter({ visible: true }).getByRole('button', { name: 'PDF' }).click();
   await golden.step('กด PDF ของรายชื่อลูกค้า');
   await page.emulateMedia({ media: 'print' });
@@ -93,7 +93,7 @@ test('S400 ค้นหาลูกค้า แก้ไขดาวและ�
   await page.getByRole('button', { name: 'พิมพ์ฟอร์มเปล่ารับรถ' }).click();
   await expect(page.getByRole('checkbox', { name: /ใบรับรถ/ })).toBeChecked();
   await golden.step('หน้าต่างพิมพ์แบบฟอร์มเปล่า เลือกใบรับรถไว้แล้ว');
-  await page.locator('#mForm').getByRole('button', { name: 'ปิด', exact: true }).click();
+  await page.locator('#mForm').getByRole('contentinfo').getByRole('button', { name: 'ปิด', exact: true }).click();
   await expect(page.locator('#mForm')).toBeHidden();
   await golden.step('ปิดหน้าต่างพิมพ์แบบฟอร์มเปล่า');
 });

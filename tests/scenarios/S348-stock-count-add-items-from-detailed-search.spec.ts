@@ -20,7 +20,7 @@ test('S348 ใบตรวจนับสินค้า: เพิ่มรา�
   await kw.pressSequentially('SU-350');
   await page.getByRole('row').filter({ hasText: 'SU-350' }).filter({ visible: true }).getByRole('button', { name: '+ เพิ่ม' }).click();
   await golden.step('กด + เพิ่ม ผ้าเบรกหน้า BR-001 และลูกหมาก SU-350');
-  await page.getByRole('heading', { name: 'ค้นหาสินค้าละเอียด' }).locator('xpath=ancestor::div[.//button][1]').getByRole('button', { name: /✕/ }).click();
+  await page.getByRole('heading', { name: 'ค้นหาสินค้าละเอียด' }).locator('xpath=ancestor::div[.//button][1]').getByRole('button', { name: 'ปิด', exact: true }).first().click();
   await expect(page.getByRole('row').filter({ hasText: 'SU-350' }).filter({ visible: true })).toBeVisible();
   await golden.step('ปิดหน้าต่าง ใบตรวจนับมี 2 รายการ');
   await golden.screen('count-lines');

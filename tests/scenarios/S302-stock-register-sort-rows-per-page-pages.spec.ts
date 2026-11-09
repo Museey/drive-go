@@ -11,7 +11,7 @@ test('S302 ทะเบียนอะไหล่: เปลี่ยนหน�
   await golden.step('ทะเบียนอะไหล่ หน้า 1');
 
   const table = page.getByRole('table').filter({ has: page.getByRole('cell', { name: /ชื่อสินค้า/ }) }).filter({ visible: true }).first();
-  const firstCodes = async () => (await table.getByRole('row').allInnerTexts()).slice(1, 4).map(t => t.trim().split(/\s+/)[0]);
+  const firstCodes = async () => (await table.getByRole('row').allInnerTexts()).slice(1, 4).map(t => (t.match(/\b[A-Z]{2,3}-\d{3}\b/) || [t])[0]);
   const pager = page.locator('.pgbar').filter({ visible: true }).first();
   const firstPage = await firstCodes();
 

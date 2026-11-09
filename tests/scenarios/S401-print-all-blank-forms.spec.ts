@@ -28,8 +28,11 @@ test('S401 พิมพ์แบบฟอร์มเปล่าทั้ง 5 
 
   await page.emulateMedia({ media: 'print' });
   const stage = page.locator('#printStage');
-  for (const title of ['ใบรับรถเข้าซ่อม', 'ใบเสนอราคา', 'ใบเสร็จรับเงิน', 'ใบรับสินค้า', 'ใบตรวจนับสต๊อก'])
-    await expect(stage.getByText(title).first()).toBeAttached();
+  // Two copies of each blank form, the count sheet once (with today's items).
+  for (const title of ['VEHICLE INTAKE FORM', 'QUOTATION / REPAIR ORDER', 'GOODS RECEIVED NOTE'])
+    await expect(stage.getByText(title, { exact: true })).toHaveCount(2);
+  await expect(stage.getByText(/^(RECEIPT \/ TAX INVOICE|OFFICIAL RECEIPT)$/)).toHaveCount(2);
+  await expect(stage.getByText('STOCK COUNT SHEET', { exact: true }).first()).toBeAttached();
   await page.evaluate(() => window.scrollTo(0, 0));
   await golden.screen('blank-forms-printed');
   await page.emulateMedia({ media: 'screen' });

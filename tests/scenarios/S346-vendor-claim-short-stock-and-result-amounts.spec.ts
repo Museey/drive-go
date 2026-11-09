@@ -43,12 +43,12 @@ test('S346 อนุมัติใบเคลมผู้ขายที่เ
   await save();
   await expect(page.getByRole('button', { name: 'ยืนยันผลการเคลม' })).toBeVisible();
   await golden.step('หน้าบันทึกผลการเคลม');
-  await page.getByRole('heading', { name: 'บันทึกผลการเคลม' }).locator('xpath=ancestor::div[.//button][1]').getByRole('button', { name: /✕/ }).click();
+  await page.getByRole('heading', { name: 'บันทึกผลการเคลม' }).locator('xpath=ancestor::div[.//button][1]').getByRole('button', { name: 'ปิด', exact: true }).first().click();
   await expect(page.getByRole('button', { name: 'ยืนยันผลการเคลม' })).toBeHidden();
   await golden.step('กด ✕ ปิดไปก่อน');
   await save();
   await expect(page.getByRole('button', { name: 'ยืนยันผลการเคลม' })).toBeVisible();
-  await page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).last().click();
+  await page.getByRole('heading', { name: 'บันทึกผลการเคลม' }).locator('xpath=ancestor::div[.//button][1]').getByRole('button', { name: 'ปิด', exact: true }).last().click();
   await expect(page.getByRole('button', { name: 'ยืนยันผลการเคลม' })).toBeHidden();
   await golden.step('บันทึกอีกครั้ง หน้าบันทึกผลเปิดใหม่ แล้วกดปิด');
   await save();

@@ -1,0 +1,84 @@
+{
+  "DB.stock[BR-025].brand": [
+    null,
+    ""
+  ],
+  "DB.stock[BR-025].stale": [
+    null,
+    0
+  ],
+  "DB.stock[BR-025].warrNote": [
+    null,
+    ""
+  ],
+  "DB.stock[BR-025].createdBy": [
+    null,
+    ""
+  ],
+  "DB.stock[BR-025].createdByName": [
+    null,
+    "เจ้าของกิจการ / ผู้ดูแลระบบ"
+  ],
+  "DB.stock[BR-025].createdAt": [
+    null,
+    "2026-10-13T02:00:00.000Z"
+  ],
+  "DB.stock[BR-025].updatedBy": [
+    null,
+    ""
+  ],
+  "DB.stock[BR-025].updatedByName": [
+    null,
+    "เจ้าของกิจการ / ผู้ดูแลระบบ"
+  ],
+  "DB.stock[BR-025].updatedAt": [
+    null,
+    "2026-10-13T02:00:00.000Z"
+  ],
+  "DB.stock[BR-025].br": [
+    null,
+    "@DB.branches[MA]"
+  ],
+  "DB.stock[BR-025].expTrack": [
+    null,
+    true
+  ],
+  "DB.stock[BR-025].expMonths": [
+    null,
+    24
+  ],
+  "DB.stock[BR-025].expWarn": [
+    null,
+    90
+  ],
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[BR-025]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "stock",
+        "docId": "@DB.stock[BR-025]",
+        "no": "BR-025",
+        "act": "save",
+        "note": "แก้ไข น้ำมันเบรก DOT4 (1 ลิตร)"
+      },
+      {
+        "id": "@DB.audit[BR-025#51]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "stock",
+        "docId": "@DB.stock[BR-025]",
+        "no": "BR-025",
+        "act": "save",
+        "note": "วันหมดอายุ: เปิดติดตามวันหมดอายุ · อายุสินค้า - → 24 เดือน"
+      }
+    ]
+  },
+  "DB.partBrands": [
+    null,
+    []
+  ]
+}

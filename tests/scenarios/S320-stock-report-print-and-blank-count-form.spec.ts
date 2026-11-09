@@ -44,7 +44,7 @@ test('S320 พิมพ์ใบตรวจนับเปล่า เลื�
   }
   await page.getByRole('combobox', { name: 'ทิศทางการเรียง' }).selectOption({ label: 'จากน้อยไปหามาก' });
   await golden.step('เรียงตามพื้นที่จัดเก็บ จากน้อยไปหามาก');
-  await page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).click();
+  await page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).last().click();
   await golden.step('ปิดหน้าต่างรายงาน');
 
   // Again, sorted by value, grouped by category, printed.

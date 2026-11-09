@@ -4,7 +4,7 @@ import { test, expect } from '../support/test';
 // The report of documents waiting for approval (the bell at the top): no scenario opened it on the original, filtered
 // it by kind with its cards, or opened a document from it (its number or "เปิดเอกสาร").
 const report = (page: Page) => page.locator('div.sheet').filter({ has: page.getByRole('heading', { name: 'รายงานเอกสารรอการอนุมัติ' }) });
-const openReport = (page: Page) => page.getByRole('button', { name: /^มีเอกสารรอการอนุมัติ 2 ใบ/ }).click();
+const openReport = (page: Page) => page.getByTitle('มีเอกสารรอการอนุมัติ 2 ใบ — กดเพื่อดูรายงาน').click();
 
 test('S386 รายงานเอกสารรอการอนุมัติจากกระดิ่ง: กรองตามประเภท เปิดใบเสนอราคาจากเลขที่ และเปิดใบแจ้งหนี้จากปุ่มเปิดเอกสาร', async ({ app, page, golden }) => {
   test.slow();

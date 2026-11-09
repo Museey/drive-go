@@ -79,7 +79,7 @@ test('S382 รายงานภาษี: ซื้อเครื่องม�
   await expect(sheet).toContainText('รายงานภาษีขาย');
   await expect(sheet).toContainText('รายงานภาษีซื้อ');
   await expect(sheet).toContainText('สรุปภาษีที่ต้องนำส่ง');
-  await expect(sheet.getByRole('row').filter({ hasText: 'TT-6910-0101' })).toHaveCount(11);
+  await expect(sheet.locator('tr').filter({ hasText: 'TT-6910-0101' })).toHaveCount(11);
   await golden.step('พิมพ์รายงานภาษีทั้งชุด (ครบทุกฉบับ)');
   await golden.stateChange('print-tax', before);
   await expect(sale).toContainText('หน้า 1/2');

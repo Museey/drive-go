@@ -1,0 +1,22 @@
+{
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[Denso]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "stock",
+        "docId": "",
+        "no": "Denso",
+        "act": "save",
+        "note": "เพิ่มแบรนด์สินค้า “Denso”"
+      }
+    ]
+  },
+  "DB.partBrands": {
+    "added": [
+      "Denso"
+    ]
+  }
+}

@@ -24,7 +24,8 @@ test('S322 ติดตามวันหมดอายุ: ตั้งที�
   await golden.step('บันทึกสินค้า');
   await golden.stateChange('track-expiry', before);
 
-  // The lot window from the product form.
+  // The lot window from the product form (opened again: saving closes it).
+  await page.getByText('BR-025', { exact: true }).click();
   await page.getByRole('button', { name: 'ดูล็อต / วันหมดอายุ' }).click();
   await expect(lots.getByText('MA-RC261000001-23')).toBeVisible();
   await golden.step('หน้าต่างแสดงล็อตของ BR-025');

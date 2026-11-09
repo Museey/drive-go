@@ -22,38 +22,40 @@ test('S301 หน้าแรก: กระดิ่งเอกสารรอ�
   await numberHeader.click();
   expect(await order()).toEqual(['MA-QT261000002', 'MA-IV261000001']);
   await golden.step('กดอีกครั้ง เรียงมากไปน้อย');
-  await golden.screen('approval-list-sorted-desc');
   await numberHeader.click();
   expect(await order()).toEqual(['MA-QT261000002', 'MA-IV261000001']);
   await golden.step('กดครั้งที่สาม กลับไปเรียงแบบแนะนำ');
-  await page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).click();
+  await page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).first().click();
   await expect(list).toBeHidden();
   await golden.step('ปิดรายงานด้วยปุ่ม ✕');
 
   // ---- a goods receipt of this month, from the home page table
-  await page.getByRole('row').filter({ hasText: 'MA-RC261000001' }).filter({ visible: true }).click();
+  const panel = (title: string) => page.locator('div.panel').filter({ has: page.getByRole('heading', { name: title, exact: true }) });
+  await panel('ยอดซื้อสินค้า / เจ้าหนี้ประจำงวด').getByRole('row').filter({ hasText: 'MA-RC261000001' }).click();
+  await expect(page.getByText('ใบรับสินค้า MA-RC261000001').filter({ visible: true }).first()).toBeVisible();
   await golden.step('กดแถว MA-RC261000001 ในตารางซื้อสินค้าเดือนนี้');
-  await golden.screen('goods-receipt-from-home');
-  await page.keyboard.press('Escape');
-  await page.getByRole('button', { name: /ปิด/ }).filter({ visible: true }).last().click();
+  await page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).first().click();
   await golden.step('ปิดใบรับสินค้า');
 
   // ---- a slow-moving item, from the home page table
-  await page.getByRole('row').filter({ hasText: 'CO-415' }).filter({ visible: true }).first().click();
-  await golden.step('กดแถว CO-415 ในตารางสินค้าไม่เคลื่อนไหว เปิดบัตรสินค้า');
-  await page.getByRole('button', { name: /ปิด/ }).filter({ visible: true }).last().click();
+  await panel('Dead stock — ไม่เคลื่อนไหวเกินกำหนด').getByRole('row').filter({ hasText: 'CO-415' }).click();
+  await golden.step('กดแถว CO-415 ในตาราง Dead stock เปิดบัตรสินค้า');
+  await golden.screen('stock-card-from-home');
+  await page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).first().click();
   await golden.step('ปิดบัตรสินค้า');
 
   // ---- blank forms
   await page.getByRole('button', { name: 'พิมพ์แบบฟอร์มเปล่า' }).click();
   await golden.step('กดพิมพ์แบบฟอร์มเปล่า');
-  await page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).click();
+  await page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).first().click();
   await golden.step('ปิดหน้าต่างแบบฟอร์มเปล่า');
 
   // ---- fold the side menu and open it again
-  await page.getByTitle('พับ/กางเมนู').click();
+  await page.getByTitle('พับเมนู', { exact: true }).click();
+  await expect(page.getByTitle('เปิดเมนูกลับ', { exact: true })).toBeVisible();
   await golden.step('กดพับเมนูข้าง');
   await golden.screen('side-menu-folded');
-  await page.getByTitle('พับ/กางเมนู').click();
-  await golden.step('กดกางเมนูข้างอีกครั้ง');
+  await page.getByTitle('เปิดเมนูกลับ', { exact: true }).click();
+  await expect(page.getByTitle('พับเมนู', { exact: true })).toBeVisible();
+  await golden.step('กดเปิดเมนูข้างกลับ');
 });

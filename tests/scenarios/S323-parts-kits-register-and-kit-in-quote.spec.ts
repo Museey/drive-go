@@ -62,7 +62,7 @@ test('S323 ชุดอะไหล่ซ่อมบำรุง: สร้า�
   await golden.step('ค้นหา กรองแอร์ กดค้นหาข้อมูล');
   await search.fill('');
   await search.press('Enter');
-  await page.getByRole('combobox', { name: 'สถานะ' }).filter({ visible: true }).selectOption({ label: 'ยังไม่ตั้งราคา' });
+  await page.getByRole('combobox', { name: 'สถานะ' }).filter({ visible: true }).selectOption({ label: 'ยังไม่ตั้งราคาขาย' });
   await golden.step('สถานะ: ยังไม่ตั้งราคา');
   await page.getByRole('combobox', { name: 'สถานะ' }).filter({ visible: true }).selectOption({ label: 'ทั้งหมด' });
   await page.getByRole('row').filter({ hasText: 'ชุดเปลี่ยนกรองแอร์' }).getByRole('button', { name: 'เปิด / แก้ไข' }).click();

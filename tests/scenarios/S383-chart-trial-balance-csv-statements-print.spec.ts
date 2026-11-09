@@ -6,7 +6,7 @@ import { test, expect } from '../support/test';
 // printed the trial balance, or opened and printed the financial statements.
 async function csvOf(page: Page, button: string) {
   const download = page.waitForEvent('download');
-  await page.getByRole('button', { name: button }).click();
+  await page.getByRole('button', { name: button, exact: true }).click();
   const file = await download;
   return { name: file.suggestedFilename(), text: readFileSync(await file.path(), 'utf8') };
 }

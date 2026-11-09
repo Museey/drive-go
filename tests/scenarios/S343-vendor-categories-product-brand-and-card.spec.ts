@@ -55,7 +55,7 @@ test('S343 เพิ่มผู้ขายเงินสดที่ขาย
   await app.settle();
   await golden.step('เพิ่มแบรนด์ Denso ด้วย Enter');
   await golden.stateChange('add-brand-enter', before);
-  await page.getByRole('combobox', { name: 'แบรนด์สินค้า', exact: true }).filter({ visible: true }).selectOption('Bosch');
+  await page.getByLabel('แบรนด์สินค้า', { exact: true }).filter({ visible: true }).selectOption('Bosch');
   await golden.step('เลือกแบรนด์ Bosch');
   before = await app.state();
   await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).first().click();
@@ -68,7 +68,7 @@ test('S343 เพิ่มผู้ขายเงินสดที่ขาย
   await expect(page.getByText(/นายสมศักดิ์ ไดนาโม/).filter({ visible: true })).toBeVisible();
   await golden.step('บัตรสินค้า EL-101 บอกผู้ขายหมวดอะไหล่ไฟฟ้า');
   await golden.screen('stock-card');
-  await page.getByRole('row').filter({ hasText: 'MA-RC261000001' }).filter({ visible: true }).first().click();
+  await page.getByRole('row').filter({ hasText: 'MA-RC261000001' }).filter({ hasText: 'บริษัท อะไหล่ยนต์รุ่งเรือง จำกัด' }).filter({ visible: true }).click();
   await golden.step('กดบิลซื้อ MA-RC261000001 ในประวัติ เปิดรายละเอียดบิล');
   await page.getByRole('heading', { name: /^ใบรับสินค้า MA-RC261000001/ }).locator('xpath=ancestor::div[.//button][1]')
     .getByRole('button', { name: 'ปิด', exact: true }).click();

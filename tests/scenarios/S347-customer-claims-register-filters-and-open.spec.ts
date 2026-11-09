@@ -25,10 +25,9 @@ test('S347 ทะเบียนเคลมสินค้าลูกค้า
   await expect(row).toBeVisible();
   await golden.step('ทะเบียนมีใบ MA-CC261000001');
 
-  const panel = page.locator('label').filter({ hasText: 'เลือกช่วงวันที่' }).filter({ visible: true });
-  await panel.getByRole('combobox').selectOption({ label: 'วันปัจจุบัน' });
+  await page.getByRole('combobox', { name: /ช่วงวันที่/ }).filter({ visible: true }).selectOption({ label: 'วันปัจจุบัน' });
   await golden.step('เลือกช่วงวันที่วันปัจจุบัน');
-  await page.locator('label').filter({ hasText: /^แสดง/ }).filter({ visible: true }).getByRole('combobox').selectOption({ label: '100 รายการ' });
+  await page.getByRole('combobox').filter({ has: page.getByRole('option', { name: '100 รายการ' }) }).filter({ visible: true }).selectOption({ label: '100 รายการ' });
   await golden.step('แสดง 100 รายการ');
   const search = page.getByPlaceholder(/^ค้นหา เลขที่/).filter({ visible: true });
   await search.fill('ไม่มีใบนี้');

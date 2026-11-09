@@ -8,6 +8,9 @@ test('S402 แก้ไขสิทธิพนักงานด้วยชุ
   await app.loginAsOwner();
   await page.getByRole('button', { name: '09 งานบุคคล' }).click();
   await golden.step('ข้อมูลพนักงาน');
+  await page.getByPlaceholder('ค้นหา รหัส / ชื่อ / ตำแหน่ง').fill('ช่าง');
+  await page.getByRole('button', { name: 'ค้นหาข้อมูล' }).filter({ visible: true }).click();
+  await golden.step('ค้นหาพนักงานตำแหน่งช่าง');
 
   await page.getByRole('row').filter({ hasText: 'EMP003' }).getByRole('button', { name: 'แก้ไข / สิทธิ' }).click();
   const form = page.locator('#mEmp');
@@ -59,7 +62,7 @@ test('S402 แก้ไขสิทธิพนักงานด้วยชุ
   const summary = page.locator('#mPermSummary');
   await expect(summary.getByRole('heading', { name: 'สรุปสิทธิ์การใช้งานทุกคน' })).toBeVisible();
   await golden.step('สรุปสิทธิ์การใช้งานทุกคน');
-  await summary.getByRole('button', { name: 'ปิด', exact: true }).click();
+  await summary.getByRole('banner').getByRole('button', { name: 'ปิด', exact: true }).click();
   await expect(summary).toBeHidden();
   await golden.step('ปิดสรุปสิทธิ์');
 });

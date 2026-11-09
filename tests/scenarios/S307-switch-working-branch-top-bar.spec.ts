@@ -19,15 +19,15 @@ test('S307 เพิ่มสาขาบางนาแล้วเปลี่
   await golden.step('เพิ่มสาขา BN สาขาบางนา ช่องสาขาบนแถบบนเลือกได้');
 
   await page.getByText('สต๊อกอะไหล่', { exact: true }).click();
-  const brake = page.getByRole('row').filter({ hasText: 'BR-001' }).filter({ visible: true }).first();
-  await expect(brake).toBeVisible();
+  const register = page.getByRole('table').filter({ has: page.getByRole('cell', { name: /ชื่อสินค้า/ }) }).filter({ visible: true }).first();
+  await expect(register.getByRole('row').nth(1)).toBeVisible();
   await golden.step('ทะเบียนอะไหล่ของสาขาหลัก');
-  const mainRow = await brake.innerText();
+  const mainRows = await register.innerText();
 
   let before = await app.state();
   await workingBranch(page).selectOption({ label: 'BN · สาขาบางนา' });
   await expect(workingBranch(page).locator('option:checked')).toHaveText('BN · สาขาบางนา');
-  await expect(brake).not.toHaveText(mainRow);
+  expect(await register.innerText()).not.toEqual(mainRows);
   await app.settle();
   await golden.step('เปลี่ยนสาขาที่กำลังทำงานเป็น BN สาขาบางนา');
   await golden.stateChange('to-bangna', before);
@@ -35,7 +35,7 @@ test('S307 เพิ่มสาขาบางนาแล้วเปลี่
 
   before = await app.state();
   await workingBranch(page).selectOption({ label: 'MA · สาขาหลัก' });
-  await expect(brake).toHaveText(mainRow);
+  await expect.poll(() => register.innerText()).toEqual(mainRows);
   await app.settle();
   await golden.step('เปลี่ยนกลับเป็นสาขาหลัก');
   await golden.stateChange('back-to-main', before);

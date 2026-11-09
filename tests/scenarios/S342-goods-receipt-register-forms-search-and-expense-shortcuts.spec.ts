@@ -28,15 +28,16 @@ test('S342 ทะเบียนใบรับสินค้า: ฟอร์�
   await golden.step('ล้างคำค้นแล้วกดค้นหาข้อมูล');
 
   await page.getByRole('button', { name: '+ สร้างใบรับสินค้าใหม่' }).click();
-  await page.getByRole('button', { name: 'พิมพ์ฟอร์มเปล่า' }).filter({ visible: true }).click();
+  await page.getByRole('button', { name: 'พิมพ์ฟอร์มเปล่า' }).filter({ visible: true }).last().click();
   await golden.step('พิมพ์ฟอร์มเปล่าจากหน้าต่างใบรับสินค้า');
   await closeTop();
-  await page.getByRole('button', { name: 'ดูทั้งหมด' }).filter({ visible: true }).click();
+  await page.getByRole('button', { name: 'ดูทั้งหมด' }).filter({ visible: true }).last().click();
   await golden.step('ดูใบรับสินค้าทั้งหมด');
-  await closeTop();
+  await page.getByRole('banner').filter({ has: page.getByRole('heading', { name: /ดูทั้งหมด$/ }) })
+    .getByRole('button', { name: 'ปิด' }).click();
   await page.getByPlaceholder('ค้นหา เลขที่ / ผู้ขาย / ยอดเงิน').filter({ visible: true }).click();
   await page.keyboard.type('MA-RC261000001');
-  await page.getByText(/^MA-RC261000001/).filter({ visible: true }).first().click();
+  await page.getByText('MA-RC261000001 · 01/10/2569', { exact: true }).click();
   await expect(page.getByRole('button', { name: 'พิมพ์ใบรับสินค้า' })).toBeVisible();
   await golden.step('เปิดใบรับสินค้า MA-RC261000001 จากช่องค้นหาในหน้าต่าง');
   await page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).first().click();

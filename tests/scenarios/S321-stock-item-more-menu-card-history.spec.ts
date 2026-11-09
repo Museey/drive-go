@@ -28,7 +28,7 @@ test('S321 รายละเอียดสินค้า: เพิ่มเ�
   await golden.step('ตั้งแต่ 14/10/2569 ไม่พบประวัติ');
   await page.getByLabel('ตั้งแต่').filter({ visible: true }).fill('');
   await page.getByRole('button', { name: 'ค้นหาข้อมูล' }).filter({ visible: true }).last().click();
-  await page.getByRole('row').filter({ hasText: 'MA-RC261000001' }).filter({ visible: true }).first().click();
+  await page.getByRole('row', { name: /^MA-RC261000001 บริษัท อะไหล่ยนต์รุ่งเรือง/ }).filter({ visible: true }).click();
   await golden.step('กดแถว MA-RC261000001 เปิดใบรับสินค้า');
   await close();
   await golden.step('ปิดใบรับสินค้า');
@@ -51,10 +51,10 @@ test('S321 รายละเอียดสินค้า: เพิ่มเ�
 
   // Product card: warranty, goods received row opens the bill.
   await page.getByRole('button', { name: 'บัตรสินค้า' }).click();
-  await expect(page.getByText('รับประกันจากผู้ผลิต')).toBeVisible();
+  await expect(page.locator('#mCard').getByText('รับประกันจากผู้ผลิต')).toBeVisible();
   await golden.step('บัตรสินค้า EL-101');
   await golden.screen('stock-card');
-  await page.locator('#mCardBody').getByRole('row').filter({ hasText: 'MA-RC261000001' }).click();
+  await page.getByRole('row', { name: /^MA-RC261000001 บริษัท อะไหล่ยนต์รุ่งเรือง/ }).filter({ visible: true }).click();
   await golden.step('กดแถว MA-RC261000001 ในบัตรสินค้า');
   await close();
   await close();

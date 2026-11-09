@@ -30,12 +30,19 @@ test('S385 รายจ่าย / ซื้อสินค้า: บันท�
   await expect(picker.getByRole('checkbox')).toBeHidden();
   await golden.step('ค้นหาสาขาที่ไม่มี');
   await picker.getByPlaceholder('ค้นหาสาขา').fill('');
-  await picker.getByRole('checkbox').first().uncheck();
-  await expect(page.getByText('รวม 0 รายการ').filter({ visible: true })).toBeVisible();
-  await golden.step('เอาสาขาหลักออก ไม่มีรายการ');
+  // No branch ticked means every branch: tick the main branch, untick it, then "เลือกทั้งหมด".
+  const main = picker.getByRole('checkbox', { name: 'สาขาหลัก MA' });
+  await expect(main).not.toBeChecked();
+  await main.check();
+  await expect(picker.locator('summary')).toHaveText('สาขาหลัก');
+  await expect(page.getByRole('row', { name: /^รวม 2 รายการ/ }).filter({ visible: true })).toBeVisible();
+  await golden.step('ติ๊กสาขาหลัก');
+  await main.uncheck();
+  await expect(picker.locator('summary')).toHaveText('เลือกทั้งหมด');
+  await golden.step('เอาติ๊กสาขาหลักออก');
   await picker.getByRole('button', { name: 'เลือกทั้งหมด' }).click();
-  await expect(page.getByText('รวม 2 รายการ').filter({ visible: true })).toBeVisible();
-  await golden.step('เลือกทั้งหมด กลับมา 2 รายการ');
+  await expect(main).toBeChecked();
+  await golden.step('กดเลือกทั้งหมด');
 
   // 4 · จ่ายเงินเดือน: the payroll sheet printed, the month recorded, its entry opened from the history.
   await page.getByRole('button', { name: '4 · จ่ายเงินเดือน' }).click();

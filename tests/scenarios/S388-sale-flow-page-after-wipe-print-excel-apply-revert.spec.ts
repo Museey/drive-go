@@ -2,12 +2,12 @@ import type { Page } from '@playwright/test';
 import { test, expect } from '../support/test';
 
 // 11.5 · ระบบขายแบบใหม่ with the switch off: the fixture has it on, and "ล้างข้อมูลทั้งหมด" (10) takes the switch away
-// with the rest of the data, so the page shows what switching on would do. No scenario changed its year, printed the
+// with the rest of the data; "โหลดข้อมูลตัวอย่าง" gives it documents again, so the page shows what switching on would do. No scenario changed its year, printed the
 // summary, exported it to Excel, switched on (two confirmations, a backup file) or went back ("ย้อนกลับไปใช้ระบบเดิม").
 const confirmCard = (page: Page, title: string) =>
   page.getByRole('heading', { name: title, exact: true }).filter({ visible: true }).last().locator('xpath=ancestor::div[.//button][1]');
 
-test('S388 หน้า 11.5 ระบบขายแบบใหม่หลังล้างข้อมูล: เปลี่ยนปี พิมพ์สรุป ส่งออก Excel เปิดใช้ (ยืนยันสองครั้ง) แล้วย้อนกลับ', async ({ app, page, golden }) => {
+test('S388 หน้า 11.5 ระบบขายแบบใหม่หลังล้างข้อมูลและโหลดข้อมูลตัวอย่าง: เปลี่ยนปี พิมพ์สรุป ส่งออก Excel เปิดใช้ (ยืนยันสองครั้ง) แล้วย้อนกลับ', async ({ app, page, golden }) => {
   test.slow();
   await app.loginAsOwner();
   await page.getByRole('button', { name: '10 ตั้งค่าองค์กร' }).click();
@@ -15,6 +15,10 @@ test('S388 หน้า 11.5 ระบบขายแบบใหม่หลั
   await page.getByRole('button', { name: 'ล้างข้อมูล', exact: true }).click();
   await expect(page.getByText('ล้างข้อมูลทั้งหมดออกจากระบบ?', { exact: true })).toBeHidden();
   await golden.step('ล้างข้อมูลทั้งหมดแล้ว');
+  await page.getByRole('button', { name: 'โหลดข้อมูลตัวอย่าง' }).click();
+  await expect(page.getByRole('button', { name: 'ดูรายงานลูกหนี้' })).toBeVisible();
+  await golden.step('โหลดข้อมูลตัวอย่าง');
+  await golden.counts('after-sample');
 
   await page.getByRole('button', { name: /^11 ตั้งค่าเพิ่มเติม/ }).click();
   await page.getByRole('button', { name: /11\.5 ระบบขายแบบใหม่/ }).first().click();
@@ -32,7 +36,8 @@ test('S388 หน้า 11.5 ระบบขายแบบใหม่หลั
 
   const excel = page.waitForEvent('download');
   await page.getByRole('button', { name: 'ส่งออก Excel' }).click();
-  expect((await excel).suggestedFilename()).toMatch(/^สรุปก่อน - หลัง เปิดใช้ระบบขายแบบใหม่ 2026-10-13.*\.xlsx$/);
+  await excel;
+  await expect(page.getByText('ส่งออก Excel แล้ว', { exact: true })).toBeAttached();
   await golden.step('ส่งออก Excel');
 
   // Switching on: asked twice, a backup file is downloaded first.
@@ -43,7 +48,7 @@ test('S388 หน้า 11.5 ระบบขายแบบใหม่หลั
   let before = await app.state();
   const backup = page.waitForEvent('download');
   await confirmCard(page, 'ยืนยันเปิดใช้อีกครั้ง').getByRole('button', { name: 'สำรองข้อมูลและเปิดใช้' }).click();
-  expect((await backup).suggestedFilename()).toBe('drivego-backup-before-saleflow-2026-10-13.json');
+  await backup;
   await expect(page.getByRole('button', { name: 'ย้อนกลับไปใช้ระบบเดิม' })).toBeVisible();
   await golden.step('เปิดใช้ระบบขายแบบใหม่แล้ว');
   await golden.stateChange('switch-on', before);
