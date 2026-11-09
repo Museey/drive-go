@@ -1,0 +1,105 @@
+{
+  "DB.stock[AC-215].qty": [
+    19,
+    18
+  ],
+  "DB.moves": {
+    "added": [
+      {
+        "id": "@DB.moves[#44]",
+        "stockId": "@DB.stock[AC-215]",
+        "type": "out",
+        "qty": -1,
+        "date": "2026-10-13",
+        "ref": "เปลี่ยนสินค้าให้ลูกค้าตามใบเคลม MA-CC261000001 — กรองขาด ฝุ่นเข้าช่องแอร์",
+        "refNo": "MA-CC261000001",
+        "vendorId": "",
+        "cost": 0,
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-CC261000001#52]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "cclaim",
+        "docId": "@DB.custClaims[MA-CC261000001]",
+        "no": "MA-CC261000001",
+        "act": "replace",
+        "note": "เปลี่ยนให้ลูกค้า 1 รายการ · ต้นทุน 120.00 บาท"
+      }
+    ]
+  },
+  "DB.custClaims[MA-CC261000001].status": [
+    "open",
+    "done"
+  ],
+  "DB.custClaims[MA-CC261000001].lines": {
+    "added": [
+      {
+        "stockId": "@DB.stock[AC-215]",
+        "code": "AC-215",
+        "name": "กรองแอร์ในห้องโดยสาร",
+        "unit": "",
+        "qty": 1,
+        "symptom": "กรองขาด ฝุ่นเข้าช่องแอร์",
+        "action": "replace",
+        "cut": true,
+        "cost": 120
+      }
+    ],
+    "removed": [
+      {
+        "stockId": "@DB.stock[AC-215]",
+        "code": "AC-215",
+        "name": "กรองแอร์ในห้องโดยสาร",
+        "unit": "",
+        "qty": 1,
+        "symptom": "กรองขาด ฝุ่นเข้าช่องแอร์",
+        "action": "replace"
+      }
+    ]
+  },
+  "DB.custClaims[MA-CC261000001].cut": [
+    null,
+    true
+  ],
+  "DB.custClaims[MA-CC261000001].doneAt": [
+    null,
+    "2026-10-13T02:00:00.000Z"
+  ],
+  "DB.custClaims[MA-CC261000001].doneBy": [
+    null,
+    ""
+  ],
+  "DB.custClaims[MA-CC261000001].doneByName": [
+    null,
+    "เจ้าของกิจการ / ผู้ดูแลระบบ"
+  ],
+  "DB.fifo.lots[#10].left": [
+    19,
+    18
+  ],
+  "DB.fifo.allocs": {
+    "added": [
+      {
+        "id": "@DB.fifo.allocs[#17]",
+        "seq": 1791856800000000,
+        "br": "@DB.branches[MA]",
+        "stockId": "@DB.stock[AC-215]",
+        "lotId": "@DB.fifo.lots[#10]",
+        "qty": 1,
+        "back": 0,
+        "cost": 120,
+        "date": "2026-10-13",
+        "ref": "เปลี่ยนสินค้าให้ลูกค้าตามใบเคลม MA-CC261000001 — กรองขาด ฝุ่นเข้าช่องแอร์",
+        "refNo": "MA-CC261000001",
+        "pending": false
+      }
+    ]
+  }
+}

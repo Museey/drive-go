@@ -1,0 +1,24 @@
+{
+  "DB.custRule.prefixes": {
+    "added": [
+      {
+        "text": "C",
+        "on": false
+      },
+      {
+        "text": "VIP",
+        "on": true
+      }
+    ],
+    "removed": [
+      {
+        "text": "C",
+        "on": true
+      },
+      {
+        "text": "VIP",
+        "on": false
+      }
+    ]
+  }
+}
