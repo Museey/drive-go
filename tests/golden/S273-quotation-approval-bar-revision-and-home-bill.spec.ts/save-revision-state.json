@@ -1,0 +1,186 @@
+{
+  "DB.quotes[MA-QT261000003].status": [
+    "ร่าง",
+    "แก้ไขเป็น MA-QT261000003-R1"
+  ],
+  "DB.quotes[MA-QT261000003].superseded": [
+    null,
+    true
+  ],
+  "DB.quotes[MA-QT261000003].revisedTo": [
+    null,
+    "MA-QT261000003-R1"
+  ],
+  "DB.quotes[MA-QT261000003].revisedToId": [
+    null,
+    "@DB.quotes[MA-QT261000003-R1]"
+  ],
+  "DB.quotes": {
+    "added": [
+      {
+        "id": "@DB.quotes[MA-QT261000003-R1]",
+        "no": "MA-QT261000003-R1",
+        "date": "2026-10-13",
+        "jobIn": "2026-10-13",
+        "custId": "@DB.cust[C00016]",
+        "vehIdx": 0,
+        "mile": "55004",
+        "probs": [
+          "",
+          "",
+          ""
+        ],
+        "finds": [
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          },
+          {
+            "t": "",
+            "fix": false,
+            "part": false,
+            "new": false
+          }
+        ],
+        "tier": "B",
+        "items": [
+          {
+            "type": "part",
+            "stockId": "@DB.stock[EL-118]",
+            "code": "EL-118",
+            "oem": "GS-75D26L",
+            "name": "แบตเตอรี่ 75Ah",
+            "qty": 1,
+            "price": 3810,
+            "warr": ""
+          },
+          {
+            "type": "part",
+            "stockId": "@DB.stock[EL-125]",
+            "code": "EL-125",
+            "oem": "90919-01253",
+            "name": "ชุดคอยล์จุดระเบิด",
+            "qty": 1,
+            "price": 1590,
+            "warr": ""
+          }
+        ],
+        "disc": 0,
+        "vat": 7,
+        "byPos": "",
+        "byName": "",
+        "apPos": "",
+        "apName": "",
+        "tech": "",
+        "techName": "",
+        "status": "ร่าง",
+        "deducted": false,
+        "apv": {
+          "status": "draft",
+          "byName": "",
+          "date": "",
+          "note": ""
+        },
+        "br": "@DB.branches[MA]",
+        "cancelled": false,
+        "revOf": "@DB.quotes[MA-QT261000003]",
+        "revOfNo": "MA-QT261000003",
+        "revRoot": "@DB.quotes[MA-QT261000003]",
+        "revN": 1,
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-QT261000003-R1]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "quote",
+        "docId": "@DB.quotes[MA-QT261000003-R1]",
+        "no": "MA-QT261000003-R1",
+        "act": "save",
+        "note": "ยอดรวม 5,778.00 บาท"
+      },
+      {
+        "id": "@DB.audit[MA-QT261000003#57]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "quote",
+        "docId": "@DB.quotes[MA-QT261000003]",
+        "no": "MA-QT261000003",
+        "act": "revise",
+        "note": "แก้ไขเป็นฉบับ MA-QT261000003-R1"
+      },
+      {
+        "id": "@DB.audit[MA-QT261000003-R1#58]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "quote",
+        "docId": "@DB.quotes[MA-QT261000003-R1]",
+        "no": "MA-QT261000003-R1",
+        "act": "revise",
+        "note": "ฉบับแก้ไขจาก MA-QT261000003"
+      }
+    ]
+  }
+}

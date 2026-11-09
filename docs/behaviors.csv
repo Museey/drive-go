@@ -1024,9 +1024,9 @@ H0106,onclick,,5208,,,,,,<button>,renderQuoteOverview(),renderQuoteOverview,,
 H0107,onclick,,5226,,,,,,<button> ✕,closeModal('mQuoteEdit'),closeModal,,
 H0108,onclick,,5231,,,,,,<button> สร้างใบใหม่,newQuote(),newQuote,S10,
 H0109,onclick,,5232,,,,,,<button> คัดลอกใบนี้,copyQuote(),copyQuote,,
-H0110,onclick,,5233,,,,,indirect,<button> ยกเลิกเอกสาร,cancelQuoteDoc(),cancelQuoteDoc,,
-H0111,onclick,,5234,,,,,indirect,<button> อนุมัติซ่อม &amp; ตัดสต๊อก,approveQuote(),approveQuote,,
-H0112,onclick,,5235,,,,,indirect,<button> พิมพ์ (ต้นฉบับ+สำเนา),printQuote(),printQuote,,
+H0110,onclick,,5233,,,,,indirect,<button> ยกเลิกเอกสาร,cancelQuoteDoc(),cancelQuoteDoc,,"ปุ่ม ""ยกเลิกเอกสาร"" ในหัวหน้าต่างใบเสนอราคาถูกซ่อน (pkg-moved-to-toolbar บรรทัด 24234) แถบเครื่องมือของหน้าต่างเรียก cancelQuoteDoc เอง"
+H0111,onclick,,5234,,,,,indirect,<button> อนุมัติซ่อม &amp; ตัดสต๊อก,approveQuote(),approveQuote,,"ปุ่ม ""อนุมัติซ่อม & ตัดสต๊อก"" ถูกซ่อนทุกที่ (pkg-io-moved บรรทัด 22317: หน้าต่างใบเสนอราคาไม่มีปุ่มตัดสต็อก/ออกบิล ตัดที่ 4.1) ตรวจใบร่าง รออนุมัติ อนุมัติแล้ว ที่ 1280 และ 390 px"
+H0112,onclick,,5235,,,,,indirect,<button> พิมพ์ (ต้นฉบับ+สำเนา),printQuote(),printQuote,,ปุ่มพิมพ์ในหัวหน้าต่างใบเสนอราคาถูกซ่อน (pkg-moved-to-toolbar บรรทัด 24234) กล่องพิมพ์ของหน้าต่างเรียก printQuote เอง
 H0113,onclick,,5236,,,,,,<button> ปิด,closeModal('mQuoteEdit');renderQuoteOverview(),closeModal renderQuoteOverview,S10 S11 S61,
 H0114,onclick,,5241,,,,,,<div>,msecTg(this),msecTg,,
 H0115,onclick,,5255,,,,,,<div>,msecTg(this),msecTg,,
@@ -1040,7 +1040,7 @@ H0122,onclick,,5326,,,,,indirect,<button>,sendApv('quote'),sendApv,,
 H0123,onclick,,5327,,,,,,<button>,"mSheetScroll('mQuoteEdit',0)",mSheetScroll,,
 H0124,onclick,,5328,,,,,,<button>,"mSheetScroll('mQuoteEdit',1)",mSheetScroll,,
 H0125,onclick,,5329,,,,,,<button>,mSheet('qMore'),mSheet,,
-H0126,onclick,,5332,,,,,indirect,<button> อนุมัติซ่อม &amp; ตัดสต๊อก,mSheet('qMore');approveQuote(),approveQuote mSheet,,
+H0126,onclick,,5332,,,,,indirect,<button> อนุมัติซ่อม &amp; ตัดสต๊อก,mSheet('qMore');approveQuote(),approveQuote mSheet,,"ปุ่ม ""อนุมัติซ่อม & ตัดสต๊อก"" ในเมนูมือถือ qMore ถูกซ่อน (pkg-io-moved บรรทัด 22317) เหมือนปุ่มในหัวหน้าต่าง"
 H0127,onclick,,5333,,,,,indirect,<button> พิมพ์ (ต้นฉบับ+สำเนา),mSheet('qMore');printQuote(),mSheet printQuote,,
 H0128,onclick,,5334,,,,,,<button> คัดลอกใบนี้,mSheet('qMore');copyQuote(),copyQuote mSheet,,
 H0129,onclick,,5335,,,,,indirect,<button> ยกเลิกเอกสาร,mSheet('qMore');cancelQuoteDoc(),cancelQuoteDoc mSheet,,
@@ -1309,7 +1309,7 @@ H0391,onclick,,8349,,,,,,<button> เปิด,"openBill('${r.k}','${r.id}')",op
 H0392,onclick,,8550,,,,,indirect,<button> เปิดในหน้าใบเสนอราคา,closeModal('mBill');openQuoteById('${q.id}'),closeModal openQuoteById,,
 H0393,onclick,,8551,,,,,,<button> ตรวจสอบเอกสาร,"closeModal('mBill');openAudit('quote','${q.id}')",closeModal openAudit,,
 H0394,onclick,,8552,,,,,indirect,<button> เปิดใบเสร็จรับเงินจากบิลนี้,closeModal('mBill');billFromQuote('${q.id}'),billFromQuote closeModal,,
-H0395,onclick,,8566,,,,,indirect,<button> เปิดในหน้าใบเสร็จ,closeModal('mBill');openReceiptById('${r.id}'),closeModal openReceiptById,,
+H0395,onclick,,8566,,,,,indirect,<button> เปิดในหน้าใบเสร็จ,closeModal('mBill');openReceiptById('${r.id}'),closeModal openReceiptById,,"ปุ่ม ""เปิดในหน้าใบเสร็จ"" ในป๊อปอัพบิลของหน้าแรก ไม่แสดง: openBill('receipt') เปิดใบตัดสต็อกขายของบิลนั้นแทน (บรรทัด 23598) เพราะระบบขายแบบใหม่เปิดอยู่และทุกบิลมีใบตัดสต็อก (S273)"
 H0396,onclick,,8567,,,,,,<button> ตรวจสอบเอกสาร,"closeModal('mBill');openAudit('receipt','${r.id}')",closeModal openAudit,,
 H0397,onclick,,8568,,,,,,<button> บันทึกรับชำระ,"closeModal('mBill');openPartPay('ar','${r.custId}','${r.id}')",closeModal openPartPay,,
 H0398,onclick,,8581,,,,,,<button> ตรวจสอบเอกสาร,"closeModal('mBill');openAudit('gr','${p.id}')",closeModal openAudit,,
