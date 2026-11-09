@@ -354,6 +354,12 @@
       "by": "S276-stock-documents-save-print-reopen-expense-category.spec.ts",
       "decision": "R9–R11, F4 and answers of 2026-10-25 (task 3.6)",
       "why": "As S158 for S33: the saved internal issue keeps its expense category (expCat). Every step and every other data change is checked against S275's goldens."
+    },
+    {
+      "scenario": "S272-master-data-edit-delete-and-appointment.spec.ts",
+      "by": "S283-edited-vendor-and-customer-keep-their-codes.spec.ts",
+      "decision": "Owner 2026-11-09: an edited customer or vendor keeps its code",
+      "why": "The legacy app gave an edited vendor or customer the next code (V00002 -> V00009); the new system keeps V00002. Every step and every other data change is checked against S272's goldens; then a customer edited the same way keeps C00027."
     }
   ],
   "added": [

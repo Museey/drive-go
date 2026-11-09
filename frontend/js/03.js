@@ -1687,6 +1687,7 @@ function saveVen(){
       road:$('#vRoad').value.trim(),sub:$('#vSub').value.trim(),dist:$('#vDist').value.trim(),prov:$('#vProv').value,zip:$('#vZip').value.trim()}};
   const oldVen=editVenId?DB.vendors.find(x=>x.id===editVenId):null;
   stampRec(rec,oldVen);
+  if(oldVen&&oldVen.code)rec.code=oldVen.code;   /* an edited vendor keeps its code (owner 2026-11-09, CHANGES.md 144) */
   if(editVenId){const i=DB.vendors.findIndex(x=>x.id===editVenId);DB.vendors[i]=rec;} else DB.vendors.push(rec);
   logAudit('vendor',{id:rec.id,no:rec.name},'save',oldVen?'แก้ไขข้อมูลผู้ขาย':'เพิ่มผู้ขายใหม่');
   save();closeModal('mVen');renderVen();toast('บันทึกข้อมูลผู้ขายแล้ว');
@@ -2418,6 +2419,7 @@ function saveCust(){
     tel:$('#cTel').value.trim(),tel2:$('#cTel2').value.trim(),vehicles};
   const oldCust=editCustId?DB.cust.find(x=>x.id===editCustId):null;
   stampRec(rec,oldCust);
+  if(oldCust&&oldCust.code)rec.code=oldCust.code;   /* an edited customer keeps its code (owner 2026-11-09, CHANGES.md 144) */
   if(editCustId){const i=DB.cust.findIndex(x=>x.id===editCustId);DB.cust[i]=rec;} else DB.cust.push(rec);
   logAudit('cust',{id:rec.id,no:rec.name},'save',(oldCust?'แก้ไขข้อมูลลูกค้า':'เพิ่มลูกค้าใหม่')+' · รถ '+vehicles.length+' คัน');
   save();closeModal('mCust');
