@@ -104,9 +104,11 @@ test('S443 ระบบใหม่: ขายชุดอะไหล่ผ่�
   expect((await app.serverDB()).paySlips[pay.payId]).toEqual(slip);
 
   // The home page: sales by category.
+  // Closed, the receipt window leaves the sale window (S368 left it from the done card's "กลับไปยังหน้าค้นหาเอกสาร").
   await rcpt.getByRole('button', { name: 'ปิด', exact: true }).first().click();
   await expect(rcpt).toBeHidden();
-  await page.getByRole('button', { name: 'กลับไปยังหน้าค้นหาเอกสาร' }).click();
+  await page.getByRole('button', { name: 'ปิดหน้าต่าง' }).filter({ visible: true }).click();
+  await expect(page.getByRole('heading', { name: 'ใบตัดสต็อกขายสินค้า MA-SA261000015' })).toBeHidden();
   await page.getByRole('button', { name: /^00 Mr\.DriveGo/ }).click();
   await app.settle();
   await golden.step('หน้าแรกหลังขายชุดอะไหล่');

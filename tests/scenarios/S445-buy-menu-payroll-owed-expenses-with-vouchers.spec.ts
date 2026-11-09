@@ -1,11 +1,17 @@
 import type { Page } from '@playwright/test';
 import { test, expect } from '../support/test';
 import { legacyGolden, legacyStateChange } from '../support/legacy-golden';
-import { formatDiff, stateDiff } from '../support/state-diff.mjs';
 
-// 06 · รายจ่าย / ซื้อสินค้า: no scenario recorded office supplies (5 · อุปกรณ์สำนักงาน) or another expense (6 · อื่น ๆ),
-// printed the payroll sheet, opened a saved entry with "แก้ไข" on the utilities, payroll history, office or other pages,
-// or used the "คลังสินค้า / สาขา" picker of these pages (search, tick, "เลือกทั้งหมด").
+// Replaces S385 in the new system (tests/intentional-changes.json): the payroll of task 3.7 (decisions R12, R13, F5, X2,
+// as S165 replaces S40) and the payment vouchers of task 3.4 (decision R7-ข, as S146 replaces S43).
+// - The payroll sheet has the 2026 social security (salary only, ceiling 17,500 / 875): 216,500 gross, 8,800 each side,
+//   207,700 net, 17,600 to remit, checked by its text (S385's screenshot had the legacy figures).
+// - "บันทึกจ่ายเงินเดือนงวดนี้" asks first and records the month owed ("ค้างจ่าย", 31/10/2569): MA-EX261000003 and
+//   MA-EX261000004 as in S385 but unpaid, with a payroll period; the history row is paid or opened through its month
+//   ("จ่าย", "เปิดงวด ต.ค. 2569") instead of "แก้ไข", so S385's step that opened it is left out.
+// - Office supplies and the other expense, saved "จ่ายแล้ว", get payment vouchers MA-PV261000001 / 2 and their payment
+//   date, paying is in the audit log, and their windows' titles name the voucher.
+// Every other step and data change is S385's.
 const field = (page: Page, label: string) => page.getByLabel(label, { exact: true }).filter({ visible: true });
 const closeWindow = (page: Page) => page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).first().click();
 const saveWindow = (page: Page) => page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).last().click();
@@ -96,6 +102,25 @@ test('S445 ระบบใหม่: บันทึกเงินเดือ�
   await expect(payRow.getByRole('button', { name: 'แก้ไข' })).toHaveCount(0);
   golden.skip('เปิดรายการจ่ายเงินเดือนจากประวัติ');
 
+  // An expense saved "จ่ายแล้ว" (the form's default) gets its payment voucher and payment date, and paying is in the
+  // audit log (S146): S385's change with these.
+  const paidWithVoucher = async (name: string, before: object, no: string, pv: string, amount: string, auditNo: string, seq: [number | null, number]) => {
+    const legacy = JSON.parse(legacyStateChange(S385, name));
+    const exp = legacy['DB.expenses'].added[0];
+    expect(exp).toMatchObject({ no, paid: true, method: 'เงินโอน' });
+    Object.assign(exp, { payDate: '2026-10-13', pvNo: pv });
+    legacy['DB.audit'].added.push({ ...legacy['DB.audit'].added[0], id: `@DB.audit[${no}${auditNo}]`, act: 'pay',
+      note: `จ่ายเงิน ${amount} บาท (เงินโอน) · ใบสำคัญจ่าย ${pv}` });
+    await golden.stateChange(name, before, { 'DB.expenses': legacy['DB.expenses'], 'DB.audit': legacy['DB.audit'], 'DB.seq.MA-PV2610': seq });
+  };
+  // Its window's title names the voucher too (S146).
+  const openedWithVoucher = async (label: string, pane: string, no: string, pv: string) => {
+    await expect(page.getByRole('heading', { name: `แก้ไขค่าใช้จ่าย · ${no} · ใบสำคัญจ่าย ${pv}` })).toBeVisible();
+    await app.settle();
+    expect(await app.signature()).toEqual({ page: ['06 รายจ่าย / ซื้อสินค้า 0 ›', pane], popups: [`แก้ไขค่าใช้จ่าย · ${no} · ใบสำคัญจ่าย ${pv}`], messages: [] });
+    golden.skip(label);
+  };
+
   // 5 · อุปกรณ์สำนักงาน: paper and ink recorded, then opened again.
   await page.getByRole('button', { name: '5 · อุปกรณ์สำนักงาน' }).click();
   await golden.step('หน้าอุปกรณ์สำนักงาน');
@@ -107,10 +132,9 @@ test('S445 ระบบใหม่: บันทึกเงินเดือ�
   await saveWindow(page);
   await expect(row(page, 'กระดาษ A4 และหมึกพิมพ์')).toBeVisible();
   await golden.step('บันทึกวัสดุสำนักงานแล้ว');
-  console.log('DIFF save-office', formatDiff(stateDiff(before, await app.state())));
+  await paidWithVoucher('save-office', before, 'MA-EX261000005', 'MA-PV261000001', '1,979.50', '#52', [null, 1]);
   await row(page, 'กระดาษ A4 และหมึกพิมพ์').getByRole('button', { name: 'แก้ไข' }).click();
-  await expect(page.getByRole('heading', { name: /^แก้ไขค่าใช้จ่าย · / })).toBeVisible();
-  await golden.step('เปิดวัสดุสำนักงานที่บันทึก');
+  await openedWithVoucher('เปิดวัสดุสำนักงานที่บันทึก', '5 · อุปกรณ์สำนักงาน', 'MA-EX261000005', 'MA-PV261000001');
   await closeWindow(page);
 
   // 6 · อื่น ๆ: a car park rent recorded, then opened again.
@@ -124,10 +148,9 @@ test('S445 ระบบใหม่: บันทึกเงินเดือ�
   await saveWindow(page);
   await expect(row(page, 'ค่าเช่าที่จอดรถลูกค้า')).toBeVisible();
   await golden.step('บันทึกรายจ่ายอื่นแล้ว');
-  console.log('DIFF save-other', formatDiff(stateDiff(before, await app.state())));
+  await paidWithVoucher('save-other', before, 'MA-EX261000006', 'MA-PV261000002', '3,210.00', '#54', [1, 2]);
   await row(page, 'ค่าเช่าที่จอดรถลูกค้า').getByRole('button', { name: 'แก้ไข' }).click();
-  await expect(page.getByRole('heading', { name: /^แก้ไขค่าใช้จ่าย · / })).toBeVisible();
-  await golden.step('เปิดรายจ่ายอื่นที่บันทึก');
+  await openedWithVoucher('เปิดรายจ่ายอื่นที่บันทึก', '6 · อื่น ๆ', 'MA-EX261000006', 'MA-PV261000002');
   await closeWindow(page);
   golden.done();
 });

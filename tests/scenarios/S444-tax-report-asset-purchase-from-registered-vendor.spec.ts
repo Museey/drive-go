@@ -6,8 +6,10 @@ import { legacyGolden, legacyStateChange } from '../support/legacy-golden';
 // 2026-10-26, as S210 replaces S65): an asset bought with VAT needs a vendor of the register, so saving the 11 tools with
 // the typed name "บริษัท เครื่องมือช่างไทย จำกัด" (not in 05 ผู้ขาย) is refused and the purchase is made from
 // ร้านยางเจริญยนต์ (V00004, a cash vendor: the terms stay "เงินสด / โอนทันที"); bought in cash, the purchase is paid when
-// saved with a payment voucher MA-PV261000001, which the asset window's title names. Every other step, message and data
-// change is S382's; the tax report's screen is S382's but for the vendor's name on the purchase rows.
+// saved with a payment voucher MA-PV261000001, which the asset window's title names. The purchase tax report has one row
+// per tax invoice with the vendor's tax ID (task 3.13, frontend/CHANGES.md 80): the 11 tools are one row, so its pages
+// cannot be turned (those two steps of S382 are left out) and the printed set has one row; S382's screenshot of the
+// report (11 purchase rows) is replaced by checks of its text. Every other step, message and data change is S382's.
 const pager = (page: Page, table: string) =>
   page.locator('div.panel').filter({ has: page.getByRole('heading', { name: table, exact: true }) });
 
@@ -81,26 +83,24 @@ test('S444 ระบบใหม่: ซื้อเครื่องมือ 
   const sale = pager(page, 'รายงานภาษีขาย'), buy = pager(page, 'รายงานภาษีซื้อ');
   await expect(sale).toContainText('13 ฉบับ');
   await expect(sale).toContainText('หน้า 1/2');
-  await expect(buy).toContainText('11 ฉบับ');
-  await expect(buy).toContainText('หน้า 1/2');
+  // The purchase tax report has one row per tax invoice with the vendor's tax ID (task 3.13): TT-6910-0101 is 1 ฉบับ
+  // of 165,000.00 + 11,550.00 from ร้านยางเจริญยนต์ (S382: 11 rows, one per tool, on 2 pages).
+  await expect(buy).toContainText('1 ฉบับ · ภาษีซื้อ 11,550.00');
+  const invoice = buy.getByRole('row').filter({ hasText: 'TT-6910-0101' });
+  await expect(invoice).toHaveCount(1);
+  await expect(invoice.getByRole('cell')).toHaveText(['1', '13/10/2569', 'TT-6910-0101', 'ร้านยางเจริญยนต์', '3100900123456', '165,000.00', '11,550.00']);
+  await expect(buy.getByText(/หน้า \d\/\d/)).toHaveCount(0);
   await golden.step('รายงานภาษี ตุลาคม 2569 ภาษีขาย 13 ฉบับ ภาษีซื้อ 11 ฉบับ หน้า 1/2');
-  // The purchase rows name the vendor of the register (S382: the typed name), on page 1 the first 10 of the 11.
-  const vendorCells = buy.getByRole('row').filter({ hasText: 'TT-6910-0101' }).getByRole('cell').filter({ hasText: 'ร้านยางเจริญยนต์' });
-  await expect(vendorCells).toHaveCount(10);
-  await expect(buy.getByText('บริษัท เครื่องมือช่างไทย จำกัด')).toHaveCount(0);
-  await golden.screen('tax-report-page-1', { mask: [vendorCells] });
+  // S382's screen had the purchase table of 11 rows; its sales table is checked by the steps and the text here.
 
   await sale.getByRole('button', { name: '2', exact: true }).click();
   await expect(sale).toContainText('หน้า 2/2');
   await expect(sale.getByRole('row')).toHaveCount(5);   // heading, 3 rows, total
   await golden.step('ภาษีขายหน้า 2');
-  await buy.getByRole('button', { name: '›' }).click();
-  await expect(buy).toContainText('หน้า 2/2');
-  await expect(buy.getByRole('row').filter({ hasText: 'TT-6910-0101' })).toHaveCount(1);
-  await golden.step('ภาษีซื้อหน้า 2');
-  await buy.getByRole('button', { name: '‹' }).click();
-  await expect(buy).toContainText('หน้า 1/2');
-  await golden.step('ภาษีซื้อกลับหน้า 1');
+  // One purchase row: no second page to turn to.
+  await expect(buy.getByRole('button', { name: '›' })).toHaveCount(0);
+  golden.skip('ภาษีซื้อหน้า 2');
+  golden.skip('ภาษีซื้อกลับหน้า 1');
 
   // The tax month: September has nothing, then back to October.
   await page.getByLabel('งวดเดือน').filter({ visible: true }).fill('2026-09');
@@ -117,8 +117,8 @@ test('S444 ระบบใหม่: ซื้อเครื่องมือ 
   await expect(sheet).toContainText('รายงานภาษีขาย');
   await expect(sheet).toContainText('รายงานภาษีซื้อ');
   await expect(sheet).toContainText('สรุปภาษีที่ต้องนำส่ง');
-  await expect(sheet.locator('tr').filter({ hasText: 'TT-6910-0101' })).toHaveCount(11);
-  await expect(sheet.locator('tr').filter({ hasText: 'TT-6910-0101' }).filter({ hasText: 'ร้านยางเจริญยนต์' })).toHaveCount(11);
+  await expect(sheet.locator('tr').filter({ hasText: 'TT-6910-0101' })).toHaveCount(1);
+  await expect(sheet.locator('tr').filter({ hasText: 'TT-6910-0101' })).toContainText('ร้านยางเจริญยนต์');
   await golden.step('พิมพ์รายงานภาษีทั้งชุด (ครบทุกฉบับ)');
   await golden.stateChange('print-tax', before);
   golden.done();
