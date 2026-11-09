@@ -57,20 +57,44 @@ test('S445 ระบบใหม่: บันทึกเงินเดือ�
   await expect(sheet).toContainText('ต.ค. 2569');
   await expect(sheet).toContainText('รวมนำส่งสำนักงานประกันสังคม');
   await golden.step('พิมพ์ใบจ่ายเงินเดือน ต.ค. 2569');
-  console.log('SHEET', await sheet.innerText());
-  let before = await app.state();
+  // The sheet's figures follow the payroll of task 3.7 (S165): social security on salary only, ceiling 17,500 (875);
+  // S382's screen had the legacy figures (ceiling 15,000, the fixed overtime and bonus), so it is checked by its text.
+  const sheetRow = (code: string) => sheet.locator('tr').filter({ hasText: code });
+  await expect(sheetRow('EMP001')).toContainText('25,000.00');
+  await expect(sheetRow('EMP001')).toContainText('875.00');
+  await expect(sheetRow('EMP001')).toContainText('24,125.00');
+  await expect(sheetRow('EMP003')).toContainText('11,400.00');
+  await expect(sheet.locator('tr').filter({ hasText: 'รวมทั้งสิ้น' })).toContainText('216,500.00');
+  await expect(sheet.locator('tr').filter({ hasText: 'รวมทั้งสิ้น' })).toContainText('207,700.00');
+  await expect(sheet.locator('tr').filter({ hasText: 'เงินสมทบประกันสังคมส่วนนายจ้าง' })).toContainText('8,800.00');
+  await expect(sheet.locator('tr').filter({ hasText: 'รวมนำส่งสำนักงานประกันสังคม' })).toContainText('17,600.00');
+  const before0 = (await app.state()).DB;
+  // Recorded as owed on 31 Oct (S165): the legacy app recorded both expenses paid at once.
   await page.getByRole('button', { name: 'บันทึกจ่ายเงินเดือนงวดนี้' }).click();
   const rec = page.locator('div.panel').filter({ has: page.getByRole('heading', { name: 'บันทึกเงินเดือน งวด ต.ค. 2569', exact: true }) });
+  await expect(rec.getByText('ลงค่าใช้จ่ายวันที่ 31/10/2569 (สิ้นงวด)', { exact: true })).toBeVisible();
   await rec.getByRole('button', { name: 'บันทึก', exact: true }).click();
-  await expect(row(page, 'จ่ายเงินเดือนและค่าล่วงเวลา งวด ต.ค. 2569')).toBeVisible();
+  await expect(page.getByText('เงินเดือนค้างจ่าย', { exact: true })).toBeVisible();
   await app.settle();
-  console.log('SIGPAY', JSON.stringify(await app.signature()));
-  console.log('DIFFPAY', formatDiff(stateDiff(before, await app.state())));
+  expect(await app.signature()).toEqual({ page: ['06 รายจ่าย / ซื้อสินค้า 0 ›', '4 · จ่ายเงินเดือน'], popups: [],
+    messages: ['บันทึกเงินเดือน งวด ต.ค. 2569 แล้ว · เงินเดือน 216,500 + สมทบนายจ้าง 8,800 บาท · ค้างจ่าย'] });
   golden.skip('บันทึกจ่ายเงินเดือน ต.ค. 2569');
-  await row(page, 'จ่ายเงินเดือนและค่าล่วงเวลา งวด ต.ค. 2569').getByRole('button', { name: 'แก้ไข' }).click();
-  await expect(page.getByRole('heading', { name: /^แก้ไขค่าใช้จ่าย · / })).toBeVisible();
-  await golden.step('เปิดรายการจ่ายเงินเดือนจากประวัติ');
-  await closeWindow(page);
+  const recorded = (await app.state()).DB;
+  const period = recorded.payroll[0];
+  expect(recorded.expenses.filter((x: any) => !before0.expenses.some((b: any) => b.id === x.id))).toEqual([
+    expect.objectContaining({ no: 'MA-EX261000003', date: '2026-10-31', desc: 'จ่ายเงินเดือนและค่าล่วงเวลา งวด ต.ค. 2569', base: 216500, paid: false, payroll: period.id, payPart: 'pay' }),
+    expect.objectContaining({ no: 'MA-EX261000004', date: '2026-10-31', desc: 'เงินสมทบประกันสังคมส่วนนายจ้าง งวด ต.ค. 2569', base: 8800, paid: false, payroll: period.id, payPart: 'sso' }),
+  ]);
+  expect(period).toMatchObject({ month: '2026-10', payNo: 'MA-EX261000003', ssoNo: 'MA-EX261000004', totals: { n: 11, gross: 216500, emp: 8800, er: 8800, net: 207700 } });
+  expect(recorded.seq['MA-EX2610']).toBe(4);   /* as S385: the office supplies are MA-EX261000005 */
+  // The payroll's expenses are paid or opened through their month, not edited (S165): the history row has "จ่าย" and
+  // "เปิดงวด ต.ค. 2569" where S385 had "แก้ไข", whose window it opened.
+  const payRow = page.getByRole('row').filter({ hasText: 'จ่ายเงินเดือนและค่าล่วงเวลา งวด ต.ค. 2569' }).filter({ visible: true });
+  await expect(payRow).toContainText('MA-EX261000003');
+  await expect(payRow.getByRole('button', { name: 'จ่าย', exact: true })).toBeVisible();
+  await expect(payRow.getByRole('button', { name: 'เปิดงวด ต.ค. 2569', exact: true })).toBeVisible();
+  await expect(payRow.getByRole('button', { name: 'แก้ไข' })).toHaveCount(0);
+  golden.skip('เปิดรายการจ่ายเงินเดือนจากประวัติ');
 
   // 5 · อุปกรณ์สำนักงาน: paper and ink recorded, then opened again.
   await page.getByRole('button', { name: '5 · อุปกรณ์สำนักงาน' }).click();
@@ -79,7 +103,7 @@ test('S445 ระบบใหม่: บันทึกเงินเดือ�
   await golden.step('ฟอร์มบันทึกวัสดุสำนักงาน');
   await field(page, 'รายละเอียดค่าใช้จ่าย *').fill('กระดาษ A4 และหมึกพิมพ์');
   await field(page, 'มูลค่าก่อนภาษี (บาท) *').fill('1850');
-  before = await app.state();
+  let before = await app.state();
   await saveWindow(page);
   await expect(row(page, 'กระดาษ A4 และหมึกพิมพ์')).toBeVisible();
   await golden.step('บันทึกวัสดุสำนักงานแล้ว');

@@ -1,11 +1,13 @@
 import type { Page } from '@playwright/test';
 import { test, expect } from '../support/test';
 import { legacyGolden, legacyStateChange } from '../support/legacy-golden';
-import { formatDiff, stateDiff } from '../support/state-diff.mjs';
 
-// 08 · รายงานภาษี: no scenario opened it on the original. Its sales and purchase tax tables show 10 documents a page;
-// October 2569 has 13 tax invoices, and a tool set of 11 items bought on one VAT invoice makes 11 purchase tax rows.
-// The pages are turned, the tax month changed, and the whole set printed (every row, not just the page on screen).
+// Replaces S382 in the new system (tests/intentional-changes.json, task 3.13, decision R17 and answers 13.1–13.11 of
+// 2026-10-26, as S210 replaces S65): an asset bought with VAT needs a vendor of the register, so saving the 11 tools with
+// the typed name "บริษัท เครื่องมือช่างไทย จำกัด" (not in 05 ผู้ขาย) is refused and the purchase is made from
+// ร้านยางเจริญยนต์ (V00004, a cash vendor: the terms stay "เงินสด / โอนทันที"); bought in cash, the purchase is paid when
+// saved with a payment voucher MA-PV261000001, which the asset window's title names. Every other step, message and data
+// change is S382's; the tax report's screen is S382's but for the vendor's name on the purchase rows.
 const pager = (page: Page, table: string) =>
   page.locator('div.panel').filter({ has: page.getByRole('heading', { name: table, exact: true }) });
 
@@ -33,22 +35,44 @@ test('S444 ระบบใหม่: ซื้อเครื่องมือ 
   await line(10).getByRole('spinbutton').nth(0).press('Tab');
   await expect(page.getByText(/^กรอกแล้ว 11 รายการ/).filter({ visible: true })).toBeVisible();
   await golden.step('กรอกเครื่องมือ 11 รายการ');
+  // A name typed that is not in the register: refused, the form stays open.
   await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).last().click();
-  await page.waitForTimeout(1000);
-  console.log('SIG1', JSON.stringify(await app.signature()));
+  await expect(page.getByText(/^เลือกผู้ขายจากทะเบียนผู้ขาย/).filter({ visible: true })).toBeVisible();
+  await app.settle();
+  expect(await app.signature()).toEqual({ page: ['06 รายจ่าย / ซื้อสินค้า 0 ›', '3 · ซื้อสินทรัพย์'],
+    popups: ['บันทึกการซื้อสินทรัพย์ถาวร (กรอกได้หลายรายการ)'],
+    messages: ['เลือกผู้ขายจากทะเบียนผู้ขาย — สินทรัพย์ที่มี VAT หรือซื้อเครดิตต้องมีผู้ขายในทะเบียน (05 ผู้ขาย)'] });
+  expect((await app.state()).DB.assets.filter((a: any) => a.inv === 'TT-6910-0101')).toEqual([]);
+  // A vendor of the register: a cash vendor, so the terms stay cash.
   await field('ผู้ขาย').fill('ร้านยางเจริญยนต์');
   await field('ผู้ขาย').dispatchEvent('change');
+  await expect(page.getByLabel('เงื่อนไขชำระ').filter({ visible: true })).toHaveValue('cash');
   let before = await app.state();
   await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).last().click();
   const saved = page.getByRole('row').filter({ hasText: 'ชุดบล็อกลม 11' }).filter({ visible: true });
   await expect(saved).toBeVisible();
   await golden.step('บันทึกแล้ว 11 รายการขึ้นในหน้าซื้อสินทรัพย์');
-  console.log('DIFF', formatDiff(stateDiff(before, await app.state())));
+  // S382's records with the vendor of the register, the purchase they belong to and its terms, and on the first one
+  // the payment made when saved; the payment is in the audit log.
+  const legacy = JSON.parse(legacyStateChange(S382, 'save-assets'));
+  const terms = { vendor: 'ร้านยางเจริญยนต์', vendorId: '@DB.vendors[V00004]', grp: '@DB.assets[MA-FA261000001]', term: 'cash', days: 0, due: '2026-10-13' };
+  const assets = legacy['DB.assets'].added;
+  expect(assets.map((a: any) => a.vendor)).toEqual(Array(11).fill('บริษัท เครื่องมือช่างไทย จำกัด'));
+  for (const a of assets) Object.assign(a, terms);
+  Object.assign(assets[0], { payments: [{ id: '@DB.assets[MA-FA261000001].payments[#0]', amt: 176550, date: '2026-10-13', method: 'cash',
+    by: 'เจ้าของกิจการ / ผู้ดูแลระบบ', note: '', atOnce: true, pvNo: 'MA-PV261000001' }], pvNo: 'MA-PV261000001', paid: true, payDate: '2026-10-13', payMethod: 'cash' });
+  const audit = legacy['DB.audit'].added;
+  audit.push({ ...audit[0], id: '@DB.audit[MA-FA261000001#61]', act: 'pay', note: 'จ่ายเงิน 176,550.00 บาท (เงินสด / โอนทันที) · ใบสำคัญจ่าย MA-PV261000001' });
+  await golden.stateChange('save-assets', before, { 'DB.assets': legacy['DB.assets'], 'DB.audit': legacy['DB.audit'], 'DB.seq.MA-PV2610': [null, 1] });
 
   // "แก้ไข" on the buy page opens the saved item; closed without saving.
   await saved.getByRole('button', { name: 'แก้ไข' }).click();
-  await expect(page.getByRole('heading', { name: /^แก้ไขสินทรัพย์ · / })).toBeVisible();
-  await golden.step('เปิดชุดบล็อกลม 11 จากหน้าซื้อสินทรัพย์');
+  // The window's title names the purchase's payment voucher too.
+  await expect(page.getByRole('heading', { name: 'แก้ไขสินทรัพย์ · MA-FA261000011 · ใบสำคัญจ่าย MA-PV261000001' })).toBeVisible();
+  await app.settle();
+  expect(await app.signature()).toEqual({ page: ['06 รายจ่าย / ซื้อสินค้า 0 ›', '3 · ซื้อสินทรัพย์'],
+    popups: ['แก้ไขสินทรัพย์ · MA-FA261000011 · ใบสำคัญจ่าย MA-PV261000001'], messages: [] });
+  golden.skip('เปิดชุดบล็อกลม 11 จากหน้าซื้อสินทรัพย์');
   await page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).first().click();
   await expect(page.getByRole('heading', { name: /^แก้ไขสินทรัพย์ · / })).toBeHidden();
 
@@ -60,7 +84,11 @@ test('S444 ระบบใหม่: ซื้อเครื่องมือ 
   await expect(buy).toContainText('11 ฉบับ');
   await expect(buy).toContainText('หน้า 1/2');
   await golden.step('รายงานภาษี ตุลาคม 2569 ภาษีขาย 13 ฉบับ ภาษีซื้อ 11 ฉบับ หน้า 1/2');
-  await golden.screen('tax-report-page-1');
+  // The purchase rows name the vendor of the register (S382: the typed name), on page 1 the first 10 of the 11.
+  const vendorCells = buy.getByRole('row').filter({ hasText: 'TT-6910-0101' }).getByRole('cell').filter({ hasText: 'ร้านยางเจริญยนต์' });
+  await expect(vendorCells).toHaveCount(10);
+  await expect(buy.getByText('บริษัท เครื่องมือช่างไทย จำกัด')).toHaveCount(0);
+  await golden.screen('tax-report-page-1', { mask: [vendorCells] });
 
   await sale.getByRole('button', { name: '2', exact: true }).click();
   await expect(sale).toContainText('หน้า 2/2');
@@ -90,6 +118,7 @@ test('S444 ระบบใหม่: ซื้อเครื่องมือ 
   await expect(sheet).toContainText('รายงานภาษีซื้อ');
   await expect(sheet).toContainText('สรุปภาษีที่ต้องนำส่ง');
   await expect(sheet.locator('tr').filter({ hasText: 'TT-6910-0101' })).toHaveCount(11);
+  await expect(sheet.locator('tr').filter({ hasText: 'TT-6910-0101' }).filter({ hasText: 'ร้านยางเจริญยนต์' })).toHaveCount(11);
   await golden.step('พิมพ์รายงานภาษีทั้งชุด (ครบทุกฉบับ)');
   await golden.stateChange('print-tax', before);
   golden.done();

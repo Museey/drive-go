@@ -1,6 +1,12 @@
 import { test, expect } from '../support/test';
 import { legacyGolden, legacyStateChange } from '../support/legacy-golden';
+import { LINK, fetchFile } from '../support/files';
 
+// Replaces S368 in the new system (tests/intentional-changes.json, task 3.5 decisions R2, R8, F3 and task 3.11 decision
+// R19-ค): the money received in the sale window has its receipt at once (MA-RE261000004, named in the audit line and the
+// message) and the receipt window opens to be printed instead of the done card (S151); the slip attached to the transfer
+// is kept by the server as a file and DB.paySlips holds its link instead of the picture (S193). Every other step, the
+// screen and every other data change is S368's.
 const S368 = 'S368-kit-sold-through-quote-cut-and-paid-with-slip.spec.ts';
 
 test('S443 ระบบใหม่: ขายชุดอะไหล่ผ่านใบเสนอราคา ตัดสต็อก รับชำระด้วยเงินโอนแนบสลิป ได้ใบเสร็จทันทีและสลิปเก็บเป็นไฟล์', async ({ app, page }, testInfo) => {
@@ -68,9 +74,41 @@ test('S443 ระบบใหม่: ขายชุดอะไหล่ผ่�
   await golden.screen('slip-attached');
   before = await app.state();
   await page.getByRole('button', { name: 'บันทึกรับชำระ' }).filter({ visible: true }).last().click();
-  await page.waitForTimeout(3000);
+  // The receipt window instead of "บันทึกข้อมูลสำเร็จ" (S151).
+  const rcpt = page.locator('#mSaleRcpt');
+  await expect(page.getByRole('heading', { name: 'ใบเสร็จรับเงิน MA-RE261000004' })).toBeVisible();
   await app.settle();
-  console.log('SIG', JSON.stringify(await app.signature()));
-  const { formatDiff, stateDiff } = await import('../support/state-diff.mjs');
-  console.log('DIFF', formatDiff(stateDiff(before, await app.state())));
+  expect(await app.signature()).toEqual({ page: ['04 ใบเสร็จรับเงิน / ใบกำกับภาษี 1 ›', '4.1 ตัดสต็อกสินค้า'],
+    popups: ['ใบตัดสต็อกขายสินค้า MA-SA261000015', 'ใบเสร็จรับเงิน MA-RE261000004'],
+    messages: ['รับชำระ 2,675.00 บาท · ใบเสร็จ MA-RE261000004 · ชำระครบแล้ว'] });
+  golden.skip('บันทึกรับชำระ');
+  await expect(rcpt.getByRole('row').filter({ hasText: 'เงินโอน' })).toContainText('2,675.00');
+  await expect(rcpt.getByRole('button', { name: 'พิมพ์ใบเสร็จ (A4)' })).toBeVisible();
+  // S368's change, with the receipt number on the payment and in the audit line, and the slip's link (S193) where
+  // the legacy app kept the picture itself.
+  const db = (await app.state() as any).DB;
+  const pay = db.receipts.find((r: any) => r.no === 'MA-SA261000015').payments[0];
+  const slip = db.paySlips[pay.payId];
+  expect(slip).toEqual([{ url: expect.stringMatching(LINK), name: 'S192-transfer-slip.png', line: 1 }]);
+  const legacy = JSON.parse(legacyStateChange(S368, 'pay-with-slip'));
+  const pays = legacy['DB.receipts[MA-SA261000015].payments'];
+  pays.added[0].reNo = 'MA-RE261000004';
+  legacy['DB.audit'].added[0].note = 'รับชำระ 2,675.00 บาท (เงินโอน) · ใบเสร็จ MA-RE261000004 · ชำระครบแล้ว';
+  const slipKey = Object.keys(legacy).find(k => k.startsWith('DB.paySlips.')) as string;
+  expect(slipKey).toBe(`DB.paySlips.${pay.payId}`);
+  expect(legacy[slipKey][1][0].url).toMatch(/^data:image\/jpeg;base64,/);
+  await golden.stateChange('pay-with-slip', before, { 'DB.receipts[MA-SA261000015].payments': pays, 'DB.audit': legacy['DB.audit'],
+    'DB.seq.MA-RE2610': [3, 4], [slipKey]: [null, slip] });
+  // The slip is a file on the server, and the server's copy of the data holds its link.
+  expect(await fetchFile(page, slip[0].url).then(f => [f.status, f.type])).toEqual([200, 'image/jpeg']);
+  expect((await app.serverDB()).paySlips[pay.payId]).toEqual(slip);
+
+  // The home page: sales by category.
+  await rcpt.getByRole('button', { name: 'ปิด', exact: true }).first().click();
+  await expect(rcpt).toBeHidden();
+  await page.getByRole('button', { name: 'กลับไปยังหน้าค้นหาเอกสาร' }).click();
+  await page.getByRole('button', { name: /^00 Mr\.DriveGo/ }).click();
+  await app.settle();
+  await golden.step('หน้าแรกหลังขายชุดอะไหล่');
+  golden.done();
 });
