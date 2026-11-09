@@ -42,7 +42,7 @@ test('S407 ตั้งความกว้างช่องทะเบีย
   await golden.step('ลากหมวดไปไว้ก่อนชื่อสินค้า');
 
   // A drag let go outside the list changes nothing.
-  await row('ราคาขาย C').dragTo(page.getByLabel('เลือกตารางทะเบียน'));
+  await row('ราคาขาย C').dragTo(page.getByText('เลือกตารางทะเบียน', { exact: true }), { sourcePosition: { x: 30, y: 10 } });
   await expect(page.getByRole('row').filter({ visible: true }).filter({ hasText: /ลากย้าย/ }).nth(8)).toContainText('ราคาขาย C');
   await golden.step('ลากราคาขาย C ไปปล่อยนอกรายการ ลำดับไม่เปลี่ยน');
 
