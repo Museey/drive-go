@@ -314,11 +314,14 @@ n = 0;
 // cannot be reached either.
 const unreachableBodies = Object.keys(UNREACHABLE).filter(nm => fns.has(nm))
   .flatMap(nm => fns.get(nm).decls.map(d => ({ nm, from: d.line, to: lineAt(d.end) })));
-const entryUnreachable = (line, calls) => {
+// (The last rule only for entries no scenario used: the calls are read by name, and a module may have a function of
+// its own with a global's name, as the receipt viewer's printReceipt at line 31067.)
+const entryUnreachable = (line, calls, used) => {
   const why = unreachableLine(line);
   if (why) return why;
   const inside = unreachableBodies.find(b => line > b.from && line <= b.to);
   if (inside) return 'อยู่ในฟังก์ชัน ' + inside.nm + ' ซึ่งกดจากหน้าจอไม่ถึง';
+  if (used) return '';
   const saving = calls.filter(c => savesVia(c));
   return saving.length && saving.every(c => UNREACHABLE[c]) ? 'เรียกเฉพาะ ' + saving.join(', ') + ' ซึ่งกดจากหน้าจอไม่ถึง' : '';
 };
@@ -330,8 +333,8 @@ for (const h of handlers) {
     declared_lines: '', replaced_at: '', live_line: '', live_note: '', saves,
     label: `<${h.tag}> ${h.label}`.trim(), code: h.code.replace(/\s+/g, ' ').slice(0, 160),
     calls: calls.sort().join(' '), tested_by: haveCoverage ? usedBy(h).join(' ') : '',
-    unreachable: entryUnreachable(h.line, calls),
   });
+  rows[rows.length - 1].unreachable = entryUnreachable(h.line, calls, rows[rows.length - 1].tested_by);
 }
 n = 0;
 for (const l of listeners) {
@@ -341,8 +344,9 @@ for (const l of listeners) {
     declared_lines: '', replaced_at: '', live_line: '', live_note: '', saves: calls.some(c => savesVia(c)) ? 'indirect' : '',
     label: l.target, code: l.code.replace(/\s+/g, ' ').slice(0, 160), calls: calls.sort().join(' '),
     // (a handler given by name, el.onchange = impFileChanged, runs at that function's own lines)
-    tested_by: ranBy(fns.has(l.code) ? fnLines(fns.get(l.code)) : [l.line]).join(' '), unreachable: entryUnreachable(l.line, calls),
+    tested_by: ranBy(fns.has(l.code) ? fnLines(fns.get(l.code)) : [l.line]).join(' '),
   });
+  rows[rows.length - 1].unreachable = entryUnreachable(l.line, calls, rows[rows.length - 1].tested_by);
 }
 // A scenario that used a part marked unreachable proves the mark wrong.
 for (const r of rows.filter(r => r.unreachable && r.tested_by && r.saves))
