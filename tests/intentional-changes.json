@@ -419,7 +419,7 @@
       "scenario": "S385-buy-menu-utilities-payroll-office-other.spec.ts",
       "by": "S445-buy-menu-payroll-owed-expenses-with-vouchers.spec.ts",
       "decision": "R12, R13, F5, X2 and answers of 2026-10-25 (task 3.7); R7-ข (task 3.4)",
-      "why": "PLACEHOLDER"
+      "why": "Payroll of task 3.7 (as S165): the payroll sheet has the 2026 social security (216,500 / 8,800 / 207,700, checked by its text), recording the month asks first and records both expenses owed with a payroll period, and the history row is paid or opened through its month instead of \"แก้ไข\". Office supplies and the other expense saved as จ่ายแล้ว get payment vouchers MA-PV261000001 / 2 (as S146), named in their windows' titles. Every other step and data change is checked against S385's goldens."
     }
   ],
   "added": [
