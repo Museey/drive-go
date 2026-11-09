@@ -1,0 +1,57 @@
+{
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-WD261000001]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "issue",
+        "docId": "@DB.issues[MA-WD261000001]",
+        "no": "MA-WD261000001",
+        "act": "save",
+        "note": "1 รายการ · จำนวนรวม 1 ชิ้น"
+      }
+    ]
+  },
+  "DB.seq.MA-WD2610": [
+    null,
+    1
+  ],
+  "DB.issues": {
+    "added": [
+      {
+        "id": "@DB.issues[MA-WD261000001]",
+        "no": "MA-WD261000001",
+        "date": "2026-10-13",
+        "by": "วิชัย ขยันงาน (ช่างซ่อมทั่วไป)",
+        "byId": "@DB.emp[EMP003]",
+        "dept": "",
+        "items": [
+          {
+            "stockId": "@DB.stock[BR-025]",
+            "code": "BR-025",
+            "name": "น้ำมันเบรก DOT4 (1 ลิตร)",
+            "qty": 1,
+            "reason": "เติมน้ำมันเบรกรถกระบะของอู่"
+          }
+        ],
+        "note": "",
+        "deducted": false,
+        "apv": {
+          "status": "draft",
+          "byName": "",
+          "date": "",
+          "note": ""
+        },
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  }
+}

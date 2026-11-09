@@ -348,6 +348,12 @@
       "by": "S263-sign-in-outcomes-biz-longer-passwords.spec.ts",
       "decision": "security review proposal 2, owner's decision 2026-10-31 (passwords of at least 8 characters)",
       "why": "EMP008's account is issued with an 8-character password instead of 8888; every step and message is checked against S101's goldens with that password."
+    },
+    {
+      "scenario": "S275-stock-documents-save-print-reopen.spec.ts",
+      "by": "S276-stock-documents-save-print-reopen-expense-category.spec.ts",
+      "decision": "R9–R11, F4 and answers of 2026-10-25 (task 3.6)",
+      "why": "As S158 for S33: the saved internal issue keeps its expense category (expCat). Every step and every other data change is checked against S275's goldens."
     }
   ],
   "added": [
