@@ -73,10 +73,12 @@ test('S421 ข้อมูลตัวอย่าง: ใบเสร็จแ�
 
   // "ยกเลิกเอกสาร" in the toolbar, with a reason.
   await form.getByRole('button', { name: 'ยกเลิกเอกสาร' }).click();
-  await page.getByRole('textbox').filter({ visible: true }).last().fill('ลูกค้าขอเปลี่ยนรายการ');
+  const ask = page.locator('#mAsk');
+  await expect(ask.getByText('ยกเลิกเอกสาร MA-RE261000001')).toBeVisible();
+  await ask.getByRole('textbox').fill('ลูกค้าขอเปลี่ยนรายการ');
   await golden.step('กดยกเลิกเอกสาร ใส่เหตุผล');
   before = await app.state();
-  await page.getByRole('button', { name: 'ยกเลิกเอกสาร' }).filter({ visible: true }).last().click();
+  await ask.getByRole('button', { name: 'ยกเลิกเอกสาร' }).click();
   await app.settle();
   await golden.step('ยืนยันยกเลิกเอกสาร MA-RE261000001');
   await golden.stateChange('cancel-receipt', before);

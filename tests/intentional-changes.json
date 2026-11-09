@@ -360,6 +360,42 @@
       "by": "S283-edited-vendor-and-customer-keep-their-codes.spec.ts",
       "decision": "Owner 2026-11-09: an edited customer or vendor keeps its code",
       "why": "The legacy app gave an edited vendor or customer the next code (V00002 -> V00009); the new system keeps V00002. Every step and every other data change is checked against S272's goldens; then a customer edited the same way keeps C00027."
+    },
+    {
+      "scenario": "S366-sample-data-home-popups-cut-first-card-ap-pay.spec.ts",
+      "by": "S440-sale-flow-stays-on-after-wipe-and-sample-data.spec.ts",
+      "decision": "Owner 2026-11-09: the sale flow (11.5 ระบบขายแบบใหม่) stays on",
+      "why": "The legacy app switched the sale flow off when the data was wiped (the sample and 36-month data come without it) or from page 11.5, and the old receipt / invoice forms came back; the new system switches it on at once and has no way back (S440)."
+    },
+    {
+      "scenario": "S367-sample-data-old-receipt-form-lines-pay-from-quote.spec.ts",
+      "by": "S440-sale-flow-stays-on-after-wipe-and-sample-data.spec.ts",
+      "decision": "Owner 2026-11-09: the sale flow (11.5 ระบบขายแบบใหม่) stays on",
+      "why": "The legacy app switched the sale flow off when the data was wiped (the sample and 36-month data come without it) or from page 11.5, and the old receipt / invoice forms came back; the new system switches it on at once and has no way back (S440)."
+    },
+    {
+      "scenario": "S370-36-month-data-old-invoice-lines-type-pull-save-print.spec.ts",
+      "by": "S440-sale-flow-stays-on-after-wipe-and-sample-data.spec.ts",
+      "decision": "Owner 2026-11-09: the sale flow (11.5 ระบบขายแบบใหม่) stays on",
+      "why": "The legacy app switched the sale flow off when the data was wiped (the sample and 36-month data come without it) or from page 11.5, and the old receipt / invoice forms came back; the new system switches it on at once and has no way back (S440)."
+    },
+    {
+      "scenario": "S372-sample-data-tax-invoice-window-source-tiles.spec.ts",
+      "by": "S440-sale-flow-stays-on-after-wipe-and-sample-data.spec.ts",
+      "decision": "Owner 2026-11-09: the sale flow (11.5 ระบบขายแบบใหม่) stays on",
+      "why": "The legacy app switched the sale flow off when the data was wiped (the sample and 36-month data come without it) or from page 11.5, and the old receipt / invoice forms came back; the new system switches it on at once and has no way back (S440)."
+    },
+    {
+      "scenario": "S388-sale-flow-page-after-wipe-print-excel-apply-revert.spec.ts",
+      "by": "S440-sale-flow-stays-on-after-wipe-and-sample-data.spec.ts",
+      "decision": "Owner 2026-11-09: the sale flow (11.5 ระบบขายแบบใหม่) stays on",
+      "why": "The legacy app switched the sale flow off when the data was wiped (the sample and 36-month data come without it) or from page 11.5, and the old receipt / invoice forms came back; the new system switches it on at once and has no way back (S440)."
+    },
+    {
+      "scenario": "S309-first-open-choose-package-new-browser.spec.ts",
+      "by": "S104-no-way-in-without-password.spec.ts",
+      "decision": "A1, owner decision 2026-10-30 (S260)",
+      "why": "The legacy app's first open shows the program-choosing page and then opens as the owner without a password; the new system has no program-choosing page (S260) and no way in without a password (S104)."
     }
   ],
   "added": [
@@ -777,6 +813,11 @@
       "scenario": "S268-sell-fixed-asset.spec.ts",
       "decision": "owner's decision 2026-11-06 (remaining accounting work 4: selling an asset, gain 4030 / loss 6190)",
       "why": "An asset is sold from its window: a VAT-registered shop issues a full tax invoice MA-TX… that prints, the asset is sold on that day, its VAT is in the month's sales tax, the trial balance takes its cost and depreciation out and adds the gain to 4030 and the money to cash; the sale cannot be edited."
+    },
+    {
+      "scenario": "S440-sale-flow-stays-on-after-wipe-and-sample-data.spec.ts",
+      "decision": "Owner 2026-11-09: the sale flow (11.5 ระบบขายแบบใหม่) stays on",
+      "why": "After wiping the data and loading the sample data the sale flow is on, page 11.5 has no way back, 04 shows the stock-cut register and the server keeps the switch on."
     }
   ]
 }

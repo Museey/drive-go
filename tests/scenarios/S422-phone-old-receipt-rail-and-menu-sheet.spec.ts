@@ -82,7 +82,7 @@ test('S422 ใบเสร็จแบบเดิมบนมือถือ: �
   await expect(form.getByText('เอกสารใหม่', { exact: false }).first()).toBeVisible();
   await golden.step('แตะ ⋯ แล้วสร้างใบใหม่');
   await menu.click();
-  await sheet.getByRole('button', { name: 'ปิดหน้าต่าง', exact: true }).click();
+  await page.getByRole('button', { name: 'ปิดหน้าต่าง', exact: true }).filter({ visible: true }).click();
   await expect(form).toBeHidden();
   await golden.step('แตะ ⋯ แล้วปิดหน้าต่าง');
 });

@@ -835,9 +835,10 @@
   save();refresh();
   return {ok:true,done};
  }
- const canRevert=()=>{const f=FLAG();return !!(f&&f.on&&!f.used);};
+ /* DriveGo (owner 2026-11-09): the new system keeps the sale flow on for good, so there is no going back. */
+ const canRevert=()=>false;
  function revert(){
-  const f=FLAG();if(!f||!f.on)return false;
+  const f=FLAG();if(!f||!f.on||!canRevert())return false;
   if(f.used)return say('มีเอกสารที่ทำในระบบขายแบบใหม่แล้ว — ย้อนกลับด้วยปุ่มนี้ไม่ได้ ให้กู้คืนจากไฟล์สำรองที่บันทึกไว้ก่อนเปิดใช้');
   const back=x=>{const m=x.migr;if(!m)return;Object.keys(m.o||{}).forEach(k=>{x[k]=m.o[k];});(m.del||[]).forEach(k=>{delete x[k];});delete x.migr;};
   let done=0;
@@ -853,7 +854,17 @@
  /* a backup from before the switch restored over a switched-on database (the original merges with Object.assign, so the
     flag survives while the documents do not): the switch goes off and the page asks again */
  function stale(){return on()&&classify().ops.length>0;}
- if(typeof boot==='function'){const bootO=boot;boot=function(){const r=bootO.apply(this,arguments);try{IX=null;CX=null;NOS=null;if(stale()){DB.pkgSaleFlow.on=false;DB.pkgSaleFlow.stale=today();}}catch(e){}return r;};}
+ if(typeof boot==='function'){const bootO=boot;boot=function(){const r=bootO.apply(this,arguments);try{IX=null;CX=null;NOS=null;lockOn();}catch(e){}return r;};}
+ /* DriveGo (owner 2026-11-09): the sale flow stays on. A database without it (wiped, the sample or 36-month data, a
+    restored or imported file from before the switch) is switched on at once, its documents adjusted as "เปิดใช้" does
+    (the original switched it off and asked again; with it off the old receipt and invoice forms came back). */
+ function lockOn(){
+  if(on()&&!stale())return;
+  const cl=classify();if(cl.ops.length)return apply(cl);
+  /* nothing to adjust (an empty or wiped database, also before signing in): the switch is set and saved with the next save */
+  const f=FLAG()||{};DB.pkgSaleFlow=Object.assign({v:1},f,{on:true,since:f.on&&f.since?f.since:today(),at:nowTs(),by:meName(),used:f.on?n(f.used):0});
+  delete DB.pkgSaleFlow.stale;
+ }
 
  /* menu numbers used in messages (the 04 sub-menus are re-ordered in phase 5: this is the one place to change them) */
  /* A brand-new empty database starts with the switch OFF as well (owner decides). One constant, read nowhere else:
