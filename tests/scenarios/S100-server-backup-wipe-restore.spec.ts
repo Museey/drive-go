@@ -57,7 +57,8 @@ test('S100 ระบบใหม่: สร้างจุดสำรองบ�
   await expect(page.getByText('ล้างข้อมูลทั้งหมดออกจากระบบ?', { exact: true })).toBeHidden();
   await step('ล้างข้อมูลแล้ว');
   // Task 3.2: the 8 counters stay as they were (S74 had none left) and the audit log has the wipe.
-  expect(await counts()).toBe(legacyCounts('after-wipe', { 'DB.audit': 1, 'DB.seq': '{8 keys}' }));
+  // The sale flow stays on (owner 2026-11-09, S440): the wiped / loaded data gets the switch DB.pkgSaleFlow.
+  expect(await counts()).toBe(legacyCounts('after-wipe', { 'DB.audit': 1, 'DB.seq': '{8 keys}', 'DB.pkgSaleFlow': '{6 keys}' }));
   const wiped = (await app.state()).DB;
   expect(wiped.seq).toEqual(before.DB.seq);
   expect(wiped.audit[0]).toMatchObject({ kind: 'data', act: 'wipe', note: auditNote('ล้างข้อมูลทั้งหมด') });

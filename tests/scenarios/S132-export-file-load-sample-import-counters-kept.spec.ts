@@ -50,7 +50,8 @@ test('S132 ระบบใหม่: ส่งออกไฟล์สำรอ�
   await expect(page.getByRole('button', { name: 'ดูรายงานลูกหนี้' })).toBeVisible();
   await golden.step('กดโหลดข้อมูลตัวอย่าง (ไม่มีถามยืนยัน)');
   // The sample data keeps the audit log, which now has the wipe and the loading.
-  await golden.counts('after-sample-data', { 'DB.audit': SAMPLE_AUDIT + 2, 'DB.seq': '{8 keys}' });
+  // The sale flow stays on (owner 2026-11-09, S440): the wiped / loaded data gets the switch DB.pkgSaleFlow.
+  await golden.counts('after-sample-data', { 'DB.audit': SAMPLE_AUDIT + 2, 'DB.seq': '{8 keys}', 'DB.pkgSaleFlow': '{6 keys}' });
   const sample = (await app.state()).DB;
   expect(sample.seq).toEqual(counters);
   expect(sample.audit.filter((x: any) => x.kind === 'data').map((x: any) => [x.act, x.note]))

@@ -6,7 +6,7 @@ import { storageApi } from '../support/storage-api';
 // on. In the legacy app wiping the data switched it off, and the sample data and the 36-month test data came without it
 // (S366, S367, S370, S372, S388, S420–S425), so the old receipt and invoice forms came back. Here: after wiping, the
 // switch is on and page 11.5 says so, with no way back; after loading the sample data its documents are adjusted
-// as "เปิดใช้" does (every receipt is in the new flow), 04 shows the stock-cut register (no old receipt form),
+// as "เปิดใช้" does (page 11.5's own check passes), 04 shows the stock-cut register (no old receipt form),
 // and what is stored on the server has the switch on too.
 test('S440 ระบบใหม่: ล้างข้อมูลและโหลดข้อมูลตัวอย่างแล้ว ระบบขายแบบใหม่ยังเปิดอยู่ ไม่มีปุ่มย้อนกลับ และไม่มีฟอร์มใบเสร็จแบบเดิม', async ({ app, page }) => {
   test.slow();
@@ -48,11 +48,9 @@ test('S440 ระบบใหม่: ล้างข้อมูลและโ�
   const db = (await app.state()).DB;
   expect(db.pkgSaleFlow).toMatchObject({ on: true });
   expect(db.pkgSaleFlow.stale).toBeUndefined();
-  expect(db.receipts.length).toBeGreaterThan(0);
-  for (const r of db.receipts.filter((x: any) => !x.cancelled))
-    expect(r.pkgSale, `receipt ${r.no} is in the new sale flow`).toBeTruthy();
   await page115();
   await switchedOn();
+  await expect(page.getByText('ผ่าน — ใบตัดสต็อกทุกใบมีรายการบัญชี 1 รายการ และสถานะชำระตรงกับเงินที่รับ', { exact: true })).toBeVisible();
 
   // 04: the stock-cut register, not the old receipt form.
   await page.getByRole('button', { name: /^04 / }).click();

@@ -30,7 +30,8 @@ test('S133 ระบบใหม่: ล้างข้อมูลแล้ว�
   await confirmWithShopName(page, shopName, 'โหลดข้อมูล');
   await expect(page.getByRole('button', { name: 'ดูรายงานลูกหนี้' })).toBeVisible();
   await golden.step('กดโหลดข้อมูลทดสอบ 36 เดือน');
-  await golden.counts('after-36-months', { 'DB.audit': TEST_DATA_AUDIT + 1, 'DB.seq': '{3266 keys}' });
+  // The sale flow stays on (owner 2026-11-09, S440): the wiped / loaded data gets the switch DB.pkgSaleFlow.
+  await golden.counts('after-36-months', { 'DB.audit': TEST_DATA_AUDIT + 1, 'DB.seq': '{3266 keys}', 'DB.pkgSaleFlow': '{6 keys}' });
   const data = (await app.state()).DB, seq = data.seq;
   expect(data.audit.at(-1)).toMatchObject({ kind: 'data', act: 'demo', note: auditNote('โหลดข้อมูลทดสอบ 36 เดือน') });
   for (const [base, last] of Object.entries(counters)) expect(seq[base], base).toBeGreaterThanOrEqual(last as number);
