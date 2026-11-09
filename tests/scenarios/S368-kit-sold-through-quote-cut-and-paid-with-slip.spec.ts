@@ -42,10 +42,12 @@ test('S368 ขายชุดอะไหล่ผ่านใบเสนอร
   await kitBox.press('Enter');
   await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).first().click();
   await expect(page.getByRole('button', { name: 'ยกเลิกเอกสาร' }).filter({ visible: true })).toBeVisible();
-  await expect(page.getByText('บันทึกใบเสนอราคา MA-QT261000005 แล้ว', { exact: false }).first()).toBeAttached();
+  await app.settle();
+  await golden.step('บันทึกใบเสนอราคาของปรีชา ทองสุข ที่มีชุดอะไหล่');
   await page.getByRole('button', { name: 'อนุมัติเอกสาร' }).filter({ visible: true }).click();
   await expect(page.getByRole('button', { name: 'ตัดสต็อกสินค้า' }).filter({ visible: true })).toBeVisible();
-  await golden.step('ใบเสนอราคาของปรีชา ทองสุข มีชุดอะไหล่ บันทึกและอนุมัติแล้ว');
+  await app.settle();
+  await golden.step('อนุมัติใบเสนอราคา');
   await page.getByRole('button', { name: 'ตัดสต็อกสินค้า' }).filter({ visible: true }).click();
   await golden.step('กดตัดสต็อกสินค้า เปิดใบตัดสต็อกพร้อมชุดอะไหล่');
   before = await app.state();
