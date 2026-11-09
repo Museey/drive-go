@@ -111,5 +111,6 @@
   user drivego_staff (0008_staff.sql, `drivego_staff_grants()` ทุก migrate), lib/staff.ts (รหัสผ่าน + TOTP), lib/staff-shops.ts, API `app/api/staff/*`,
   หน้า `server/staff-ui/` (JS ล้วน ไม่มี inline, CSP ใน next.config.ts) · บัญชีทีมงาน: `shop-admin staff list|add|reset|off|on`
   · local: `npm run dev` → `/staff/` บัญชี `staff` รหัสพิมพ์ตอนเปิด · test: S284 S285, tests/db/staff.test.mjs, totp/portal unit, image-smoke ส่วน staff
-  (session นี้ไม่มี Docker daemon) · **รอเจ้าของ**: สร้างแอปตาม DIGITALOCEAN-SETUP ส่วนที่ 4 + อนุมัติข้อความ (ส่งภาพหน้าจอแล้ว)
+  (session นี้ไม่มี Docker daemon) · **CI รอบ 185 ผ่านทุก job (0be43f6, deploy/test ขยับแล้ว)** · **รอเจ้าของ**: สร้างแอปตาม DIGITALOCEAN-SETUP ส่วนที่ 4 + อนุมัติข้อความ (ส่งภาพหน้าจอแล้ว)
+- P4 รอบ 4 บันทึกภาพ S269 billing-opened.png ใหม่ (ไฟล์เดียว, 6b6f997) งานปิดช่องว่างของ test (S269–S283) CI ผ่านแล้ว
 - P4 (บันทึกภาพเฉลยใหม่) ห้าม push ระหว่างรัน: ถ้าต้อง push ให้ cancel run แล้วสั่งใหม่หลัง push (ทำแล้ว 2026-11-09 สองครั้ง)
