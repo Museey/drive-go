@@ -68,10 +68,11 @@ test('S325 ใบตรวจนับ: เพิ่มสินค้าจา�
   await page.getByRole('button', { name: '+ สร้างใบเบิกใหม่' }).click();
   await page.getByLabel('ค้นหาสินค้าเร็ว').filter({ visible: true }).fill('BR-025');
   await page.getByRole('option', { name: /BR-025 · น้ำมันเบรก DOT4/ }).click();
-  await expect(line('BR-025')).toBeVisible();
+  const issueLine = page.getByRole('row', { name: /^1 BR-025 น้ำมันเบรก DOT4/ }).filter({ visible: true });
+  await expect(issueLine).toBeVisible();
   await golden.step('ใบเบิกใหม่ เพิ่มน้ำมันเบรก');
-  await line('BR-025').getByRole('button', { name: '×' }).click();
-  await expect(line('BR-025')).toHaveCount(0);
+  await issueLine.getByRole('button', { name: '×' }).click();
+  await expect(issueLine).toHaveCount(0);
   await golden.step('กด × เอาน้ำมันเบรกออก');
   await page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).first().click();
 

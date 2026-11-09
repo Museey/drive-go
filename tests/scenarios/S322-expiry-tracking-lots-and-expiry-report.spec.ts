@@ -29,7 +29,7 @@ test('S322 ติดตามวันหมดอายุ: ตั้งที�
   await page.getByRole('button', { name: 'ดูล็อต / วันหมดอายุ' }).click();
   await expect(lots.getByText('MA-RC261000001-23')).toBeVisible();
   await golden.step('หน้าต่างแสดงล็อตของ BR-025');
-  await lots.getByText('แสดงล็อตที่หมดแล้ว').click();
+  await lots.getByRole('checkbox', { name: 'แสดงล็อตที่หมดแล้ว' }).check();
   await golden.step('ติ๊กแสดงล็อตที่หมดแล้ว');
   await lots.getByRole('textbox', { name: 'ค้นหาข้อมูล' }).fill('ไม่มีล็อตนี้');
   await page.keyboard.press('Enter');

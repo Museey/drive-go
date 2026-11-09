@@ -14,8 +14,9 @@ test('S410 เลือกสินค้าเข้าใบเสนอรา
 
   // Quick search with the keyboard.
   const quick = page.getByRole('combobox', { name: 'ค้นหาสินค้าเร็ว' }).filter({ visible: true });
+  const found = page.getByRole('listbox', { name: 'สินค้าที่พบ' }).filter({ visible: true }).getByRole('option');
   await quick.fill('กรองแอร์');
-  await expect(page.getByRole('option').first()).toBeVisible();
+  await expect(found.first()).toBeVisible();
   await golden.step('พิมพ์กรองแอร์ในค้นหาสินค้าเร็ว');
   await quick.press('ArrowDown');
   await quick.press('ArrowDown');
@@ -25,9 +26,9 @@ test('S410 เลือกสินค้าเข้าใบเสนอรา
   await expect(lines).toHaveCount(1);
   await golden.step('กด Enter เลือกสินค้ารายการแรก');
   await quick.fill('น้ำมันเครื่อง');
-  await expect(page.getByRole('option').first()).toBeVisible();
+  await expect(found.first()).toBeVisible();
   await quick.press('Escape');
-  await expect(page.getByRole('option')).toHaveCount(0);
+  await expect(found).toHaveCount(0);
   await golden.step('พิมพ์น้ำมันเครื่องแล้วกด Esc ปิดรายการ');
 
   // A full code.

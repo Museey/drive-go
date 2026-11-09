@@ -161,6 +161,27 @@ for (const { base, ast } of scripts) {
   });
 }
 
+// Named functions inside other functions (function x(){…} or const x = () => …): a listener given
+// by such a name (addEventListener('resize', mHideRItems)) runs at that function's lines, the nearest
+// declaration of the name in the same script.
+const nested = new Map(); // name -> [{ script, line }]
+scripts.forEach(({ base, ast }, script) => {
+  const add = (name, node) => {
+    if (!nested.has(name)) nested.set(name, []);
+    nested.get(name).push({ script, base, line: lineAt(base + node.start) });
+  };
+  walk.full(ast, n => {
+    if (n.type === 'FunctionDeclaration' && n.id && !ast.body.includes(n)) add(n.id.name, n);
+    if (n.type === 'VariableDeclarator' && n.id.type === 'Identifier' && n.init && /Function|Arrow/.test(n.init.type)) add(n.id.name, n.init);
+  });
+});
+const nestedLines = (name, line) => {
+  const here = (nested.get(name) || []).filter(d => d.script === scripts.findIndex(s => s.base <= lineStarts[line - 1] && lineStarts[line - 1] < s.base + s.ast.end));
+  if (!here.length) return null;
+  const before = here.filter(d => d.line <= line);
+  return [(before.length ? before[before.length - 1] : here[0]).line];
+};
+
 // 3. who saves, directly or through the functions it calls (fixed point over
 //    the call graph)
 const savers = new Set([...fns.values()].filter(f => f.savesDirect || SAVE_FNS.has(f.name)).map(f => f.name));
@@ -347,7 +368,7 @@ for (const l of listeners) {
     declared_lines: '', replaced_at: '', live_line: '', live_note: '', saves: calls.some(c => savesVia(c)) ? 'indirect' : '',
     label: l.target, code: l.code.replace(/\s+/g, ' ').slice(0, 160), calls: calls.sort().join(' '),
     // (a handler given by name, el.onchange = impFileChanged, runs at that function's own lines)
-    tested_by: ranBy(fns.has(l.code) ? fnLines(fns.get(l.code)) : [l.line]).join(' '),
+    tested_by: ranBy(fns.has(l.code) ? fnLines(fns.get(l.code)) : (/^[$\w]+$/.test(l.code) && nestedLines(l.code, l.line)) || [l.line]).join(' '),
   });
   rows[rows.length - 1].unreachable = entryUnreachable(l.line, calls, rows[rows.length - 1].tested_by);
 }

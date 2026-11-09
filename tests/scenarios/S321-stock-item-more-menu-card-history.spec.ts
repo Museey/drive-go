@@ -65,6 +65,6 @@ test('S321 รายละเอียดสินค้า: เพิ่มเ�
   await golden.step('กดอัปโหลดรูป');
   await close();
   await golden.step('ปิดหน้าต่างรูปสินค้า');
-  await page.locator('#mStock').getByRole('button', { name: 'ปิด', exact: true }).click();
+  await page.locator('#mStock').getByRole('button', { name: 'ปิด', exact: true }).filter({ hasText: 'ปิด' }).click();
   await golden.step('ปิดรายละเอียดสินค้า');
 });

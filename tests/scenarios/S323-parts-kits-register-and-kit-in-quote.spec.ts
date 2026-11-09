@@ -86,9 +86,9 @@ test('S323 ชุดอะไหล่ซ่อมบำรุง: สร้า�
   await expect(page.getByText('เพิ่มชุด ชุดเปลี่ยนผ้าเบรกหน้า Revo แล้ว')).toBeVisible();
   await golden.step('กด Enter เพิ่มชุดเปลี่ยนผ้าเบรกหน้า');
   await kitBox.fill('ไม่มีชุดนี้');
-  await expect(page.getByText('ไม่พบชุดอะไหล่')).toBeVisible();
+  await expect(page.getByText('ไม่พบชุดอะไหล่', { exact: true }).filter({ visible: true })).toBeVisible();
   await page.getByPlaceholder('1.', { exact: true }).click();
-  await expect(page.getByText('ไม่พบชุดอะไหล่')).toBeHidden();
+  await expect(page.getByText('ไม่พบชุดอะไหล่', { exact: true }).filter({ visible: true })).toHaveCount(0);
   await golden.step('พิมพ์ชื่อที่ไม่มี แล้วคลิกที่อื่น รายการปิด');
   await kitBox.fill('กรองแอร์');
   await page.getByRole('option', { name: /ชุดเปลี่ยนกรองแอร์/ }).click();
