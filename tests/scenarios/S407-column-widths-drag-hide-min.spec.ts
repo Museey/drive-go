@@ -41,10 +41,10 @@ test('S407 ตั้งความกว้างช่องทะเบีย
   await expect(page.getByRole('row').filter({ visible: true }).filter({ hasText: /ลากย้าย/ }).nth(2)).toContainText('หมวด');
   await golden.step('ลากหมวดไปไว้ก่อนชื่อสินค้า');
 
-  // A drag let go outside the list changes nothing.
-  await row('ราคาขาย C').dragTo(page.getByText('เลือกตารางทะเบียน', { exact: true }), { sourcePosition: { x: 30, y: 10 } });
+  // Nothing goes before ลำดับ: a row let go there stays where it was.
+  await row('ราคาขาย C').dragTo(row('ลำดับ'), { sourcePosition: { x: 30, y: 10 } });
   await expect(page.getByRole('row').filter({ visible: true }).filter({ hasText: /ลากย้าย/ }).nth(8)).toContainText('ราคาขาย C');
-  await golden.step('ลากราคาขาย C ไปปล่อยนอกรายการ ลำดับไม่เปลี่ยน');
+  await golden.step('ลากราคาขาย C ไปปล่อยที่ช่องลำดับ ตำแหน่งไม่เปลี่ยน');
 
   await page.getByRole('button', { name: 'ปรับให้รวมครบ 100% อัตโนมัติ' }).click();
   await golden.step('ปรับให้รวมครบ 100%');
