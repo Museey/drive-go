@@ -1,0 +1,44 @@
+[
+  {
+    "step": "P1 แท็บอาการเสีย → ใบเสนอราคา",
+    "page": [
+      "P1 DriveGo ProX · Ecosystem 3",
+      "อาการเสีย → ใบเสนอราคา"
+    ],
+    "popups": [],
+    "messages": [
+      "ยินดีต้อนรับ เจ้าของร้านทดสอบ — เจ้าของร้าน ร้านทดสอบ DriveGoProX"
+    ]
+  },
+  {
+    "step": "กดจำลองลูกค้าแจ้งอาการ",
+    "page": [
+      "P1 DriveGo ProX · Ecosystem 4",
+      "อาการเสีย → ใบเสนอราคา"
+    ],
+    "popups": [],
+    "messages": [
+      "📝 ลูกค้าแจ้งอาการใหม่ — MG ZS EV (9กบ 1577)"
+    ]
+  },
+  {
+    "step": "P1 แท็บงานฉุกเฉิน SOS",
+    "page": [
+      "P1 DriveGo ProX · Ecosystem 4",
+      "งานฉุกเฉิน SOS"
+    ],
+    "popups": [],
+    "messages": []
+  },
+  {
+    "step": "กดจำลองเหตุฉุกเฉินใกล้อู่",
+    "page": [
+      "P1 DriveGo ProX · Ecosystem 5",
+      "งานฉุกเฉิน SOS"
+    ],
+    "popups": [],
+    "messages": [
+      "🆘 เหตุฉุกเฉินใกล้อู่ — ⛽ น้ำมันหมด 3ถถ 1778"
+    ]
+  }
+]
