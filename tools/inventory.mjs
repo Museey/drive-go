@@ -39,7 +39,15 @@ const SAVE_FNS = new Set(['save', 'pxSave', 'frSave', 'dgbSave']);
 
 // Functions no screen action can reach (checked in the running app), with the reason.
 const UNREACHABLE = JSON.parse(readFileSync(new URL('tools/unreachable.json', ROOT), 'utf8'));
+// "_lines": parts of the markup or code (one line or "from-to") that no screen
+// action shows or runs, with the reason: handlers and listeners there need no scenario.
+const UNREACHABLE_LINES = Object.entries(UNREACHABLE._lines || {}).map(([k, why]) => {
+  const [from, to = from] = k.split('-').map(Number);
+  return { from, to, why };
+});
 delete UNREACHABLE._note;
+delete UNREACHABLE._lines;
+const unreachableLine = line => UNREACHABLE_LINES.find(r => line >= r.from && line <= r.to)?.why || '';
 
 // ---------- static: scripts ----------
 const fns = new Map();   // name -> { decls: [{line,start,end,src}], overrides: Set<line>, calls: Set, savesDirect }
@@ -206,15 +214,20 @@ if (!process.argv.includes('--no-runtime')) await runtime();
 
 // ---------- coverage ----------
 const executed = new Map(); // line -> Set<scenario>
+const fired = new Map();    // "<event>\n<attribute text>" -> Set<scenario> (inline handlers the scenario used)
 const covDir = new URL('coverage/raw/', ROOT);
 const haveCoverage = existsSync(covDir);
 if (haveCoverage) {
   for (const f of readdirSync(covDir)) {
-    const { test, ran } = JSON.parse(readFileSync(new URL(f, covDir), 'utf8'));
+    const { test, ran, triggers = [] } = JSON.parse(readFileSync(new URL(f, covDir), 'utf8'));
     const sc = (test.match(/\bS\d+\b/) || [test])[0];
     for (const r of ran) {
       if (!executed.has(r.line)) executed.set(r.line, new Set());
       executed.get(r.line).add(sc);
+    }
+    for (const t of triggers) {
+      if (!fired.has(t)) fired.set(t, new Set());
+      fired.get(t).add(sc);
     }
   }
 }
@@ -224,6 +237,25 @@ const ranBy = lines => {
   return [...s].sort();
 };
 
+// The handler code as written (markup with entities, or HTML built in a script
+// with ${…} or '+…+' parts) as a pattern for the attribute text in the page.
+const ENTITY = { amp: '&', quot: '"', apos: "'", lt: '<', gt: '>', '#39': "'", '#039': "'" };
+const norm = t => t.replace(/\s+/g, ' ').trim();
+function handlerPattern(code) {
+  const parts = code.split(/\$\{(?:[^{}]|\{[^{}]*\})*\}|\\?'\s*\+[\s\S]*?\+\s*\\?'|\\?"\s*\+[\s\S]*?\+\s*\\?"/);
+  const lit = p => norm(p.replace(/\\(['"\\])/g, '$1').replace(/&(amp|quot|apos|lt|gt|#0?39);/g, (_, e) => ENTITY[e]))
+    .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp('^' + parts.map(lit).join('[\\s\\S]*?') + '$');
+}
+const usedBy = h => {
+  const re = handlerPattern(h.code), out = new Set();
+  for (const [key, scs] of fired) {
+    const i = key.indexOf('\n');
+    if (key.slice(0, i) === h.event && re.test(norm(key.slice(i + 1)))) scs.forEach(x => out.add(x));
+  }
+  return [...out].sort();
+};
+
 // ---------- rows ----------
 const csv = v => {
   const s = String(v ?? '');
@@ -231,9 +263,8 @@ const csv = v => {
 };
 const rows = [];
 const fnRows = [...fns.values()].sort((a, b) => a.decls[0].line - b.decls[0].line);
-let n = 0;
+const liveOf = new Map();
 for (const f of fnRows) {
-  const declLines = f.decls.map(d => d.line);
   let liveLine = '', liveNote = '';
   const src = live.get(f.name);
   if (live.size) {
@@ -247,7 +278,23 @@ for (const f of fnRows) {
       else { liveLine = lineAt(at); liveNote = 'ถูกครอบ/แทนที่'; }
     }
   }
-  const scen = ranBy([...declLines, ...f.overrides, ...(liveLine ? [liveLine] : [])]);
+  liveOf.set(f.name, { liveLine, liveNote });
+}
+// Code that runs for a name: its declarations, the code that replaced or wrapped
+// it, and what the name points to at run time, unless many names point there
+// (a generic wrapper such as wrap() of the permission checks runs for every
+// wrapped function, so it would count a scenario that never ran this one).
+const liveShared = new Map();
+for (const { liveLine } of liveOf.values()) if (liveLine) liveShared.set(liveLine, (liveShared.get(liveLine) || 0) + 1);
+const fnLines = f => {
+  const { liveLine } = liveOf.get(f.name);
+  return [...f.decls.map(d => d.line), ...f.overrides, ...(liveLine && liveShared.get(liveLine) === 1 ? [liveLine] : [])];
+};
+let n = 0;
+for (const f of fnRows) {
+  const declLines = f.decls.map(d => d.line);
+  const { liveLine, liveNote } = liveOf.get(f.name);
+  const scen = ranBy(fnLines(f));
   const saves = f.savesDirect || SAVE_FNS.has(f.name) ? 'direct' : savesVia(f.name) ? 'indirect' : '';
   rows.push({
     id: 'F' + String(++n).padStart(4, '0'), kind: f.kind, name: f.name, line: declLines[declLines.length - 1],
@@ -258,18 +305,24 @@ for (const f of fnRows) {
   });
 }
 n = 0;
+// A handler or listener needs no scenario when it sits in a part no action
+// shows (unreachable.json "_lines"), or when every saving function it calls
+// cannot be reached either.
+const entryUnreachable = (line, calls) => {
+  const why = unreachableLine(line);
+  if (why) return why;
+  const saving = calls.filter(c => savesVia(c));
+  return saving.length && saving.every(c => UNREACHABLE[c]) ? 'เรียกเฉพาะ ' + saving.join(', ') + ' ซึ่งกดจากหน้าจอไม่ถึง' : '';
+};
 for (const h of handlers) {
   const calls = [...h.calls];
   const saves = calls.some(c => savesVia(c)) ? 'indirect' : '';
-  const covered = calls.length && haveCoverage
-    ? calls.map(c => new Set(ranBy([...fns.get(c).decls.map(d => d.line), ...fns.get(c).overrides])))
-    : [];
-  const both = covered.length ? [...covered.reduce((a, b) => new Set([...a].filter(x => b.has(x))))] : [];
   rows.push({
     id: 'H' + String(++n).padStart(4, '0'), kind: 'on' + h.event, name: '', line: h.line,
     declared_lines: '', replaced_at: '', live_line: '', live_note: '', saves,
     label: `<${h.tag}> ${h.label}`.trim(), code: h.code.replace(/\s+/g, ' ').slice(0, 160),
-    calls: calls.sort().join(' '), tested_by: both.sort().join(' '),
+    calls: calls.sort().join(' '), tested_by: haveCoverage ? usedBy(h).join(' ') : '',
+    unreachable: entryUnreachable(h.line, calls),
   });
 }
 n = 0;
@@ -279,9 +332,12 @@ for (const l of listeners) {
     id: 'L' + String(++n).padStart(4, '0'), kind: 'listener:' + l.event, name: '', line: l.line,
     declared_lines: '', replaced_at: '', live_line: '', live_note: '', saves: calls.some(c => savesVia(c)) ? 'indirect' : '',
     label: l.target, code: l.code.replace(/\s+/g, ' ').slice(0, 160), calls: calls.sort().join(' '),
-    tested_by: ranBy([l.line]).join(' '),
+    tested_by: ranBy([l.line]).join(' '), unreachable: entryUnreachable(l.line, calls),
   });
 }
+// A scenario that used a part marked unreachable proves the mark wrong.
+for (const r of rows.filter(r => r.unreachable && r.tested_by))
+  console.warn(`marked unreachable but used by ${r.tested_by}: ${r.id} line ${r.line} ${r.name || r.code.slice(0, 60)}`);
 const COLS = ['id', 'kind', 'name', 'line', 'declared_lines', 'replaced_at', 'live_line', 'live_note', 'saves', 'label', 'code', 'calls', 'tested_by', 'unreachable'];
 writeFileSync(new URL('docs/behaviors.csv', ROOT), [COLS.join(','), ...rows.map(r => COLS.map(c => csv(r[c])).join(','))].join('\n') + '\n');
 
@@ -290,9 +346,13 @@ const F = rows.filter(r => r.id.startsWith('F'));
 const H = rows.filter(r => r.id.startsWith('H'));
 const L = rows.filter(r => r.id.startsWith('L'));
 const saveF = F.filter(r => r.saves);
-// What still needs a scenario: saving functions that are reachable and never ran.
+// What still needs a scenario: saving functions that are reachable and never ran,
+// and buttons/listeners that lead to a save, can be reached, and no scenario used.
 const todo = saveF.filter(r => !r.tested_by && !r.unreachable);
 const unreach = F.filter(r => r.unreachable);
+const saveE = [...H, ...L].filter(r => r.saves);
+const todoE = saveE.filter(r => !r.tested_by && !r.unreachable);
+const unreachE = saveE.filter(r => r.unreachable && !r.tested_by);
 const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0) + '%';
 const tested = arr => arr.filter(r => r.tested_by).length;
 const summary = `# รายการพฤติกรรมของระบบเดิม
@@ -306,6 +366,10 @@ const summary = `# รายการพฤติกรรมของระบ�
 รวมถึงตอนเปิดโปรแกรมและล็อกอินด้วย จึงไม่ได้แปลว่าผลของมันถูกตรวจแล้ว
 ใช้หาช่องโหว่: **ส่วนที่ไม่เคยถูกเรียกเลย คือส่วนที่ยังไม่มี test แน่นอน**
 
+ฟังก์ชันที่ถูกครอบด้วยโค้ดครอบแบบทั่วไป (เช่น ตัวตรวจสิทธิ์ที่ครอบฟังก์ชันหลายสิบตัวด้วยโค้ดชุดเดียว) นับเฉพาะเมื่อโค้ดของตัวมันเองทำงาน
+ไม่นับจากโค้ดครอบที่ใช้ร่วมกัน เพราะโค้ดนั้นทำงานทุกครั้งที่ฟังก์ชันตัวไหนก็ได้ถูกเรียก
+จุดรับคำสั่งในหน้าจอ (on…=) นับเมื่อสถานการณ์กดหรือกรอกที่จุดนั้นจริง (บันทึกระหว่าง \`npm run coverage\`) ปุ่มที่โค้ดเหมือนกันทุกตัวอักษรนับรวมกัน
+
 | รายการ | จำนวน | ถูกเรียกระหว่าง test${haveCoverage ? '' : ' (ยังไม่ได้วัด)'} |
 |---|---|---|
 | ฟังก์ชันทั้งหมด | ${F.length} | ${tested(F)} (${pct(tested(F), F.length)}) |
@@ -317,6 +381,9 @@ const summary = `# รายการพฤติกรรมของระบ�
 
 ฟังก์ชันที่บันทึกข้อมูล ${saveF.length} ตัว: ถูกเรียกแล้ว ${tested(saveF)} ตัว, กดจากหน้าจอไม่ถึง ${saveF.filter(r => r.unreachable && !r.tested_by).length} ตัว (โค้ดที่ไม่ได้ใช้งานแล้ว ไม่ต้องย้าย),
 **ยังต้องมีสถานการณ์ ${todo.length} ตัว**
+
+ปุ่มและตัวรับเหตุการณ์ที่นำไปสู่การบันทึกข้อมูล ${saveE.length} จุด: ใช้ในสถานการณ์แล้ว ${tested(saveE)} จุด, กดจากหน้าจอไม่ถึง ${unreachE.length} จุด,
+**ยังต้องมีสถานการณ์ ${todoE.length} จุด**
 
 ## จุดที่ต้องระวังตอนย้ายระบบ
 
@@ -344,6 +411,12 @@ ${todo.map(r => {
   return `| \`${r.name}\` | ${r.line} | ${labels.join(' · ').replace(/\|/g, '/') || '-'} |`;
 }).join('\n')}
 
+## ปุ่มที่บันทึกข้อมูลแต่ยังไม่มีสถานการณ์ไหนกด (${todoE.length} จุด)
+
+| id | บรรทัด | ปุ่ม / ตัวรับ | ฟังก์ชันที่เรียก |
+|---|---|---|---|
+${todoE.map(r => `| ${r.id} | ${r.line} | ${(r.label.replace(/^<[^>]*>\s*/, '').trim() || r.kind + ' ' + r.code.slice(0, 50)).replace(/\|/g, '/')} | ${r.calls.replace(/\|/g, '/')} |`).join('\n')}
+
 ` : ''}## ฟังก์ชันที่กดจากหน้าจอไม่ถึง (${unreach.length} ตัว)
 
 ตรวจในโปรแกรมที่ทำงานจริงแล้วว่าไม่มีปุ่มหรือขั้นตอนไหนเรียกได้ ส่วนใหญ่เป็นโค้ดเก่าที่ถูกโค้ดใหม่ครอบหรือแทนที่
@@ -352,6 +425,13 @@ ${todo.map(r => {
 | ฟังก์ชัน | บรรทัด | เหตุผล |
 |---|---|---|
 ${unreach.map(r => `| \`${r.name}\` | ${r.line} | ${r.unreachable.replace(/\|/g, '/')} |`).join('\n')}
+
+ปุ่มและตัวรับเหตุการณ์ที่บันทึกข้อมูลแต่กดจากหน้าจอไม่ถึง (${unreachE.length} จุด: อยู่ในส่วนของหน้าจอที่ไม่เคยแสดง ดู \`_lines\` ใน \`tools/unreachable.json\`
+หรือเรียกเฉพาะฟังก์ชันในตารางข้างบน)
+
+| id | บรรทัด | ปุ่ม / ตัวรับ | เหตุผล |
+|---|---|---|---|
+${unreachE.map(r => `| ${r.id} | ${r.line} | ${(r.label.replace(/^<[^>]*>\s*/, '').trim() || r.kind + ' ' + r.code.slice(0, 50)).replace(/\|/g, '/')} | ${r.unreachable.replace(/\|/g, '/')} |`).join('\n')}
 
 ## คอลัมน์ใน behaviors.csv
 
@@ -366,7 +446,7 @@ ${unreach.map(r => `| \`${r.name}\` | ${r.line} | ${r.unreachable.replace(/\|/g,
 | label | ข้อความบนปุ่มหรือ element (สำหรับ H) |
 | calls | ฟังก์ชันที่ถูกเรียก |
 | unreachable | ถ้ามีค่า = กดจากหน้าจอไม่ถึง พร้อมเหตุผล (จาก tools/unreachable.json) |
-| tested_by | สถานการณ์ที่ทำให้โค้ดนี้ทำงาน (จาก \`npm run coverage\`) สำหรับ H นับเมื่อทุกฟังก์ชันที่ปุ่มเรียกถูกเรียกในสถานการณ์เดียวกัน |
+| tested_by | สถานการณ์ที่ทำให้โค้ดนี้ทำงาน (จาก \`npm run coverage\`) สำหรับ H คือสถานการณ์ที่กดหรือกรอกที่จุดนั้นจริง |
 `;
 writeFileSync(new URL('docs/BEHAVIORS.md', ROOT), summary);
 console.log(`functions ${F.length} (save ${saveF.length}), handlers ${H.length}, listeners ${L.length}, runtime ${live.size ? 'yes' : 'no'}, coverage ${haveCoverage ? 'yes' : 'no'}`);

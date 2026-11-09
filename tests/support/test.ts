@@ -18,7 +18,7 @@ import { FIXED_NOW, LEGACY_ORIGIN, LEGACY_URL, TEST_SEED } from './config.mjs';
 import { openTestShop, readTestShop } from './new-shop.mjs';
 import { legacyApp, messageRecorderInitScript } from './legacy-app.mjs';
 import { stateDiff, stateCounts, formatDiff } from './state-diff.mjs';
-import { executedFunctions } from './coverage.mjs';
+import { executedFunctions, triggerRecorderInitScript, TRIGGER_EVENTS } from './coverage.mjs';
 import { SABOTAGE } from './sabotage.mjs';
 
 const TARGET = process.env.TARGET || 'legacy';
@@ -93,7 +93,13 @@ export const test = base.extend<{ dataset: string; licence: TestLicence | undefi
 
   page: async ({ page }, use, testInfo) => {
     const coverage = !!process.env.COVERAGE;
-    if (coverage) await page.coverage.startJSCoverage({ resetOnNavigation: false });
+    const triggers = new Set<string>();
+    if (coverage) {
+      await page.coverage.startJSCoverage({ resetOnNavigation: false });
+      // Which buttons (onclick="…" and the like) the scenario really used (tools/inventory.mjs, column tested_by of H rows).
+      await page.exposeBinding('__drivegoTrigger', (_source, key: string) => { triggers.add(key); });
+      await page.addInitScript(triggerRecorderInitScript, TRIGGER_EVENTS);
+    }
     // Every file of the app itself must load (a split-out script that fails
     // to load would otherwise only show up in scenarios that use it).
     const missing: string[] = [];
@@ -109,7 +115,7 @@ export const test = base.extend<{ dataset: string; licence: TestLicence | undefi
     if (coverage) {
       const ran = executedFunctions(await page.coverage.stopJSCoverage());
       mkdirSync('coverage/raw', { recursive: true });
-      writeFileSync(`coverage/raw/${testInfo.testId}.json`, JSON.stringify({ test: testInfo.titlePath.join(' › '), ran }));
+      writeFileSync(`coverage/raw/${testInfo.testId}.json`, JSON.stringify({ test: testInfo.titlePath.join(' › '), ran, triggers: [...triggers] }));
     }
   },
 

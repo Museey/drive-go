@@ -26,3 +26,27 @@ export function executedFunctions(entries) {
   }
   return out;
 }
+
+// Which inline handlers of the page (onclick="…", onchange="…" and the like)
+// a scenario actually fired. Coverage alone cannot tell: a button counts as
+// used only when the user pressed it, not when the functions it calls ran
+// from another button. Each handler is reported once per page load as
+// "<event>\n<attribute text>" through the binding window.__drivegoTrigger.
+export const TRIGGER_EVENTS = ['click', 'change', 'input', 'submit', 'keyup', 'keydown', 'keypress', 'blur', 'focus',
+  'dblclick', 'mousedown', 'mouseup', 'pointerdown', 'contextmenu', 'paste', 'drop', 'dragover', 'dragstart', 'load',
+  'error', 'toggle', 'search'];
+export function triggerRecorderInitScript(events) {
+  const seen = new Set();
+  for (const type of events)
+    document.addEventListener(type, e => {
+      for (const el of e.composedPath()) {
+        if (!el || el.nodeType !== 1) continue;
+        const code = el.getAttribute('on' + type);
+        if (code == null) continue;
+        const key = type + '\n' + code;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        if (typeof window.__drivegoTrigger === 'function') window.__drivegoTrigger(key);
+      }
+    }, true);
+}
