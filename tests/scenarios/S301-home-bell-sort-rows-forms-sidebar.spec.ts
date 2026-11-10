@@ -40,7 +40,8 @@ test('S301 หน้าแรก: กระดิ่งเอกสารรอ�
   // ---- a slow-moving item, from the home page table
   await panel('Dead stock — ไม่เคลื่อนไหวเกินกำหนด').getByRole('row').filter({ hasText: 'CO-415' }).click();
   await golden.step('กดแถว CO-415 ในตาราง Dead stock เปิดบัตรสินค้า');
-  await golden.screen('stock-card-from-home');
+  // No screenshot of the stock card: in CI it comes out two ways run to run (about 600 pixels, S321 S343, P4 / CI 2026-11-10);
+  // its text is checked by the step.
   await page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).first().click();
   await golden.step('ปิดบัตรสินค้า');
 

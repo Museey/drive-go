@@ -50,7 +50,8 @@ test('S453 ระบบใหม่: หน้าแรก กระดิ่ง
   const movesHeader = moves.getByRole('row').first();
   await expect(movesHeader.locator('th, td')).toHaveText(['วันที่', 'ประเภท', 'อ้างอิง', 'จำนวน', 'ทุนต่อหน่วย']);
   await expect(moves.getByRole('row')).toHaveCount(2);
-  await golden.screen('stock-card-from-home', { mask: [movesHeader] });
+  // No screenshot of the stock card: in CI it comes out two ways run to run (about 600 pixels, S321 S343, P4 / CI 2026-11-10);
+  // its text is checked by the step.
   await page.getByRole('button', { name: 'ปิด', exact: true }).filter({ visible: true }).first().click();
   await golden.step('ปิดบัตรสินค้า');
 
