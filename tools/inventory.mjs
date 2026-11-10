@@ -18,6 +18,7 @@
 //   - which scenarios executed each function
 //
 // Usage: node tools/inventory.mjs [--no-runtime]
+//   INVENTORY_OUT=<dir>: write behaviors.csv and BEHAVIORS.md there instead of docs/ (a check while writing scenarios)
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import * as acorn from 'acorn';
@@ -34,6 +35,8 @@ const lineAt = off => {
   while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (lineStarts[mid] <= off) lo = mid; else hi = mid - 1; }
   return lo + 1;
 };
+
+const outFile = name => process.env.INVENTORY_OUT ? `${process.env.INVENTORY_OUT}/${name}` : new URL(`docs/${name}`, ROOT);
 
 const SAVE_FNS = new Set(['save', 'pxSave', 'frSave', 'dgbSave']);
 
@@ -157,6 +160,51 @@ for (const { base, ast } of scripts) {
     }
   });
 }
+
+// el.onchange = fn where fn is a parameter of [[…, () => …], …].forEach(([p, fn]) => …): the property holds one
+// of the array's functions; the coverage run records "<event>\nfn:<source>" when such a property handler fires.
+const paramSources = new Map(); // "<line>\n<event>" -> [source of each function the parameter can be]
+for (const { base, ast } of scripts)
+  walk.ancestor(ast, {
+    AssignmentExpression(n, _st, anc) {
+      if (n.left.type !== 'MemberExpression' || n.left.computed || !/^on[a-z]+$/.test(n.left.property.name) || n.right.type !== 'Identifier') return;
+      for (let i = anc.length - 2; i >= 0; i--) {
+        const fnNode = anc[i];
+        if (!/Function|Arrow/.test(fnNode.type)) continue;
+        const call = anc[i - 1];
+        const pat = fnNode.params[0];
+        if (!call || call.type !== 'CallExpression' || call.callee.type !== 'MemberExpression' || call.callee.property.name !== 'forEach'
+          || call.callee.object.type !== 'ArrayExpression' || pat?.type !== 'ArrayPattern') return;
+        const idx = pat.elements.findIndex(e => e?.type === 'Identifier' && e.name === n.right.name);
+        if (idx < 0) return;
+        const srcs = call.callee.object.elements.map(e => e?.type === 'ArrayExpression' && e.elements[idx]).filter(Boolean)
+          .map(e => html.slice(base + e.start, base + e.end));
+        paramSources.set(lineAt(base + n.start) + '\n' + n.left.property.name.slice(2), srcs);
+        return;
+      }
+    },
+  });
+
+// Named functions inside other functions (function x(){…} or const x = () => …): a listener given
+// by such a name (addEventListener('resize', mHideRItems)) runs at that function's lines, the nearest
+// declaration of the name in the same script.
+const nested = new Map(); // name -> [{ script, line }]
+scripts.forEach(({ base, ast }, script) => {
+  const add = (name, node) => {
+    if (!nested.has(name)) nested.set(name, []);
+    nested.get(name).push({ script, base, line: lineAt(base + node.start) });
+  };
+  walk.full(ast, n => {
+    if (n.type === 'FunctionDeclaration' && n.id && !ast.body.includes(n)) add(n.id.name, n);
+    if (n.type === 'VariableDeclarator' && n.id.type === 'Identifier' && n.init && /Function|Arrow/.test(n.init.type)) add(n.id.name, n.init);
+  });
+});
+const nestedLines = (name, line) => {
+  const here = (nested.get(name) || []).filter(d => d.script === scripts.findIndex(s => s.base <= lineStarts[line - 1] && lineStarts[line - 1] < s.base + s.ast.end));
+  if (!here.length) return null;
+  const before = here.filter(d => d.line <= line);
+  return [(before.length ? before[before.length - 1] : here[0]).line];
+};
 
 // 3. who saves, directly or through the functions it calls (fixed point over
 //    the call graph)
@@ -344,7 +392,9 @@ for (const l of listeners) {
     declared_lines: '', replaced_at: '', live_line: '', live_note: '', saves: calls.some(c => savesVia(c)) ? 'indirect' : '',
     label: l.target, code: l.code.replace(/\s+/g, ' ').slice(0, 160), calls: calls.sort().join(' '),
     // (a handler given by name, el.onchange = impFileChanged, runs at that function's own lines)
-    tested_by: ranBy(fns.has(l.code) ? fnLines(fns.get(l.code)) : [l.line]).join(' '),
+    tested_by: (paramSources.has(l.line + '\n' + l.event)
+      ? [...new Set(paramSources.get(l.line + '\n' + l.event).flatMap(src => [...(fired.get(l.event + '\nfn:' + src) || [])]))].sort()
+      : ranBy(fns.has(l.code) ? fnLines(fns.get(l.code)) : (/^[$\w]+$/.test(l.code) && nestedLines(l.code, l.line)) || [l.line])).join(' '),
   });
   rows[rows.length - 1].unreachable = entryUnreachable(l.line, calls, rows[rows.length - 1].tested_by);
 }
@@ -352,7 +402,7 @@ for (const l of listeners) {
 for (const r of rows.filter(r => r.unreachable && r.tested_by && r.saves))
   console.warn(`marked unreachable but used by ${r.tested_by}: ${r.id} line ${r.line} ${r.name || r.code.slice(0, 60)}`);
 const COLS = ['id', 'kind', 'name', 'line', 'declared_lines', 'replaced_at', 'live_line', 'live_note', 'saves', 'label', 'code', 'calls', 'tested_by', 'unreachable'];
-writeFileSync(new URL('docs/behaviors.csv', ROOT), [COLS.join(','), ...rows.map(r => COLS.map(c => csv(r[c])).join(','))].join('\n') + '\n');
+writeFileSync(outFile('behaviors.csv'), [COLS.join(','), ...rows.map(r => COLS.map(c => csv(r[c])).join(','))].join('\n') + '\n');
 
 // ---------- summary ----------
 const F = rows.filter(r => r.id.startsWith('F'));
@@ -461,5 +511,5 @@ ${unreachE.map(r => `| ${r.id} | ${r.line} | ${(r.label.replace(/^<[^>]*>\s*/, '
 | unreachable | ถ้ามีค่า = กดจากหน้าจอไม่ถึง พร้อมเหตุผล (จาก tools/unreachable.json) |
 | tested_by | สถานการณ์ที่ทำให้โค้ดนี้ทำงาน (จาก \`npm run coverage\`) สำหรับ H คือสถานการณ์ที่กดหรือกรอกที่จุดนั้นจริง |
 `;
-writeFileSync(new URL('docs/BEHAVIORS.md', ROOT), summary);
+writeFileSync(outFile('BEHAVIORS.md'), summary);
 console.log(`functions ${F.length} (save ${saveF.length}), handlers ${H.length}, listeners ${L.length}, runtime ${live.size ? 'yes' : 'no'}, coverage ${haveCoverage ? 'yes' : 'no'}`);

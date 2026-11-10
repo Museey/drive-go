@@ -1,0 +1,7 @@
+5 รุ่น
+รุ่นรถ น้ำยาแอร์ ปริมาณ (g) น้ำมันคอมเพรสเซอร์ แบต 12V กรองแอร์แนะนำ หมายเหตุช่าง
+Toyota Corolla Cross 1.8 HEV R-1234yf 475±25 ND-OIL 12 (POE 40cc) LN1 45Ah Protect Filter PX-CF01 ไฮบริด: คอมไฟฟ้า ห้ามใช้น้ำมัน PAG เด็ดขาด
+Honda HR-V e:HEV NEW จาก HQ R-1234yf 450±25 POE (คอมไฟฟ้า) LN1 45Ah Protect Filter PX-CF02 คอมไฟฟ้า — ใช้เครื่องชาร์จสายแยก POE เท่านั้น
+BYD Atto 3 / Dolphin R-1234yf 560±30 POE 25 (ห้ามปน PAG) LN1 45Ah (12V) G-Part EV PX-CF03 EV heat-pump: เติมตามสเปคเป๊ะ น้อย/เกินกระทบระยะทางวิ่ง
+BYD Seal / Sealion 6 NEW จาก HQ R-1234yf 620±30 POE 25 LN2 60Ah (12V) G-Part EV PX-CF03 —
+Tesla Model 3 / Y (LHD→RHD) NEW จาก HQ R-1234yf ~1,000 POE เฉพาะทาง ลิเธียม 15.5V แจ้งเพิ่มในคลังกลาง ระบบ octovalve — แนะนำส่งศูนย์เฉพาะทางถ้าไม่มีเครื่องมือ

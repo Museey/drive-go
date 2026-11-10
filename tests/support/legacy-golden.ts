@@ -41,15 +41,48 @@ export function legacySteps(scenario: string, app: App, numbers: Numbers = []) {
   };
 }
 
+// Counts in the order stateCounts() writes them (store, then key), so a count the new system adds on purpose
+// (`more`) sits where it would be taken.
+export function inCountsOrder(counts: Record<string, unknown>): Record<string, unknown> {
+  const split = (k: string) => { const i = k.indexOf('.'); return i < 0 ? [k, ''] : [k.slice(0, i), k.slice(i + 1)]; };
+  const cmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+  return Object.fromEntries(Object.entries(counts).sort(([a], [b]) => {
+    const [sa, ka] = split(a), [sb, kb] = split(b);
+    return cmp(sa, sb) || cmp(ka, kb);
+  }));
+}
+
 // The screen must be the replaced scenario's screenshot, pixel for pixel:
 // taken and compared the way golden.screen() (toHaveScreenshot with
 // maxDiffPixels 0) does it, against the legacy PNG.
 // `mask`: elements that show what was changed on purpose (the scenario checks
 // their content itself); their boxes are painted over in both images, so
 // everything around them must still match.
+// `hide`: elements the new system adds on purpose that take a place of their own
+// (e.g. a card in a grid, which moves the cards after it); the scenario checks
+// them itself. They are left out of the layout (display: none) while the screen
+// is taken, so everything else must be where the legacy screen has it, then shown again.
 export async function sameScreen(page: Page, app: App, testInfo: TestInfo, scenario: string, name: string,
-  { mask = [] }: { mask?: Locator[] } = {}) {
+  { mask = [], hide = [] }: { mask?: Locator[]; hide?: Locator[] } = {}) {
   await app.settle();
+  if (process.env.SKIP_SCREENS) return; // as golden.screen() (tests/support/test.ts)
+  const hidden = (await Promise.all(hide.map(l => l.all()))).flat();
+  if (hide.length) expect(hidden.length, `hidden elements of ${name}`).toBeGreaterThan(0);
+  const before = await Promise.all(hidden.map(el => el.evaluate((e: HTMLElement) => {
+    const was = [e.style.getPropertyValue('display'), e.style.getPropertyPriority('display')];
+    e.style.setProperty('display', 'none', 'important');
+    return was;
+  })));
+  try {
+    await screenAsLegacy(page, app, testInfo, scenario, name, mask);
+  } finally {
+    await Promise.all(hidden.map((el, i) => el.evaluate((e: HTMLElement, [value, priority]) => {
+      if (value) e.style.setProperty('display', value, priority); else e.style.removeProperty('display');
+    }, before[i])));
+  }
+}
+
+async function screenAsLegacy(page: Page, app: App, testInfo: TestInfo, scenario: string, name: string, mask: Locator[]) {
   await page.mouse.move(0, 0);
   await app.layoutStable();
   const boxes: { x: number; y: number; width: number; height: number }[] = [];
@@ -103,12 +136,12 @@ export function legacyGolden(scenario: string, { app, page, testInfo }: { app: A
     step: steps.same,
     skip: steps.skip,
     done: steps.done,
-    screen: (name: string, opts?: { mask?: Locator[] }) => sameScreen(page, app, testInfo, scenario, name, opts),
+    screen: (name: string, opts?: { mask?: Locator[]; hide?: Locator[] }) => sameScreen(page, app, testInfo, scenario, name, opts),
     // Record counts after an action that replaces the whole data set, as
     // golden.counts() takes them; `more`: counts the new system has on purpose.
     async counts(name: string, more: Record<string, unknown> = {}) {
       await app.settle();
-      const expected = { ...JSON.parse(readFileSync(golden(scenario, `${name}-counts.json`), 'utf8')), ...more };
+      const expected = inCountsOrder({ ...JSON.parse(readFileSync(golden(scenario, `${name}-counts.json`), 'utf8')), ...more });
       expect(formatDiff(stateCounts(await app.state())), `record counts ${name}`).toBe(formatDiff(expected));
     },
     async stateChange(name: string, before: object, more: Record<string, unknown> = {}) {

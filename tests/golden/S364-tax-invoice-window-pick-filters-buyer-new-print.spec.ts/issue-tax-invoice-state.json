@@ -1,0 +1,40 @@
+{
+  "DB.receipts[MA-SA261000011].taxNo": [
+    "",
+    "MA-TX261000004"
+  ],
+  "DB.receipts[MA-SA261000011].taxDocs": {
+    "added": [
+      {
+        "no": "MA-TX261000004",
+        "date": "2026-10-13",
+        "cancelled": false,
+        "cancelReason": "",
+        "cancelDate": ""
+      }
+    ]
+  },
+  "DB.receipts[MA-SA261000011].issueTax": [
+    false,
+    true
+  ],
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-SA261000011#50]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "receipt",
+        "docId": "@DB.receipts[MA-SA261000011]",
+        "no": "MA-SA261000011",
+        "act": "save",
+        "note": "ออกใบกำกับภาษี MA-TX261000004 ของใบตัดสต็อก MA-SA261000011 (หน้า 4.6)"
+      }
+    ]
+  },
+  "DB.seq.MA-TX2610": [
+    3,
+    4
+  ]
+}

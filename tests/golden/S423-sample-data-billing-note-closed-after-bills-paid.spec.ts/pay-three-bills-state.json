@@ -1,0 +1,150 @@
+{
+  "DB.receipts[RE.69-09-09-24].paid": [
+    false,
+    true
+  ],
+  "DB.receipts[RE.69-09-09-24].paidDate": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.receipts[RE.69-09-09-24].payments": [
+    null,
+    [
+      {
+        "id": "@DB.receipts[RE.69-09-09-24].payments[#0]",
+        "amt": 4173,
+        "date": "2026-10-13",
+        "method": "cash",
+        "by": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "note": "",
+        "bank": "",
+        "ref": "",
+        "card4": "",
+        "chkDate": "",
+        "payId": "ST<uid>",
+        "payTotal": 12091,
+        "payBills": 3,
+        "methods": [
+          {
+            "k": "cash",
+            "amt": 12091
+          }
+        ],
+        "transLines": [],
+        "slipCount": 0,
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  ],
+  "DB.receipts[RE.69-09-29-27].paid": [
+    false,
+    true
+  ],
+  "DB.receipts[RE.69-09-29-27].paidDate": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.receipts[RE.69-09-29-27].payments": [
+    null,
+    [
+      {
+        "id": "@DB.receipts[RE.69-09-29-27].payments[#0]",
+        "amt": 5350,
+        "date": "2026-10-13",
+        "method": "cash",
+        "by": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "note": "",
+        "bank": "",
+        "ref": "",
+        "card4": "",
+        "chkDate": "",
+        "payId": "ST<uid>",
+        "payTotal": 12091,
+        "payBills": 3,
+        "methods": [
+          {
+            "k": "cash",
+            "amt": 12091
+          }
+        ],
+        "transLines": [],
+        "slipCount": 0,
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  ],
+  "DB.receipts[RE.69-10-11-30].paid": [
+    false,
+    true
+  ],
+  "DB.receipts[RE.69-10-11-30].paidDate": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.receipts[RE.69-10-11-30].payments": [
+    null,
+    [
+      {
+        "id": "@DB.receipts[RE.69-10-11-30].payments[#0]",
+        "amt": 2568,
+        "date": "2026-10-13",
+        "method": "cash",
+        "by": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "note": "",
+        "bank": "",
+        "ref": "",
+        "card4": "",
+        "chkDate": "",
+        "payId": "ST<uid>",
+        "payTotal": 12091,
+        "payBills": 3,
+        "methods": [
+          {
+            "k": "cash",
+            "amt": 12091
+          }
+        ],
+        "transLines": [],
+        "slipCount": 0,
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  ],
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[RE.69-09-09-24]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "receipt",
+        "docId": "@DB.receipts[RE.69-09-09-24]",
+        "no": "RE.69-09-09-24",
+        "act": "pay",
+        "note": "รับชำระ 4,173.00 บาท (เงินสด) · ชำระครบแล้ว"
+      },
+      {
+        "id": "@DB.audit[RE.69-09-29-27]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "receipt",
+        "docId": "@DB.receipts[RE.69-09-29-27]",
+        "no": "RE.69-09-29-27",
+        "act": "pay",
+        "note": "รับชำระ 5,350.00 บาท (เงินสด) · ชำระครบแล้ว"
+      },
+      {
+        "id": "@DB.audit[RE.69-10-11-30]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "receipt",
+        "docId": "@DB.receipts[RE.69-10-11-30]",
+        "no": "RE.69-10-11-30",
+        "act": "pay",
+        "note": "รับชำระ 2,568.00 บาท (เงินสด) · ชำระครบแล้ว"
+      }
+    ]
+  }
+}

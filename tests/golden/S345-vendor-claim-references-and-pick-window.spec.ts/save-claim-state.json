@@ -1,0 +1,64 @@
+{
+  "DB.claims": {
+    "added": [
+      {
+        "id": "@DB.claims[MA-CL261000001]",
+        "no": "MA-CL261000001",
+        "date": "2026-10-13",
+        "vendorId": "@DB.vendors[V00001]",
+        "ref": "",
+        "grId": "",
+        "status": "open",
+        "receiptId": "",
+        "plate": "",
+        "items": [
+          {
+            "stockId": "@DB.stock[EL-101]",
+            "code": "EL-101",
+            "name": "ไดชาร์จ Toyota Revo",
+            "qty": 20,
+            "reason": ""
+          }
+        ],
+        "recv": "",
+        "by": "",
+        "ap": "",
+        "note": "",
+        "deduct": true,
+        "deducted": false,
+        "apv": {
+          "status": "draft",
+          "byName": "",
+          "date": "",
+          "note": ""
+        },
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-CL261000001]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "claim",
+        "docId": "@DB.claims[MA-CL261000001]",
+        "no": "MA-CL261000001",
+        "act": "save",
+        "note": "1 รายการ · จำนวนรวม 20 ชิ้น"
+      }
+    ]
+  },
+  "DB.seq.MA-CL2610": [
+    null,
+    1
+  ]
+}

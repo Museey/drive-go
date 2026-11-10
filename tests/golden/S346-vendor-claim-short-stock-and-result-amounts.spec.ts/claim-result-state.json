@@ -1,0 +1,105 @@
+{
+  "DB.stock[EL-125].qty": [
+    18,
+    20
+  ],
+  "DB.moves": {
+    "added": [
+      {
+        "id": "@DB.moves[#46]",
+        "stockId": "@DB.stock[EL-125]",
+        "type": "in",
+        "qty": 2,
+        "date": "2026-10-13",
+        "ref": "รับสินค้าเคลมคืนเข้าสต๊อก",
+        "refNo": "MA-CL261000001",
+        "vendorId": "@DB.vendors[V00001]",
+        "cost": 980,
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.claims[MA-CL261000001].items": {
+    "added": [
+      {
+        "stockId": "@DB.stock[EL-101]",
+        "code": "EL-101",
+        "name": "ไดชาร์จ Toyota Revo",
+        "qty": 25,
+        "reason": "ทั้งล็อตชาร์จไฟไม่เข้า",
+        "result": {
+          "t": "credit",
+          "qty": 0,
+          "amt": 21000
+        }
+      },
+      {
+        "stockId": "@DB.stock[EL-125]",
+        "code": "EL-125",
+        "name": "ชุดคอยล์จุดระเบิด",
+        "qty": 2,
+        "reason": "ไฟรั่ว",
+        "result": {
+          "t": "back",
+          "qty": 2,
+          "amt": 0
+        }
+      }
+    ],
+    "removed": [
+      {
+        "stockId": "@DB.stock[EL-101]",
+        "code": "EL-101",
+        "name": "ไดชาร์จ Toyota Revo",
+        "qty": 25,
+        "reason": "ทั้งล็อตชาร์จไฟไม่เข้า"
+      },
+      {
+        "stockId": "@DB.stock[EL-125]",
+        "code": "EL-125",
+        "name": "ชุดคอยล์จุดระเบิด",
+        "qty": 2,
+        "reason": "ไฟรั่ว"
+      }
+    ]
+  },
+  "DB.claims[MA-CL261000001].restocked": [
+    null,
+    true
+  ],
+  "DB.claims[MA-CL261000001].restockDate": [
+    null,
+    "2026-10-13"
+  ],
+  "DB.claims[MA-CL261000001].creditAmt": [
+    null,
+    21000
+  ],
+  "DB.claims[MA-CL261000001].recvSummary": [
+    null,
+    "รับคืน 2 ชิ้น · ตีเสีย 0 รายการ · หักยอด 21,000.00 บาท"
+  ],
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-CL261000001#56]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "claim",
+        "docId": "@DB.claims[MA-CL261000001]",
+        "no": "MA-CL261000001",
+        "act": "restock",
+        "note": "รับคืน 2 ชิ้น · ตีเสีย 0 รายการ · หักยอด 21,000.00 บาท"
+      }
+    ]
+  },
+  "DB.fifo.lots[#3].left": [
+    18,
+    20
+  ],
+  "DB.fifo.allocs[#19].back": [
+    0,
+    2
+  ]
+}

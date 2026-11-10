@@ -1,0 +1,56 @@
+{
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-CC261000001]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "cclaim",
+        "docId": "@DB.custClaims[MA-CC261000001]",
+        "no": "MA-CC261000001",
+        "act": "save",
+        "note": "1 รายการ · 1 ชิ้น · ปรีชา ทองสุข"
+      }
+    ]
+  },
+  "DB.seq.MA-CC2610": [
+    null,
+    1
+  ],
+  "DB.custClaims": {
+    "added": [
+      {
+        "id": "@DB.custClaims[MA-CC261000001]",
+        "no": "MA-CC261000001",
+        "date": "2026-10-13",
+        "custId": "@DB.cust[C00016]",
+        "vehIdx": 0,
+        "plate": "1กข 3021 สมุทรสาคร",
+        "receiptId": "@DB.receipts[MA-SA261000003]",
+        "receiptNo": "MA-SA261000003",
+        "by": "",
+        "note": "",
+        "status": "open",
+        "lines": [
+          {
+            "stockId": "@DB.stock[AC-215]",
+            "code": "AC-215",
+            "name": "กรองแอร์ในห้องโดยสาร",
+            "unit": "",
+            "qty": 1,
+            "symptom": "กรองขาด",
+            "action": "replace"
+          }
+        ],
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  }
+}

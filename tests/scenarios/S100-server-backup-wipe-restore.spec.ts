@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { test, expect } from '../support/test';
 import { formatDiff, stateCounts } from '../support/state-diff.mjs';
 import { auditNote, confirmWithShopName } from '../support/whole-data';
+import { inCountsOrder } from '../support/legacy-golden';
 
 // Replaces S74 in the new system (tests/intentional-changes.json, decision Q6):
 // the data lives on the server, so the settings page shows the legacy app's
@@ -16,7 +17,7 @@ import { auditNote, confirmWithShopName } from '../support/whole-data';
 const S74 = new URL('../golden/S74-backup-wipe-restore.spec.ts/', import.meta.url);
 const legacyFlow: { step: string }[] = JSON.parse(readFileSync(new URL('flow.json', S74), 'utf8'));
 const legacyCounts = (name: string, more: Record<string, unknown>) =>
-  formatDiff({ ...JSON.parse(readFileSync(new URL(`${name}-counts.json`, S74), 'utf8')), ...more });
+  formatDiff(inCountsOrder({ ...JSON.parse(readFileSync(new URL(`${name}-counts.json`, S74), 'utf8')), ...more }));
 
 test('S100 ระบบใหม่: สร้างจุดสำรองบน server ล้างข้อมูลทั้งหมด แล้วกู้คืน ข้อมูลกลับมาครบเหมือน S74', async ({ app, page }) => {
   test.slow();
@@ -57,7 +58,8 @@ test('S100 ระบบใหม่: สร้างจุดสำรองบ�
   await expect(page.getByText('ล้างข้อมูลทั้งหมดออกจากระบบ?', { exact: true })).toBeHidden();
   await step('ล้างข้อมูลแล้ว');
   // Task 3.2: the 8 counters stay as they were (S74 had none left) and the audit log has the wipe.
-  expect(await counts()).toBe(legacyCounts('after-wipe', { 'DB.audit': 1, 'DB.seq': '{8 keys}' }));
+  // The sale flow stays on (owner 2026-11-09, S440): the wiped / loaded data gets the switch DB.pkgSaleFlow.
+  expect(await counts()).toBe(legacyCounts('after-wipe', { 'DB.audit': 1, 'DB.seq': '{8 keys}', 'DB.pkgSaleFlow': '{6 keys}' }));
   const wiped = (await app.state()).DB;
   expect(wiped.seq).toEqual(before.DB.seq);
   expect(wiped.audit[0]).toMatchObject({ kind: 'data', act: 'wipe', note: auditNote('ล้างข้อมูลทั้งหมด') });

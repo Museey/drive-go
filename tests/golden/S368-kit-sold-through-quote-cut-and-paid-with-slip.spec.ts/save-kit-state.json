@@ -1,0 +1,28 @@
+{
+  "DB.partsKits": [
+    null,
+    [
+      {
+        "id": "@DB.partsKits[ชุดเปลี่ยนผ้าเบรกหน้า Revo]",
+        "name": "ชุดเปลี่ยนผ้าเบรกหน้า Revo",
+        "note": "",
+        "price": 2500,
+        "items": [
+          {
+            "stockId": "@DB.stock[BR-001]",
+            "code": "BR-001",
+            "name": "ผ้าเบรกหน้า Toyota Revo",
+            "qty": 1
+          },
+          {
+            "stockId": "@DB.stock[BR-025]",
+            "code": "BR-025",
+            "name": "น้ำมันเบรก DOT4 (1 ลิตร)",
+            "qty": 1
+          }
+        ],
+        "updatedAt": "2026-10-13T02:00:00.000Z"
+      }
+    ]
+  ]
+}

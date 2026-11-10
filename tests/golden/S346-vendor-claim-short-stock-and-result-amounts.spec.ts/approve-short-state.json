@@ -1,0 +1,138 @@
+{
+  "DB.stock[EL-101].qty": [
+    20,
+    -5
+  ],
+  "DB.stock[EL-125].qty": [
+    20,
+    18
+  ],
+  "DB.moves": {
+    "added": [
+      {
+        "id": "@DB.moves[#44]",
+        "stockId": "@DB.stock[EL-101]",
+        "type": "out",
+        "qty": 25,
+        "date": "2026-10-13",
+        "ref": "ส่งเคลมสินค้า — ทั้งล็อตชาร์จไฟไม่เข้า",
+        "refNo": "MA-CL261000001",
+        "vendorId": "@DB.vendors[V00001]",
+        "cost": 4200,
+        "br": "@DB.branches[MA]"
+      },
+      {
+        "id": "@DB.moves[#45]",
+        "stockId": "@DB.stock[EL-125]",
+        "type": "out",
+        "qty": 2,
+        "date": "2026-10-13",
+        "ref": "ส่งเคลมสินค้า — ไฟรั่ว",
+        "refNo": "MA-CL261000001",
+        "vendorId": "@DB.vendors[V00001]",
+        "cost": 980,
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.claims[MA-CL261000001].deducted": [
+    false,
+    true
+  ],
+  "DB.claims[MA-CL261000001].apv.status": [
+    "draft",
+    "approved"
+  ],
+  "DB.claims[MA-CL261000001].apv.byName": [
+    "",
+    "เจ้าของกิจการ / ผู้ดูแลระบบ"
+  ],
+  "DB.claims[MA-CL261000001].apv.date": [
+    "",
+    "2026-10-13"
+  ],
+  "DB.claims[MA-CL261000001].apv.by": [
+    null,
+    ""
+  ],
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-CL261000001#51]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "claim",
+        "docId": "@DB.claims[MA-CL261000001]",
+        "no": "MA-CL261000001",
+        "act": "approve",
+        "note": "อนุมัติโดย เจ้าของกิจการ / ผู้ดูแลระบบ"
+      },
+      {
+        "id": "@DB.audit[MA-CL261000001#52]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "claim",
+        "docId": "@DB.claims[MA-CL261000001]",
+        "no": "MA-CL261000001",
+        "act": "deduct2",
+        "note": "ตัดสต๊อกส่งเคลม 2 รายการ"
+      }
+    ]
+  },
+  "DB.fifo.lots[#0].left": [
+    20,
+    0
+  ],
+  "DB.fifo.lots[#3].left": [
+    20,
+    18
+  ],
+  "DB.fifo.allocs": {
+    "added": [
+      {
+        "id": "@DB.fifo.allocs[#17]",
+        "seq": 1791856800000000,
+        "br": "@DB.branches[MA]",
+        "stockId": "@DB.stock[EL-101]",
+        "lotId": "@DB.fifo.lots[#0]",
+        "qty": 20,
+        "back": 0,
+        "cost": 4200,
+        "date": "2026-10-13",
+        "ref": "ส่งเคลมสินค้า — ทั้งล็อตชาร์จไฟไม่เข้า",
+        "refNo": "MA-CL261000001",
+        "pending": false
+      },
+      {
+        "id": "@DB.fifo.allocs[#18]",
+        "seq": 1791856800000001,
+        "br": "@DB.branches[MA]",
+        "stockId": "@DB.stock[EL-101]",
+        "lotId": null,
+        "qty": 5,
+        "back": 0,
+        "cost": 4200,
+        "date": "2026-10-13",
+        "ref": "ส่งเคลมสินค้า — ทั้งล็อตชาร์จไฟไม่เข้า",
+        "refNo": "MA-CL261000001",
+        "pending": true
+      },
+      {
+        "id": "@DB.fifo.allocs[#19]",
+        "seq": 1791856800000002,
+        "br": "@DB.branches[MA]",
+        "stockId": "@DB.stock[EL-125]",
+        "lotId": "@DB.fifo.lots[#3]",
+        "qty": 2,
+        "back": 0,
+        "cost": 980,
+        "date": "2026-10-13",
+        "ref": "ส่งเคลมสินค้า — ไฟรั่ว",
+        "refNo": "MA-CL261000001",
+        "pending": false
+      }
+    ]
+  }
+}

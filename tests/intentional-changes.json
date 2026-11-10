@@ -360,6 +360,186 @@
       "by": "S283-edited-vendor-and-customer-keep-their-codes.spec.ts",
       "decision": "Owner 2026-11-09: an edited customer or vendor keeps its code",
       "why": "The legacy app gave an edited vendor or customer the next code (V00002 -> V00009); the new system keeps V00002. Every step and every other data change is checked against S272's goldens; then a customer edited the same way keeps C00027."
+    },
+    {
+      "scenario": "S366-sample-data-home-popups-cut-first-card-ap-pay.spec.ts",
+      "by": "S440-sale-flow-stays-on-after-wipe-and-sample-data.spec.ts",
+      "decision": "Owner 2026-11-09: the sale flow (11.5 ระบบขายแบบใหม่) stays on",
+      "why": "The legacy app switched the sale flow off when the data was wiped (the sample and 36-month data come without it) or from page 11.5, and the old receipt / invoice forms came back; the new system switches it on at once and has no way back (S440)."
+    },
+    {
+      "scenario": "S367-sample-data-old-receipt-form-lines-pay-from-quote.spec.ts",
+      "by": "S440-sale-flow-stays-on-after-wipe-and-sample-data.spec.ts",
+      "decision": "Owner 2026-11-09: the sale flow (11.5 ระบบขายแบบใหม่) stays on",
+      "why": "The legacy app switched the sale flow off when the data was wiped (the sample and 36-month data come without it) or from page 11.5, and the old receipt / invoice forms came back; the new system switches it on at once and has no way back (S440)."
+    },
+    {
+      "scenario": "S370-36-month-data-old-invoice-lines-type-pull-save-print.spec.ts",
+      "by": "S440-sale-flow-stays-on-after-wipe-and-sample-data.spec.ts",
+      "decision": "Owner 2026-11-09: the sale flow (11.5 ระบบขายแบบใหม่) stays on",
+      "why": "The legacy app switched the sale flow off when the data was wiped (the sample and 36-month data come without it) or from page 11.5, and the old receipt / invoice forms came back; the new system switches it on at once and has no way back (S440)."
+    },
+    {
+      "scenario": "S372-sample-data-tax-invoice-window-source-tiles.spec.ts",
+      "by": "S440-sale-flow-stays-on-after-wipe-and-sample-data.spec.ts",
+      "decision": "Owner 2026-11-09: the sale flow (11.5 ระบบขายแบบใหม่) stays on",
+      "why": "The legacy app switched the sale flow off when the data was wiped (the sample and 36-month data come without it) or from page 11.5, and the old receipt / invoice forms came back; the new system switches it on at once and has no way back (S440)."
+    },
+    {
+      "scenario": "S388-sale-flow-page-after-wipe-print-excel-apply-revert.spec.ts",
+      "by": "S440-sale-flow-stays-on-after-wipe-and-sample-data.spec.ts",
+      "decision": "Owner 2026-11-09: the sale flow (11.5 ระบบขายแบบใหม่) stays on",
+      "why": "The legacy app switched the sale flow off when the data was wiped (the sample and 36-month data come without it) or from page 11.5, and the old receipt / invoice forms came back; the new system switches it on at once and has no way back (S440)."
+    },
+    {
+      "scenario": "S309-first-open-choose-package-new-browser.spec.ts",
+      "by": "S104-no-way-in-without-password.spec.ts",
+      "decision": "A1, owner decision 2026-10-30 (S260)",
+      "why": "The legacy app's first open shows the program-choosing page and then opens as the owner without a password; the new system has no program-choosing page (S260) and no way in without a password (S104)."
+    },
+    {
+      "scenario": "S361-quotation-edit-sections-presets-tier-totals.spec.ts",
+      "by": "S442-quotation-edit-no-vat-asks-reason.spec.ts",
+      "decision": "R4-ข (task 3.3)",
+      "why": "In a VAT-registered shop choosing \"ไม่คิด VAT\" on the quotation asks \"เหตุผลที่ไม่คิด VAT\" first (S137); the quotation keeps the reason (noVatReason) and the audit line of the save ends with it. Every step, the screen and every other data change is checked against S361's goldens."
+    },
+    {
+      "scenario": "S368-kit-sold-through-quote-cut-and-paid-with-slip.spec.ts",
+      "by": "S443-kit-sold-paid-with-slip-receipt-at-once.spec.ts",
+      "decision": "R2, R8, F3 and answers of 2026-10-25 (task 3.5); R19-ค (task 3.11)",
+      "why": "Money received in the sale window has its receipt at once (MA-RE261000004, named in the audit line and the message) and the receipt window opens instead of the done card (S151); the transfer slip is kept by the server as a file and DB.paySlips holds its link (S193). Every other step, the screen and every other data change is checked against S368's goldens."
+    },
+    {
+      "scenario": "S382-tax-report-pages-month-print.spec.ts",
+      "by": "S444-tax-report-asset-purchase-from-registered-vendor.spec.ts",
+      "decision": "R17 and answers 13.1–13.11 of 2026-10-26 (task 3.13)",
+      "why": "An asset bought with VAT needs a vendor of the register: the typed name is refused and the 11 tools are bought from ร้านยางเจริญยนต์ (cash), paid when saved with payment voucher MA-PV261000001 (named in the asset window's title), as S210. Every other step, message and data change is checked against S382's goldens; the tax report's screen is S382's but for the vendor's name on the purchase rows."
+    },
+    {
+      "scenario": "S385-buy-menu-utilities-payroll-office-other.spec.ts",
+      "by": "S445-buy-menu-payroll-owed-expenses-with-vouchers.spec.ts",
+      "decision": "R12, R13, F5, X2 and answers of 2026-10-25 (task 3.7); R7-ข (task 3.4)",
+      "why": "Payroll of task 3.7 (as S165): the payroll sheet has the 2026 social security (216,500 / 8,800 / 207,700, checked by its text), recording the month asks first and records both expenses owed with a payroll period, and the history row is paid or opened through its month instead of \"แก้ไข\". Office supplies and the other expense saved as จ่ายแล้ว get payment vouchers MA-PV261000001 / 2 (as S146), named in their windows' titles. Every other step and data change is checked against S385's goldens."
+    },
+    {
+      "scenario": "S300-home-charts-periods-compare-pages.spec.ts",
+      "by": "S441-home-charts-36-month-data-asks-shop-name.spec.ts",
+      "decision": "A7, F1 (task 3.2); Owner 2026-11-09: the sale flow (11.5 ระบบขายแบบใหม่) stays on",
+      "why": "Loading the 36-month test data asks for the shop's name. The loader keeps the trial shop's stock cuts (as the legacy app does) and, the sale flow staying on, their 13 receipt records are made again: the message counts 2068 receipts (2055), the parts-category chart over \"ทั้งหมด\" counts their October sales and the receivables over \"ทั้งหมด\" have 73 bills (65); those texts are checked as S300's golden with exactly these changes. Every step, the screen and every other text is checked against S300's goldens."
+    },
+    {
+      "scenario": "S425-sale-pick-list-pages-after-importing-many-cuts.spec.ts",
+      "by": "S452-sale-pick-list-pages-after-import-asks-shop-name.spec.ts",
+      "decision": "A7, F1 (task 3.2)",
+      "why": "Importing the backup file asks for the shop's name, keeps a copy of the data first and is written in the audit log (one audit entry more than S425's counts). Every step, the screen and every other record count is checked against S425's goldens."
+    },
+    {
+      "scenario": "S342-goods-receipt-register-forms-search-and-expense-shortcuts.spec.ts",
+      "by": "S446-expense-shortcut-paid-gets-payment-voucher.spec.ts",
+      "decision": "R7-ข, answers of 2026-10-25 (task 3.4)",
+      "why": "As S146 for S43: the internet bill saved as paid from the \"+ ค่าโทรศัพท์ / เน็ต\" shortcut gets a payment voucher MA-PV261000001 and its payment date, paying is written to the audit log, and the register shows the voucher number under the expense's. Every step and every other data change is checked against S342's goldens."
+    },
+    {
+      "scenario": "S364-tax-invoice-window-pick-filters-buyer-new-print.spec.ts",
+      "by": "S447-tax-invoice-window-dated-on-sale-keeps-amounts.spec.ts",
+      "decision": "R4, R5-ก (task 3.3)",
+      "why": "As S135 for S14: the tax invoice MA-TX261000004 issued from the window is dated on the day of the sale (2026-10-05) instead of the day it is issued, and keeps its own amounts (issued, rate, base, VAT, total). Every step and every other data change (printing it included) is checked against S364's goldens."
+    },
+    {
+      "scenario": "S389-withholding-certificate-received-search-picture.spec.ts",
+      "by": "S448-withholding-certificate-pay-note-names-withholding.spec.ts",
+      "decision": "R7 (fix finding 4), X1 (task 3.4)",
+      "why": "As S144 for S22: the audit line of the payment of MA-SA261000009 names the 90.00 the customer withheld (and its receipt, task 3.5). Every step and every other data change is checked against S389's goldens."
+    },
+    {
+      "scenario": "S400-customer-file-stars-vehicles-grade-print.spec.ts",
+      "by": "S449-customer-file-edit-keeps-code.spec.ts",
+      "decision": "Owner 2026-11-09: an edited customer or vendor keeps its code",
+      "why": "As S283 for S272: the legacy app gave the edited customer ปรีชา ทองสุข the next code (C00016 -> C00031); the new system keeps C00016. Every step, screen and every other data change is checked against S400's goldens."
+    },
+    {
+      "scenario": "S402-employee-permission-presets-table-summary.spec.ts",
+      "by": "S450-employee-permission-presets-tax-rights.spec.ts",
+      "decision": "T3, T10, T12 (task 3.3); R12, R13 (task 3.7)",
+      "why": "As S139 for S44: the staff form has three new rights under การเงิน (เลือกไม่คิด VAT (ต้องใส่เหตุผล), ปิดงวดภาษี, ออกใบลดหนี้), left off by the presets used, so EMP003's saved rights hold them (off) and the audit line counts 68 rights instead of 65; their card makes the special-rights cards taller, so those cards are masked in the screen and the boxes checked. Every step, the rest of the screen and the rest of the data change are S402's."
+    },
+    {
+      "scenario": "S408-drop-product-picture-claim-pull-remove.spec.ts",
+      "by": "S451-drop-product-picture-kept-as-file-link.spec.ts",
+      "decision": "R19-ค, answers 11.1–11.6 (task 3.11)",
+      "why": "As S190 for S52: the dropped product picture is kept by the server as a file and the img field holds its link (/api/files/<SHA-256>) instead of the picture; every step is checked against S408's goldens, and each data change is S408's with the link in place of the picture."
+    },
+    {
+      "scenario": "S420-sample-data-old-receipt-pay-boxes-pay-panel-print-options.spec.ts",
+      "by": "S440-sale-flow-stays-on-after-wipe-and-sample-data.spec.ts",
+      "decision": "Owner 2026-11-09: the sale flow (11.5 ระบบขายแบบใหม่) stays on",
+      "why": "The legacy app switched the sale flow off when the data was wiped (the sample and 36-month data come without it) or from page 11.5, and the old receipt / invoice forms came back; the new system switches it on at once and has no way back (S440)."
+    },
+    {
+      "scenario": "S421-sample-data-old-receipt-save-duplicate-cancel-tax-print.spec.ts",
+      "by": "S440-sale-flow-stays-on-after-wipe-and-sample-data.spec.ts",
+      "decision": "Owner 2026-11-09: the sale flow (11.5 ระบบขายแบบใหม่) stays on",
+      "why": "The legacy app switched the sale flow off when the data was wiped (the sample and 36-month data come without it) or from page 11.5, and the old receipt / invoice forms came back; the new system switches it on at once and has no way back (S440)."
+    },
+    {
+      "scenario": "S422-phone-old-receipt-rail-and-menu-sheet.spec.ts",
+      "by": "S440-sale-flow-stays-on-after-wipe-and-sample-data.spec.ts",
+      "decision": "Owner 2026-11-09: the sale flow (11.5 ระบบขายแบบใหม่) stays on",
+      "why": "The legacy app switched the sale flow off when the data was wiped (the sample and 36-month data come without it) or from page 11.5, and the old receipt / invoice forms came back; the new system switches it on at once and has no way back (S440)."
+    },
+    {
+      "scenario": "S423-sample-data-billing-note-closed-after-bills-paid.spec.ts",
+      "by": "S440-sale-flow-stays-on-after-wipe-and-sample-data.spec.ts",
+      "decision": "Owner 2026-11-09: the sale flow (11.5 ระบบขายแบบใหม่) stays on",
+      "why": "The legacy app switched the sale flow off when the data was wiped (the sample and 36-month data come without it) or from page 11.5, and the old receipt / invoice forms came back; the new system switches it on at once and has no way back (S440)."
+    },
+    {
+      "scenario": "S424-36-month-data-settle-old-invoice-receivables-search.spec.ts",
+      "by": "S440-sale-flow-stays-on-after-wipe-and-sample-data.spec.ts",
+      "decision": "Owner 2026-11-09: the sale flow (11.5 ระบบขายแบบใหม่) stays on",
+      "why": "The legacy app switched the sale flow off when the data was wiped (the sample and 36-month data come without it) or from page 11.5, and the old receipt / invoice forms came back; the new system switches it on at once and has no way back (S440)."
+    },
+    {
+      "scenario": "S308-local-backups-keep-last-five-days.spec.ts",
+      "by": "S100-server-backup-wipe-restore.spec.ts",
+      "decision": "Q6, A7/F1 (task 3.2)",
+      "why": "The legacy app keeps restore points in the browser's IndexedDB (five days); the new system keeps them on the server, so the 11.3 page shows the server's backups instead (S100)."
+    },
+    {
+      "scenario": "S301-home-bell-sort-rows-forms-sidebar.spec.ts",
+      "by": "S453-home-bell-sort-stock-card-cost-column.spec.ts",
+      "decision": "Task 3.6 (answers 9, R11; frontend/CHANGES.md 36)",
+      "why": "The stock card's movements table has the column \"ทุนต่อหน่วย\" from FIFO (as S161): its header is checked by text and left out of the picture. Every step and the rest of each screen is checked against S301's goldens."
+    },
+    {
+      "scenario": "S305-hq-refresh-dashboard-and-home.spec.ts",
+      "by": "S454-hq-refresh-dashboard-and-home-own-data.spec.ts",
+      "decision": "Q3",
+      "why": "As S112 for S90: HQ works on its own data set, so HQ's screens show the chain's name and HQ's own (empty) menu badge and bell (checked by text, left out of the pictures). Every step and the rest of each screen is checked against S305's goldens."
+    },
+    {
+      "scenario": "S381-assets-capital-health-open-print.spec.ts",
+      "by": "S455-assets-capital-health-print-register-by-days.spec.ts",
+      "decision": "R17 and answers 13.1–13.11 of 2026-10-26 (task 3.13)",
+      "why": "As S210 / S214: the printed asset register has depreciation by the day up to today (this year 128,581.02, accumulated 364,881.69, net 453,118.31); those three columns are checked by text and left out of the picture. Every step, every data change and the rest of the screen is checked against S381's goldens."
+    },
+    {
+      "scenario": "S383-chart-trial-balance-csv-statements-print.spec.ts",
+      "by": "S456-chart-trial-balance-print-without-payroll-estimate-by-days.spec.ts",
+      "decision": "R12, R13, F5, X2 and answers of 2026-10-25 (task 3.7); R17 and answers 13.1, 13.7, 13.9 of 2026-10-26 (task 3.13)",
+      "why": "The printed trial balance has no payroll estimate (1010 on the debit side, no 2060 / 6010 / 6011, as S169), depreciation by the day and the assets' input VAT in 1050 (as S214), so its table is shorter and the picture cannot be S383's: every printed row is checked against the legacy app's with those changes, the rest of the sheet by its text. Every step is checked against S383's goldens."
+    },
+    {
+      "scenario": "S405-shop-settings-banks-logo-opacity.spec.ts",
+      "by": "S457-shop-settings-banks-sso-law-no-renew.spec.ts",
+      "decision": "R12, R13, F5, X2 and answers of 2026-10-25 (task 3.7); A2, 15.1 (task 3.15)",
+      "why": "As S168 for S55: the social security fields show the law's figures with a line beside the title, and the licence dates are the server's (read-only, no renew buttons); checked by text and left out of the picture. Every step, every data change and the rest of the screen is checked against S405's goldens."
+    },
+    {
+      "scenario": "S411-sign-in-show-hide-password.spec.ts",
+      "by": "S458-sign-in-show-hide-password-no-demo-line.spec.ts",
+      "decision": "A1, A3",
+      "why": "As S103 / S105: the sign-in screen has no test account line and no way in without a password, so the card is shorter and S411's picture cannot be taken; the shown password is checked by its value. Every step is checked against S411's goldens."
     }
   ],
   "added": [
@@ -787,6 +967,11 @@
       "scenario": "S285-staff-page-shop-password-renew-close-postpone.spec.ts",
       "decision": "owner 2026-11-09: \"ทำหน้าเว็บเลยครับ\" (the staff web page does what tools/shop-admin.mjs does)",
       "why": "On the staff web page: a new password for a shop's owner (after calling back), a paid renewal, the contact, closing the shop and postponing the removal of its data; telling the shop too early is refused in Thai; every action is in the shop's log with the staff account (web:<login>)."
+    },
+    {
+      "scenario": "S440-sale-flow-stays-on-after-wipe-and-sample-data.spec.ts",
+      "decision": "Owner 2026-11-09: the sale flow (11.5 ระบบขายแบบใหม่) stays on",
+      "why": "After wiping the data and loading the sample data the sale flow is on, page 11.5 has no way back, 04 shows the stock-cut register and the server keeps the switch on."
     }
   ]
 }

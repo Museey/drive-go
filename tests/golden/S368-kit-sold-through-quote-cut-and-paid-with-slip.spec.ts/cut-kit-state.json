@@ -1,0 +1,319 @@
+{
+  "DB.stock[BR-001].qty": [
+    19,
+    18
+  ],
+  "DB.stock[BR-025].qty": [
+    19,
+    18
+  ],
+  "DB.quotes[MA-QT261000005].status": [
+    "ร่าง",
+    "ตัดสต็อกแล้ว"
+  ],
+  "DB.quotes[MA-QT261000005].deducted": [
+    false,
+    true
+  ],
+  "DB.quotes[MA-QT261000005].stockCutId": [
+    null,
+    "@DB.stockCuts[MA-SA261000015]"
+  ],
+  "DB.receipts": {
+    "added": [
+      {
+        "id": "@DB.receipts[MA-SA261000015]",
+        "no": "MA-SA261000015",
+        "taxNo": "",
+        "taxDocs": [],
+        "issueTax": false,
+        "date": "2026-10-13",
+        "quoteId": "@DB.quotes[MA-QT261000005]",
+        "ref": "MA-QT261000005",
+        "custId": "@DB.cust[C00016]",
+        "vehIdx": 0,
+        "items": [
+          {
+            "type": "kit",
+            "kitId": "@DB.partsKits[ชุดเปลี่ยนผ้าเบรกหน้า Revo]",
+            "code": "",
+            "oem": "",
+            "name": "ชุดเปลี่ยนผ้าเบรกหน้า Revo",
+            "qty": 1,
+            "price": 2500,
+            "stockId": "",
+            "warr": "",
+            "kitItems": [
+              {
+                "stockId": "@DB.stock[BR-001]",
+                "code": "BR-001",
+                "name": "ผ้าเบรกหน้า Toyota Revo",
+                "unit": "ชิ้น",
+                "qty": 1
+              },
+              {
+                "stockId": "@DB.stock[BR-025]",
+                "code": "BR-025",
+                "name": "น้ำมันเบรก DOT4 (1 ลิตร)",
+                "unit": "ชิ้น",
+                "qty": 1
+              }
+            ]
+          }
+        ],
+        "disc": 0,
+        "vat": 7,
+        "wht": 0,
+        "whtBase": "labor",
+        "warr": "รับประกันงานซ่อมและอะไหล่ที่เปลี่ยน 3 เดือน หรือ 5,000 กิโลเมตร แล้วแต่อย่างใดถึงก่อน ไม่รวมความเสียหายจากอุบัติเหตุ การใช้งานผิดประเภท หรือการดัดแปลงสภาพรถ",
+        "deducted": true,
+        "pay": {
+          "credit": false,
+          "days": 0,
+          "due": "2026-10-13",
+          "cash": false,
+          "trans": false,
+          "card": false,
+          "chk": false
+        },
+        "tech1": "",
+        "tech1Name": "",
+        "tech2": "",
+        "tech2Name": "",
+        "paid": false,
+        "paidDate": "",
+        "by": "เจ้าของกิจการ",
+        "note": "",
+        "taxCancelled": false,
+        "taxCancelReason": "",
+        "taxCancelDate": "",
+        "apv": {
+          "status": "approved",
+          "by": "",
+          "byName": "ระบบ (ใบตัดสต็อก)",
+          "date": "2026-10-13",
+          "note": ""
+        },
+        "pkgSale": 1,
+        "payments": [],
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "saleId": "@DB.stockCuts[MA-SA261000015]",
+        "chain": "MA-SA261000015",
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.moves": {
+    "added": [
+      {
+        "id": "@DB.moves[#44]",
+        "stockId": "@DB.stock[BR-001]",
+        "type": "out",
+        "qty": -1,
+        "date": "2026-10-13",
+        "ref": "ตัดสต็อก MA-SA261000015 · ใบเสนอราคา MA-QT261000005 · ชุด ชุดเปลี่ยนผ้าเบรกหน้า Revo",
+        "refNo": "MA-SA261000015",
+        "vendorId": "",
+        "cost": 0,
+        "br": "@DB.branches[MA]"
+      },
+      {
+        "id": "@DB.moves[#45]",
+        "stockId": "@DB.stock[BR-025]",
+        "type": "out",
+        "qty": -1,
+        "date": "2026-10-13",
+        "ref": "ตัดสต็อก MA-SA261000015 · ใบเสนอราคา MA-QT261000005 · ชุด ชุดเปลี่ยนผ้าเบรกหน้า Revo",
+        "refNo": "MA-SA261000015",
+        "vendorId": "",
+        "cost": 0,
+        "br": "@DB.branches[MA]"
+      }
+    ]
+  },
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-QT261000005#53]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "quote",
+        "docId": "@DB.quotes[MA-QT261000005]",
+        "no": "MA-QT261000005",
+        "act": "deduct",
+        "note": "ตัดสต็อก 2 รายการ · ใบตัดสต็อก MA-SA261000015"
+      },
+      {
+        "id": "@DB.audit[MA-SA261000015]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "stockcut",
+        "docId": "@DB.stockCuts[MA-SA261000015]",
+        "no": "MA-SA261000015",
+        "act": "cut",
+        "note": "ตัดสต็อก 2 รายการ · ใบเสนอราคา MA-QT261000005"
+      }
+    ]
+  },
+  "DB.seq.MA-SA2610": [
+    14,
+    15
+  ],
+  "DB.stockCuts": {
+    "added": [
+      {
+        "id": "@DB.stockCuts[MA-SA261000015]",
+        "no": "MA-SA261000015",
+        "date": "2026-10-13",
+        "src": "quote",
+        "channel": "repair",
+        "wh": "สาขาหลัก",
+        "quoteId": "@DB.quotes[MA-QT261000005]",
+        "quoteNo": "MA-QT261000005",
+        "custId": "@DB.cust[C00016]",
+        "vehIdx": 0,
+        "seller": "",
+        "sellerName": "",
+        "tier": "B",
+        "items": [
+          {
+            "type": "kit",
+            "kitId": "@DB.partsKits[ชุดเปลี่ยนผ้าเบรกหน้า Revo]",
+            "code": "",
+            "oem": "",
+            "name": "ชุดเปลี่ยนผ้าเบรกหน้า Revo",
+            "qty": 1,
+            "price": 2500,
+            "stockId": "",
+            "warr": "",
+            "kitItems": [
+              {
+                "stockId": "@DB.stock[BR-001]",
+                "code": "BR-001",
+                "name": "ผ้าเบรกหน้า Toyota Revo",
+                "unit": "ชิ้น",
+                "qty": 1
+              },
+              {
+                "stockId": "@DB.stock[BR-025]",
+                "code": "BR-025",
+                "name": "น้ำมันเบรก DOT4 (1 ลิตร)",
+                "unit": "ชิ้น",
+                "qty": 1
+              }
+            ]
+          }
+        ],
+        "disc": 0,
+        "vat": 7,
+        "note": "",
+        "remark": "",
+        "ref": "MA-QT261000005",
+        "lines": [
+          {
+            "stockId": "@DB.stock[BR-001]",
+            "code": "BR-001",
+            "name": "ผ้าเบรกหน้า Toyota Revo",
+            "unit": "ชิ้น",
+            "qty": 1,
+            "kit": "ชุดเปลี่ยนผ้าเบรกหน้า Revo",
+            "cost": 850
+          },
+          {
+            "stockId": "@DB.stock[BR-025]",
+            "code": "BR-025",
+            "name": "น้ำมันเบรก DOT4 (1 ลิตร)",
+            "unit": "ชิ้น",
+            "qty": 1,
+            "kit": "ชุดเปลี่ยนผ้าเบรกหน้า Revo",
+            "cost": 180
+          }
+        ],
+        "cancelled": false,
+        "printed": false,
+        "moveRef": "MA-SA261000015",
+        "createdBy": "",
+        "createdByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "createdAt": "2026-10-13T02:00:00.000Z",
+        "updatedBy": "",
+        "updatedByName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "updatedAt": "2026-10-13T02:00:00.000Z",
+        "br": "@DB.branches[MA]",
+        "total": 2675,
+        "pay": null,
+        "paid": false,
+        "cost": 1030,
+        "wht": {
+          "rate": 0,
+          "base": "labor",
+          "auto": true
+        },
+        "tech1": "",
+        "tech1Name": "",
+        "tech2": "",
+        "tech2Name": "",
+        "credit": null,
+        "st": {
+          "k": "wait",
+          "got": 0,
+          "wht": 0,
+          "rem": 2675,
+          "n": 0,
+          "last": ""
+        },
+        "ledId": "@DB.receipts[MA-SA261000015]"
+      }
+    ]
+  },
+  "DB.fifo.lots[#18].left": [
+    19,
+    18
+  ],
+  "DB.fifo.lots[#22].left": [
+    19,
+    18
+  ],
+  "DB.fifo.allocs": {
+    "added": [
+      {
+        "id": "@DB.fifo.allocs[#17]",
+        "seq": 1791856800000000,
+        "br": "@DB.branches[MA]",
+        "stockId": "@DB.stock[BR-001]",
+        "lotId": "@DB.fifo.lots[#18]",
+        "qty": 1,
+        "back": 0,
+        "cost": 850,
+        "date": "2026-10-13",
+        "ref": "ตัดสต็อก MA-SA261000015 · ใบเสนอราคา MA-QT261000005 · ชุด ชุดเปลี่ยนผ้าเบรกหน้า Revo",
+        "refNo": "MA-SA261000015",
+        "pending": false
+      },
+      {
+        "id": "@DB.fifo.allocs[#18]",
+        "seq": 1791856800000001,
+        "br": "@DB.branches[MA]",
+        "stockId": "@DB.stock[BR-025]",
+        "lotId": "@DB.fifo.lots[#22]",
+        "qty": 1,
+        "back": 0,
+        "cost": 180,
+        "date": "2026-10-13",
+        "ref": "ตัดสต็อก MA-SA261000015 · ใบเสนอราคา MA-QT261000005 · ชุด ชุดเปลี่ยนผ้าเบรกหน้า Revo",
+        "refNo": "MA-SA261000015",
+        "pending": false
+      }
+    ]
+  },
+  "DB.pkgSaleFlow.used": [
+    53,
+    55
+  ]
+}

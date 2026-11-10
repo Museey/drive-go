@@ -1,0 +1,40 @@
+{
+  "DB.quotes[MA-QT261000005].printOpt": [
+    null,
+    {
+      "code": "code",
+      "bank": "",
+      "noHead": false
+    }
+  ],
+  "DB.quotes[MA-QT261000005].lotDetail": [
+    null,
+    true
+  ],
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[MA-QT261000005#51]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "quote",
+        "docId": "@DB.quotes[MA-QT261000005]",
+        "no": "MA-QT261000005",
+        "act": "save",
+        "note": "ยอดรวม 310.30 บาท"
+      },
+      {
+        "id": "@DB.audit[MA-QT261000005#52]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "quote",
+        "docId": "@DB.quotes[MA-QT261000005]",
+        "no": "MA-QT261000005",
+        "act": "print",
+        "note": "ต้นฉบับ + สำเนา"
+      }
+    ]
+  }
+}

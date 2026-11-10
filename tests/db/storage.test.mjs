@@ -342,6 +342,16 @@ describe('บันทึก (T5)', () => {
     await assert.rejects(save(b), e => e.code === '23505' && /records_doc_no/.test(e.constraint));
   });
 
+  test('บันทึกเดียวลบเอกสารแล้วเพิ่มเอกสารใหม่ที่ใช้เลขที่เดิมได้ (โหลดข้อมูลทดสอบทับข้อมูลเดิม)', async () => {
+    const { shopId } = await newShop('biz-trial', 'biz');
+    const a = await open(shopId);
+    const gone = a.db.receipts.shift();
+    a.db.receipts.push({ id: 'again', no: gone.no });
+    assert.ok((await save(a)).ok);
+    const back = await open(shopId);
+    assert.deepEqual(back.db.receipts.filter(r => r.no === gone.no).map(r => r.id), ['again']);
+  });
+
   test('ลำดับรายการเปลี่ยน แล้วอ่านกลับได้ลำดับใหม่', async () => {
     const { shopId } = await newShop('biz-trial', 'biz');
     const v = await open(shopId);

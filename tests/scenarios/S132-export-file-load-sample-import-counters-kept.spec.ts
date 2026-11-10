@@ -50,14 +50,19 @@ test('S132 ระบบใหม่: ส่งออกไฟล์สำรอ�
   await expect(page.getByRole('button', { name: 'ดูรายงานลูกหนี้' })).toBeVisible();
   await golden.step('กดโหลดข้อมูลตัวอย่าง (ไม่มีถามยืนยัน)');
   // The sample data keeps the audit log, which now has the wipe and the loading.
-  await golden.counts('after-sample-data', { 'DB.audit': SAMPLE_AUDIT + 2, 'DB.seq': '{8 keys}' });
+  // The sale flow stays on (owner 2026-11-09, S440): the wiped / loaded data gets the switch DB.pkgSaleFlow.
+  await golden.counts('after-sample-data', { 'DB.audit': SAMPLE_AUDIT + 2, 'DB.seq': '{8 keys}', 'DB.pkgSaleFlow': '{6 keys}' });
   const sample = (await app.state()).DB;
   expect(sample.seq).toEqual(counters);
   expect(sample.audit.filter((x: any) => x.kind === 'data').map((x: any) => [x.act, x.note]))
     .toEqual([['wipe', auditNote('ล้างข้อมูลทั้งหมด')], ['demo', auditNote('โหลดข้อมูลตัวอย่าง')]]);
   // Task 3.15: the licence shown is the server's (tests/support/licence.ts), checked by its text and left out of the picture.
   await expect(licenceLine(page)).toHaveText(FIXTURE_LINE);   // the sample data's own dates (52 days) do not count
-  await golden.screen('home-sample-data', { mask: [licenceBar(page)] });
+  // The sale flow stays on (owner 2026-11-09, frontend/CHANGES.md 145): the home page has the card "รอชำระ (ใบตัดสต็อก)",
+  // which the legacy screen did not; it is checked by its text and left out of the layout of the picture.
+  const waiting = page.locator('#pkgSfHome');
+  await expect(waiting).toHaveText('รอชำระ (ใบตัดสต็อก)0ไม่มีใบตัดสต็อกที่รอชำระ');
+  await golden.screen('home-sample-data', { mask: [licenceBar(page)], hide: [waiting] });
 
   await openDataPage();
   await page.getByRole('button', { name: /กู้คืนจากไฟล์สำรอง/ }).click();

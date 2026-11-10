@@ -74,7 +74,7 @@
    if(s&&s.cnt)h+=`<h3>สรุปตอนเปิดใช้</h3><p class="pkg-sf-line">ผูกใบเสร็จเดิมเข้ากับใบตัดสต็อก <b>${s.cnt.A}</b> ใบ · ใบตัดสต็อกเดิมที่เริ่มนับยอด <b>${s.newly}</b> ใบ · ย้ายเดือน <b>${s.moved}</b> ใบ · ยอดขายก่อน VAT ปี ${beY(s.year)} <b>${fm(s.yearBefore.base)}</b> → <b>${fm(s.yearAfter.base)}</b> บาท</p>`;
    /* owner 12 Oct: the tax invoice is manual only — this block is not offered (PKG_SALE.AUTO_TAX is false; the code stays) */
    if(S.AUTO_TAX)h+=`<h3>ใบกำกับภาษี</h3><label class="pkg-sf-tax"><input type="checkbox" id="pkgSfTax"${f.tax===true?' checked':''}${mayApply()?'':' disabled'}> <span><b>ออกใบกำกับภาษีพร้อมใบตัดสต็อก (ตอนของออก)</b><small>เมื่อเปิด: บันทึกใบตัดสต็อกที่มี VAT ให้ลูกค้าที่มีเลขผู้เสียภาษี ระบบออกใบกำกับภาษีให้ทันทีในวันที่ขาย · ทำฉบับแก้ไข = ยกเลิกใบเดิมแล้วออกใบใหม่ · ยกเลิกใบตัดสต็อก = ยกเลิกใบกำกับภาษีด้วย · ลูกค้าทั่วไป / ไม่มีเลขผู้เสียภาษี ยังออกเองที่ 4.6 เหมือนเดิม — ควรถามผู้ทำบัญชีก่อนเปิด</small></span></label>`;
-   h+=`<div class="pkg-sf-acts">${S.canRevert()?'<button type="button" class="btn gh" data-sf="revert">ย้อนกลับไปใช้ระบบเดิม</button><span class="hint">ย้อนกลับได้จนกว่าจะมีเอกสารใหม่ในระบบขายแบบใหม่</span>':'<span class="hint">มีเอกสารในระบบขายแบบใหม่แล้ว — ถ้าต้องการกลับไปแบบเดิม ให้กู้คืนจากไฟล์สำรองที่บันทึกไว้ก่อนเปิดใช้ (เมนู 11.3)</span>'}</div>`;
+   /* DriveGo (owner 2026-11-09): no way back to the old sale flow, so no revert button or hint here */
    b.innerHTML=h;return;}
   const p=getPlan(),ys=yearsOf(p);if(!YEAR||!ys.includes(YEAR))YEAR=ys.includes(p.summary.year)?p.summary.year:(ys[ys.length-1]||p.summary.year);
   const total=p.ops.length;

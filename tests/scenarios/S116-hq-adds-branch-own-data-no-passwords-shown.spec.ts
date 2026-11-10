@@ -104,7 +104,11 @@ test('S116 ระบบใหม่: สำนักงานใหญ่ (ข�
   await golden.step('หัวหน้าสาขา B003 เข้าสู่ระบบ เห็นสาขาว่าง');
   // Task 3.15: the licence shown is the server's (tests/support/licence.ts), checked by its text and left out of the picture.
   await expect(licenceLine(page)).toHaveText(FIXTURE_LINE);   // one date for the chain (15.7); the legacy new branch had a year from today
-  await golden.screen('b003-home', { mask: [licenceLine(page)] });
+  // The sale flow stays on (owner 2026-11-09, frontend/CHANGES.md 145): the new branch's home page has the card "รอชำระ (ใบตัดสต็อก)",
+  // which the legacy screen did not; it is checked by its text and left out of the layout of the picture.
+  const waiting = page.locator('#pkgSfHome');
+  await expect(waiting).toHaveText('รอชำระ (ใบตัดสต็อก)0ไม่มีใบตัดสต็อกที่รอชำระ');
+  await golden.screen('b003-home', { mask: [licenceLine(page)], hide: [waiting] });
 
   await signOut(page);
   await app.login('b003.deputy', '55555555');

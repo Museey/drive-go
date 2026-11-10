@@ -1,0 +1,95 @@
+{
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[ระบบขายแบบใหม่#1]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "stockcut",
+        "docId": "",
+        "no": "ระบบขายแบบใหม่",
+        "act": "saleflow",
+        "note": "ย้อนกลับไปใช้ระบบขายแบบเดิม · คืนค่าเอกสาร 0 รายการ"
+      }
+    ]
+  },
+  "DB.pkgSaleFlow.on": [
+    true,
+    false
+  ],
+  "DB.pkgSaleFlow.since": [
+    "2026-10-13",
+    null
+  ],
+  "DB.pkgSaleFlow.at": [
+    "2026-10-13T02:00:00.000Z",
+    null
+  ],
+  "DB.pkgSaleFlow.by": [
+    "เจ้าของกิจการ / ผู้ดูแลระบบ",
+    null
+  ],
+  "DB.pkgSaleFlow.used": [
+    0,
+    null
+  ],
+  "DB.pkgSaleFlow.report": [
+    {
+      "at": "2026-10-13T02:00:00.000Z",
+      "year": "2026",
+      "cnt": {
+        "A": 0,
+        "B": 0,
+        "C": 0,
+        "D": 0,
+        "E": 0,
+        "F": 0,
+        "G": 14,
+        "H": 0,
+        "I": 0,
+        "done": 0
+      },
+      "moved": 0,
+      "newly": 0,
+      "yearBefore": {
+        "base": 119860,
+        "cogs": 9455,
+        "n": 14
+      },
+      "yearAfter": {
+        "base": 119860,
+        "cogs": 9455,
+        "n": 14
+      },
+      "allBefore": {
+        "base": 119860,
+        "cogs": 9455,
+        "n": 14
+      },
+      "allAfter": {
+        "base": 119860,
+        "cogs": 9455,
+        "n": 14
+      },
+      "ar": {
+        "before": 109079,
+        "after": 109079,
+        "nBefore": 11,
+        "nAfter": 11,
+        "whtExp": 0,
+        "newOpen": 0
+      },
+      "ok": true
+    },
+    null
+  ],
+  "DB.pkgSaleFlow.revertedAt": [
+    null,
+    "2026-10-13T02:00:00.000Z"
+  ],
+  "DB.pkgSaleFlow.revertedBy": [
+    null,
+    "เจ้าของกิจการ / ผู้ดูแลระบบ"
+  ]
+}
