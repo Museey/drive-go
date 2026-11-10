@@ -504,6 +504,42 @@
       "by": "S100-server-backup-wipe-restore.spec.ts",
       "decision": "Q6, A7/F1 (task 3.2)",
       "why": "The legacy app keeps restore points in the browser's IndexedDB (five days); the new system keeps them on the server, so the 11.3 page shows the server's backups instead (S100)."
+    },
+    {
+      "scenario": "S301-home-bell-sort-rows-forms-sidebar.spec.ts",
+      "by": "S453-home-bell-sort-stock-card-cost-column.spec.ts",
+      "decision": "Task 3.6 (answers 9, R11; frontend/CHANGES.md 36)",
+      "why": "The stock card's movements table has the column \"ทุนต่อหน่วย\" from FIFO (as S161): its header is checked by text and left out of the picture. Every step and the rest of each screen is checked against S301's goldens."
+    },
+    {
+      "scenario": "S305-hq-refresh-dashboard-and-home.spec.ts",
+      "by": "S454-hq-refresh-dashboard-and-home-own-data.spec.ts",
+      "decision": "Q3",
+      "why": "As S112 for S90: HQ works on its own data set, so HQ's screens show the chain's name and HQ's own (empty) menu badge and bell (checked by text, left out of the pictures). Every step and the rest of each screen is checked against S305's goldens."
+    },
+    {
+      "scenario": "S381-assets-capital-health-open-print.spec.ts",
+      "by": "S455-assets-capital-health-print-register-by-days.spec.ts",
+      "decision": "R17 and answers 13.1–13.11 of 2026-10-26 (task 3.13)",
+      "why": "As S210 / S214: the printed asset register has depreciation by the day up to today (this year 128,581.02, accumulated 364,881.69, net 453,118.31); those three columns are checked by text and left out of the picture. Every step, every data change and the rest of the screen is checked against S381's goldens."
+    },
+    {
+      "scenario": "S383-chart-trial-balance-csv-statements-print.spec.ts",
+      "by": "S456-chart-trial-balance-print-without-payroll-estimate-by-days.spec.ts",
+      "decision": "R12, R13, F5, X2 and answers of 2026-10-25 (task 3.7); R17 and answers 13.1, 13.7, 13.9 of 2026-10-26 (task 3.13)",
+      "why": "The printed trial balance has no payroll estimate (1010 on the debit side, no 2060 / 6010 / 6011, as S169), depreciation by the day and the assets' input VAT in 1050 (as S214), so its table is shorter and the picture cannot be S383's: every printed row is checked against the legacy app's with those changes, the rest of the sheet by its text. Every step is checked against S383's goldens."
+    },
+    {
+      "scenario": "S405-shop-settings-banks-logo-opacity.spec.ts",
+      "by": "S457-shop-settings-banks-sso-law-no-renew.spec.ts",
+      "decision": "R12, R13, F5, X2 and answers of 2026-10-25 (task 3.7); A2, 15.1 (task 3.15)",
+      "why": "As S168 for S55: the social security fields show the law's figures with a line beside the title, and the licence dates are the server's (read-only, no renew buttons); checked by text and left out of the picture. Every step, every data change and the rest of the screen is checked against S405's goldens."
+    },
+    {
+      "scenario": "S411-sign-in-show-hide-password.spec.ts",
+      "by": "S458-sign-in-show-hide-password-no-demo-line.spec.ts",
+      "decision": "A1, A3",
+      "why": "As S103 / S105: the sign-in screen has no test account line and no way in without a password, so the card is shorter and S411's picture cannot be taken; the shown password is checked by its value. Every step is checked against S411's goldens."
     }
   ],
   "added": [

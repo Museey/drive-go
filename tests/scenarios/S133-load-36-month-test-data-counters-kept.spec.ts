@@ -35,6 +35,10 @@ test('S133 ระบบใหม่: ล้างข้อมูลแล้ว�
   const data = (await app.state()).DB, seq = data.seq;
   expect(data.audit.at(-1)).toMatchObject({ kind: 'data', act: 'demo', note: auditNote('โหลดข้อมูลทดสอบ 36 เดือน') });
   for (const [base, last] of Object.entries(counters)) expect(seq[base], base).toBeGreaterThanOrEqual(last as number);
-  await golden.screen('home-36-months');
+  // The sale flow stays on (owner 2026-11-09, frontend/CHANGES.md 145): the home page has the card "รอชำระ (ใบตัดสต็อก)",
+  // which the legacy screen did not; it is checked by its text and left out of the layout of the picture.
+  const waiting = page.locator('#pkgSfHome');
+  await expect(waiting).toHaveText('รอชำระ (ใบตัดสต็อก)0ไม่มีใบตัดสต็อกที่รอชำระ');
+  await golden.screen('home-36-months', { hide: [waiting] });
   golden.done();
 });

@@ -99,7 +99,10 @@ test('S441 ระบบใหม่: โหลดข้อมูลทดสอ�
   await brand.getByRole('button', { name: '›' }).click();
   await golden.step('กราฟยี่ห้อรถแบบเปรียบเทียบ กดหน้าถัดไป');
   await shows(brand, 'brand-compare-page-2');
-  await golden.screen('brand-compare-page-2');
+  // The picture also shows the top of "หมวดอะไหล่ที่ขายออก (มูลค่า)" over "เดือนนี้" (ต.ค. 2569), which counts the
+  // October sales of the trial shop's stock cuts (see above).
+  console.log('CATNOW', JSON.stringify(await page.locator('#chartCat').innerText()), JSON.stringify(await page.locator('#catPager').innerText()));
+  await golden.screen('brand-compare-page-2', { mask: [page.locator('#chartCat')] });
 
   const cat = panel(page, 'หมวดอะไหล่ที่ขายออก (มูลค่า)');
   const [catMode, catPeriod, catPeriod2] = [0, 1, 2].map(i => cat.getByRole('combobox').nth(i));

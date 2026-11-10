@@ -58,10 +58,31 @@ export function inCountsOrder(counts: Record<string, unknown>): Record<string, u
 // `mask`: elements that show what was changed on purpose (the scenario checks
 // their content itself); their boxes are painted over in both images, so
 // everything around them must still match.
+// `hide`: elements the new system adds on purpose that take a place of their own
+// (e.g. a card in a grid, which moves the cards after it); the scenario checks
+// them itself. They are left out of the layout (display: none) while the screen
+// is taken, so everything else must be where the legacy screen has it, then shown again.
 export async function sameScreen(page: Page, app: App, testInfo: TestInfo, scenario: string, name: string,
-  { mask = [] }: { mask?: Locator[] } = {}) {
+  { mask = [], hide = [] }: { mask?: Locator[]; hide?: Locator[] } = {}) {
   await app.settle();
   if (process.env.SKIP_SCREENS) return; // as golden.screen() (tests/support/test.ts)
+  const hidden = (await Promise.all(hide.map(l => l.all()))).flat();
+  if (hide.length) expect(hidden.length, `hidden elements of ${name}`).toBeGreaterThan(0);
+  const before = await Promise.all(hidden.map(el => el.evaluate((e: HTMLElement) => {
+    const was = [e.style.getPropertyValue('display'), e.style.getPropertyPriority('display')];
+    e.style.setProperty('display', 'none', 'important');
+    return was;
+  })));
+  try {
+    await screenAsLegacy(page, app, testInfo, scenario, name, mask);
+  } finally {
+    await Promise.all(hidden.map((el, i) => el.evaluate((e: HTMLElement, [value, priority]) => {
+      if (value) e.style.setProperty('display', value, priority); else e.style.removeProperty('display');
+    }, before[i])));
+  }
+}
+
+async function screenAsLegacy(page: Page, app: App, testInfo: TestInfo, scenario: string, name: string, mask: Locator[]) {
   await page.mouse.move(0, 0);
   await app.layoutStable();
   const boxes: { x: number; y: number; width: number; height: number }[] = [];
@@ -115,7 +136,7 @@ export function legacyGolden(scenario: string, { app, page, testInfo }: { app: A
     step: steps.same,
     skip: steps.skip,
     done: steps.done,
-    screen: (name: string, opts?: { mask?: Locator[] }) => sameScreen(page, app, testInfo, scenario, name, opts),
+    screen: (name: string, opts?: { mask?: Locator[]; hide?: Locator[] }) => sameScreen(page, app, testInfo, scenario, name, opts),
     // Record counts after an action that replaces the whole data set, as
     // golden.counts() takes them; `more`: counts the new system has on purpose.
     async counts(name: string, more: Record<string, unknown> = {}) {

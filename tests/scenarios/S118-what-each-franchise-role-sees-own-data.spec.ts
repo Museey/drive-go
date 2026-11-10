@@ -94,7 +94,10 @@ test('S118 ระบบใหม่: แต่ละบทบาทในเค�
   await golden.step('หัวหน้าสาขา B002 เข้าระบบ เห็นทุกเมนูยกเว้น HQ แต่ข้อมูลว่าง');
   // Task 3.15: the licence shown is the server's (tests/support/licence.ts), checked by its text and left out of the picture.
   await expect(licenceLine(page)).toHaveText(FIXTURE_LINE);   // one date for the chain (15.7); the legacy new branch had a year from today
-  await golden.screen('b002-home', { mask: [licenceLine(page)] });
+  // The sale flow stays on (owner 2026-11-09, frontend/CHANGES.md 145): the new branch's home page has the card "รอชำระ (ใบตัดสต็อก)",
+  // which the legacy screen did not; it is checked by its text and left out of the layout of the picture.
+  await expect(waiting).toHaveText('รอชำระ (ใบตัดสต็อก)0ไม่มีใบตัดสต็อกที่รอชำระ');
+  await golden.screen('b002-home', { mask: [licenceLine(page)], hide: [waiting] });
 
   await page.getByRole('button', { name: /10 ตั้งค่าองค์กร/ }).click();
   await expect(page.getByRole('heading', { name: '🟢 บัญชีเข้าระบบของพนักงาน (SHB) — สาขา B002 สาขาบางนา' })).toBeVisible();

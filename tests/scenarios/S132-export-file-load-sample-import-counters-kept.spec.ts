@@ -58,7 +58,11 @@ test('S132 ระบบใหม่: ส่งออกไฟล์สำรอ�
     .toEqual([['wipe', auditNote('ล้างข้อมูลทั้งหมด')], ['demo', auditNote('โหลดข้อมูลตัวอย่าง')]]);
   // Task 3.15: the licence shown is the server's (tests/support/licence.ts), checked by its text and left out of the picture.
   await expect(licenceLine(page)).toHaveText(FIXTURE_LINE);   // the sample data's own dates (52 days) do not count
-  await golden.screen('home-sample-data', { mask: [licenceBar(page)] });
+  // The sale flow stays on (owner 2026-11-09, frontend/CHANGES.md 145): the home page has the card "รอชำระ (ใบตัดสต็อก)",
+  // which the legacy screen did not; it is checked by its text and left out of the layout of the picture.
+  const waiting = page.locator('#pkgSfHome');
+  await expect(waiting).toHaveText('รอชำระ (ใบตัดสต็อก)0ไม่มีใบตัดสต็อกที่รอชำระ');
+  await golden.screen('home-sample-data', { mask: [licenceBar(page)], hide: [waiting] });
 
   await openDataPage();
   await page.getByRole('button', { name: /กู้คืนจากไฟล์สำรอง/ }).click();
