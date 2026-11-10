@@ -498,6 +498,12 @@
       "by": "S440-sale-flow-stays-on-after-wipe-and-sample-data.spec.ts",
       "decision": "Owner 2026-11-09: the sale flow (11.5 ระบบขายแบบใหม่) stays on",
       "why": "The legacy app switched the sale flow off when the data was wiped (the sample and 36-month data come without it) or from page 11.5, and the old receipt / invoice forms came back; the new system switches it on at once and has no way back (S440)."
+    },
+    {
+      "scenario": "S308-local-backups-keep-last-five-days.spec.ts",
+      "by": "S100-server-backup-wipe-restore.spec.ts",
+      "decision": "Q6, A7/F1 (task 3.2)",
+      "why": "The legacy app keeps restore points in the browser's IndexedDB (five days); the new system keeps them on the server, so the 11.3 page shows the server's backups instead (S100)."
     }
   ],
   "added": [
