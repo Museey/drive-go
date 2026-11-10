@@ -53,6 +53,8 @@ test('S321 รายละเอียดสินค้า: เพิ่มเ�
   await page.getByRole('button', { name: 'บัตรสินค้า' }).click();
   await expect(page.locator('#mCard').getByText('รับประกันจากผู้ผลิต')).toBeVisible();
   await golden.step('บัตรสินค้า EL-101');
+  // The side buttons (ปิด) of the open windows are placed again 350 ms after a window opens (CLAUDE.md): wait for that.
+  await page.waitForTimeout(400);
   await golden.screen('stock-card');
   await page.getByRole('row', { name: /^MA-RC261000001 บริษัท อะไหล่ยนต์รุ่งเรือง/ }).filter({ visible: true }).click();
   await golden.step('กดแถว MA-RC261000001 ในบัตรสินค้า');
