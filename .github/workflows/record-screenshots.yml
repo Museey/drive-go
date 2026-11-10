@@ -39,6 +39,13 @@ jobs:
         run: npx playwright test
       - name: Legacy suite passes with them (2)
         run: npx playwright test
+      - name: Keep the failed runs' screenshots (actual / expected / diff) to look at
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p4-test-results
+          path: test-results/**/*.png
+          retention-days: 7
       - name: Commit
         run: |
           if [ -z "$(git status --porcelain tests/golden)" ]; then echo "No screenshot differs."; exit 0; fi
