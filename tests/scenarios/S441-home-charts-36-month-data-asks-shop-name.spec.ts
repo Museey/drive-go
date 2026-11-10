@@ -100,9 +100,29 @@ test('S441 ระบบใหม่: โหลดข้อมูลทดสอ�
   await golden.step('กราฟยี่ห้อรถแบบเปรียบเทียบ กดหน้าถัดไป');
   await shows(brand, 'brand-compare-page-2');
   // The picture also shows the top of "หมวดอะไหล่ที่ขายออก (มูลค่า)" over "เดือนนี้" (ต.ค. 2569), which counts the
-  // October sales of the trial shop's stock cuts (see above).
-  console.log('CATNOW', JSON.stringify(await page.locator('#chartCat').innerText()), JSON.stringify(await page.locator('#catPager').innerText()));
-  await golden.screen('brand-compare-page-2', { mask: [page.locator('#chartCat')] });
+  // October sales of the trial shop's stock cuts (see above): the four categories above +7,500.00, +7,340.00,
+  // +9,730.33, +21,255.00 and อะไหล่รถไฟฟ้า +6,060.00 (EV-110, EV-120, EV-130 of MA-SA261000001–2; in "ทั้งหมด" it
+  // is on page 3, which S300 does not open), so every share moves. Checked against the legacy app's chart (read from
+  // it after loading the 36-month data, 13/10/2569) with those sales added, and left out of the picture.
+  const october = [
+    ['ยาง / ล้อ', '22.0%', '308,170.00'],                     // legacy 22.9%
+    ['อะไหล่ไฟฟ้า', '18.1%', '253,450.00'],                   // 18.8%
+    ['อะไหล่เครื่องยนต์', '15.9%', '222,310.00'],             // 16.5%
+    ['ค่าแรง / บริการ', '12.3%', '172,110.00'],               // 12.2%, 164,610.00
+    ['ระบบส่งกำลัง', '7.7%', '107,740.00'],                   // 8.0%
+    ['หม้อน้ำ / ระบบระบายความร้อน', '6.1%', '86,090.00'],     // 6.4%
+    ['ระบบเบรก', '6.0%', '83,320.33'],                        // 5.5%, 73,590.00
+    ['อะไหล่แอร์', '4.7%', '66,495.00'],                      // 3.4%, 45,240.00
+    ['อะไหล่ช่วงล่าง', '3.4%', '47,690.00'],                  // 3.0%, 40,350.00
+    ['น้ำมัน / ของเหลว', '2.7%', '37,110.00'],                // 2.8%
+    ['อะไหล่รถไฟฟ้า', '0.4%', '6,060.00'],                    // none in the legacy app's October
+    ['อะไหล่สิ้นเปลือง', '0.4%', '5,170.00'],                 // 0.4%
+    ['อะไหล่เบ็ดเตล็ด', '0.3%', '4,260.00'],                  // 0.3%
+  ];
+  const catNow = page.locator('#chartCat');
+  await expect(page.locator('#catRangeTag')).toHaveText('ต.ค. 2569');
+  expect(await catNow.innerText()).toBe(october.map(([name, share, amount]) => `${name}\n${share}\n${amount} บาท`).join('\n'));
+  await golden.screen('brand-compare-page-2', { mask: [catNow] });
 
   const cat = panel(page, 'หมวดอะไหล่ที่ขายออก (มูลค่า)');
   const [catMode, catPeriod, catPeriod2] = [0, 1, 2].map(i => cat.getByRole('combobox').nth(i));
