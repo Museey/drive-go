@@ -3,7 +3,7 @@
 // with a password (as in the control panel), then the pre-deploy job twice (the schema and the demo shops, then nothing
 // left to do) and the web container: health, a shop's page, signing in; then the staff tool opens a real shop and
 // gives its owner a new password (docs/STAFF-TOOLS.md), and the owner signs in; the scheduled jobs (tools/nightly.mjs,
-// tools/watch.mjs) and a page's error reaching the errors table; the staff web page's own app (DRIVEGO_PORTAL=staff).
+// tools/watch.mjs) and a page's error reaching the errors table; the staff web page at /ops (with STAFF_DATABASE_URL).
 // Used by CI before the deploy branch moves.
 //
 //   docker build -t drivego:smoke . && node tools/image-smoke.mjs [image]
@@ -36,7 +36,7 @@ const staffDb = `${db.url.replace('//drivego@', '//drivego_staff:smoke-staff-pas
 const c = new pg.Client({ connectionString: db.url });
 await c.connect();
 await c.query("create role drivego_app login password 'smoke-app-password'");
-// The staff web page's user, made beforehand too (on DigitalOcean by the staff app's database component).
+// The staff web page's user, made beforehand too (on DigitalOcean in the control panel, docs/DIGITALOCEAN-SETUP.md part 4).
 await c.query("create role drivego_staff login password 'smoke-staff-password'");
 await c.end();
 
@@ -134,46 +134,44 @@ try {
   if (JSON.stringify(Object.keys(pub.shop)) !== JSON.stringify(['code', 'name', 'created', 'trialStart', 'licensed', 'licEnd'])) fail(`public shop: ${JSON.stringify(pub.shop)}`);
   say('security: headers on the pages, the sign-in data has no owner, tax ID, address or phone');
 
-  // The staff web page (.do/staff.yaml): not in the shops' app; its own app is the same image with DRIVEGO_PORTAL=staff,
-  // as drivego_staff, and has nothing of the shops' app. An account added with the staff tool signs in the first time:
-  // its own password, the authenticator app, then the shops.
-  for (const p of ['/staff/', '/api/staff/me']) if ((await fetchAgain(`${base}${p}`)).status !== 404) fail(`the shops' app answers ${p}`);
+  // The staff web page at /ops: off (404) without its connection, as in the web container above; on in a container of
+  // the same image given STAFF_DATABASE_URL (drivego_staff). An account added with the staff tool signs in the first
+  // time: its own password, the authenticator app, then the shops. The sign-in is a token of the tab, never a cookie.
+  for (const p of ['/ops/', '/api/ops/me']) if ((await fetchAgain(`${base}${p}`)).status !== 404) fail(`/ops is on without its connection: ${p}`);
   const added = admin('staff', 'add', 'smoke', '--name', 'ทีมงาน image');
   if (added.status !== 0 || !passOf(added)) fail(`shop-admin staff add:\n${added.stdout}${added.stderr}`);
-  const staffRun = docker(['run', '-d', '--network', 'host', '-e', `PORT=${STAFF_PORT}`, '-e', 'DRIVEGO_PORTAL=staff',
+  const staffRun = docker(['run', '-d', '--network', 'host', '-e', `PORT=${STAFF_PORT}`, '-e', `DATABASE_URL=${app}`,
     '-e', `STAFF_DATABASE_URL=${staffDb}`, '-e', 'DATABASE_CA_CERT', image]);
-  if (staffRun.status !== 0) fail(`staff container: ${staffRun.stderr}`);
+  if (staffRun.status !== 0) fail(`container with the staff page: ${staffRun.stderr}`);
   staffWeb = staffRun.stdout.trim();
   const sbase = `http://127.0.0.1:${STAFF_PORT}`;
   for (let i = 0; ; i++) {
     try { const r = await fetch(`${sbase}/api/health`); if (r.ok && (await r.json()).db) break; } catch {}
-    if (i > 120) fail('the staff container did not answer /api/health with the database in 60 s');
+    if (i > 120) fail('the container with the staff page did not answer /api/health with the database in 60 s');
     await new Promise(r => setTimeout(r, 500));
   }
-  const ui = await fetchAgain(`${sbase}/staff/`);
+  const ui = await fetchAgain(`${sbase}/ops/`);
   const csp = ui.headers.get('content-security-policy') || '';
-  if (ui.status !== 200 || !/src="staff\.js"/.test(await ui.text()) || !/script-src 'self'/.test(csp) || !/frame-ancestors 'none'/.test(csp)) fail(`/staff/: ${ui.status} ${csp}`);
-  // (Next.js writes the address without its last slash; /staff then leads to /staff/.)
-  if (!/\/staff\/?$/.test((await fetchAgain(`${sbase}/`, { redirect: 'manual' })).headers.get('location') || '')) fail('the staff app\'s root does not lead to /staff/');
-  for (const p of ['/demo-biz/', '/api/storage/garage.v22', '/api/files', '/api/licence', '/api/auth/login']) if ((await fetchAgain(`${sbase}${p}`)).status !== 404) fail(`the staff app answers ${p}`);
-  const post = (path, body, cookie = '', origin = sbase) => fetchAgain(`${sbase}/api/staff/${path}`, { method: 'POST',
-    headers: { 'content-type': 'application/json', ...origin ? { origin } : {}, ...cookie ? { cookie } : {} }, body: JSON.stringify(body) });
+  if (ui.status !== 200 || !/src="staff\.js"/.test(await ui.text()) || !/script-src 'self'/.test(csp) || !/frame-ancestors 'none'/.test(csp)) fail(`/ops/: ${ui.status} ${csp}`);
+  if ((await fetchAgain(`${sbase}/demo-biz/`)).status !== 200) fail('the shops\' pages are gone with the staff page on');
+  const post = (path, body, token = '', origin = sbase) => fetchAgain(`${sbase}/api/ops/${path}`, { method: 'POST',
+    headers: { 'content-type': 'application/json', ...origin ? { origin } : {}, ...token ? { authorization: `Bearer ${token}` } : {} }, body: JSON.stringify(body) });
   if ((await post('sign-in', { login: 'smoke', password: passOf(added) }, '', '')).status !== 403) fail('a sign-in without Origin was taken');
   const step1 = await post('sign-in', { login: 'smoke', password: passOf(added) });
-  const c1 = step1.headers.get('set-cookie') || '';
-  if (step1.status !== 200 || (await step1.json()).next !== 'password' || !/^dg_staff=.*HttpOnly; SameSite=Strict; Max-Age=600; Secure$/.test(c1)) fail(`staff sign-in: ${step1.status} ${c1}`);
-  const s1 = c1.split(';')[0];
-  if ((await (await post('password', { password: 'smoke-staff-own-password' }, s1)).json()).next !== 'app') fail('staff new password');
-  const { secret } = await (await fetchAgain(`${sbase}/api/staff/app`, { headers: { cookie: s1 } })).json();
+  const b1 = await step1.json();
+  if (step1.status !== 200 || b1.next !== 'password' || !/^[A-Za-z0-9_-]{43}$/.test(b1.token || '') || step1.headers.get('set-cookie')) fail(`staff sign-in: ${step1.status} ${JSON.stringify(b1).slice(0, 80)}`);
+  if ((await (await post('password', { password: 'smoke-staff-own-password' }, b1.token)).json()).next !== 'app') fail('staff new password');
+  const { secret } = await (await fetchAgain(`${sbase}/api/ops/app`, { headers: { authorization: `Bearer ${b1.token}` } })).json();
   const { codeAt, stepAt } = await import('../server/lib/totp.ts');
-  const step2 = await post('code', { code: codeAt(secret, stepAt(Date.now())) }, s1);
-  const s2 = (step2.headers.get('set-cookie') || '').split(';')[0];
-  if (step2.status !== 200 || !s2) fail(`staff app code: ${step2.status}`);
-  const shops = await (await fetchAgain(`${sbase}/api/staff/shops`, { headers: { cookie: s2 } })).json();
+  const step2 = await post('code', { code: codeAt(secret, stepAt(Date.now())) }, b1.token);
+  const b2 = await step2.json();
+  if (step2.status !== 200 || !b2.token) fail(`staff app code: ${step2.status}`);
+  const shops = await (await fetchAgain(`${sbase}/api/ops/shops`, { headers: { authorization: `Bearer ${b2.token}` } })).json();
   if (!['demo-biz', 'smoke-real'].every(code => shops.shops?.some(x => x.code === code))) fail(`staff shops: ${JSON.stringify(shops).slice(0, 300)}`);
-  const contact = await post('shops/smoke-real', { action: 'contact', contact: 'image smoke' }, s2);
+  if ((await fetchAgain(`${sbase}/api/ops/shops`)).status !== 401) fail('the shops were listed without the token');
+  const contact = await post('shops/smoke-real', { action: 'contact', contact: 'image smoke' }, b2.token);
   if (contact.status !== 200 || (await contact.json()).licence?.contact !== 'image smoke') fail(`staff contact: ${contact.status}`);
-  say('staff app: only /staff/ (strict CSP); first sign-in with its own password and app code; every shop listed; a change logged');
+  say('staff page: /ops off without its connection, on with it (strict CSP); first sign-in with its own password and app code; every shop listed; a change logged');
   console.log('image smoke test passed');
 } catch (e) {
   if (web) console.error(docker(['logs', web]).stdout.slice(-3000), docker(['logs', web]).stderr.slice(-3000));

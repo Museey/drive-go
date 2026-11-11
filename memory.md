@@ -112,10 +112,11 @@
   ถ้าจะแก้ให้ Artifact read แล้ว publish ทับ URL เดิม) + docs/DEVICE-TEST.md (สร้างจากรายการเดียวกัน) · เมื่อเจ้าของบอกว่า "ลองเสร็จแล้ว":
   ArtifactData list collection `results` (เอกสาร `<pc|tablet|phone>__<ข้อ>` มี status pass/fail/skip, note) และ `devices` (รุ่นเครื่อง)
   แล้วแก้ข้อที่ไม่ผ่าน ขีด LAUNCH-CHECKLIST "เจ้าของโปรเจกต์ลองใช้"
-- **หน้าเว็บของทีมงาน (2026-11-09, เจ้าของ: "ทำหน้าเว็บเลยครับ")**: แอปที่ 2 `.do/staff.yaml` (`DRIVEGO_PORTAL=staff`, lib/portal.ts + proxy.ts),
-  user drivego_staff (0008_staff.sql, `drivego_staff_grants()` ทุก migrate), lib/staff.ts (รหัสผ่าน + TOTP), lib/staff-shops.ts, API `app/api/staff/*`,
+- **หน้าเว็บของทีมงาน (2026-11-09, เจ้าของ: "ทำหน้าเว็บเลยครับ")**: **`/ops/` ของแอปเดิม (เจ้าของเลือก 2026-11-11)** เปิดเมื่อมี `STAFF_DATABASE_URL`,
+  เข้าระบบต่อแท็บ (token ใน sessionStorage `dg_ops` + header Bearer, ไม่มี cookie; หน้าร้านลบ token ตอนเริ่ม: client/storage.ts, CHANGES 147),
+  user drivego_staff (0008_staff.sql, `drivego_staff_grants()` ทุก migrate), lib/staff.ts (รหัสผ่าน + TOTP), lib/staff-shops.ts, API `app/api/ops/*`,
   หน้า `server/staff-ui/` (JS ล้วน ไม่มี inline, CSP ใน next.config.ts) · บัญชีทีมงาน: `shop-admin staff list|add|reset|off|on`
-  · local: `npm run dev` → `/staff/` บัญชี `staff` รหัสพิมพ์ตอนเปิด · test: S284 S285, tests/db/staff.test.mjs, totp/portal unit, image-smoke ส่วน staff
-  (session นี้ไม่มี Docker daemon) · **CI รอบ 185 ผ่านทุก job (0be43f6, deploy/test ขยับแล้ว)** · ข้อความอนุมัติแล้ว 2026-11-10 · **รอเจ้าของ**: สร้างแอปตาม DIGITALOCEAN-SETUP ส่วนที่ 4 (แล้วส่ง URL ของ drivego-staff มา)
+  · local: `npm run dev` → `/ops/` บัญชี `staff` รหัสพิมพ์ตอนเปิด · test: S284 S285, tests/db/staff.test.mjs, totp unit, image-smoke ส่วน /ops
+  (session นี้ไม่มี Docker daemon) · **CI รอบ 185 ผ่านทุก job (0be43f6, deploy/test ขยับแล้ว)** · ข้อความอนุมัติแล้ว 2026-11-10 · **รอเจ้าของ**: ทำ DIGITALOCEAN-SETUP ส่วนที่ 4 (user drivego_staff + secret STAFF_DATABASE_URL ในแอปเดิม) แล้วลอง `/ops/`
 - P4 รอบ 4 บันทึกภาพ S269 billing-opened.png ใหม่ (ไฟล์เดียว, 6b6f997) งานปิดช่องว่างของ test (S269–S283) CI ผ่านแล้ว
 - P4 (บันทึกภาพเฉลยใหม่) ห้าม push ระหว่างรัน: ถ้าต้อง push ให้ cancel run แล้วสั่งใหม่หลัง push (ทำแล้ว 2026-11-09 สองครั้ง)

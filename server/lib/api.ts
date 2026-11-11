@@ -3,7 +3,6 @@
 import type pg from 'pg';
 import { pool, withShop } from './db.ts';
 import { readBody } from './files.ts';
-import { portalOf } from './portal.ts';
 import { type Session, getSession } from './session.ts';
 
 export const json = (body: unknown, status = 200) => Response.json(body, { status });
@@ -21,8 +20,6 @@ export async function readJson<T>(req: Request, limit: number): Promise<T | Resp
 }
 
 export async function inShop(req: Request, fn: (c: pg.ClientBase, s: Session) => Promise<Response>): Promise<Response> {
-  // The staff web page's own app has none of the shops' routes (portal.ts; the proxy does not see the data routes).
-  if (portalOf(process.env['DRIVEGO_PORTAL']) === 'staff') return new Response('not found', { status: 404 });
   const s = await getSession(req);
   if (!s) return json({ error: 'signed-out' }, 401);
   try {

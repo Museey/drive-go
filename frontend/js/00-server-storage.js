@@ -909,6 +909,10 @@
   var postError = (body) => fetch("/api/errors", { method: "POST", headers: { "content-type": "application/json" }, body, keepalive: true, credentials: "same-origin" });
 
   // server/client/storage.ts
+  try {
+    sessionStorage.removeItem("dg_ops");
+  } catch {
+  }
   var API = "/api/storage";
   var fetch0 = window.fetch.bind(window);
   var MESSAGES = {

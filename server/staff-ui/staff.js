@@ -47,14 +47,23 @@
     network: 'ติดต่อ server ไม่ได้ ลองใหม่อีกครั้ง',
     expired: 'หมดเวลา กรุณาเข้าสู่ระบบอีกครั้ง',
   };
+  // This tab's sign-in (lib/staff.ts): kept for this tab only, so another tab signs in again, and a shop's page opened
+  // in this tab removes it before its own scripts run (server/client/storage.ts). Never a cookie.
+  const KEY = 'dg_ops';
+  let token = '';
+  try { token = sessionStorage.getItem(KEY) || ''; } catch {}
+  const keep = t => { token = t || ''; try { if (token) sessionStorage.setItem(KEY, token); else sessionStorage.removeItem(KEY); } catch {} };
+
   async function api(path, data) {
     let res;
+    const headers = { accept: 'application/json', ...token ? { authorization: `Bearer ${token}` } : {} };
     try {
-      res = await fetch(`/api/staff/${path}`, data === undefined ? { headers: { accept: 'application/json' } }
-        : { method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json' }, body: JSON.stringify(data) });
+      res = await fetch(`/api/ops/${path}`, data === undefined ? { headers }
+        : { method: 'POST', headers: { ...headers, 'content-type': 'application/json' }, body: JSON.stringify(data) });
     } catch { throw new Error(T.network); }
     const body = await res.json().catch(() => ({}));
-    if (res.status === 401) { signInScreen(T.expired); throw Object.assign(new Error(T.expired), { silent: true }); }
+    if (typeof body.token === 'string') keep(body.token);
+    if (res.status === 401) { keep(''); signInScreen(T.expired); throw Object.assign(new Error(T.expired), { silent: true }); }
     if (!res.ok) throw Object.assign(new Error(thai(body.error || `HTTP ${res.status}`)), { key: body.error });
     return body;
   }
@@ -68,7 +77,7 @@
     [/^stage$/, 'ขั้นตอนนี้ทำไปแล้ว กรุณาโหลดหน้าใหม่'],
     [/^origin$/, 'คำขอนี้ไม่ได้มาจากหน้าเว็บทีมงาน'],
     [/^code is required/, 'ต้องใส่รหัสร้าน'],
-    [/^code: 3/, 'รหัสร้านต้องเป็นตัวพิมพ์เล็ก ตัวเลข หรือขีด 3–32 ตัว และห้ามใช้ api, staff หรือรหัสร้านตัวอย่าง'],
+    [/^code: 3/, 'รหัสร้านต้องเป็นตัวพิมพ์เล็ก ตัวเลข หรือขีด 3–32 ตัว และห้ามใช้ api, ops หรือรหัสร้านตัวอย่าง'],
     [/^a shop with code \S+ exists already|^exists already/, 'มีร้านที่ใช้รหัสนี้แล้ว'],
     [/^package: /, 'ต้องเลือกแพ็กเกจ'],
     [/^kind: /, 'ต้องเลือกประเภท (ทดลองใช้ หรือ อู่นำร่อง)'],
@@ -185,6 +194,7 @@
     $who.replaceChildren(el('span', { text: `${me.name} (${me.login})` }),
       el('button', { type: 'button', text: 'ออกจากระบบ', onclick: async () => {
         await api('sign-out', {}).catch(() => {});
+        keep('');
         history.replaceState(null, '', location.pathname);   // the next sign-in starts at the list
         signInScreen();
       } }));

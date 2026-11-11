@@ -1,9 +1,9 @@
-// Helpers of the staff web page's API (app/api/staff): only a page of the same address may send (the cookie is
-// SameSite=Strict too), nothing is kept by the browser's cache, and a mistake in what staff typed comes back as 400
-// with the tools' own message (the page shows it in Thai where it knows it).
+// Helpers of the staff web page's API (app/api/ops): nothing at all while the page is off (no STAFF_DATABASE_URL),
+// only a page of the same address may send, nothing is kept by the browser's cache, and a mistake in what staff typed
+// comes back as 400 with the tools' own message (the page shows it in Thai where it knows it).
 import type pg from 'pg';
 import { clientAddress, json, readJson } from './api.ts';
-import { type StaffSession, getStaffSession, staffPool } from './staff.ts';
+import { type StaffSession, getStaffSession, staffPageOn, staffPool } from './staff.ts';
 
 export type Need = 'signed-in' | 'password-step' | 'none';
 
@@ -20,6 +20,7 @@ const noStore = (r: Response) => { r.headers.set('cache-control', 'no-store'); r
 
 export async function staffApi(req: Request, need: Need,
   fn: (o: { db: pg.Pool; s: StaffSession | null; address: string }) => Promise<Response>): Promise<Response> {
+  if (!staffPageOn()) return new Response('not found', { status: 404 });
   if (!sameOrigin(req)) return noStore(json({ error: 'origin' }, 403));
   const db = staffPool();
   const s = need === 'none' ? null : await getStaffSession(req, db);
@@ -38,10 +39,8 @@ export async function staffApi(req: Request, need: Need,
 
 export const body = (req: Request) => readJson<Record<string, unknown>>(req, 64 * 1024);
 
-// A step of signing in: its cookie, if it gives one, and the next step.
-export function stepResponse(r: { ok: boolean; next?: string; cookie?: string; error?: string }): Response {
+// A step of signing in: the next step, and the tab's new token when it gives one.
+export function stepResponse(r: { ok: boolean; next?: string; token?: string; error?: string }): Response {
   if (!r.ok) return json({ error: r.error }, r.error === 'stage' ? 409 : 400);
-  const res = json({ next: r.next });
-  if (r.cookie) res.headers.set('set-cookie', r.cookie);
-  return res;
+  return json(r.token ? { next: r.next, token: r.token } : { next: r.next });
 }

@@ -8,5 +8,5 @@ export const FRONTEND_DIR = resolve(/*turbopackIgnore: true*/ process.env.FRONTE
 // A shop's address is /<shop code>/ (owner decision Q1), e.g. /DG-1688/.
 export const SHOP_CODE = /^[A-Za-z0-9][A-Za-z0-9-]{1,31}$/;
 
-// The staff web page's files (server/staff-ui: one page and its script and style), served at /staff/.
+// The staff web page's files (server/staff-ui: one page and its script and style), served at /ops/.
 export const STAFF_UI_DIR = resolve(/*turbopackIgnore: true*/ process.env.STAFF_UI_DIR ?? join(process.cwd(), 'staff-ui'));

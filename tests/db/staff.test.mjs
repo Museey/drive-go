@@ -98,9 +98,9 @@ describe('สิทธิ์ของ drivego_staff', () => {
   });
 });
 
-// A request carrying the cookie a step gave.
-const req = cookie => new Request('http://staff.test/api/staff/me', { headers: cookie ? { cookie: cookie.split(';')[0] } : {} });
-const session = cookie => getStaffSession(req(cookie), staffPool);
+// A request of the tab holding the token a step gave (Authorization header, lib/staff.ts).
+const req = token => new Request('http://shop.test/api/ops/me', { headers: token ? { authorization: `Bearer ${token}` } : {} });
+const session = token => getStaffSession(req(token), staffPool);
 let address = 0;
 const where = () => `10.0.0.${++address}`;
 
@@ -114,7 +114,7 @@ describe('เข้าระบบหน้าเว็บทีมงาน', (
     assert.deepEqual(await signIn(staffPool, 'nobody', a.password, ip), { ok: false, error: 'wrong' });
     const first = await signIn(staffPool, ' SOMCHAI ', a.password, ip);
     assert.equal(first.next, 'password');
-    let s = await session(first.cookie);
+    let s = await session(first.token);
     assert.equal(s.stage, 'password');
     // Nothing else before the new password.
     assert.equal(await appSetUp(staffPool, s), null);
@@ -122,38 +122,43 @@ describe('เข้าระบบหน้าเว็บทีมงาน', (
     assert.deepEqual(await changePassword(staffPool, s, { password: 'short' }, ip), { ok: false, error: 'short' });
     assert.deepEqual(await changePassword(staffPool, s, { password: a.password }, ip), { ok: false, error: 'same' });
     assert.deepEqual(await changePassword(staffPool, s, { password: 'ม้าลายกินหญ้า-2026' }, ip), { ok: true, next: 'app' });
-    s = await session(first.cookie);
+    s = await session(first.token);
     const app = await appSetUp(staffPool, s);
     assert.match(app.secret, /^[A-Z2-7]{32}$/);
     assert.match(app.uri, /^otpauth:\/\/totp\/DriveGo%3Asomchai\?secret=/);
     assert.match(app.qr, /^data:image\/svg\+xml;base64,/);
     assert.equal((await appSetUp(staffPool, s)).secret, app.secret, 'the same secret until it is set up');
-    assert.equal((await appSetUp(staffPool, await session(first.cookie))).secret, app.secret);
+    assert.equal((await appSetUp(staffPool, await session(first.token))).secret, app.secret);
     const now = Date.now();
     assert.deepEqual(await checkCode(staffPool, s, codeAt(app.secret, stepAt(now) - 5), ip, now), { ok: false, error: 'wrong' });
-    s = await session(first.cookie);
+    s = await session(first.token);
     const done = await checkCode(staffPool, s, codeAt(app.secret, stepAt(now)), ip, now);
     assert.equal(done.next, 'done');
-    assert.equal(await session(first.cookie), null, 'the password step\'s cookie no longer works');
-    const full = await session(done.cookie);
+    assert.equal(await session(first.token), null, 'the password step\'s cookie no longer works');
+    const full = await session(done.token);
     assert.equal(full.stage, 'full');
     assert.equal(full.staff.totp_pending, null);
-    assert.ok(/HttpOnly; SameSite=Strict; Max-Age=28800/.test(done.cookie));
+    // Only as the tab's header: the same token in a cookie (sent by any page of the address) is nobody.
+    assert.match(done.token, /^[A-Za-z0-9_-]{43}$/);
+    assert.equal(await getStaffSession(new Request('http://shop.test/api/ops/me', { headers: { cookie: `dg_staff=${done.token}; dg_ops=${done.token}` } }), staffPool), null);
+    assert.equal(await getStaffSession(new Request('http://shop.test/api/ops/me', { headers: { authorization: done.token } }), staffPool), null);
+    const { rows: [left] } = await ownerPool.query('select round(extract(epoch from expires_at - created_at) / 3600) as h from staff_sessions where stage = $1 order by created_at desc limit 1', ['full']);
+    assert.equal(Number(left.h), 8);
 
     // The next sign-in: password, then a code — each code once.
     const again = await signIn(staffPool, 'somchai', 'ม้าลายกินหญ้า-2026', ip);
     assert.equal(again.next, 'code');
-    s = await session(again.cookie);
+    s = await session(again.token);
     assert.deepEqual(await checkCode(staffPool, s, codeAt(app.secret, stepAt(now)), ip, now), { ok: false, error: 'wrong' });
-    s = await session(again.cookie);
+    s = await session(again.token);
     assert.equal((await checkCode(staffPool, s, codeAt(app.secret, stepAt(now) + 1), ip, now + 30_000)).next, 'done');
 
     // Its own new password needs the current one; the account's other browsers are signed out.
     assert.deepEqual(await changePassword(staffPool, full, { current: 'nope', password: 'อีกรหัสหนึ่งที่ยาวพอ' }, ip), { ok: false, error: 'wrong' });
-    assert.deepEqual(await changePassword(staffPool, await session(done.cookie), { current: 'ม้าลายกินหญ้า-2026', password: 'อีกรหัสหนึ่งที่ยาวพอ' }, ip), { ok: true, next: 'done' });
-    assert.ok(await session(done.cookie));
-    await signOut(staffPool, await session(done.cookie), ip);
-    assert.equal(await session(done.cookie), null);
+    assert.deepEqual(await changePassword(staffPool, await session(done.token), { current: 'ม้าลายกินหญ้า-2026', password: 'อีกรหัสหนึ่งที่ยาวพอ' }, ip), { ok: true, next: 'done' });
+    assert.ok(await session(done.token));
+    await signOut(staffPool, await session(done.token), ip);
+    assert.equal(await session(done.token), null);
     const log = (await ownerPool.query("select action from staff_log where login = 'somchai' order by id")).rows.map(r => r.action);
     assert.deepEqual(log, ['add', 'wrong-password', 'password', 'wrong-code', 'app-set-up', 'signed-in', 'wrong-code', 'signed-in', 'wrong-password', 'password', 'signed-out']);
   });
@@ -168,12 +173,12 @@ describe('เข้าระบบหน้าเว็บทีมงาน', (
 
     // Set up, signed in; then turned off: out at once, and no way back in until on again.
     const first = await signIn(staffPool, 'nid', a.password, ip);
-    await changePassword(staffPool, await session(first.cookie), { password: 'รหัสของนิดเองที่ยาวพอ' }, ip);
-    const app = await appSetUp(staffPool, await session(first.cookie));
-    const done = await checkCode(staffPool, await session(first.cookie), codeAt(app.secret, stepAt(Date.now())), ip);
-    assert.ok(await session(done.cookie));
+    await changePassword(staffPool, await session(first.token), { password: 'รหัสของนิดเองที่ยาวพอ' }, ip);
+    const app = await appSetUp(staffPool, await session(first.token));
+    const done = await checkCode(staffPool, await session(first.token), codeAt(app.secret, stepAt(Date.now())), ip);
+    assert.ok(await session(done.token));
     await setStaffActive(ownerPool, 'nid', false, { actor: 'owner' });
-    assert.equal(await session(done.cookie), null);
+    assert.equal(await session(done.token), null);
     assert.equal((await signIn(staffPool, 'nid', 'รหัสของนิดเองที่ยาวพอ', ip)).error, 'wrong');
     await setStaffActive(ownerPool, 'nid', true, { actor: 'owner' });
     const back = await signIn(staffPool, 'nid', 'รหัสของนิดเองที่ยาวพอ', ip);
@@ -181,22 +186,22 @@ describe('เข้าระบบหน้าเว็บทีมงาน', (
 
     // A lost phone: a new temporary password, and the app set up again.
     const r = await resetStaff(ownerPool, 'nid', { actor: 'owner' });
-    assert.equal(await session(back.cookie), null);
+    assert.equal(await session(back.token), null);
     assert.equal((await signIn(staffPool, 'nid', 'รหัสของนิดเองที่ยาวพอ', ip)).error, 'wrong');
     const fresh = await signIn(staffPool, 'nid', r.password, ip);
     assert.equal(fresh.next, 'password');
-    assert.deepEqual(await changePassword(staffPool, await session(fresh.cookie), { password: 'รหัสใหม่ของนิดที่ยาวพอ' }, ip), { ok: true, next: 'app' });
-    const app2 = await appSetUp(staffPool, await session(fresh.cookie));
+    assert.deepEqual(await changePassword(staffPool, await session(fresh.token), { password: 'รหัสใหม่ของนิดที่ยาวพอ' }, ip), { ok: true, next: 'app' });
+    const app2 = await appSetUp(staffPool, await session(fresh.token));
     assert.notEqual(app2.secret, app.secret);
-    const in2 = await checkCode(staffPool, await session(fresh.cookie), codeAt(app2.secret, stepAt(Date.now())), ip);
-    assert.ok(await session(in2.cookie));
+    const in2 = await checkCode(staffPool, await session(fresh.token), codeAt(app2.secret, stepAt(Date.now())), ip);
+    assert.ok(await session(in2.token));
 
     // Idle for an hour: signed out. The password step lasts 10 minutes.
     await ownerPool.query("update staff_sessions set last_seen_at = now() - interval '61 minutes'");
-    assert.equal(await session(in2.cookie), null);
+    assert.equal(await session(in2.token), null);
     const step = await signIn(staffPool, 'nid', 'รหัสใหม่ของนิดที่ยาวพอ', ip);
     await ownerPool.query("update staff_sessions set expires_at = now() - interval '1 second' where stage = 'password'");
-    assert.equal(await session(step.cookie), null);
+    assert.equal(await session(step.token), null);
   });
 
   test('เครื่องเดียวกรอกผิดเกิน 30 ครั้งใน 15 นาที ทุกบัญชีเข้าไม่ได้จากเครื่องนั้น', async () => {
@@ -213,11 +218,11 @@ describe('ส่งพร้อมกัน', () => {
     const a = await addStaff(ownerPool, { login: 'pair', name: 'คู่', actor: 'owner' });
     const ip = where();
     const first = await signIn(staffPool, 'pair', a.password, ip);
-    await changePassword(staffPool, await session(first.cookie), { password: 'รหัสของคู่ที่ยาวพอแล้ว' }, ip);
-    const app = await appSetUp(staffPool, await session(first.cookie));
-    await checkCode(staffPool, await session(first.cookie), codeAt(app.secret, stepAt(Date.now())), ip);
+    await changePassword(staffPool, await session(first.token), { password: 'รหัสของคู่ที่ยาวพอแล้ว' }, ip);
+    const app = await appSetUp(staffPool, await session(first.token));
+    await checkCode(staffPool, await session(first.token), codeAt(app.secret, stepAt(Date.now())), ip);
     const [x, y] = await Promise.all([signIn(staffPool, 'pair', 'รหัสของคู่ที่ยาวพอแล้ว', ip), signIn(staffPool, 'pair', 'รหัสของคู่ที่ยาวพอแล้ว', ip)]);
-    const [sx, sy] = [await session(x.cookie), await session(y.cookie)];
+    const [sx, sy] = [await session(x.token), await session(y.token)];
     const code = codeAt(app.secret, stepAt(Date.now()) + 1);
     const both = await Promise.all([checkCode(staffPool, sx, code, ip), checkCode(staffPool, sy, code, ip)]);
     assert.deepEqual(both.map(r => r.ok).sort(), [false, true]);

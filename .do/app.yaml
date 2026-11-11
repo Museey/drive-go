@@ -5,6 +5,8 @@
 #   trial data (the owner's choice of 2026-11-01; the app uses 150–250 MB then): reading a shop's whole data runs one at a
 #   a time (HEAVY_AT_ONCE=1, server/lib/heavy.ts). 1 GB (apps-s-1vcpu-1gb) before a pilot shop or a load test with the
 #   36-month data, which took up to 711 MB with 15 devices opening the program at once (docs/LOAD-TEST.md).
+#   The staff web page is its /ops/ (docs/STAFF-TOOLS.md): on once the web component has the secret STAFF_DATABASE_URL, the
+#   connection string of the user drivego_staff, typed in the control panel (docs/DIGITALOCEAN-SETUP.md part 4), never here.
 # · migrate: runs before every deploy (PRE_DEPLOY) as the database owner: the schema, and the demo shops while the
 #   database has none (SEED_DEMO_SHOPS: a test server only). If it fails, the deploy stops and the running version stays.
 #   Its MIGRATE_DATABASE_URL (the connection string of doadmin) is a secret typed in the control panel, never here.

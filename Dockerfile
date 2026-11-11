@@ -4,7 +4,7 @@
 #   docker build -t drivego .
 #   docker run -p 8080:8080 -e DATABASE_URL=… [-e DATABASE_CA_CERT=…] drivego
 #   docker run -e MIGRATE_DATABASE_URL=… [-e SEED_DEMO_SHOPS=1] drivego node tools/deploy-migrate.mjs
-#   docker run -p 8080:8080 -e DRIVEGO_PORTAL=staff -e STAFF_DATABASE_URL=… drivego   (the staff web page's app: .do/staff.yaml)
+#   docker run -p 8080:8080 -e DATABASE_URL=… -e STAFF_DATABASE_URL=… drivego   (with the staff web page at /ops)
 #   docker run -e MIGRATE_DATABASE_URL=… drivego node tools/shop-admin.mjs …   (staff: docs/STAFF-TOOLS.md)
 #   docker run -e MIGRATE_DATABASE_URL=… drivego node tools/nightly.mjs|watch.mjs   (the scheduled jobs)
 #   docker run -it drivego node tools/restore-check.mjs   (the restore drill: docs/RESTORE-DRILL.md)

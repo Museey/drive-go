@@ -961,12 +961,12 @@
     {
       "scenario": "S284-staff-page-first-sign-in-opens-real-shop.spec.ts",
       "decision": "owner 2026-11-09: \"ทำหน้าเว็บเลยครับ\" (the staff web page before the pilot, in place of LAUNCH-CHECKLIST stage 3 \"หน้าเว็บของทีมงานแทนสคริปต์\")",
-      "why": "The staff web page at /staff/ (its own app): a staff account signs in the first time with its temporary password, sets its own password and an authenticator app (TOTP), signs in again with password and code, and opens a real garage as tools/shop-admin.mjs new; the owner signs in with the temporary password the page showed once."
+      "why": "The staff web page at /ops/ of the same app (signed in per tab, owner 2026-11-11): a staff account signs in the first time with its temporary password, sets its own password and an authenticator app (TOTP), signs in again with password and code, and opens a real garage as tools/shop-admin.mjs new; the owner signs in with the temporary password the page showed once."
     },
     {
       "scenario": "S285-staff-page-shop-password-renew-close-postpone.spec.ts",
       "decision": "owner 2026-11-09: \"ทำหน้าเว็บเลยครับ\" (the staff web page does what tools/shop-admin.mjs does)",
-      "why": "On the staff web page: a new password for a shop's owner (after calling back), a paid renewal, the contact, closing the shop and postponing the removal of its data; telling the shop too early is refused in Thai; every action is in the shop's log with the staff account (web:<login>)."
+      "why": "On the staff web page: a new password for a shop's owner (after calling back), a paid renewal, the contact, closing the shop and postponing the removal of its data; telling the shop too early is refused in Thai; every action is in the shop's log with the staff account (web:<login>); a shop's page opened in the same tab removes the staff sign-in."
     },
     {
       "scenario": "S440-sale-flow-stays-on-after-wipe-and-sample-data.spec.ts",

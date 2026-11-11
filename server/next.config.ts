@@ -28,9 +28,9 @@ const config: NextConfig = {
     ];
     return [
       { source: '/:path*', headers: common },
-      { source: '/((?!api/files/|staff/).*)', headers: [{ key: 'Content-Security-Policy', value: "frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'" }] },
-      // The staff web page (app/staff, server/staff-ui) has no inline code: only its own script and style, never framed.
-      { source: '/staff/:path*', headers: [{ key: 'Content-Security-Policy', value: STAFF_CSP }] },
+      { source: '/((?!api/files/|ops/).*)', headers: [{ key: 'Content-Security-Policy', value: "frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'" }] },
+      // The staff web page (app/ops, server/staff-ui) has no inline code: only its own script and style, never framed.
+      { source: '/ops/:path*', headers: [{ key: 'Content-Security-Policy', value: STAFF_CSP }] },
     ];
   },
 };

@@ -27,6 +27,10 @@ import { createLive } from './live.ts';
 import { postError, reportErrors } from './errors.ts';
 import { dataToMain } from '../lib/branch-stock.ts';
 
+// The staff web page (/ops, server/lib/staff.ts) keeps its sign-in for its own tab only. A shop's page opened in that
+// tab removes it here, before any of the page's own scripts (and whatever they show) run.
+try { sessionStorage.removeItem('dg_ops'); } catch { /* no storage: nothing kept */ }
+
 const API = '/api/storage';
 // The legacy app later wraps window.fetch to show its loading overlay on every
 // call; saves happen in the background and must not cover the screen.

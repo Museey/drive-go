@@ -8,8 +8,8 @@
 //                                   (NO_BUILD=1 reuses the last build)
 //   node tools/serve-new.mjs --dev  `next dev` instead (npm run dev): reloads on every change
 //
-// The staff web page (/staff/) runs in the same server (DRIVEGO_PORTAL=both, server/proxy.ts) as drivego_staff; run by
-// hand with a temporary database it gets an account `staff` whose temporary password is printed.
+// The staff web page (/ops/) runs as drivego_staff; run by hand with a temporary database it gets an account `staff`
+// whose temporary password is printed.
 //
 // Attachments are kept in the database (FILE_STORE=postgres, task 3.11) unless FILE_STORE says otherwise.
 // With your own database, set DATABASE_URL (the app's role, drivego_app) and
@@ -48,8 +48,8 @@ export async function startNewSystem({ port = PORT, build = true, dev = false, q
   // Quiet runs keep the last of Next.js's output, to say why it did not start.
   const next = spawn(process.execPath, [nextBin, dev ? 'dev' : 'start', '-p', String(port), '-H', '127.0.0.1'],
     { cwd: serverDir, env: { ...process.env, DATABASE_URL: appUrl, FILE_STORE: process.env.FILE_STORE || 'postgres',
-      // Both the shops' app and the staff web page in this one server (proxy.ts), as they are two apps on DigitalOcean.
-      DRIVEGO_PORTAL: process.env.DRIVEGO_PORTAL || 'both', ...staffUrl ? { STAFF_DATABASE_URL: staffUrl } : {} },
+      // The staff web page at /ops (as drivego_staff): on when STAFF_DATABASE_URL is set.
+      ...staffUrl ? { STAFF_DATABASE_URL: staffUrl } : {} },
     stdio: quiet ? ['ignore', 'pipe', 'pipe'] : 'inherit' });
   let said = '';
   for (const out of [next.stdout, next.stderr]) out?.on('data', d => { said = (said + d).slice(-4000); });
@@ -93,7 +93,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const pool = new PG.Pool({ connectionString: sys.ownerUrl, max: 1 });
     try {
       const s = await addStaff(pool, { login: 'staff', name: 'ทีมงานทดลอง', actor: 'serve-new' });
-      console.log(`  ${'ทีมงาน'.padEnd(10)} ${`http://127.0.0.1:${port}/staff/`.padEnd(42)} ${s.login} / ${s.password} (ครั้งแรก: ตั้งรหัสใหม่และตั้งค่าแอปยืนยันตัวตน)`);
+      console.log(`  ${'ทีมงาน'.padEnd(10)} ${`http://127.0.0.1:${port}/ops/`.padEnd(42)} ${s.login} / ${s.password} (ครั้งแรก: ตั้งรหัสใหม่และตั้งค่าแอปยืนยันตัวตน)`);
     } finally { await pool.end(); }
   }
   console.log(`  owner database: ${sys.ownerUrl ?? '(yours)'}\n`);

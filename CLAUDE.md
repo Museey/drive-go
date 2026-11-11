@@ -25,7 +25,7 @@
 | `tests/golden/<spec file>/` | เฉลยที่บันทึกจากระบบเดิม (`flow.json`, `*-state.json`, `*.png`) |
 | `tests/fixtures/` | ข้อมูลตั้งต้นที่ถูก restore ลงเบราว์เซอร์ก่อนทุก test |
 | `tests/support/` | ตัวช่วยของ test: กรรมการ 3 ตัว, ตัวขับระบบเดิม, การตั้งค่าเบราว์เซอร์ |
-| `Dockerfile`, `.do/app.yaml`, `.do/staff.yaml` | server ทดสอบบน DigitalOcean App Platform (งาน 3.16): image ของแอป และค่าตั้งของแอป (deploy จาก branch `deploy/test` ที่ CI ขยับหลังผ่านทุก job) คู่มือ: `docs/DIGITALOCEAN-SETUP.md` · `staff.yaml` = แอปหน้าเว็บทีมงาน (`/staff/`, `server/staff-ui/`, image เดียวกันกับ `DRIVEGO_PORTAL=staff`) |
+| `Dockerfile`, `.do/app.yaml` | server ทดสอบบน DigitalOcean App Platform (งาน 3.16): image ของแอป และค่าตั้งของแอป (deploy จาก branch `deploy/test` ที่ CI ขยับหลังผ่านทุก job) คู่มือ: `docs/DIGITALOCEAN-SETUP.md` · หน้าเว็บทีมงานอยู่ที่ `/ops/` ของแอปเดียวกัน (`server/staff-ui/`, เปิดเมื่อมี `STAFF_DATABASE_URL`) |
 | `tools/` | สคริปต์: static server, สร้าง fixture, ดึงฟอนต์, ทำรายการพฤติกรรม, รายงาน coverage, PostgreSQL ชั่วคราว (`pg-temp.mjs`), เปิดระบบใหม่ (`serve-new.mjs`) |
 
 ## คำสั่ง

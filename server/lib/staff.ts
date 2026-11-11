@@ -2,6 +2,11 @@
 // three steps: the password, then the code of the authenticator app; a temporary password (a new account, or one
 // given again) must be changed first, and the app set up the first time. Accounts are added, given a new temporary
 // password, turned off and on only by the database owner (tools/shop-admin.mjs staff …).
+//
+// The page is /ops of the shops' app (the owner's choice of 2026-11-11), so a script in a shop's page would share its
+// address: the sign-in is not a cookie but a token the page keeps for its own tab (sessionStorage) and sends in the
+// Authorization header. Another tab has none (it signs in again), and a shop's page opened in the same tab removes it
+// before any of its own scripts run (server/client/storage.ts).
 import { hash, verify } from '@node-rs/argon2';
 import { createHash, randomBytes } from 'node:crypto';
 import pg from 'pg';
@@ -10,15 +15,15 @@ import { pgConfig } from './pg-config.ts';
 import { temporaryPassword } from './shop-open.ts';
 import { matchingStep, newSecret, otpauthUri, qrSvg } from './totp.ts';
 
-export const STAFF_COOKIE = 'dg_staff';
 export const STAFF_MIN_PASSWORD = 12;
 export const STAGE_MINUTES = 10;   // from the right password to the code (or the new password, or the app's set-up)
 export const SESSION_HOURS = 8;    // a signed-in staff page, at most
 export const IDLE_MINUTES = 60;    // signed out after this long without a request
 const LOGIN = /^[a-z0-9._-]{2,40}$/;
 
-// The staff page's connection, as drivego_staff (its own app: .do/staff.yaml). One pool per process, kept on
-// globalThis as db.ts does.
+// The staff page's connection, as drivego_staff (STAFF_DATABASE_URL, a secret of the app; without it /ops answers
+// 404). One pool per process, kept on globalThis as db.ts does.
+export const staffPageOn = () => !!process.env.STAFF_DATABASE_URL;
 const holder = globalThis as typeof globalThis & { __drivegoStaffPool?: pg.Pool };
 export function staffPool(): pg.Pool {
   if (!process.env.STAFF_DATABASE_URL) throw new Error('STAFF_DATABASE_URL is not set');
@@ -94,32 +99,20 @@ export async function listStaff(db: pg.Pool) {
 
 // ---------- sessions ----------
 
-function cookieToken(req: Request): string | null {
-  for (const part of (req.headers.get('cookie') || '').split(';')) {
-    const [name, ...rest] = part.trim().split('=');
-    if (name === STAFF_COOKIE) return decodeURIComponent(rest.join('='));
-  }
-  return null;
-}
-
-export function staffCookie(token: string, maxAge: number): string {
-  const secure = process.env.NODE_ENV === 'production' && process.env.INSECURE_COOKIES !== '1' ? '; Secure' : '';
-  return `${STAFF_COOKIE}=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${secure}`;
-}
-export const signedOutCookie = () => staffCookie('', 0);
+const bearer = (req: Request) => /^Bearer ([A-Za-z0-9_-]{43})$/.exec(req.headers.get('authorization') ?? '')?.[1] ?? null;
 
 async function startSession(db: Db, staffId: string, stage: 'password' | 'full', address: string): Promise<string> {
   const token = randomBytes(32).toString('base64url');
   const minutes = stage === 'full' ? SESSION_HOURS * 60 : STAGE_MINUTES;
   await db.query(`insert into staff_sessions (id_hash, staff_id, stage, address, expires_at)
     values ($1, $2, $3, $4, now() + make_interval(mins => $5))`, [tokenHash(token), staffId, stage, address, minutes]);
-  return staffCookie(token, minutes * 60);
+  return token;
 }
 
 // The signed-in staff session of a request: not expired, not idle too long, its account still on.
 export async function getStaffSession(req: Request, db: Db = staffPool()): Promise<StaffSession | null> {
-  const token = cookieToken(req);
-  if (!token || !/^[A-Za-z0-9_-]{43}$/.test(token)) return null;
+  const token = bearer(req);
+  if (!token) return null;
   const h = tokenHash(token);
   const { rows } = await db.query<{ stage: 'password' | 'full'; staff: StaffRow }>(
     `select x.stage, row_to_json(s) as staff from staff_sessions x join staff s on s.id = x.staff_id
@@ -145,7 +138,7 @@ export async function signOut(db: Db, s: StaffSession, address: string): Promise
 
 // ---------- signing in ----------
 
-export type Step = { ok: true; next: Next | 'done'; cookie?: string } | { ok: false; error: 'wrong' | 'locked' | 'short' | 'same' | 'stage' };
+export type Step = { ok: true; next: Next | 'done'; token?: string } | { ok: false; error: 'wrong' | 'locked' | 'short' | 'same' | 'stage' };
 
 // Checked even when there is no such account, so the time taken does not tell which names exist.
 let dummy: Promise<string> | undefined;
@@ -170,7 +163,7 @@ export async function signIn(db: Db, loginIn: string, password: string, address:
   }
   if (recent(s.failed_logins).length >= LOCKOUT.failures) return { ok: false, error: 'locked' };
   if (typeof password !== 'string' || !await verify(s.password_hash, password)) return failed(db, s, 'wrong-password', address);
-  return { ok: true, next: nextStep(s), cookie: await startSession(db, s.id, 'password', address) };
+  return { ok: true, next: nextStep(s), token: await startSession(db, s.id, 'password', address) };
 }
 
 // The new password: right after a temporary one (the password step), or the account's own change later (signed in,
@@ -212,5 +205,5 @@ export async function checkCode(db: Db, s: StaffSession, code: string, address: 
     : await db.query('update staff set totp_last_step = $2 where id = $1 and totp_last_step < $2 returning id', [s.staff.id, step]);
   if (!taken.rowCount) return failed(db, s.staff, 'wrong-code', address);
   if (next === 'app') await log(db, s.staff.login, s.staff.login, 'app-set-up', address);
-  return { ok: true, next: 'done', cookie: await promote(db, s, address) };
+  return { ok: true, next: 'done', token: await promote(db, s, address) };
 }

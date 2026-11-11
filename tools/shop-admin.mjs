@@ -1,6 +1,6 @@
 // DriveGo staff's tool for shops (task 3.15, decisions 15.1, 15.2, 15.5; opening real shops and forgotten passwords,
 // LAUNCH-CHECKLIST stage 2): run on the server with the database owner's connection — never part of the shops' app (the
-// staff web page, server/app/staff, does the same as drivego_staff from an app of its own; its accounts are made here).
+// staff web page at /ops, server/app/ops, does the same as drivego_staff; its accounts are made here).
 // Every action is logged (table licence_log) with who ran it (--by, or the operating system user). How to run it on
 // the test server and what to check before giving a password: docs/STAFF-TOOLS.md.
 //

@@ -5,12 +5,14 @@ import { addTestStaff, appCode, openRealTestShop } from '../support/new-shop.mjs
 
 // New behaviour (owner 2026-11-09, docs/NOTES.md "หน้าเว็บของทีมงาน"): on the staff web page, what
 // tools/shop-admin.mjs password / renew / contact / close / postpone / told do, each written to the shop's log with
-// the staff account (web:<login>). The owner signs in with the password the page gave; the old one is refused.
+// the staff account (web:<login>). The owner signs in with the password the page gave; the old one is refused. The
+// shop's page opened in the staff page's tab removes the staff sign-in (owner's choice of 2026-11-11: /ops of the same
+// app, signed in per tab): back on /ops the staff signs in again.
 test('S285 ระบบใหม่: ทีมงานตั้งรหัสใหม่ให้เจ้าของร้าน ต่ออายุ แก้ช่องทางติดต่อ ปิดร้าน และเลื่อนวันลบข้อมูลผ่านหน้าเว็บทีมงาน ทุกอย่างอยู่ในประวัติของร้าน', async ({ page }) => {
   test.slow();
   const shop = await openRealTestShop({ pkg: 'biz', name: 'อู่ช่างขาว', owner: 'ขาว ใจเย็น', from: '2026-09-01' });
   const staff = await addTestStaff({ ready: true });
-  await page.goto(`${LEGACY_ORIGIN}/staff/`);
+  await page.goto(`${LEGACY_ORIGIN}/ops/`);
   await page.getByLabel('ชื่อผู้ใช้').fill(staff.login);
   await page.getByLabel('รหัสผ่าน').fill(staff.password);
   await page.getByRole('button', { name: 'เข้าสู่ระบบ' }).click();
@@ -43,8 +45,14 @@ test('S285 ระบบใหม่: ทีมงานตั้งรหัส�
   await expect(page.getByText('ยินดีต้อนรับ ขาว ใจเย็น — เจ้าของร้าน อู่ช่างขาว', { exact: true }).filter({ visible: true })).toBeVisible();
   await owner.settle();
 
-  // Back on the staff page, still signed in.
-  await page.goto(`${LEGACY_ORIGIN}/staff/#/shop/${shop.code}`);
+  // Back on the staff page in the same tab: the shop's page removed the staff sign-in, so it is asked again.
+  await page.goto(`${LEGACY_ORIGIN}/ops/#/shop/${shop.code}`);
+  await expect(page.getByRole('heading', { name: 'เข้าสู่ระบบทีมงาน DriveGo' })).toBeVisible();
+  await page.getByLabel('ชื่อผู้ใช้').fill(staff.login);
+  await page.getByLabel('รหัสผ่าน').fill(staff.password);
+  await page.getByRole('button', { name: 'เข้าสู่ระบบ' }).click();
+  await page.getByLabel('รหัส 6 หลัก').fill(appCode(staff.secret, 1));
+  await page.getByRole('button', { name: 'ยืนยัน' }).click();
   await expect(page.getByRole('heading', { name: /อู่ช่างขาว/ })).toBeVisible();
 
   // Paid for a year: from the last day, which still runs.

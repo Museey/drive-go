@@ -4,13 +4,13 @@ import { legacyApp } from '../support/legacy-app.mjs';
 import { addTestStaff, appCode, readTestShop } from '../support/new-shop.mjs';
 
 // New behaviour (owner 2026-11-09: "ทำหน้าเว็บเลยครับ", docs/NOTES.md "หน้าเว็บของทีมงาน"): the staff web page at
-// /staff/ (its own app on DigitalOcean). A staff account added with tools/shop-admin.mjs staff add signs in the first
+// /ops/ of the same app (owner's choice of 2026-11-11). A staff account added with tools/shop-admin.mjs staff add signs in the first
 // time with its temporary password, sets its own password and an authenticator app, then opens a real garage as
 // tools/shop-admin.mjs new does (S258); the owner signs in with the temporary password the page showed once.
 test('S284 ระบบใหม่: ทีมงานเข้าหน้าเว็บทีมงานครั้งแรก ตั้งรหัสใหม่และแอปยืนยันตัวตน เปิดร้านจริง แล้วเจ้าของร้านเข้าด้วยรหัสชั่วคราวที่หน้าเว็บแสดง', async ({ page }) => {
   test.slow();
   const staff = await addTestStaff();
-  await page.goto(`${LEGACY_ORIGIN}/staff/`);
+  await page.goto(`${LEGACY_ORIGIN}/ops/`);
   await expect(page.getByRole('heading', { name: 'เข้าสู่ระบบทีมงาน DriveGo' })).toBeVisible();
   await page.getByLabel('ชื่อผู้ใช้').fill(staff.login);
   await page.getByLabel('รหัสผ่าน').fill('not-the-password');
@@ -45,7 +45,7 @@ test('S284 ระบบใหม่: ทีมงานเข้าหน้า�
   await page.getByRole('link', { name: 'เปิดร้านใหม่' }).click();
   const code = `real-${process.pid.toString(36)}-web`;
   const form = page.locator('form');
-  await form.getByRole('textbox', { name: /^รหัสร้าน/ }).fill('staff');
+  await form.getByRole('textbox', { name: /^รหัสร้าน/ }).fill('api');
   await form.getByLabel('แพ็กเกจ').selectOption('biz');
   await form.getByLabel('ประเภท').selectOption('pilot');
   await form.getByLabel('ชื่อร้าน / ชื่อเครือ').fill('อู่ช่างดำ');
@@ -54,7 +54,10 @@ test('S284 ระบบใหม่: ทีมงานเข้าหน้า�
   await form.getByLabel('โทรศัพท์').fill('089-765-4321');
   await form.getByLabel('ช่องทางติดต่อ').fill('คุณดำ 089-765-4321');
   await form.getByRole('button', { name: 'เปิดร้าน' }).click();
-  await expect(page.getByRole('alert')).toHaveText('รหัสร้านต้องเป็นตัวพิมพ์เล็ก ตัวเลข หรือขีด 3–32 ตัว และห้ามใช้ api, staff หรือรหัสร้านตัวอย่าง');
+  await expect(page.getByRole('alert')).toHaveText('รหัสร้านต้องเป็นตัวพิมพ์เล็ก ตัวเลข หรือขีด 3–32 ตัว และห้ามใช้ api, ops หรือรหัสร้านตัวอย่าง');
+  await form.getByRole('textbox', { name: /^รหัสร้าน/ }).fill('ops');
+  await form.getByRole('button', { name: 'เปิดร้าน' }).click();
+  await expect(page.getByRole('alert')).toHaveText(/ห้ามใช้ api, ops/);
   await form.getByRole('textbox', { name: /^รหัสร้าน/ }).fill(code);
   await form.getByRole('button', { name: 'เปิดร้าน' }).click();
   const card = page.getByRole('status').filter({ hasText: 'รหัสผ่านชั่วคราว' });
@@ -74,6 +77,12 @@ test('S284 ระบบใหม่: ทีมงานเข้าหน้า�
   await row.click();
   await expect(page.getByRole('heading', { name: /อู่ช่างดำ/ })).toBeVisible();
   await expect(page.getByRole('row').filter({ hasText: `web:${staff.login}` })).toContainText('เปิดร้าน');
+
+  // The sign-in is this tab's only: another tab (same browser) starts at the sign-in.
+  const other = await page.context().newPage();
+  await other.goto(`${LEGACY_ORIGIN}/ops/`);
+  await expect(other.getByRole('heading', { name: 'เข้าสู่ระบบทีมงาน DriveGo' })).toBeVisible();
+  await other.close();
 
   // Signing out; the next sign-in is the password and the app's code.
   await page.getByRole('button', { name: 'ออกจากระบบ' }).click();
