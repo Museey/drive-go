@@ -1,7 +1,13 @@
 // How the tests drive the legacy HTML. A future target (the new system) gets
 // its own file with the same functions, so the scenarios stay unchanged.
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { LEGACY_URL, OWNERS } from './config.mjs';
 import { restoreDataset, waitForLegacyBoot, waitForStableState, readState } from './browser.mjs';
+
+// The new system's additions to screens the goldens show, left out of screenshots (see the file).
+const NEW_ITEMS_CSS_PATH = fileURLToPath(new URL('./screenshot-new-items.css', import.meta.url));
+const NEW_ITEMS_CSS = readFileSync(NEW_ITEMS_CSS_PATH, 'utf8');
 
 // Records every message the user sees: the centred toast (#toast) and the
 // "saved" card (#saveFx). Messages the app mutes on purpose never reach #toast.
@@ -157,7 +163,9 @@ export function legacyApp(page, { dataset = 'biz-trial', url = LEGACY_URL, resto
     },
 
     // Hidden in screenshots because they come and go on a timer; their text
-    // is checked by the flow referee instead.
-    screenshotStyle: '#toast, #saveFx, #pkg-loading { visibility: hidden !important; }',
+    // is checked by the flow referee instead. Plus what the new system adds to the screens of the goldens
+    // (screenshot-new-items.css). page.screenshot applies this; toHaveScreenshot only applies files (stylePath below).
+    screenshotStyle: '#toast, #saveFx, #pkg-loading { visibility: hidden !important; } ' + NEW_ITEMS_CSS,
+    screenshotStylePath: NEW_ITEMS_CSS_PATH,
   };
 }

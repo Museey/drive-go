@@ -982,6 +982,11 @@
       "scenario": "S287-owner-downloads-all-attachments-zip.spec.ts",
       "decision": "owner's answer 11.5 (docs/PHASE3-QUESTIONS.md), built on 2026-11-11: \"ทำปุ่ม .zip ต่อเลยครับ\"",
       "why": "Menu 10 has \"ดาวน์โหลดไฟล์แนบทั้งหมด (.zip)\" under the file space: every attachment in a folder per kind under the name the data gave it, the same picture once, and a list that maps each link of the JSON backup to its file; an employee's direct call is refused."
+    },
+    {
+      "scenario": "S288-general-ledger-account-dates-print-excel.spec.ts",
+      "decision": "accountant B's answer 8.2 (a general ledger before the pilot) and the owner's decisions after round 3, 2026-11-11: \"เอาตามที่คุณเสนอทุกข้อเลยครับ\" (the general ledger first; docs/ACCOUNTANT-ANSWERS.md)",
+      "why": "Menu 08 has \"บัญชีแยกประเภท\": the journal is built from the documents by the posting rules J01-J36 B checked (docs/LEDGER-POSTING.md), nothing stored; an account between two days shows the balance brought forward, every entry with its running balance and the totals; every account that moved can be shown, printed and saved as Excel. The legacy app has no general ledger. For the owner and the staff with \"ดูสรุปการเงิน ภาษี และเงินเดือน\"; screenshots compared with the legacy goldens leave the new sub-item out (tests/support/screenshot-new-items.css)."
     }
   ]
 }

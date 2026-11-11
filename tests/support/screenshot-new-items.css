@@ -1,0 +1,6 @@
+/* Left out of every screenshot compared with a golden recorded from the legacy app: what the new system adds to a
+   screen the goldens show, so the rest of that screen still has to match pixel for pixel. Each item has its own
+   scenario that checks it on the real page. golden.screen (tests/support/test.ts) passes this file as stylePath,
+   the only styles toHaveScreenshot applies; legacy-app.mjs adds it to screenshotStyle for page.screenshot.
+   - 08's sub-item "บัญชีแยกประเภท" (the general ledger, owner 2026-11-11, docs/NOTES.md "บัญชีแยกประเภท"): S288 */
+#acctTabs [data-a="ledger"] { display: none !important; }

@@ -166,7 +166,9 @@ export const test = base.extend<{ dataset: string; licence: TestLicence | undefi
         await page.mouse.move(0, 0);
         await app.layoutStable();
         try {
-          await expect(page).toHaveScreenshot(`${name}.png`, { style: app.screenshotStyle });
+          // toHaveScreenshot has no `style` option (it is ignored; the goldens were recorded the same way): only the files
+          // of stylePath are applied, here the new system's additions to the golden screens (screenshot-new-items.css).
+          await expect(page).toHaveScreenshot(`${name}.png`, { style: app.screenshotStyle, stylePath: app.screenshotStylePath });
         } catch (e) {
           // For the job log (a CI run's files are not always reachable): the shown registers' column widths (they
           // follow what was drawn before, frontend/js/25.js) and what the live updates put in.
