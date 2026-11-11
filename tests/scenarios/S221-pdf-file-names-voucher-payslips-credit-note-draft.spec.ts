@@ -82,6 +82,7 @@ test('S221 ระบบใหม่: ชื่อไฟล์ PDF ของใ�
   await cn.getByLabel('ค้นหาเลขที่ใบตัดสต็อก / ใบกำกับภาษี / ชื่อลูกค้า').fill('MA-SA261000003');
   await cn.getByRole('row').filter({ hasText: 'MA-SA261000003' }).getByRole('button', { name: 'เลือก' }).click();
   await cn.getByLabel('กรณี').selectOption('ลดราคาหลังขาย');
+  await cn.getByLabel('เหตุตามมาตรา 82/10').selectOption('สินค้าหรือบริการผิดข้อกำหนดที่ตกลงกัน');
   await cn.getByLabel('มูลค่าที่ลด (ก่อน VAT)').fill('500');
   await cn.getByLabel('เหตุผล (ต้องกรอก)').fill('ลดราคาให้ลูกค้า');
   await cn.getByRole('button', { name: 'บันทึกใบลดหนี้' }).click();

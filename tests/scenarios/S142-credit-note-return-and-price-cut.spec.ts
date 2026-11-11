@@ -35,6 +35,8 @@ test('S142 ระบบใหม่: ใบลดหนี้ ลูกค้า
   // A paid sale with a full tax invoice: one brake pad set comes back unused. Credit notes start on 4.6.
   await newCreditNote(page, 'MA-SA261000010');
   await expect(form(page).getByLabel('กรณี')).toHaveValue('ret');
+  // Section 82/10's cause (accountant B round 3 Q4, owner 2026-11-11): a return starts on "รับคืนสินค้า".
+  await expect(form(page).getByLabel('เหตุตามมาตรา 82/10')).toHaveValue('back');
   await form(page).getByRole('spinbutton', { name: 'จำนวนที่คืน BR-001' }).fill('1');
   await expect(form(page).getByLabel('สินค้าที่คืน BR-001')).toHaveValue('back');
   await form(page).getByLabel('เหตุผล (ต้องกรอก)').fill('ลูกค้านำผ้าเบรกที่ยังไม่ได้ใช้มาคืน');
@@ -49,7 +51,7 @@ test('S142 ระบบใหม่: ใบลดหนี้ ลูกค้า
   await expect(form(page).getByText('อนุมัติแล้ว', { exact: true })).toBeVisible();
   await app.settle();
   let db = (await app.state()).DB, before;
-  expect(db.creditNotes).toEqual([expect.objectContaining({ no: 'MA-CN261000001', date: '2026-10-13', saleNo: 'MA-SA261000010', kind: 'ret',
+  expect(db.creditNotes).toEqual([expect.objectContaining({ no: 'MA-CN261000001', date: '2026-10-13', saleNo: 'MA-SA261000010', kind: 'ret', cause: 'back',
     reason: 'ลูกค้านำผ้าเบรกที่ยังไม่ได้ใช้มาคืน', rate: 7, base: 1380, vat: 96.6, gross: 1476.6, method: 'cash',
     lines: [expect.objectContaining({ code: 'BR-001', qty: 1, price: 1380, stock: 'back' })],
     ref: { no: 'MA-TX261000003', date: '2026-10-13', base: 2380 },
@@ -67,7 +69,7 @@ test('S142 ระบบใหม่: ใบลดหนี้ ลูกค้า
   // The printed credit note says what the Revenue Code asks of one.
   await form(page).getByRole('button', { name: 'พิมพ์ใบลดหนี้ (ต้นฉบับ + สำเนา)' }).click();
   await page.emulateMedia({ media: 'print' });
-  for (const text of ['ใบลดหนี้', 'มูลค่าสินค้าหรือบริการตามใบกำกับภาษีเดิม', 'มูลค่าที่ถูกต้อง', 'ผลต่าง', 'ลูกค้าคืนสินค้า — ลูกค้านำผ้าเบรกที่ยังไม่ได้ใช้มาคืน'])
+  for (const text of ['ใบลดหนี้', 'มูลค่าสินค้าหรือบริการตามใบกำกับภาษีเดิม', 'มูลค่าที่ถูกต้อง', 'ผลต่าง', 'รับคืนสินค้า — ลูกค้านำผ้าเบรกที่ยังไม่ได้ใช้มาคืน'])
     await expect(page.getByText(text, { exact: true }).filter({ visible: true })).toHaveCount(2);
   await page.emulateMedia({ media: 'screen' });
   await form(page).getByRole('button', { name: 'ปิด' }).click();
@@ -82,6 +84,11 @@ test('S142 ระบบใหม่: ใบลดหนี้ ลูกค้า
   await form(page).getByLabel('กรณี').selectOption('ลดราคาหลังขาย');
   await form(page).getByLabel('มูลค่าที่ลด (ก่อน VAT)').fill('500');
   await form(page).getByLabel('เหตุผล (ต้องกรอก)').fill('งานติดตั้งล่าช้ากว่าที่ตกลง ลดราคาให้ลูกค้า');
+  // A price cut has no cause of its own: saving without one is refused.
+  await expect(form(page).getByLabel('เหตุตามมาตรา 82/10')).toHaveValue('');
+  await form(page).getByRole('button', { name: 'บันทึกใบลดหนี้' }).click();
+  await expect(page.getByText('เลือกเหตุของใบลดหนี้ตามมาตรา 82/10 ก่อน')).toBeVisible();
+  await form(page).getByLabel('เหตุตามมาตรา 82/10').selectOption('สินค้าหรือบริการผิดข้อกำหนดที่ตกลงกัน');
   await expect(form(page).getByRole('row', { name: /^ลดยอดค้างชำระ/ })).toContainText('535.00');
   await expect(form(page).getByRole('row', { name: /^คืนเงินให้ลูกค้า/ })).toContainText('0.00');
   await expect(form(page).getByLabel('คืนเงินโดย')).toBeHidden();
@@ -89,7 +96,7 @@ test('S142 ระบบใหม่: ใบลดหนี้ ลูกค้า
   await expect(form(page).getByRole('heading', { name: 'ใบลดหนี้ MA-CN261000002' })).toBeVisible();
   await app.settle();
   db = (await app.state()).DB;
-  expect(db.creditNotes[1]).toMatchObject({ no: 'MA-CN261000002', kind: 'disc', base: 500, vat: 35, gross: 535, lines: [], method: '',
+  expect(db.creditNotes[1]).toMatchObject({ no: 'MA-CN261000002', kind: 'disc', cause: 'spec', base: 500, vat: 35, gross: 535, lines: [], method: '',
     ref: { no: 'MA-SA261000003', date: '2026-10-10', base: 9265 }, money: { reduce: 535, refund: 0, method: '' } });
   const owed = db.stockCuts.find((c: any) => c.no === 'MA-SA261000003');
   expect(owed.st).toMatchObject({ k: 'wait', rem: 9378.55 });

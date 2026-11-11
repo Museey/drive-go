@@ -71,6 +71,7 @@ test('S266 ระบบใหม่: ยกเลิกใบลดหนี้�
   // A price cut on an unpaid sale, then the front desk (EMP005), who may issue credit notes, asks to cancel it.
   await newCreditNote(page, 'MA-SA261000003');
   await form(page).getByLabel('กรณี').selectOption('ลดราคาหลังขาย');
+  await form(page).getByLabel('เหตุตามมาตรา 82/10').selectOption('สินค้าหรือบริการผิดข้อกำหนดที่ตกลงกัน');
   await form(page).getByLabel('มูลค่าที่ลด (ก่อน VAT)').fill('500');
   await form(page).getByLabel('เหตุผล (ต้องกรอก)').fill('งานติดตั้งล่าช้ากว่าที่ตกลง ลดราคาให้ลูกค้า');
   await form(page).getByRole('button', { name: 'บันทึกใบลดหนี้' }).click();

@@ -7,8 +7,9 @@
      นำส่งภาษีตาม (1) มาตรา 3 เตรส ticked (the 50 ทวิ's item 5, 52.js); ยื่นปกติ / ยื่นเพิ่มเติม, the signature and the
      dates left blank, written by hand.
    · The attachment (ใบแนบ, A4 landscape, the form of มี.ค. 2560): 6 ลำดับที่ a sheet, numbered on from sheet to sheet;
-     one ลำดับที่ per payment, in the order and with the numbers of the tax report and the 50 ทวิ (52.js
-     PKG_WHT_OUT.month: by the day paid, then the document number); its first line: the day paid, the income type
+     one ลำดับที่ per payee in the month (accountant B, round 3 Q5, owner 2026-11-11), with the numbers of the tax report and
+     the 50 ทวิ (52.js PKG_WHT_OUT.month: payees in the order of their first payment); a line per payment (a block grows past
+     its three lines when a payee was paid more often; a sheet holds 18 lines): the day paid, the income type
      (as the 50 ทวิ prints it), the rate, the amount paid, the tax, เงื่อนไข 1 (หัก ณ ที่จ่าย); the payee's tax id in
      boxes, สาขาที่ blank (owner's answer), the name (ภ.ง.ด.3: ชื่อ / ชื่อสกุล split at the last space) and the address
      (the vendor's from the register, else blank lines); each sheet's totals; แผ่นที่ … ในจำนวน … แผ่น.
@@ -70,21 +71,44 @@
 .pnd .pnd-foot .r{flex:1;display:flex;align-items:center;gap:4mm;font-size:10px;line-height:2}
 .pnd .seal{flex:none;width:17mm;height:17mm;border:1px solid #333;border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;font-size:8px;line-height:1.25}
 .pnd .sq{display:inline-block;width:2.2mm;height:2.2mm;background:#000;margin:0 1.5mm 0 3mm;vertical-align:0}
-.pnd-r .pnd-hd{display:flex;align-items:center;gap:4mm;border:1px solid #333;border-radius:2mm;padding:2mm 3mm}
-.pnd-r .pnd-hd .t{flex:1;text-align:center;line-height:1.45}
-.pnd-r .pnd-hd .t b{font-size:14px}
-.pnd-r .pnd-name{border:2px solid #000;border-radius:2mm;font-size:26px;font-weight:700;padding:1mm 4mm;flex:none}
-.pnd-r .pnd-box{border:1px solid #333;padding:2mm 3mm;margin-top:2.5mm;line-height:2}
-.pnd-r .pnd-two{display:flex;gap:0}
-.pnd-r .pnd-two>.pnd-box:first-child{flex:1.05;border-right:0}
-.pnd-r .pnd-two>.pnd-box:last-child{flex:1}
-.pnd-r .pnd-two>.pnd-box{min-width:0}
+.pnd-r .pnd-hd{display:flex;align-items:center;gap:4mm}
+.pnd-r .pnd-hd .t{flex:1;text-align:center;line-height:1.45;border:1px solid #333;border-radius:3mm;padding:2mm 3mm}
+.pnd-r .pnd-hd .t b{font-size:13.5px}
+.pnd-r .pnd-name{border:2px solid #000;border-radius:3mm;font-size:28px;font-weight:700;padding:2mm 5mm;flex:none}
+.pnd-r .pnd-grid{display:flex;border:1px solid #333;margin-top:2.5mm}
+.pnd-r .pnd-grid .cl{flex:1.25;padding:2mm 3mm;border-right:1px solid #333;line-height:2}
+.pnd-r .pnd-grid .cr{flex:1;display:flex;flex-direction:column;min-width:0}
+.pnd-r .g3 .cr{padding:2mm 3mm;line-height:2;flex:1.15}
+.pnd-r .g3 .cl{flex:1.1}
+.pnd-r .g3 .mo{font-size:8.4px;gap:.5mm .6mm}
+.pnd-r .g3 .mo .tk{margin-right:.8mm}
+.pnd-r .sp{display:flex;justify-content:space-between;gap:3mm}
+.pnd-r .ms{border-top:1px solid #333;margin:1.5mm -3mm -2mm;padding:1.5mm 3mm 2mm}
+.pnd-r .fl{border-top:1px solid #333;margin:1.5mm -3mm 0;padding:2mm 3mm 0}
+.pnd-r .g53 .fl{margin:0;padding:2.5mm 3mm;text-align:center}
+.pnd-r .g53 .hd{text-align:center;font-weight:700;border-bottom:1px solid #333;padding:1mm}
+.pnd-r .g53 .lw{padding:2mm 3mm;line-height:2.2;border-bottom:1px solid #333}
+.pnd-r .g53 .lw>div,.pnd-r .fl{white-space:nowrap}
+.pnd-r .tcl{flex:1;display:flex;align-items:flex-end;justify-content:center;color:#888;font-size:8.6px;padding:2mm;min-height:12mm}
+.pnd-r .pnd-law3{border:1px solid #333;border-top:0;padding:2mm 3mm}
 .pnd-r .mo{display:grid;grid-template-columns:repeat(4,auto);justify-content:space-between;gap:.5mm 1mm;font-size:9px;line-height:1.9;white-space:nowrap}
-.pnd-r table.pnd-s{width:100%;border-collapse:collapse;margin-top:2mm}
-.pnd-r table.pnd-s td,.pnd-r table.pnd-s th{border:1px solid #333;padding:1mm 2mm;font-size:10.5px}
-.pnd-r table.pnd-s td.n{text-align:right;width:42mm;font-family:'Sarabun',sans-serif}
-.pnd-r .pnd-sign{text-align:center;line-height:2.3;margin-top:3mm;position:relative}
-.pnd-r .pnd-sign .seal{position:absolute;right:12mm;top:9mm}`;
+.pnd-r .pnd-att{display:flex;gap:4mm;margin-top:3mm;line-height:1.9}
+.pnd-r .pnd-att .l{flex:.85;padding-top:4mm}
+.pnd-r .pnd-att .r{flex:1.6}
+.pnd-r .pnd-att .q{display:flex;justify-content:space-between;gap:2mm}
+.pnd-r table.pnd-s{width:82%;border-collapse:separate;border-spacing:0 1.2mm;margin:3mm auto 0}
+.pnd-r table.pnd-s th{background:#e8e8e8;border-radius:2mm;padding:1mm 2mm;font-size:10.5px;text-align:center}
+.pnd-r table.pnd-s td{padding:.5mm 2mm;font-size:10.5px}
+.pnd-r table.pnd-s td:first-child{border-bottom:1px dotted #777}
+.pnd-r table.pnd-s .n{width:40mm;text-align:right}
+.pnd-r .am{display:inline-flex;border:1px solid #333;width:38mm;height:5.6mm;font-family:'Sarabun',sans-serif;font-size:11px}
+.pnd-r .am b{flex:1;text-align:right;padding:0 1.5mm;font-weight:600;line-height:5.6mm}
+.pnd-r .am .dp{display:inline-block;width:0;overflow:hidden}
+.pnd-r .am i{width:7mm;border-left:1px solid #333;text-align:center;font-style:normal;font-weight:600;line-height:5.6mm}
+.pnd-r .pnd-sign{text-align:center;margin-top:4mm;padding-top:3mm;border-top:1px solid #333;position:relative;line-height:2.2}
+.pnd-r .pnd-sign .who{margin-top:2mm}
+.pnd-r .pnd-sign .seal{position:absolute;right:16mm;top:14mm}
+.pnd-r .pnd-rd{margin-top:3mm;padding-top:3mm;border-top:1px solid #333;font-size:9.5px;font-weight:600}`;
  document.body.appendChild(css);
 
  /* ---------- pieces ---------- */
@@ -103,11 +127,18 @@
  const addrText=a=>!a?'':typeof a==='string'?a.trim():(addrLine(a)==='-'?'':addrLine(a));
  /* ภ.ง.ด.3: ชื่อ / ชื่อสกุล — split at the last space as typed */
  function split(name){const s=String(name||'').trim().replace(/\s+/g,' '),i=s.lastIndexOf(' ');return i>0?[s.slice(0,i),s.slice(i+1)]:[s,''];}
- const sheetsOf=rows=>Math.max(1,Math.ceil(rows.length/PER));
+ const LINES=PER*3;
+ /* the payees (ลำดับที่) of the month's payments, each with its payments; then sheets of up to 18 lines */
+ function groups(rows){const g=[];rows.forEach(v=>{let x=g.find(z=>z.seq===v.seq);if(!x)g.push(x={seq:v.seq,rows:[]});x.rows.push(v);});return g;}
+ const height=G=>Math.max(3,G.rows.length);
+ function pack(gs){const out=[];let cur=[],used=0;
+  gs.forEach(G=>{if(cur.length&&used+height(G)>LINES){out.push(cur);cur=[];used=0;}cur.push(G);used+=height(G);});
+  out.push(cur);return out;}
  const sum=(rows,k)=>rows.reduce((a,v)=>a+n(v[k]),0);
 
  /* ---------- the attachment: one sheet of six ---------- */
- function attachSheet(form,rows,no,of){
+ function attachSheet(form,gs,no,of){
+  const rows=gs.flatMap(G=>G.rows);
   const F=FORM[form],p3=form==='3';
   const cols=p3?[11,104,21,42,11,30,28,12]:[11,82,25,21,38,11,30,28,12];
   const head=p3
@@ -121,16 +152,20 @@
       <th colspan="4">รายละเอียดเกี่ยวกับการจ่ายเงิน</th><th rowspan="2">${F.tax}</th><th rowspan="2">❷ เงื่อนไข</th></tr>
      <tr><th>ชื่อและที่อยู่ของผู้มีเงินได้<div class="pnd-i">(ให้ระบุให้ชัดเจนว่าเป็น บริษัทจำกัด ห้างหุ้นส่วนจำกัด หรือห้างหุ้นส่วนสามัญนิติบุคคล และให้ระบุเลขที่ ตรอก/ซอย ถนน ตำบล/แขวง อำเภอ/เขต จังหวัด)</div></th>
       <th>วัน เดือน ปี ที่จ่าย</th><th>${F.income}</th><th>อัตราภาษีร้อยละ</th><th>${F.paid}</th></tr>`;
-  const blocks=Array.from({length:PER},(_,i)=>{
-   const v=rows[i]||null,P=v?WO.party(v):{tax:'',addr:null},addr=v?addrText(P.addr):'';
+  const pay=v=>`<td class="c">${thDate(v.date)}</td><td>${esc(WO.income(v))}</td><td class="c">${v.rate}</td><td class="n">${money(v.base)}</td><td class="n">${money(v.amt)}</td><td class="c">1</td>`;
+  const EMPTY='<td></td><td></td><td></td><td></td><td></td><td></td>';
+  const block=G=>{
+   const v=G&&G.rows[0]||null,P=v?WO.party(v):{tax:'',addr:null},addr=v?addrText(P.addr):'',h=G?height(G):3;
    const who=p3
     ?(()=>{const [a,b]=split(v&&v.payee);return `<div style="display:flex;justify-content:space-between;align-items:center">${tin(P.tax)}<span style="margin-right:2mm">${branchBoxes('')}</span></div>
       <div>ชื่อ ${line(a,40)} ชื่อสกุล ${line(b,40)}</div><div>ที่อยู่ ${addrLn(addr,88)}</div>`;})()
     :`<div>${tin(P.tax)}</div><div>ชื่อ ${line(v&&v.payee,74)}</div><div>ที่อยู่ ${addrLn(addr,71)}</div>`;
-   const first=v?`<td class="c">${thDate(v.date)}</td><td>${esc(WO.income(v))}</td><td class="c">${v.rate}</td><td class="n">${money(v.base)}</td><td class="n">${money(v.amt)}</td><td class="c">1</td>`
-    :'<td></td><td></td><td></td><td></td><td></td><td></td>';
-   return `<tr class="blk"><td class="c" rowspan="3">${v?v.seq:''}</td><td class="who" rowspan="3">${who}</td>${p3?'':`<td class="c" rowspan="3" style="vertical-align:top">${branchBoxes('')}</td>`}${first}</tr>`
-    +'<tr class="ln"><td></td><td></td><td></td><td></td><td></td><td></td></tr>'.repeat(2);}).join('');
+   const lines=Array.from({length:h},(_,j)=>G&&G.rows[j]?pay(G.rows[j]):EMPTY);
+   return `<tr class="blk"><td class="c" rowspan="${h}">${v?v.seq:''}</td><td class="who" rowspan="${h}">${who}</td>${p3?'':`<td class="c" rowspan="${h}" style="vertical-align:top">${branchBoxes('')}</td>`}${lines[0]}</tr>`
+    +lines.slice(1).map(l=>'<tr class="ln">'+l+'</tr>').join('');};
+  const used=gs.reduce((a,G)=>a+height(G),0);
+  const blocks=gs.map(block).join('')+Array.from({length:Math.floor((LINES-used)/3)},()=>block(null)).join('')
+   +('<tr class="ln">'+EMPTY+'</tr>').repeat(Math.max(0,LINES-used)%3);
   return `<div class="sheetpage pnd pnd-a"><div class="pnd-top"><span class="pnd-big">ใบแนบ ภ.ง.ด.${form}</span>
     <b>เลขประจำตัวผู้เสียภาษีอากร</b> <span class="pnd-i">(ของผู้มีหน้าที่หักภาษี ณ ที่จ่าย)</span> ${tin((DB.shop||{}).tax)}
     <b style="margin-left:3mm">สาขาที่</b> ${branchBoxes(payerBranch())}
@@ -142,39 +177,76 @@
     <div class="r"><div class="seal">ประทับตรา<br>นิติบุคคล<br>(ถ้ามี)</div><div>ลงชื่อ ${line('',62)} ผู้จ่ายเงิน<br>( ${line('',60)} )<br>ตำแหน่ง ${line('',64)}<br>ยื่นวันที่ ${line('',9)} เดือน ${line('',26)} พ.ศ. ${line('',14)}</div></div></div></div>`;
  }
 
- /* ---------- the return ---------- */
- function returnSheet(form,mo,rows){
-  const F=FORM[form],m=+mo.slice(5,7),year=+mo.slice(0,4)+543,zip=(payerAddr().match(/(\d{5})\s*$/)||[])[1]||'';
+ /* ---------- the return (ใบหน้าแบบ): laid out as the Revenue Department's own forms (docs/reference/rd-pnd3-cover.pdf,
+    rd-pnd53-cover.pdf, sent by accountant B with round 3 Q6; owner 2026-11-11, frontend/CHANGES.md 153) ---------- */
+ /* the payer's address in the form's own fields: the shop's address is one line of text, so its parts are found by their
+    words (ถ. ซ. ม. ต./แขวง อ./เขต จ.); what is left over means it cannot be split, and the whole line is printed instead */
+ function addrParts(a){
+  const o={bld:'',room:'',floor:'',village:'',no:'',moo:'',soi:'',yaek:'',road:'',sub:'',dist:'',prov:'',zip:'',rest:''};
+  if(a&&typeof a==='object')return Object.assign(o,{village:a.village||'',no:a.no||'',moo:a.moo||'',soi:a.soi||'',road:a.road||'',sub:a.sub||'',dist:a.dist||'',prov:a.prov||'',zip:a.zip||''});
+  let t=String(a||'').trim().replace(/\s+/g,' ');
+  const take=(re,k)=>{const m=t.match(re);if(!m)return;o[k]=m[1].trim();t=(t.slice(0,m.index)+' '+t.slice(m.index+m[0].length)).replace(/\s+/g,' ').trim();};
+  take(/(\d{5})\s*$/,'zip');
+  take(/(?:จ\.|จังหวัด)\s*(\S+)/,'prov');
+  if(!o.prov){const m=t.match(/กรุงเทพมหานคร|กรุงเทพฯ/);if(m){o.prov='กรุงเทพมหานคร';t=t.replace(m[0],' ').replace(/\s+/g,' ').trim();}}
+  take(/(?:อ\.|อำเภอ|เขต)\s*(\S+)/,'dist');
+  take(/(?:ต\.|ตำบล|แขวง)\s*(\S+)/,'sub');
+  take(/(?:ถ\.|ถนน)\s*(\S+(?: \d+(?=\s|$))?)/,'road');
+  take(/(?:ซ\.|ซอย|ตรอก)\s*(\S+)/,'soi');
+  take(/(?:ม\.|หมู่ที่|หมู่)\s*(\d+)/,'moo');
+  take(/^(\d[\d\/-]*)/,'no');
+  o.rest=t;return o;
+ }
+ /* an amount in the form's box: baht | satang */
+ const amt=v=>{if(v===''||v==null)return '<span class="am"><b></b><i></i></span>';const [b,st]=money(v).split('.');return `<span class="am"><b>${b}</b><span class="dp">.</span><i>${st||'00'}</i></span>`;};
+ function returnSheet(form,mo,rows,payees,of){
+  const F=FORM[form],p3=form==='3',m=+mo.slice(5,7),year=+mo.slice(0,4)+543;
+  const A=addrParts((DB.shop||{}).addr),split=!A.rest;
+  const f=(label,v,w)=>label+' '+line(split?v:'',w);
   const month=i=>`<span>${tick(i+1===m)}(${i+1}) ${MONTHS[i]}</span>`;
   const order=[0,3,6,9,1,4,7,10,2,5,8,11];
+  const months=`<div class="lb"><b>เดือน</b>ที่จ่ายเงินได้พึงประเมิน <span class="pnd-i">(ให้ทำเครื่องหมาย “✓” ลงใน “☐” หน้าชื่อเดือน)</span> พ.ศ. ${line(String(year),16)}</div>
+    <div class="mo">${order.map(month).join('')}</div>`;
+  const payer=`<div><b>เลขประจำตัวผู้เสียภาษีอากร</b> ${tin((DB.shop||{}).tax)}<br><span class="pnd-i">(ของผู้มีหน้าที่หักภาษี ณ ที่จ่าย)</span></div>
+    <div class="sp"><b>ชื่อผู้มีหน้าที่หักภาษี ณ ที่จ่าย <i>(หน่วยงาน)</i> :</b><span>สาขาที่ ${branchBoxes(payerBranch())}</span></div>
+    <div>${line(payerName(),118)}</div>
+    <div><b>ที่อยู่ :</b> ${split?f('อาคาร',A.bld,20)+' '+f('ห้องเลขที่',A.room,8)+' '+f('ชั้นที่',A.floor,6)+' '+f('หมู่บ้าน',A.village,22):line(payerAddr(),100)}</div>
+    <div>${f('เลขที่',A.no,24)} ${f('หมู่ที่',A.moo,7)} ${f('ตรอก/ซอย',A.soi,24)} ${f('แยก',A.yaek,14)}</div>
+    <div>${f('ถนน',A.road,40)} ${f('ตำบล/แขวง',A.sub,40)}</div>
+    <div>${f('อำเภอ/เขต',A.dist,40)} ${f('จังหวัด',A.prov,40)}</div>
+    <div>รหัสไปรษณีย์ ${boxes(split?A.zip:((payerAddr().match(/(\d{5})\s*$/)||[])[1]||''),[5])} ${line('',62)}</div>`;
+  const filing=`${tick(false)}${p3?'(1) ':''}ยื่น<b>ปกติ</b> &nbsp; &nbsp; &nbsp; ${tick(false)}${p3?'(2) ':''}ยื่น<b>เพิ่มเติม</b>ครั้งที่ <span class="bx"><i style="width:9mm"></i></span>`;
+  const tcl='<div class="tcl">สำหรับบันทึกข้อมูลจากระบบ TCL</div>';
+  const top=p3
+   ?`<div class="pnd-grid g3"><div class="cl">${payer}<div class="fl">${filing}</div></div><div class="cr">${months}${tcl}</div></div>
+     <div class="pnd-law3">นำส่งภาษีตาม ${F.law.map((t,i)=>tick(i===0)+t.replace(/มาตรา (\S+)/,'มาตรา <b>$1</b>')).join(' &nbsp; &nbsp; &nbsp; ')}</div>`
+   :`<div class="pnd-grid g53"><div class="cl">${payer}<div class="ms">${months}</div></div>
+     <div class="cr"><div class="hd">นำส่งภาษีตาม</div><div class="lw">${F.law.map((t,i)=>'<div>'+tick(i===0)+t.replace(/มาตรา (\S+ ?\S*)$/,'มาตรา <b>$1</b>')+' แห่งประมวลรัษฎากร</div>').join('')}</div>
+      <div class="fl">${filing}</div>${tcl}</div></div>`;
   return `<div class="sheetpage pnd pnd-r" data-pdf-name="ภ.ง.ด.${form}|${mo}">
-   <div class="pnd-hd"><div class="t">${F.title.map((t,i)=>i?t:'<b>'+t+'</b>').join('<br>')}</div><div class="pnd-name">ภ.ง.ด.${form}</div></div>
-   <div class="pnd-two"><div class="pnd-box"><b>เลขประจำตัวผู้เสียภาษีอากร</b> <span class="pnd-i">(ของผู้มีหน้าที่หักภาษี ณ ที่จ่าย)</span><br>${tin((DB.shop||{}).tax)}
-     <br><b>ชื่อผู้มีหน้าที่หักภาษี ณ ที่จ่าย (หน่วยงาน) :</b> &nbsp; สาขาที่ ${branchBoxes(payerBranch())}
-     <br>${line(payerName(),88)}<br><b>ที่อยู่ :</b> ${line(payerAddr(),84)}<br>รหัสไปรษณีย์ ${boxes(zip,[5])}</div>
-    <div class="pnd-box"><b>เดือนที่จ่ายเงินได้พึงประเมิน</b><br><span class="pnd-i">(ให้ทำเครื่องหมาย “✓” ลงใน “☐” หน้าชื่อเดือน)</span> พ.ศ. ${line(String(year),18)}
-     <div class="mo">${order.map(month).join('')}</div></div></div>
-   <div class="pnd-box">${tick(false)}(1) ยื่นปกติ &nbsp; &nbsp; &nbsp; ${tick(false)}(2) ยื่นเพิ่มเติมครั้งที่ ${line('',12)}
-    <br>นำส่งภาษีตาม &nbsp; ${F.law.map((t,i)=>tick(i===0)+t).join(' &nbsp; &nbsp; ')}</div>
-   <div class="pnd-box" style="display:flex;gap:4mm"><div style="flex:.8">มีรายละเอียดการหักเป็นรายผู้มีเงินได้ ปรากฏตาม<br><span class="pnd-i">(ให้แสดงรายละเอียดในใบแนบ ภ.ง.ด.${form} หรือในสื่อบันทึกในระบบคอมพิวเตอร์อย่างใดอย่างหนึ่งเท่านั้น)</span></div>
-    <div style="flex:1.9">${tick(true)}<b>ใบแนบ ภ.ง.ด.${form}</b> ที่แนบมาพร้อมนี้ : จำนวน ${line(String(rows.length),10)} ราย &nbsp; จำนวน ${line(String(sheetsOf(rows)),10)} แผ่น
-     <br>หรือ<br>${tick(false)}<b>สื่อบันทึกในระบบคอมพิวเตอร์</b> ที่แนบมาพร้อมนี้ : จำนวน ${line('',10)} ราย &nbsp; จำนวน ${line('',10)} แผ่น
-     <div class="pnd-i" style="line-height:1.5">(ตามหนังสือแสดงความประสงค์ฯ ทะเบียนรับเลขที่ ${line('',40)}<br>หรือตามหนังสือข้อตกลงการใช้งานฯ เลขอ้างอิงการลงทะเบียน ${line('',30)})</div></div></div>
-   <table class="pnd-s"><tr><th style="text-align:center">สรุปรายการภาษีที่นำส่ง</th><th style="text-align:center">จำนวนเงิน</th></tr>
-    <tr><td>1. รวมยอดเงินได้ทั้งสิ้น</td><td class="n">${money(sum(rows,'base'))}</td></tr>
-    <tr><td>2. รวมยอดภาษีที่นำส่งทั้งสิ้น</td><td class="n">${money(sum(rows,'amt'))}</td></tr>
-    <tr><td>3. เงินเพิ่ม (ถ้ามี)</td><td class="n"></td></tr>
-    <tr><td>4. รวมยอดภาษีที่นำส่งทั้งสิ้น และเงินเพิ่ม (2. + 3.)</td><td class="n"></td></tr></table>
+   <div class="pnd-hd"><div class="t">${F.title.map((t,i)=>i?(p3&&i===1?'<b>'+t+'</b>':t):'<b>'+t+'</b>').join('<br>')}</div><div class="pnd-name">ภ.ง.ด.${form}</div></div>
+   ${top}
+   <div class="pnd-att"><div class="l">มีรายละเอียดการหักเป็นรายผู้มีเงินได้ ปรากฏตาม<br><span class="pnd-i">(ให้แสดงรายละเอียดใน<b>ใบแนบ ภ.ง.ด.${form}</b> หรือใน<b>สื่อบันทึกในระบบคอมพิวเตอร์</b>อย่างใดอย่างหนึ่งเท่านั้น)</span></div>
+    <div class="r"><div class="q"><span>${tick(true)}<b>ใบแนบ ภ.ง.ด.${form}</b> ที่แนบมาพร้อมนี้ :</span> <span>จำนวน ${line(String(payees),16)} ราย<br> จำนวน ${line(String(of),16)} แผ่น</span></div>
+     <div><b>หรือ</b></div>
+     <div class="q"><span>${tick(false)}<b>สื่อบันทึกในระบบคอมพิวเตอร์</b> ที่แนบมาพร้อมนี้ :</span> <span>จำนวน ${line('',16)} ราย<br> จำนวน ${line('',16)} แผ่น</span></div>
+     <div class="pnd-i" style="line-height:1.6">(ตามหนังสือแสดงความประสงค์ฯ ทะเบียนรับเลขที่ ${line('',44)}<br>หรือตามหนังสือข้อตกลงการใช้งานฯ เลขอ้างอิงการลงทะเบียน ${line('',30)})</div></div></div>
+   <table class="pnd-s"><tr><th>สรุปรายการภาษีที่นำส่ง</th><th class="n">จำนวนเงิน</th></tr>
+    <tr><td><b>1. รวม</b>ยอดเงินได้ทั้งสิ้น</td><td class="n">${amt(sum(rows,'base'))}</td></tr>
+    <tr><td><b>2. รวม</b>ยอดภาษีที่นำส่งทั้งสิ้น</td><td class="n">${amt(sum(rows,'amt'))}</td></tr>
+    <tr><td>3. เงินเพิ่ม <i>(ถ้ามี)</i></td><td class="n">${amt('')}</td></tr>
+    <tr><td><b>4. รวม</b>ยอดภาษีที่นำส่งทั้งสิ้น และเงินเพิ่ม (<b>2. + 3.</b>)</td><td class="n">${amt('')}</td></tr></table>
    <div class="pnd-sign">ข้าพเจ้าขอรับรองว่า รายการที่แจ้งไว้ข้างต้นนี้ เป็นรายการที่ถูกต้องและครบถ้วนทุกประการ
-    <br>ลงชื่อ ${line('',70)} ผู้จ่ายเงิน<br>( ${line('',68)} )<br>ตำแหน่ง ${line('',72)}<br>ยื่นวันที่ ${line('',10)} เดือน ${line('',30)} พ.ศ. ${line('',16)}
-    <div class="seal">ประทับตรา<br>นิติบุคคล<br>(ถ้ามี)</div></div></div>`;
+    <div class="who">ลงชื่อ ${line('',70)} ผู้จ่ายเงิน<br>( ${line('',68)} )<br>ตำแหน่ง ${line('',72)}<br>ยื่นวันที่ ${line('',10)} เดือน ${line('',30)} พ.ศ. ${line('',16)}</div>
+    <div class="seal">ประทับตรา<br>นิติบุคคล<br>(ถ้ามี)</div></div>
+   <div class="pnd-rd"><i>สอบถามข้อมูลเพิ่มเติมได้ที่ศูนย์สารนิเทศสรรพากร RD Intelligence Center โทร. 1161</i></div></div>`;
  }
 
  function sheets(form,mo){
   const rows=WO.month(mo).filter(v=>v.form===form);if(!rows.length)return '';
-  const of=sheetsOf(rows);
+  const gs=groups(rows),pages=pack(gs),of=pages.length;
   /* a line break after each cell and block: what is printed reads as words when copied */
-  return (returnSheet(form,mo,rows)+Array.from({length:of},(_,i)=>attachSheet(form,rows.slice(i*PER,i*PER+PER),i+1,of)).join('')).replace(/<\/(td|th|div|tr)>/g,'</$1>\n');
+  return (returnSheet(form,mo,rows,gs.length,of)+pages.map((p,i)=>attachSheet(form,p,i+1,of)).join('')).replace(/<\/(td|th|div|tr)>/g,'</$1>\n');
  }
  function print(form){
   const html=sheets(form,acctM());if(!html)return toast('เดือนนี้ไม่มีรายการ ภ.ง.ด.'+form);

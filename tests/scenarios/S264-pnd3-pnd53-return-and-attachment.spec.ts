@@ -4,8 +4,10 @@ import { test, expect } from '../support/test';
 // New behaviour (owner's request 2026-11-06: the return and its attachment, the payee's branch left blank, the
 // buttons on the tax report): 08 บัญชี → รายงานภาษี prints a month's ภ.ง.ด.3 / ภ.ง.ด.53 on the Revenue Department's
 // forms — the return (the payer's tax id and branch, the month ticked, the attachment's ราย and แผ่น, the income paid
-// and the tax withheld) and its attachment, six ลำดับที่ a sheet numbered on from sheet to sheet, one per payment
-// in the order of the tax report and the 50 ทวิ, each sheet with its own totals. Saved as PDF: ภ.ง.ด.3_<yyyy-mm>.
+// and the tax withheld) and its attachment, six ลำดับที่ a sheet numbered on from sheet to sheet, each sheet with its own
+// totals. Saved as PDF: ภ.ง.ด.3_<yyyy-mm>. After accountant B's round 3 (owner 2026-11-11): one ลำดับที่ per payee in the
+// month with a line per payment (Q5, the order of the tax report and the 50 ทวิ), and the return laid out as the Revenue
+// Department's own form with the payer's address in its fields (Q6, docs/reference/).
 // Fixture: two paid expenses withheld on 13/10 — MA-EX261000001 (สำนักงานบัญชีเลิศพัฒนา, tax id 0105551234567,
 // ภ.ง.ด.53, 3% of 3,500.00) and MA-EX261000002 (คุณสุนทร เจ้าของอาคาร, ภ.ง.ด.3, 5% of 25,000.00).
 async function go(page: Page, menu: string | RegExp, item: string) {
@@ -86,6 +88,8 @@ test('S264 ระบบใหม่: พิมพ์ ภ.ง.ด.3 / ภ.ง.ด
     ['นาย ประสิทธิ์ ช่างดี', '3100600100033', '3000'], ['นาย วิชัย เก่งกาจ', '3100600100044', '4000'],
     ['นาง มาลี ขยัน', '3100600100055', '5000'], ['นาย บุญมี มีสุข', '3100600100066', '6000']];
   for (const [payee, tax, base] of people) await paidExpense(page, payee, tax, base);   // MA-EX261000003 … 008: 3%, ภ.ง.ด.3
+  // Paid twice in the month: one ลำดับที่, a line per payment (accountant B round 3 Q5, owner 2026-11-11).
+  await paidExpense(page, 'นาย บุญมี มีสุข', '3100600100066', '1000');   // MA-EX261000009
 
   await go(page, /^08 บัญชี/, '└ รายงานภาษี');
   await expect(page.getByRole('button', { name: 'พิมพ์ ภ.ง.ด.3 + ใบแนบ' })).toBeVisible();
@@ -93,13 +97,16 @@ test('S264 ระบบใหม่: พิมพ์ ภ.ง.ด.3 / ภ.ง.ด
   // ภ.ง.ด.53: the return and one sheet of the attachment.
   await printForm(page, '53', 'ภ.ง.ด.53_2026-10.pdf', 2);
   const ret53 = await text(sheets(page).nth(0));
+  // Laid out as the Revenue Department's form (docs/reference/rd-pnd53-cover.pdf, round 3 Q6): the address in its fields.
   for (const t of ['แบบยื่นรายการภาษีเงินได้หัก ณ ที่จ่าย', 'ภ.ง.ด.53', '0-1055-45001-23-4', 'สาขาที่ 00000', 'Drivego Service',
-    '123/45 ถ.พระราม 2 แขวงบางมด เขตจอมทอง กรุงเทพมหานคร 10150', 'รหัสไปรษณีย์ 10150', 'พ.ศ. 2569', '✓(10) ตุลาคม', '(9) กันยายน',
-    '✓(1) มาตรา 3 เตรส', '✓ใบแนบ ภ.ง.ด.53 ที่แนบมาพร้อมนี้ : จำนวน 2 ราย จำนวน 1 แผ่น',
-    '1. รวมยอดเงินได้ทั้งสิ้น 12,200.00', '2. รวมยอดภาษีที่นำส่งทั้งสิ้น 192.00', '3. เงินเพิ่ม (ถ้ามี)', 'ผู้จ่ายเงิน'])
+    'เลขที่ 123/45', 'ถนน พระราม 2', 'ตำบล/แขวง บางมด', 'อำเภอ/เขต จอมทอง', 'จังหวัด กรุงเทพมหานคร', 'รหัสไปรษณีย์ 10150',
+    'พ.ศ. 2569', '✓(10) ตุลาคม', '(9) กันยายน', 'นำส่งภาษีตาม ✓(1) มาตรา 3 เตรส แห่งประมวลรัษฎากร', '(2) มาตรา 65 จัตวา แห่งประมวลรัษฎากร',
+    '(3) มาตรา 69 ทวิ แห่งประมวลรัษฎากร', 'ยื่นปกติ', 'ยื่นเพิ่มเติมครั้งที่', 'สำหรับบันทึกข้อมูลจากระบบ TCL',
+    '✓ใบแนบ ภ.ง.ด.53 ที่แนบมาพร้อมนี้ : จำนวน 2 ราย จำนวน 1 แผ่น', '1. รวมยอดเงินได้ทั้งสิ้น 12,200.00', '2. รวมยอดภาษีที่นำส่งทั้งสิ้น 192.00',
+    '3. เงินเพิ่ม (ถ้ามี)', 'ผู้จ่ายเงิน', 'สอบถามข้อมูลเพิ่มเติมได้ที่ศูนย์สารนิเทศสรรพากร RD Intelligence Center โทร. 1161'])
     expect(ret53).toContain(t);
   expect(ret53).not.toContain('✓(9) กันยายน');
-  expect(ret53).not.toContain('✓(1) ยื่นปกติ');
+  expect(ret53).not.toContain('✓ยื่นปกติ');
   const att53 = sheets(page).nth(1);
   const a53 = await text(att53);
   for (const t of ['ใบแนบ ภ.ง.ด.53', '0-1055-45001-23-4', 'สาขาที่ 00000', 'แผ่นที่ 1 ในจำนวน 1 แผ่น',
@@ -109,11 +116,12 @@ test('S264 ระบบใหม่: พิมพ์ ภ.ง.ด.3 / ภ.ง.ด
   expect(await row53('สำนักงานบัญชีเลิศพัฒนา')).toBe('1 0-1055-51234-56-7 ชื่อ สำนักงานบัญชีเลิศพัฒนา ที่อยู่ 13/10/2569 ค่าบริการ / ค่าจ้างทำของ 3 3,500.00 105.00 1');
   expect(await row53('หจก. ไทยพาร์ท ซัพพลาย')).toBe('2 0-1035-45006-78-9 ชื่อ หจก. ไทยพาร์ท ซัพพลาย ที่อยู่ 145 ซ.ประชาอุทิศ 33 ถ.ประชาอุทิศ แขวงบางมด เขตทุ่งครุ กรุงเทพมหานคร 10140 13/10/2569 ค่าขนส่ง 1 8,700.00 87.00 1');
 
-  // ภ.ง.ด.3: seven payments — the return, sheet 1 with ลำดับที่ 1–6 and sheet 2 with 7, each sheet its own totals.
+  // ภ.ง.ด.3: eight payments to seven payees — the return, sheet 1 with ลำดับที่ 1–6 and sheet 2 with 7 (two lines), each sheet its own totals.
   await printForm(page, '3', 'ภ.ง.ด.3_2026-10.pdf', 3);
   const ret3 = await text(sheets(page).nth(0));
-  for (const t of ['ภ.ง.ด.3', 'มาตรา 59 แห่งประมวลรัษฎากร', '✓(1) มาตรา 3 เตรส', '(2) มาตรา 48 ทวิ', '✓(10) ตุลาคม',
-    '✓ใบแนบ ภ.ง.ด.3 ที่แนบมาพร้อมนี้ : จำนวน 7 ราย จำนวน 2 แผ่น', '1. รวมยอดเงินได้ทั้งสิ้น 46,000.00', '2. รวมยอดภาษีที่นำส่งทั้งสิ้น 1,880.00'])
+  for (const t of ['ภ.ง.ด.3', 'ตามมาตรา 59 แห่งประมวลรัษฎากร', 'นำส่งภาษีตาม ✓(1) มาตรา 3 เตรส', '(2) มาตรา 48 ทวิ', '(3) มาตรา 50 (3) (4) (5)',
+    '✓(10) ตุลาคม', '(1) ยื่นปกติ', '(2) ยื่นเพิ่มเติมครั้งที่', 'เลขที่ 123/45', 'ถนน พระราม 2',
+    '✓ใบแนบ ภ.ง.ด.3 ที่แนบมาพร้อมนี้ : จำนวน 7 ราย จำนวน 2 แผ่น', '1. รวมยอดเงินได้ทั้งสิ้น 47,000.00', '2. รวมยอดภาษีที่นำส่งทั้งสิ้น 1,910.00'])
     expect(ret3).toContain(t);
   const [s1, s2] = [sheets(page).nth(1), sheets(page).nth(2)];
   expect(await text(s1)).toContain('แผ่นที่ 1 ในจำนวน 2 แผ่น');
@@ -124,9 +132,11 @@ test('S264 ระบบใหม่: พิมพ์ ภ.ง.ด.3 / ภ.ง.ด
   expect(await text(s1.getByRole('row', { includeHidden: true }).filter({ hasText: 'มาลี' })))
     .toBe('6 3-1006-00100-05-5 ชื่อ นาง มาลี ชื่อสกุล ขยัน ที่อยู่ 13/10/2569 ค่าบริการ / ค่าจ้างทำของ 3 5,000.00 150.00 1');
   expect(await text(s2)).toContain('แผ่นที่ 2 ในจำนวน 2 แผ่น');
-  expect(await text(s2)).toContain('รวมยอดเงินได้และภาษีที่นำส่ง (นำไปรวมกับใบแนบ ภ.ง.ด.3 แผ่นอื่น (ถ้ามี)) 6,000.00 180.00');
+  expect(await text(s2)).toContain('รวมยอดเงินได้และภาษีที่นำส่ง (นำไปรวมกับใบแนบ ภ.ง.ด.3 แผ่นอื่น (ถ้ามี)) 7,000.00 210.00');
   expect(await text(s2.getByRole('row', { includeHidden: true }).filter({ hasText: 'บุญมี' })))
     .toBe('7 3-1006-00100-06-6 ชื่อ นาย บุญมี ชื่อสกุล มีสุข ที่อยู่ 13/10/2569 ค่าบริการ / ค่าจ้างทำของ 3 6,000.00 180.00 1');
+  expect(await text(s2.getByRole('row', { includeHidden: true }).filter({ hasText: '1,000.00' })))
+    .toBe('13/10/2569 ค่าบริการ / ค่าจ้างทำของ 3 1,000.00 30.00 1');
 
   // The page's own title is back after printing; a month without withholding has no buttons.
   await expect(page).toHaveTitle('ระบบบริหารงานอู่ซ่อมรถ');

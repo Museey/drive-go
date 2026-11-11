@@ -30,10 +30,15 @@
  if(!S||!SC||typeof renderTax!=='function')return;
  const KIND={ret:'ลูกค้าคืนสินค้า',disc:'ลดราคาหลังขาย',over:'ยอดในใบกำกับภาษีเกินจริง (คิดเงินผิด)',all:'ยกเลิกการขายทั้งใบ'};
  const STOCK={back:'คืนเข้าสต๊อก',waste:'ของเสีย'};
+ /* why the value goes down, as section 82/10 of the Revenue Code lists it (accountant B, rounds 2–3, Q4; owner 2026-11-11):
+    picked on every credit note, then the details written; a return and an overcharge start on their own cause */
+ const CAUSE={damaged:'สินค้าชำรุด',spec:'สินค้าหรือบริการผิดข้อกำหนดที่ตกลงกัน',short:'ขาดจำนวน',price:'คิดราคาผิด',back:'รับคืนสินค้า',end:'บอกเลิกบริการ'};
+ const CAUSE_OF={ret:'back',over:'price'};
  const KIND_DN={over:'ส่งสินค้าหรือให้บริการเกินกว่าที่ตกลงกัน',calc:'คำนวณราคาผิดพลาดต่ำกว่าที่เป็นจริง',other:'เหตุอื่น'};
  const isDn=x=>!!x&&x.type==='debit';
  const NAME=x=>isDn(x)?'ใบเพิ่มหนี้':'ใบลดหนี้';
  const kindOf=x=>(isDn(x)?KIND_DN:KIND)[x.kind]||'';
+ const causeOf=x=>!isDn(x)&&CAUSE[x.cause]||'';
  if(typeof AUD_ACT==='object'){AUD_ACT.debitnote=AUD_ACT.debitnote||'ใบเพิ่มหนี้';AUD_ACT.dnvoid='ยกเลิกใบเพิ่มหนี้';}
  const r2=v=>round2(v),EPS=0.005;
  const all=()=>DB.creditNotes||[];
@@ -174,6 +179,7 @@
   $c('#cnTitle').textContent='ออกใบลดหนี้ · ใบตัดสต็อก '+c.no;
   $c('#cnBody').innerHTML=`<p class="hint" style="margin-top:0">${esc(custName(cu)||'-')} · ขายวันที่ ${thDate(c.date)} · ยอดขาย ${money(st.total)} บาท · คงค้าง ${money(st.rem)} บาท · ลดได้อีก ${money(f.left)} บาท</p>
    <label class="f"><span>กรณี</span><select id="cnKind">${Object.entries(KIND).map(([k,v])=>`<option value="${k}"${F.kind===k?' selected':''}>${v}</option>`).join('')}</select></label>
+   <label class="f"><span>เหตุตามมาตรา 82/10</span><select id="cnCause"><option value="">— เลือกเหตุ —</option>${Object.entries(CAUSE).map(([k,v])=>`<option value="${k}"${F.cause===k?' selected':''}>${v}</option>`).join('')}</select></label>
    ${F.kind==='ret'||F.kind==='all'?`<table class="tbl" style="margin:10px 0"><thead><tr><th>รหัส</th><th>รายการ</th><th class="num">ขาย</th><th class="num">คืนแล้ว</th><th class="num">จำนวนที่คืน</th><th class="num">ราคา/หน่วย</th><th>สินค้าที่คืน</th></tr></thead>
     <tbody>${lineRows||'<tr><td colspan="7" class="empty">ไม่มีรายการสินค้าในสต๊อกที่คืนได้</td></tr>'}</tbody></table>`
    :`<label class="f"><span>มูลค่าที่ลด (ก่อน VAT)</span><input type="number" min="0" step="0.01" id="cnAmt" value="${F.amt||''}"></label>`}
@@ -252,13 +258,14 @@
    F={c,dn:true,kind:'over',amt:'',reason:''};drawDn();return openModal('mCredit');}
   if(!mayIssue())return toast('บัญชีนี้ไม่มีสิทธิ์ออกใบลดหนี้');
   if(!canCredit(c))return toast('ใบตัดสต็อก '+c.no+' ออกใบลดหนี้ไม่ได้');
-  F={c,kind:'ret',qty:{},stock:{},amt:'',reason:'',method:'cash'};drawForm();openModal('mCredit');
+  F={c,kind:'ret',cause:CAUSE_OF.ret,qty:{},stock:{},amt:'',reason:'',method:'cash'};drawForm();openModal('mCredit');
  }
  W.addEventListener('input',e=>{if(!F||F.view)return;const t=e.target;
   if(F.pick){if(t.id==='cnFind'){F.q=t.value;drawPick();}return;}
   if(t.dataset.q!==undefined)F.qty[+t.dataset.q]=n(t.value);else if(t.id==='cnAmt')F.amt=t.value;else if(t.id==='cnReason'){F.reason=t.value;return;}else return;refresh();});
  W.addEventListener('change',e=>{if(!F||F.view||F.pick)return;const t=e.target;
-  if(t.id==='cnKind'){F.kind=t.value;if(!F.dn)drawForm();}else if(t.dataset.s!==undefined){F.stock[+t.dataset.s]=t.value;}else if(t.id==='cnMethod')F.method=t.value;});
+  if(t.id==='cnKind'){F.kind=t.value;if(!F.dn){if(!F.causePicked)F.cause=CAUSE_OF[F.kind]||'';drawForm();}}
+  else if(t.id==='cnCause'){F.cause=t.value;F.causePicked=true;}else if(t.dataset.s!==undefined){F.stock[+t.dataset.s]=t.value;}else if(t.id==='cnMethod')F.method=t.value;});
  W.addEventListener('click',async e=>{const p=e.target.closest('[data-cnpick]');if(p)return openNew(p.dataset.cnpick);
   const b=e.target.closest('[data-cn]');if(!b)return;const a=b.dataset.cn;
   if(a==='close'){closeModal('mCredit');F=null;return;}
@@ -277,9 +284,10 @@
   if(F.kind==='ret'&&!f.lines.length)return toast('ใส่จำนวนสินค้าที่คืนก่อน');
   if(!(f.gross>EPS))return toast('ใส่มูลค่าที่ลดก่อน');
   if(f.gross>f.left+EPS)return toast('ใบลดหนี้ลดได้ไม่เกิน '+money(f.left)+' บาท');
+  if(!CAUSE[F.cause])return toast('เลือกเหตุของใบลดหนี้ตามมาตรา 82/10 ก่อน');
   if(!reason)return toast('ใส่เหตุผลของใบลดหนี้ก่อน');
   const tx=S.taxOf(S.led(c));
-  const x={id:uid(),no:inBr(c,()=>docNo('CN')),date:iso(),saleId:c.id,saleNo:c.no,ledId:S.led(c).id,custId:c.custId,br:c.br||'',kind:F.kind,reason,
+  const x={id:uid(),no:inBr(c,()=>docNo('CN')),date:iso(),saleId:c.id,saleNo:c.no,ledId:S.led(c).id,custId:c.custId,br:c.br||'',kind:F.kind,cause:F.cause,reason,
    rate:f.rate,base:f.base,vat:f.vat,gross:f.gross,lines:f.lines,method:f.refund>EPS?(F.method==='trans'?'trans':'cash'):'',
    ref:{no:tx?tx.no:c.no,date:tx?tx.date:c.date,base:r2(receiptTotals(soldAs(S.led(c))).base)},
    apv:owner()?Object.assign({status:'approved'},stamp()):{status:'pending',by:DB.curEmp||'',byName:meName(),date:iso()},
@@ -350,7 +358,7 @@
   $c('#cnTitle').textContent=NAME(x)+' '+x.no;
   $c('#cnBody').innerHTML=`<p style="margin-top:0">${x.voided?'<span class="chip r">ยกเลิกแล้ว</span>':`<span class="chip ${st==='approved'?'g':st==='pending'?'a':'r'}">${APV_LABEL[st]||st}</span>`}
     ${esc(custName(cu)||'-')} · วันที่ ${thDate(x.date)} · อ้างอิง ${esc(x.ref.no)} ลงวันที่ ${thDate(x.ref.date)} · ใบตัดสต็อก ${esc(x.saleNo)}</p>
-   <p>กรณี: ${esc(kindOf(x))} · เหตุผล: ${esc(x.reason)}</p>
+   <p>กรณี: ${esc(kindOf(x))}${causeOf(x)?' · เหตุตามมาตรา 82/10: '+esc(causeOf(x)):''} · เหตุผล: ${esc(x.reason)}</p>
    ${x.voided?`<p class="hint">ยกเลิกเมื่อ ${thDate(x.voided.date)} โดย ${esc(x.voided.byName||'-')} — ${esc(x.voided.reason)}</p>`:''}
    ${vr?`<p class="hint"><span class="chip a">ขอยกเลิก · รออนุมัติ</span> โดย ${esc(vr.byName||'-')} ${thDate(vr.date)} — ${esc(vr.reason)}</p>`:''}
    ${(x.lines||[]).length?`<table class="tbl"><thead><tr><th>รหัส</th><th>รายการ</th><th class="num">จำนวนที่คืน</th><th class="num">ราคา/หน่วย</th><th>สินค้าที่คืน</th></tr></thead><tbody>
@@ -384,7 +392,7 @@
    <tr><td colspan="5" style="text-align:right">ภาษีมูลค่าเพิ่ม ${x.rate}%</td><td class="num">${money(x.vat)}</td></tr>
    <tr><td colspan="5" style="text-align:right"><b>รวมทั้งสิ้น</b></td><td class="num"><b>${money(x.gross)}</b></td></tr>
    <tr><td colspan="6" style="text-align:center">(${bahtText(x.gross)})</td></tr></tbody></table>
-  <div class="box"><span class="lbl">${dn?'เหตุผลที่เพิ่มหนี้':'เหตุผลที่ลดหนี้'}</span><br><span>${esc(kindOf(x))} — ${esc(x.reason)}</span></div>
+  <div class="box"><span class="lbl">${dn?'เหตุผลที่เพิ่มหนี้':'เหตุผลที่ลดหนี้'}</span><br><span>${esc(causeOf(x)||kindOf(x))} — ${esc(x.reason)}</span></div>
   <div class="sign"><div><div class="line"></div>( ${esc(x.apv.byName||'.................................................')} )<br><span class="lbl">ผู้ออก${NAME(x)}</span></div>
    <div><div class="line"></div>( ................................................. )<br><span class="lbl">ผู้รับ${NAME(x)}</span></div></div></div>`;
  }

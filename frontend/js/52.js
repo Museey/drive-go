@@ -284,7 +284,10 @@
  /* a month's ภ.ง.ด.3 / 53 (paid only), in the order of its attachment — payment date, then document number; seq = ลำดับที่ */
  function whtOutMonth(mo){const rows=whtOutAll().filter(v=>v.paid&&String(v.date).slice(0,7)===mo)
   .sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.no).localeCompare(String(b.no)));
-  const k={};rows.forEach(v=>{k[v.form]=(k[v.form]||0)+1;v.seq=k[v.form];});return rows;}
+  /* one ลำดับที่ per payee in the month and form, in the order of their first payment; each payment its own line (accountant
+     B, round 3 Q5, owner 2026-11-11; frontend/CHANGES.md 152): the payee is the tax id, else the name as typed */
+  const k={},who={};rows.forEach(v=>{const p=partyOf(v),id=v.form+'|'+(String(p&&p.tax||'').replace(/\D/g,'')||String(v.payee||'').trim().replace(/\s+/g,' '));
+   if(!who[id]){k[v.form]=(k[v.form]||0)+1;who[id]=k[v.form];}v.seq=who[id];});return rows;}
  const seqOf=v=>{const r=whtOutMonth(String(v.date).slice(0,7)).find(z=>z.id===v.id);return r?r.seq:0;};
  /* also for ภ.ง.ด.3 / 53 and their attachments (68-pnd-attach.js): the income type as the 50 ทวิ prints it, and the payee's
     tax id and address (an expense's payee found in the vendor register by name) */
