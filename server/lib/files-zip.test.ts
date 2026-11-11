@@ -3,7 +3,7 @@
 //   node --test server/lib/files-zip.test.ts   (npm run test:unit)
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readZip } from '../../tests/support/zip.ts';
+import { readZip } from './zip-read.ts';
 import { type Listed, fileName, zipEntries, zipFileName, zipNames } from './files-zip.ts';
 import { zipChunks } from './zip.ts';
 

@@ -3,7 +3,7 @@
 //   node --test server/lib/zip.test.ts   (npm run test:unit)
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readZip } from '../../tests/support/zip.ts';
+import { readZip } from './zip-read.ts';
 import { type ZipEntry, type Zip64, zipChunks, zipLength } from './zip.ts';
 
 const at = new Date('2026-10-13T02:00:40Z');   // 09:00:40 in Bangkok
