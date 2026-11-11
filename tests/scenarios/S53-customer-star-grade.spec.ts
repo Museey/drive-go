@@ -7,6 +7,12 @@ test('S53 เปลี่ยนเกรดดาวลูกค้านภา�
   await page.getByRole('button', { name: '02 ข้อมูลลูกค้า' }).click();
   const row = page.getByRole('row').filter({ hasText: 'นภาพร บุญรอด' }).filter({ visible: true });
   await expect(row).toContainText('ลูกค้าขาจร');
+  // Scrolling makes the register fit its columns to the rows now on screen (frontend/js/25.js), which moves the row;
+  // the goldens have it centred in the settled layout. Scroll, let the widths settle, then scroll to it again from the
+  // top (scrolling once was centred or not depending on when the widths changed: 2026-11-11, CI runs 222 and 224).
+  await row.scrollIntoViewIfNeeded();
+  await app.layoutStable();
+  await page.evaluate(() => window.scrollTo(0, 0));
   await row.scrollIntoViewIfNeeded();
   await golden.step('รายชื่อลูกค้า นภาพร บุญรอด เป็นลูกค้าขาจร 2 ดาว');
 
