@@ -159,7 +159,9 @@ const money0=v=>Math.round(n(v)).toLocaleString('th-TH');
 /* จำนวน/ปริมาณ: แสดงไม่เกิน 2 ตำแหน่ง กันเศษทศนิยมยาวจากการคำนวณ */
 const qf=v=>{const x=Math.round(n(v)*100)/100;return x.toLocaleString('th-TH',{maximumFractionDigits:2});};
 const iso=d=>{d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
-const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+/* A value inside a '…' JS string of an onclick="…" attribute: JS escaping first, then HTML escaping (frontend/CHANGES.md 149) */
+const jsq=s=>esc(String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r?\n/g,'\\n').replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029'));
 const TH_M=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 function thDate(s){ if(!s) return '-'; const d=new Date(s+'T00:00:00'); if(isNaN(d)) return s;
   return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+(d.getFullYear()+543); }
@@ -730,7 +732,7 @@ function renderHome(){
     min:a.min+r.min,max:a.max+r.max,stale:a.stale+r.stale}),{items:0,qty:0,cost:0,min:0,max:0,stale:0});
   const mxc=Math.max(1,...rows.map(r=>r.cost));
   $('#homeSumTag').textContent=rows.filter(r=>r.items).length+' หมวดที่มีสินค้า';
-  $('#homeCatTbl tbody').innerHTML=rows.filter(r=>r.items).map(r=>`<tr class="click" onclick="setCat('${r.cat}',true);go('stock')">
+  $('#homeCatTbl tbody').innerHTML=rows.filter(r=>r.items).map(r=>`<tr class="click" onclick="setCat('${jsq(r.cat)}',true);go('stock')">
     <td><b>${esc(r.cat)}</b></td><td class="num">${r.items}</td><td class="num">${qf(r.qty)}</td>
     <td class="num">${money(r.cost)}</td>
     <td><div class="mbar"><i style="width:${Math.round(r.cost/mxc*100)}%"></i></div>
@@ -1057,7 +1059,7 @@ function renderCatSummary(){
   $('#sumTag').textContent=used.length+' หมวดที่มีสินค้า · รวม '+tot.items+' รายการ';
   $('#catSumTbl tbody').innerHTML=rows.map(r=>{
     const pct=tot.cost?r.cost/tot.cost*100:0;
-    return `<tr class="click" onclick="setCat('${r.cat}')" style="${r.items?'':'opacity:.45'}">
+    return `<tr class="click" onclick="setCat('${jsq(r.cat)}')" style="${r.items?'':'opacity:.45'}">
       <td><b>${esc(r.cat)}</b>${catFilter===r.cat?' <span class="chip b">กำลังกรอง</span>':''}</td>
       <td class="num">${r.items}</td><td class="num">${qf(r.qty)}</td>
       <td class="num">${money(r.cost)}</td><td class="num">${money(r.sale)}</td>
@@ -1291,7 +1293,7 @@ function renderCatMgr(){
       <td class="ctr"><span class="chip${base?'':' b'}">${base?'มาตรฐาน':'เพิ่มเอง'}</span></td>
       <td class="num">${used?used+' รายการ':'<span class="hint">ยังไม่มี</span>'}</td>
       <td class="ctr">${lock?'<span class="hint">ลบไม่ได้</span>'
-        :`<button class="btn sm dgr" onclick="catMgrDel('${esc(c).replace(/'/g,"\\'")}')">ลบ</button>`}</td></tr>`;
+        :`<button class="btn sm dgr" onclick="catMgrDel('${jsq(c)}')">ลบ</button>`}</td></tr>`;
   }).join('');
 }
 function catMgrAdd(){
@@ -3417,7 +3419,7 @@ function renderTaxOverview(){
       <td class="ctr">${x.d.cancelled?'<span class="chip r" title="'+esc(x.d.cancelReason||'')+'">ยกเลิก</span>':'<span class="chip g">ปกติ</span>'}</td>
       ${byCell(x.r)}
       <td class="ctr"><div style="display:inline-flex;flex-direction:column;align-items:stretch;gap:4px;width:106px">
-        ${x.d.cancelled?'':`<button class="btn sm gh" onclick="printTaxDoc('${x.r.id}','${esc(x.d.no)}')">พิมพ์</button>`}
+        ${x.d.cancelled?'':`<button class="btn sm gh" onclick="printTaxDoc('${x.r.id}','${jsq(x.d.no)}')">พิมพ์</button>`}
         ${(!x.d.cancelled&&x.isLatest)
           ? `<button class="btn sm dgr pc-rIssue" onclick="toggleTaxCancel('${x.r.id}')">ยกเลิก</button>`:''}</div></td></tr>`;}).join('');
   $('#taxOvEmpty').style.display=rows.length?'none':'block';
@@ -7887,8 +7889,8 @@ function renderCoa(){
       <td><span class="chip">${esc(ACC_TYPE_LABEL[a.type]||a.type)}</span></td>
       <td class="num">${b?money(b.debit||b.credit):'-'}</td>
       <td class="ctr"><div style="display:inline-flex;flex-direction:column;align-items:stretch;gap:4px">
-        <button class="btn sm gh" onclick="editCoa('${esc(a.code)}')">แก้ไข</button>
-        <button class="btn sm dgr" onclick="delCoa('${esc(a.code)}')">ลบ</button></div></td></tr>`}).join('')
+        <button class="btn sm gh" onclick="editCoa('${jsq(a.code)}')">แก้ไข</button>
+        <button class="btn sm dgr" onclick="delCoa('${jsq(a.code)}')">ลบ</button></div></td></tr>`}).join('')
     ||'<tr><td colspan="5" class="empty">ไม่พบบัญชีตามเงื่อนไข</td></tr>';
   $('#coaCount').textContent=DB.coa.length+' บัญชี';
 }
@@ -11422,7 +11424,7 @@ function trGo(r){
 }
 function renderPxTopics(){
   const all=['ทั้งหมด',...DB.px.topics];
-  $('#pxTopicChips').innerHTML=all.map(t=>`<button class="topicChip ${pxTopicSel===t?'on':''}" onclick="pxTopicSel='${t.replace(/'/g,"\\'")}';renderPxLearn()">${t}</button>`).join('');
+  $('#pxTopicChips').innerHTML=all.map(t=>`<button class="topicChip ${pxTopicSel===t?'on':''}" onclick="pxTopicSel='${jsq(t)}';renderPxLearn()">${esc(t)}</button>`).join('');
 }
 function lrnIcon(x){
   if(x.kind==='clip')return '🎬';

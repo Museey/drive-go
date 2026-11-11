@@ -972,6 +972,16 @@
       "scenario": "S440-sale-flow-stays-on-after-wipe-and-sample-data.spec.ts",
       "decision": "Owner 2026-11-09: the sale flow (11.5 ระบบขายแบบใหม่) stays on",
       "why": "After wiping the data and loading the sample data the sale flow is on, page 11.5 has no way back, 04 shows the stock-cut register and the server keeps the switch on."
+    },
+    {
+      "scenario": "S286-attack-text-in-names-does-not-run.spec.ts",
+      "decision": "owner 2026-11-11: \"เริ่มแก้ XSS\" (docs/SECURITY-REVIEW.md proposal 4)",
+      "why": "Text typed into names (customers, products, categories, vendors, employees, account codes) is shown as text and never runs as a script: esc() also escapes ', values inside the JS strings of onclick attributes are JS-escaped first (frontend/CHANGES.md 148-149), and the buttons that pass such a name (an apostrophe too) still work."
+    },
+    {
+      "scenario": "S287-owner-downloads-all-attachments-zip.spec.ts",
+      "decision": "owner's answer 11.5 (docs/PHASE3-QUESTIONS.md), built on 2026-11-11: \"ทำปุ่ม .zip ต่อเลยครับ\"",
+      "why": "Menu 10 has \"ดาวน์โหลดไฟล์แนบทั้งหมด (.zip)\" under the file space: every attachment in a folder per kind under the name the data gave it, the same picture once, and a list that maps each link of the JSON backup to its file; an employee's direct call is refused."
     }
   ]
 }

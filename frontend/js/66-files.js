@@ -5,7 +5,9 @@
    · once the space is used up, a product picture or a knowledge-library file is refused when it is picked
      (payment slips and 50 ทวิ pictures are accounting evidence and always accepted, 11.2);
    · a knowledge-library file over 5 MB (a clip over 15 MB) is refused with a message to make it smaller, where the
-     legacy app kept only its name (11.4).
+     legacy app kept only its name (11.4);
+   · under the space, the owner (franchise: HQ, the branch head) downloads every attachment as one .zip, the files the
+     JSON backup links to (11.5, GET /api/files/zip, server/lib/files-zip.ts); shown once there is a file.
    The shop logo stays inside the data and is not touched here. */
 (function(){
  const S=window.storage,F=S&&S.files;
@@ -22,8 +24,16 @@
  if(typeof renderStoreBox==='function'){const o=window.renderStoreBox;
   window.renderStoreBox=async function(){const r=await o.apply(this,arguments);
    try{const el=document.getElementById('storeInfo');const s=await F.usage(KEY);
-    if(el&&s.known&&!el.querySelector('.pkg-file-space'))el.insertAdjacentHTML('beforeend',`<span class="pkg-file-space"><br>ใช้พื้นที่ไฟล์ <b>${(s.used/MB).toFixed(2)} MB</b> จาก ${gb(s.quota)} GB</span>`);}catch(e){}
+    if(el&&s.known&&!el.querySelector('.pkg-file-space'))el.insertAdjacentHTML('beforeend',`<span class="pkg-file-space"><br>ใช้พื้นที่ไฟล์ <b>${(s.used/MB).toFixed(2)} MB</b> จาก ${gb(s.quota)} GB`
+     +(s.used>0&&ownerHere()?'<br><button type="button" class="btn sm gh pkg-files-zip" style="margin-top:6px">ดาวน์โหลดไฟล์แนบทั้งหมด (.zip)</button>':'')+'</span>');}catch(e){}
    return r;};}
+ /* the owner here, as the backup file asks (61-rights.js): no employee signed in; in a franchise HQ or the branch head */
+ function ownerHere(){if(typeof curEmp==='function'&&curEmp())return false;const a=typeof frAcc==='function'?frAcc():null;return !a||a.role==='HQ'||a.role==='HB';}
+ document.addEventListener('click',e=>{
+  if(!e.target.closest||!e.target.closest('.pkg-files-zip'))return;
+  const a=document.createElement('a');a.href='/api/files/zip?key='+encodeURIComponent(KEY);a.download='';
+  document.body.append(a);a.click();a.remove();
+ });
 
  /* what a picked file is for: a product picture, a knowledge-library file, or something else (evidence, the logo, an import) */
  const useOf=el=>el&&el.closest&&(el.closest('#mImg')||el.id==='imgFile')?'picture':el&&el.id==='lnFile'?'knowledge':'';

@@ -10,7 +10,7 @@
 (()=>{
  if(typeof openTaxNew!=='function'||typeof receiptTotals!=='function'||typeof ensureDocNo!=='function')return;
  const $i=id=>document.getElementById(id),B=()=>window.PKG_BRANCH,SC=()=>window.PKG_STOCK_CUT;
- const esc2=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ const esc2=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const lastTax=r=>{const a=r.taxDocs||[];return a.length?a[a.length-1]:null;};
  const hasTax=r=>{const t=lastTax(r);return !!(t&&!t.cancelled);};
  const here=d=>!B()||B().here(d);

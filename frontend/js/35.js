@@ -5,7 +5,7 @@
    the same right as editing that register. */
 (()=>{
  if(typeof saveCust!=='function'||typeof saveVen!=='function')return;
- const esc2=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ const esc2=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const KINDS={
   cust:{title:'ตั้งค่าทะเบียนลูกค้า',sec:'รหัสลูกค้า',rule:'custRule',list:()=>DB.cust,tbl:'custLTbl',may:()=>can('doc.custEdit'),nameCol:'ชื่อลูกค้า',titleEl:'mCustTitle',audit:'cust'},
   vendor:{title:'ตั้งค่าทะเบียนคู่ค้า',sec:'รหัสคู่ค้า',rule:'venRule',list:()=>DB.vendors,tbl:'venTbl',may:()=>can('doc.venEdit'),nameCol:'ชื่อผู้ขาย',titleEl:'mVenTitle',audit:'vendor'}};

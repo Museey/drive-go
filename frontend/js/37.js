@@ -13,7 +13,7 @@
 (()=>{
  const B=()=>window.PKG_BRANCH;if(!B()||typeof renderHome!=='function')return;
  const $i=id=>document.getElementById(id);
- const esc2=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ const esc2=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const MAIN=B().MAIN;
  const DOCS=['quotes','receipts','invoices','billings','purchases','claims','issues','stockCounts','stockCuts','transfers','custClaims','expenses','assets','hr','warns','moves','crm'];
  const empHome=e=>(e&&(e.branchHome||(Array.isArray(e.branches)&&e.branches[0])))||MAIN;

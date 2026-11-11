@@ -80,3 +80,17 @@ export async function addTestStaff({ ready = false } = {}) {
 }
 // The code the authenticator app shows now, or `ahead` steps of 30 seconds later (a code works once).
 export const appCode = (secret, ahead = 0) => codeAt(secret, stepAt(Date.now()) + ahead);
+
+// A test shop opened from a fixture whose shop data (garage.v22) a test changed first, e.g. to put text in names
+// that no fixture has (S286). change(db) changes the parsed data in place.
+export async function openTestShopWith(dataset, change) {
+  pool ??= new pg.Pool({ connectionString: process.env.DRIVEGO_OWNER_DB, max: 2 });
+  const pkg = dataset.split('-')[0];
+  const code = `t${process.pid.toString(36)}-w${++n}`;
+  const data = readFixture(new URL(`../fixtures/${dataset}.json`, import.meta.url));
+  const db = JSON.parse(data.store['garage.v22']);
+  change(db);
+  data.store['garage.v22'] = JSON.stringify(db);
+  await createShop(pool, { code, pkg, data });
+  return { code };
+}

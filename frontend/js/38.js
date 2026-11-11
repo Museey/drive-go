@@ -12,7 +12,7 @@
 (()=>{
  const B=()=>window.PKG_BRANCH;if(!B())return;
  const $i=id=>document.getElementById(id);
- const esc2=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ const esc2=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const gv=name=>{try{return (0,eval)(name);}catch(e){return null;}};
  function start(){
   const Br=B(),acc=Br.accessible();if(!acc.length)return Br.ctx();

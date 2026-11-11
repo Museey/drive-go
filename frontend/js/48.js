@@ -15,7 +15,7 @@
 (()=>{
  if(typeof DB==='undefined'||typeof renderStock!=='function'||typeof can!=='function')return;
  const $i=id=>document.getElementById(id);
- const esc2=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ const esc2=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const NONE='__none',COL='แบรนด์สินค้า';
  const key=v=>String(v==null?'':v).replace(/\s+/g,' ').trim().toLowerCase();
  const clean=v=>String(v==null?'':v).replace(/\s+/g,' ').trim();

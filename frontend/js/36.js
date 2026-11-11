@@ -7,7 +7,7 @@
 (()=>{
  if(typeof sortRows!=='function')return;
  const BR=()=>window.PKG_BRANCH,$i=id=>document.getElementById(id);
- const esc2=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ const esc2=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const today=()=>iso();
  const rec=x=>x&&(x.obj||x.p||x.r||x.c||x);            /* the stored record behind a register row */
  const apvSt=d=>d.cancelled?'cancel':(apvOf(d).status||'draft');

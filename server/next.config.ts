@@ -15,7 +15,8 @@ const config: NextConfig = {
   agentRules: false,
   // Security headers on every answer (security review 2026-10-31, docs/SECURITY-REVIEW.md). The legacy screens run
   // inline scripts and onclick attributes, and ProX online calls the chain's own server from the browser, so the
-  // Content-Security-Policy only forbids being framed by another site, <base>, plugins and forms posting elsewhere.
+  // Content-Security-Policy forbids being framed by another site, <base>, plugins, forms posting elsewhere and scripts from
+  // anywhere but the app (inline code allowed: the legacy screens need it).
   // Pages may frame the app's own pages and attachments (a PDF attachment shows in an iframe, 03.js). Attachments
   // keep their own policy (app/api/files/[id]).
   async headers() {
@@ -28,7 +29,10 @@ const config: NextConfig = {
     ];
     return [
       { source: '/:path*', headers: common },
-      { source: '/((?!api/files/|ops/).*)', headers: [{ key: 'Content-Security-Policy', value: "frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'" }] },
+      // script-src: script files only from the app itself, so a <script src> from another site never loads (SECURITY-REVIEW 4;
+      // the names and texts a shop types are escaped where they are shown, S286). The legacy screens need inline code,
+      // onclick attributes and eval: ten of their files read a window's open document, a top-level `let`, with (0,eval)('Q').
+      { source: '/((?!api/files/|ops/).*)', headers: [{ key: 'Content-Security-Policy', value: "frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'" }] },
       // The staff web page (app/ops, server/staff-ui) has no inline code: only its own script and style, never framed.
       { source: '/ops/:path*', headers: [{ key: 'Content-Security-Policy', value: STAFF_CSP }] },
     ];

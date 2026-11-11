@@ -16,7 +16,7 @@
  const MAIN='main';
  const TYPE={QO:'QT',RE:'RE',RT:'TX',IV:'IV',BN:'BL',GR:'RC',CL:'CL',IS:'WD',SC:'CT',SA:'SA',CS:'SA',EX:'EX',FA:'FA',WN:'WN',MV:'MV'};
  const $i=id=>document.getElementById(id);
- const esc2=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ const esc2=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const list=()=>Array.isArray(DB.branches)?DB.branches:[];
  const ctx=()=>(DB&&DB.curBranch)||MAIN;
  const get=id=>list().find(b=>b.id===id)||null;

@@ -6,7 +6,7 @@
    Needs stock.edit, like the category manager. */
 (()=>{
  const tbl=document.getElementById('stockTbl');if(!tbl||typeof openCatMgr!=='function')return;
- const esc2=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ const esc2=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const may=()=>can('stock.edit');
  /* ---------- data lists ---------- */
  const ZB=ZONES.slice();   /* the original's A–H */

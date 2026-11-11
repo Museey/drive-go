@@ -74,6 +74,17 @@ try {
   const data = await fetch(`${base}/api/storage/garage.v22`, { headers: { cookie: session } });
   if (data.status !== 200) fail(`the shop's data after signing in: ${data.status}`);
   say('web: signing in to demo-biz gives a Secure session cookie and the shop\'s data');
+  // Every attachment as one zip (answer 11.5): a file uploaded, then the zip streamed by the built app, as long as it says.
+  const picture = Buffer.from('image smoke picture');
+  const up = await fetch(`${base}/api/files?key=garage.v22&use=picture&name=${encodeURIComponent('รูปทดสอบ')}`, {
+    method: 'POST', headers: { cookie: session, 'content-type': 'image/png' }, body: picture });
+  if (up.status !== 200) fail(`uploading a file: ${up.status}`);
+  const zip = await fetch(`${base}/api/files/zip?key=garage.v22`, { headers: { cookie: session } });
+  const zipped = Buffer.from(await zip.arrayBuffer());
+  if (zip.status !== 200 || zip.headers.get('content-type') !== 'application/zip' || Number(zip.headers.get('content-length')) !== zipped.length
+    || zipped.readUInt32LE(0) !== 0x04034b50 || zipped.readUInt32LE(zipped.length - 22) !== 0x06054b50
+    || !zipped.includes(Buffer.from('รูปสินค้า/รูปทดสอบ.png')) || !zipped.includes(picture)) fail(`/api/files/zip: ${zip.status} ${zipped.length} bytes`);
+  say('web: every attachment as one zip, streamed as long as it says');
 
   // The staff tool in the image, as staff run it on the server: a real shop, then a forgotten password.
   const admin = (...args) => docker(['run', '--rm', '--network', 'host', '-e', `MIGRATE_DATABASE_URL=${owner}`, '-e', 'DATABASE_CA_CERT',
@@ -129,7 +140,8 @@ try {
   const shopPage = await fetchAgain(`${base}/demo-biz/`);
   for (const [h, v] of [['strict-transport-security', 'max-age=31536000'], ['x-content-type-options', 'nosniff'], ['x-frame-options', 'SAMEORIGIN'],
     ['referrer-policy', 'same-origin']]) if (shopPage.headers.get(h) !== v) fail(`header ${h}: ${shopPage.headers.get(h)}`);
-  if (!/frame-ancestors 'self'/.test(shopPage.headers.get('content-security-policy') || '')) fail('no content-security-policy');
+  const shopCsp = shopPage.headers.get('content-security-policy') || '';
+  if (!/frame-ancestors 'self'/.test(shopCsp) || !/script-src 'self' /.test(shopCsp)) fail(`content-security-policy: ${shopCsp}`);
   const pub = await (await fetchAgain(`${base}/api/public/smoke-real/dgb.v22`)).json();
   if (JSON.stringify(Object.keys(pub.shop)) !== JSON.stringify(['code', 'name', 'created', 'trialStart', 'licensed', 'licEnd'])) fail(`public shop: ${JSON.stringify(pub.shop)}`);
   say('security: headers on the pages, the sign-in data has no owner, tax ID, address or phone');
