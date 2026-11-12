@@ -4,3 +4,5 @@
    the only styles toHaveScreenshot applies; legacy-app.mjs adds it to screenshotStyle for page.screenshot.
    - 08's sub-item "บัญชีแยกประเภท" (the general ledger, owner 2026-11-11, docs/NOTES.md "บัญชีแยกประเภท"): S288 */
 #acctTabs [data-a="ledger"] { display: none !important; }
+/* - 08's sub-item "ยอดยกมา" (the opening balances, owner 2026-11-11, docs/NOTES.md "ยอดยกมา"): S292 */
+#acctTabs [data-a="opening"] { display: none !important; }

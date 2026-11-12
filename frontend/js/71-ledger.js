@@ -62,7 +62,7 @@
  const rem=a=>n(a.qty)-n(a.back);
  const allocCost=no=>{let v=0,d='';(fifo().allocs||[]).forEach(a=>{if(a&&a.refNo===no){v+=rem(a)*n(a.cost);if(!d||a.date<d)d=a.date;}});return {v:r2(v),date:d};};
 
- function entries(){
+ function entries(o){
   const out=[];
   const E=(date,no,desc,src)=>{const e={date:String(date||'').slice(0,10),no:no||'',desc:desc||'',src:src||'',lines:[]};
    e.dr=(a,v)=>{v=r2(v);if(a&&Math.abs(v)>=EPS)e.lines.push(v>0?{a,dr:v,cr:0}:{a,dr:0,cr:-v});return e;};
@@ -241,24 +241,33 @@
   (DB.stock||[]).forEach(s=>{if(!s||lotted.has(s.id)||cut.has(s.id))return;const v=r2(Math.max(0,n(s.qty))*n(s.cost));if(v>EPS)open.set('',r2((open.get('')||0)+v));});
   open.forEach((v,d)=>E(d,'','ยอดยกมา · สินค้าคงเหลือ','open').dr(A('inv'),v).cr(A('capital'),v));
 
+  /* ---------- J32 the opening balances (73-opening.js): the books start on their day ---------- */
+  /* what was before that day is the opening entry the shop typed (its trial balance on the day before): every entry
+     dated earlier is left out, the VAT months before it are not closed and input VAT carried starts from its 1055 */
+  const OP=!(o&&o.raw)&&DB.opening&&DB.opening.date?DB.opening:null;   /* raw: as if the shop had none (73-opening.js fills from it) */
+  if(OP){for(let i=out.length-1;i>=0;i--)if(!(out[i].date>=OP.date))out.splice(i,1);
+   const e=E(OP.date,'','ยอดยกมา','opening');(OP.lines||[]).forEach(l=>{if(!l||!l.a)return;e.dr(l.a,n(l.dr));e.cr(l.a,n(l.cr));});}
+
   /* ---------- J29 a closed VAT month: output VAT less input VAT ---------- */
   /* every month that has ended (a VAT return is filed for each), and a month closed early in the tax report */
-  const TP=DB.taxPeriods||{},cur=today.slice(0,7),vm=new Set(Object.keys(TP).filter(mo=>TP[mo]&&TP[mo].closed));
+  const TP=DB.taxPeriods||{},cur=today.slice(0,7),start=OP?OP.date.slice(0,7):'';
+  const vm=new Set(Object.keys(TP).filter(mo=>TP[mo]&&TP[mo].closed&&mo>=start));
   out.forEach(e=>{const mo=e.date.slice(0,7);if(mo&&mo<cur&&e.lines.some(l=>l.a===A('vatOut')||l.a===A('vatIn')))vm.add(mo);});
   const closed=[...vm].sort();
   if(closed.length){let carry=0;
+   if(OP)(OP.lines||[]).forEach(l=>{if(l&&l.a===A('vatClaim'))carry=r2(carry+n(l.dr)-n(l.cr));});
    closed.forEach(mo=>{let outV=0,inV=0;
     out.forEach(e=>{if(e.date.slice(0,7)!==mo||e.src==='vat')return;e.lines.forEach(l=>{if(l.a===A('vatOut'))outV+=l.cr-l.dr;else if(l.a===A('vatIn'))inV+=l.dr-l.cr;});});
     outV=r2(outV);inV=r2(inV);const due=r2(outV-inV-carry),end=monthEnd(mo);
     const e=E(end,'','ปิดงวดภาษีมูลค่าเพิ่ม (ภ.พ.30) '+moTh(mo),'vat').dr(A('vatOut'),outV).cr(A('vatIn'),inV);
     if(due>=0){e.cr(A('vatClaim'),carry).cr(A('vatDue'),due);carry=0;}else{const now=r2(-due);e.dr(A('vatClaim'),r2(now-carry));carry=now;}});}
   /* ---------- J29 ภ.พ.30 paid (72-vat-remit.js): DB.taxPeriods[mo].remit ---------- */
-  Object.keys(TP).sort().forEach(mo=>{const r=TP[mo]&&TP[mo].remit,v=r2(r&&r.amt);if(!r||!r.done||!r.pvNo||!(v>EPS))return;
+  Object.keys(TP).sort().forEach(mo=>{const r=TP[mo]&&TP[mo].remit,v=r2(r&&r.amt);if(!r||!r.done||!r.pvNo||!(v>EPS)||(OP&&!(String(r.date)>=OP.date)))return;
    E(r.date,r.pvNo,'นำส่งภาษีมูลค่าเพิ่ม (ภ.พ.30) '+moTh(mo),'vatpay').dr(A('vatDue'),v).cr(accOfLabel(r.method),v);});
 
   out.forEach(e=>{e.dr=undefined;e.cr=undefined;delete e.dr;delete e.cr;e.lines=e.lines.filter(l=>l.dr>=EPS||l.cr>=EPS);});
   /* by day; within a day in the order the documents were built (a sale before its payment, a document before its cost) */
-  return out.filter(e=>e.lines.length).sort((a,b)=>a.date.localeCompare(b.date));
+  return out.filter(e=>e.lines.length).sort((a,b)=>a.date.localeCompare(b.date)||(a.src==='opening'?-1:b.src==='opening'?1:0));   /* the opening balances first on their day */
  }
 
  /* ---------- reading the journal ---------- */
@@ -276,6 +285,12 @@
   let bal=r2(open);rows.forEach(r=>{bal=r2(bal+r.dr-r.cr);r.bal=bal;});
   return {code,name:nameOf(code),debitSide:debitSide(code),open:r2(open),rows,dr:r2(rows.reduce((t,r)=>t+r.dr,0)),cr:r2(rows.reduce((t,r)=>t+r.cr,0)),close:bal};
  }
+ /* what the documents say before a day, without opening balances (73-opening.js): every account, the profit-and-loss
+    accounts for that day's year only (earlier years in 3030) */
+ function before(day){
+  const y0=String(day).slice(0,4)+'-01-01',ret=A('retained'),m=new Map(),add=(a,v)=>m.set(a,r2((m.get(a)||0)+v));
+  entries({raw:true}).forEach(e=>{if(!(e.date<day))return;e.lines.forEach(l=>{const v=l.dr-l.cr;if(isPL(l.a)&&e.date<y0)add(ret,v);else add(l.a,v);});});
+  return m;}
  /* every account's balance on a day, the profit-and-loss accounts for its year only (earlier years in 3030) */
  function balances(to,list){
   const es=list||entries(),y0=String(to).slice(0,4)+'-01-01',ret=A('retained'),m=new Map();
@@ -295,7 +310,7 @@
  /* stock value in the stock register (FIFO lots less what left them) on a day: account 1040 should say the same */
  function fifoValue(to){let v=0;(fifo().lots||[]).forEach(l=>{if(l&&String(l.date||'')<=to)v+=n(l.qty)*n(l.cost);});
   (fifo().allocs||[]).forEach(a=>{if(a&&String(a.date||'')<=to)v-=rem(a)*n(a.cost);});return r2(v);}
- window.PKG_LEDGER={entries,account,balances,check,codes,nameOf,typeOf,fifoValue,sys,vat,NEW};
+ window.PKG_LEDGER={entries,account,balances,before,check,codes,nameOf,typeOf,fifoValue,sys,vat,NEW};
 
  /* ---------- 08 บัญชี - การเงิน → บัญชีแยกประเภท (proposal Q3 of round 3, owner 2026-11-11): an account, or every
     account that moved, between two days — the balance brought forward, each entry with the running balance, the

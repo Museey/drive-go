@@ -1002,6 +1002,11 @@
       "scenario": "S291-pay-vat-return-pp30.spec.ts",
       "decision": "the owner's decisions after accountant round 3, 2026-11-11: \"เอาตามที่คุณเสนอทุกข้อเลยครับ\" (docs/ACCOUNTANT-ANSWERS.md), item 4 (J29)",
       "why": "A month's ภ.พ.30 is paid from the tax report as ภ.ง.ด.3 / 53 are remitted: the month's own VAT, the input VAT carried in and out and what the system works out to pay; the amount paid on the return filed, one payment voucher to กรมสรรพากร, the general ledger and the trial balance on 2040; the owner cancels it with a reason. The legacy app recorded no VAT payment."
+    },
+    {
+      "scenario": "S292-opening-balances-start-date.spec.ts",
+      "decision": "the owner's decisions after accountant round 3, 2026-11-11: \"เอาตามที่คุณเสนอทุกข้อเลยครับ\" (docs/ACCOUNTANT-ANSWERS.md), item 6 (J32)",
+      "why": "Menu 08 has \"ยอดยกมา\": the day the books start and every account's balance on the day before, filled from the documents and corrected by the shop, saved when debits equal credits; the general ledger then starts on that day with one opening entry and leaves earlier entries out, and input VAT carried to the VAT returns starts from what was entered. The legacy app had no opening balances. Screenshots compared with the legacy goldens leave the new sub-item out (tests/support/screenshot-new-items.css)."
     }
   ]
 }

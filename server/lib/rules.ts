@@ -368,7 +368,7 @@ async function peopleRules(s: Save, who: Who): Promise<string | null> {
 
 // Settings: the organisation's settings "ตั้งค่าองค์กร · ภาษี · อายุการใช้งาน" (doc.orgEdit, saveSetting and the
 // social security figures, branches 19.js) and the chart of accounts and its mapping "จัดการผังบัญชีและการผูกบัญชี"
-// (doc.coa). Fields the screens write without a right are left out: the logo, the licence dates and, in a franchise,
+// (doc.coa), and the opening balances (DB.opening, 73-opening.js) with it. Fields the screens write without a right are left out: the logo, the licence dates and, in a franchise,
 // what the chain copies into each branch when it opens (name, branch, phone, address). A chart or a branch list made
 // for the first time (the app fills in its defaults when there is none) goes through.
 const ORG_FIELDS = ['type', 'vatReg', 'person', 'company', 'tax', 'email', 'web', 'stale', 'warrM', 'warr', 'ssoRate', 'ssoMin',
@@ -391,6 +391,11 @@ async function settingsRules(s: Save, who: Who, pkg: string): Promise<string | n
       const map = await s.whole('DB.map');
       if (map.touched && !same(map.old, map.now)) return 'DB.map';
     }
+  }
+  // The opening balances (73-opening.js, J32): with the chart of accounts' right.
+  if (!who.can('doc.coa')) {
+    const op = await s.whole('DB.opening');
+    if (op.touched && !same(op.old, op.now)) return 'DB.opening';
   }
   return null;
 }

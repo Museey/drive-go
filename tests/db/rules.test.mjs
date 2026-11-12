@@ -412,4 +412,12 @@ describe('ตั้งค่าองค์กรและผังบัญช�
     assert.equal(await check('EMP008', save(['DB.map', '', { ...DB.map, sale: '9999' }])), 'DB.map');
     assert.equal(await check('EMP004', save(['DB.coa', acc.code, { ...acc, name: 'x' }])), null);
   });
+
+  test('ยอดยกมาบันทึกได้เฉพาะเจ้าของหรือผู้มีสิทธิ์ผังบัญชี (73-opening.js)', async () => {
+    const { check } = await shop();
+    const opening = { date: '2026-10-01', lines: [{ a: '1010', dr: 100, cr: 0 }, { a: '3010', dr: 0, cr: 100 }] };
+    assert.equal(await check('EMP008', save(['DB.opening', '', opening])), 'DB.opening');
+    assert.equal(await check('EMP004', save(['DB.opening', '', opening])), null);
+    assert.equal(await check('owner', save(['DB.opening', '', opening])), null);
+  });
 });
