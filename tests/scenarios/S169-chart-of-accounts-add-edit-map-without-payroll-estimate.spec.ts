@@ -15,8 +15,10 @@ test('S169 ระบบใหม่: ผังบัญชี เพิ่มบ
   // the year's 6130; the input VAT of the asset bought in 2569 (the POS computer, 2,240.00) is in 1050.
   // Accountant review 7.2 (the owner's decision of 2026-10-28): the current year counts up to today (13/10/2569),
   // worked out apart from the app's code.
+  // J28 (the owner's decisions of 2026-11-11 and 2026-11-12, S293): the capital menu's other income and expenses are in
+  // the books — 4030 25,000.00 (scrap metal sold) and 6190 18,000.00 (car park improved).
   const ASSETS: [string, string][] = [['1050', '2,240.00'], ['1221', '254,015.89'], ['1231', '49,782.53'], ['1261', '17,735.59'],
-    ['1271', '5,406.23'], ['1281', '37,941.45'], ['6130', '128,581.02']];
+    ['1271', '5,406.23'], ['1281', '37,941.45'], ['6130', '128,581.02'], ['4030', '25,000.00'], ['6190', '18,000.00']];
   const payroll = () => ['1010', '2060', '6010', '6011', ...ASSETS.map(([c]) => c)].map(bal);
   await app.loginAsOwner();
   await golden.step('หน้าแรก');

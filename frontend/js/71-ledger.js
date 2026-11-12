@@ -226,6 +226,10 @@
   const CAP={invest:['เงินลงทุน','cash','capital'],draw:['ถอนทุน','draw','cash'],loan:['กู้ยืม','cash','loan'],repay:['คืนเงินกู้','loan','cash'],
    other_in:['รายรับอื่น','cash','revOther'],other_out:['รายจ่ายอื่น','other','cash']};
   (DB.capital||[]).forEach(x=>{const k=x&&CAP[x.type];if(!k)return;const v=r2(x.amt),acc=r=>r==='other'?expAcc('ค่าใช้จ่ายเบ็ดเตล็ด'):A(r);
+   /* J28 other income / expense (74-other-income.js): the account chosen, the VAT inside the amount */
+   if(x.type==='other_in'||x.type==='other_out'){const vat=r2(x.vat),base=vat>EPS?r2(x.base):v,a=x.acc||acc(x.type==='other_in'?'revOther':'other');
+    const e=E(x.date,x.taxNo||x.inv||'',k[0]+(x.note?' · '+x.note:'')+(x.buyer||x.payee?' · '+(x.buyer||x.payee):''),'cap');
+    if(x.type==='other_in')e.dr(A('cash'),v).cr(a,base).cr(A('vatOut'),vat);else e.dr(a,base).dr(A('vatIn'),vat).cr(A('cash'),v);return;}
    E(x.date,'',k[0]+(x.note?' · '+x.note:''),'cap').dr(acc(k[1]),v).cr(acc(k[2]),v);});
 
   /* ---------- stock that was there before the documents, and stock from the franchise HQ / the chain's DC ---------- */

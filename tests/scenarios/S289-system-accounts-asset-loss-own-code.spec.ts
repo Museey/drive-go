@@ -42,12 +42,13 @@ test('S289 ระบบใหม่: บัญชีที่ระบบลง�
   await page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).last().click();
   await expect(row('เครื่องเติมน้ำยาแอร์อัตโนมัติ')).toContainText('จำหน่ายแล้ว');
 
-  // The trial balance: the loss on 6141 under its name, nothing on the shop's 6140 or on 6190.
+  // The trial balance: the loss on 6141 under its name, nothing on the shop's 6140, nothing more on 6190.
   await page.getByRole('button', { name: '└ ผังบัญชี', exact: true }).click();
   const tb = (code: string) => page.locator('#tbTbl').getByRole('row').filter({ has: page.getByRole('cell', { name: code, exact: true }) });
   await expect(tb('6141').getByRole('cell')).toHaveText(['6141', 'ขาดทุนจากการจำหน่ายสินทรัพย์', '6 · ค่าใช้จ่ายในการขายและบริหาร', '40,109.27', '']);
   await expect(tb('6140')).toHaveCount(0);
-  await expect(tb('6190')).toHaveCount(0);
+  // 6190 has the trial data's other expense of 18/05/2569 only (J28, S293), not the loss.
+  await expect(tb('6190').getByRole('cell').nth(3)).toHaveText('18,000.00');
 
   // The general ledger: the write-off on its day, the asset's number.
   await page.getByRole('button', { name: '└ บัญชีแยกประเภท', exact: true }).click();

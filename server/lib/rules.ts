@@ -127,6 +127,8 @@ const TAX_FIELDS: Record<string, string[]> = {
   'DB.purchases': ['date', 'vendorId', 'inv', 'disc', 'vat', 'items', 'cancelled'],
   'DB.expenses': ['date', 'payee', 'tax', 'inv', 'base', 'vat'],
   'DB.assets': ['date', 'vat', 'inv', 'vendor', 'vendorId', 'cost', 'cancelled'],
+  // other income / expenses with VAT (74-other-income.js)
+  'DB.capital': ['date', 'type', 'amt', 'acc', 'rate', 'base', 'vat', 'taxNo', 'custId', 'buyer', 'buyerTax', 'inv', 'payee', 'payeeTax'],
 };
 // A sale's adjustments other than those of credit notes, and its tax invoices that were cancelled.
 const ownAdj = (x?: Rec) => ((x?.adj as Rec[] | undefined) || []).filter(a => a && !a.cn);

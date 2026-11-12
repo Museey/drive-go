@@ -13,7 +13,9 @@ import { legacyGolden } from '../support/legacy-golden';
 // - R17, answers 13.1, 13.7, 13.9 (task 3.13, as S214): depreciation by the day up to today: 6130 128,581.02 and the
 //   accumulated depreciation 1221, 1231, 1261, 1271, 1281 (the asset register's, S455), and the input VAT of the POS
 //   computer in 1050 (2,240.00);
-// - the totals follow (3,577,432.97 / 3,861,753.97; the trial balance is still worked out from totals with the
+// - J28 (the owner's decisions of 2026-11-11 and 2026-11-12, S293): the other income and expenses of the capital menu are
+//   in the books: 4030 25,000.00 (scrap metal sold, 12/02/2569) and 6190 18,000.00 (car park improved, 18/05/2569);
+// - the totals follow (3,595,432.97 / 3,886,753.97; the trial balance is still worked out from totals with the
 //   estimates' footnote, docs/NOTES.md, so it does not balance, as in the legacy app).
 // Every step is S383's.
 const S383 = 'S383-chart-trial-balance-csv-statements-print.spec.ts';
@@ -43,10 +45,12 @@ const ROWS = [
   '3020 | ถอนทุน / เงินใช้ส่วนตัว | 3 · ส่วนของเจ้าของ | 660,000.00 | ',
   '4010 | รายได้จากการขายอะไหล่ | 4 · รายได้ |  | 44,385.33',
   '4020 | รายได้ค่าแรงและบริการซ่อม | 4 · รายได้ |  | 7,500.00',
+  '4030 | รายได้อื่น | 4 · รายได้ |  | 25,000.00',                          // new (J28)
   '5010 | ต้นทุนอะไหล่และวัสดุที่ขาย | 5 · ต้นทุนขาย | 25,390.00 | ',
   '6030 | ค่าไฟฟ้า | 6 · ค่าใช้จ่ายในการขายและบริหาร | 28,500.00 | ',
   '6130 | ค่าเสื่อมราคา | 6 · ค่าใช้จ่ายในการขายและบริหาร | 128,581.02 | ',          // legacy 165,198.35
-  'รวมทั้งสิ้น | 3,577,432.97 | 3,861,753.97',                                       // legacy 5,210,666.30 / 5,518,857.93
+  '6190 | ค่าใช้จ่ายเบ็ดเตล็ด | 6 · ค่าใช้จ่ายในการขายและบริหาร | 18,000.00 | ',     // new (J28)
+  'รวมทั้งสิ้น | 3,595,432.97 | 3,886,753.97',                                       // legacy 5,210,666.30 / 5,518,857.93
 ];
 async function csvOf(page: Page, button: string) {
   const download = page.waitForEvent('download');
