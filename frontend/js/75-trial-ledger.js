@@ -12,8 +12,13 @@
  const L=window.PKG_LEDGER;
  if(!L||typeof trialBalance!=='function')return;
  const r2=v=>Math.round((+v||0)*100)/100;
+ /* the journal once per task: 08 → ผังบัญชี asks for the trial balance twice in one drawing (the chart's balances and the
+    table); a shop with three years of documents takes about a second to build it */
+ let memo=null;
+ const list=()=>{const k=[DB,DB.receipts,DB.stock,DB.capital];if(memo&&memo.k.every((x,i)=>x===k[i]))return memo.v;
+  const v=L.entries();memo={k,v};Promise.resolve().then(()=>{memo=null;});return v;};
  window.trialBalance=function(y){
-  return L.balances(String(y)+'-12-31').map(r=>({code:r.code,name:r.name,type:r.type,debit:r2(r.debit),credit:r2(r.credit)}));};
+  return L.balances(String(y)+'-12-31',list()).map(r=>({code:r.code,name:r.name,type:r.type,debit:r2(r.debit),credit:r2(r.credit)}));};
 
  /* the text under the table */
  const NOTE='งบทดลองนี้มาจากบัญชีแยกประเภทที่สร้างจากเอกสารในระบบ ผู้ทำบัญชีควรตรวจและปรับปรุงรายการก่อนปิดงบและนำส่งกรมสรรพากร';

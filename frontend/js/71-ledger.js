@@ -21,7 +21,7 @@
    · Stock that moved with no document at all (a quantity typed into the register, older data) is booked against the
      owner's capital both ways, like the stock that was there before; stock taken out by a repair quote's approval in
      the legacy app and never billed is not booked (the ledger page tells the difference from the stock register).
-   · J27–J28 the capital menu (no document number); J29 each month that has ended (and one closed early in the tax
+   · J27–J28 the capital menu (no document number; cash taken to the bank and back, 76-cash-bank.js); J29 each month that has ended (and one closed early in the tax
      report): output VAT less input VAT to VAT payable (2040), or input VAT left over carried as 1055; the shop's stock that was there before the documents ("ยอดยกมา") and
      stock from the franchise HQ / the chain's DC (to payables, J26 for now).
    PKG_LEDGER.entries() → the entries; .account(code, from, to) → opening balance, lines with running balance, totals;
@@ -224,7 +224,9 @@
 
   /* ---------- J27–J28 capital menu ---------- */
   const CAP={invest:['เงินลงทุน','cash','capital'],draw:['ถอนทุน','draw','cash'],loan:['กู้ยืม','cash','loan'],repay:['คืนเงินกู้','loan','cash'],
-   other_in:['รายรับอื่น','cash','revOther'],other_out:['รายจ่ายอื่น','other','cash']};
+   other_in:['รายรับอื่น','cash','revOther'],other_out:['รายจ่ายอื่น','other','cash'],
+   /* cash taken to the bank and back (76-cash-bank.js, owner 2026-11-12) */
+   deposit:['ฝากเงินสดเข้าธนาคาร','bank','cash'],withdraw:['ถอนเงินจากธนาคารเป็นเงินสด','cash','bank']};
   (DB.capital||[]).forEach(x=>{const k=x&&CAP[x.type];if(!k)return;const v=r2(x.amt),acc=r=>r==='other'?expAcc('ค่าใช้จ่ายเบ็ดเตล็ด'):A(r);
    /* J28 other income / expense (74-other-income.js): the account chosen, the VAT inside the amount */
    if(x.type==='other_in'||x.type==='other_out'){const vat=r2(x.vat),base=vat>EPS?r2(x.base):v,a=x.acc||acc(x.type==='other_in'?'revOther':'other');

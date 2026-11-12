@@ -37,7 +37,8 @@ async function figures(page: Page) {
     fee: await cellOf(page, '#plTbl', '4030 บวก รายได้อื่น (ค่าธรรมเนียมบัตรที่เรียกเก็บจากลูกค้า)'),
     np: await cellOf(page, '#plTbl', 'กำไร (ขาดทุน) สุทธิก่อนภาษี'),
     revenue: await cellOf(page, '#plTbl', /รายได้จากการขายและบริการ$/),
-    cash: await cellOf(page, '#bsTbl', 'เงินสดและเงินฝากธนาคาร (ประมาณการ)'),
+    cash: await cellOf(page, '#bsTbl', 'เงินสดและเงินฝากธนาคาร'),
+    taxDue: await cellOf(page, '#bsTbl', 'ภาษีและเงินสมทบค้างนำส่ง (ภาษีขาย ภาษีมูลค่าเพิ่ม ภาษีหัก ณ ที่จ่าย ประกันสังคม)'),
     ar: await cellOf(page, '#bsTbl', 'ลูกหนี้การค้า'),
     equity: await cellOf(page, '#bsTbl', 'ส่วนของเจ้าของ (ทุน + กำไรสะสม)'),
     cashIn: await cellOf(page, '#cfTbl', 'เงินสดรับจากลูกค้า'),
@@ -96,14 +97,16 @@ test('S255 ระบบใหม่: ค่าธรรมเนียมบั�
   await expect(page.locator('#taxSumTbl').getByText('รวมค่าธรรมเนียมบัตรที่เรียกเก็บจากลูกค้า 218.28 บาท: ก่อน VAT 204.00 ภาษีขาย 14.28 (เอกสารที่เป็นใบกำกับภาษีรอผู้ทำบัญชี)', { exact: true })).toBeVisible();
 
   // The statements: other income 204.00 on its own row, the sales as they were, the net profit 204.00 more;
-  // the money: the sale's 7,276.00 from the receivable to cash, and the fee's 218.28 more cash, equity and money
-  // received from customers in the cash flow.
+  // the money: the sale's 7,276.00 from the receivable to cash, and the fee's 218.28 more cash and money received from
+  // customers in the cash flow. Since the statements are the general ledger's (the owner's decision of 2026-11-12) the
+  // balance sheet has the tax to remit: the fee's VAT 14.28 there, equity 204.00 more (218.28 before).
   expect(after.fs.fee).toBe(204);
   expect(after.fs.revenue).toBe(before.fs.revenue);
   expect(after.fs.np).toBeCloseTo(before.fs.np! + 204, 2);
   expect(after.fs.ar).toBeCloseTo(before.fs.ar! - 7276, 2);
   expect(after.fs.cash).toBeCloseTo(before.fs.cash! + 7276 + 218.28, 2);
-  expect(after.fs.equity).toBeCloseTo(before.fs.equity! + 218.28, 2);
+  expect(after.fs.equity).toBeCloseTo(before.fs.equity! + 204, 2);
+  expect(after.fs.taxDue).toBeCloseTo(before.fs.taxDue! + 14.28, 2);
   expect(after.fs.cashIn).toBeCloseTo(before.fs.cashIn! + 7276 + 218.28, 2);
 
   // The trial balance: 4030 other income credited 204.00, 2030 output VAT 14.28.

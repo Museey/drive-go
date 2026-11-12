@@ -901,7 +901,7 @@
     {
       "scenario": "S255-card-fee-other-income-with-vat.spec.ts",
       "decision": "accountant review 3.2, owner follows accountant B (2026-10-28), fee includes VAT, other income",
-      "why": "The card fee charged to the customer is other income (4030) with output VAT in it: tax report, home tax card, statements, trial balance, monthly table, daily report, payment window note."
+      "why": "The card fee charged to the customer is other income (4030) with output VAT in it: tax report, home tax card, statements, trial balance, monthly table, daily report, payment window note. Since 2026-11-12 the statements are the general ledger's (S294): the balance sheet's cash row is \"เงินสดและเงินฝากธนาคาร\" and the fee's VAT is in the tax to remit, so equity grows by 204.00, not 218.28."
     },
     {
       "scenario": "S256-payroll-voucher-both-expenses-with-account-codes.spec.ts",
@@ -1012,6 +1012,16 @@
       "scenario": "S293-other-income-expense-account-vat.spec.ts",
       "decision": "the owner's decisions after accountant round 3: 2026-11-11 item 3 (J28) and 2026-11-12 \"เอาตามที่เสนอทุกข้อ\" (its VAT, docs/NOTES.md)",
       "why": "Other income and other expenses of the capital menu are in the profit and loss on an account the shop picks (4030 / 6190 first), and may carry VAT: other income issues a tax invoice / receipt to a customer of the register and is in the sales tax report, other expenses need the vendor's tax invoice number and are in the purchase tax report. The legacy app moved only cash."
+    },
+    {
+      "scenario": "S294-statements-from-general-ledger.spec.ts",
+      "decision": "the owner's decisions of 2026-11-12: the statements are read from the general ledger, and the proposal of docs/NOTES.md \"ข้อเสนอ: งบการเงินจากบัญชีแยกประเภท\" (\"เอาตามที่เสนอทุกข้อ ข้อความอนุมัติได้เลยครับ\")",
+      "why": "08 งบการเงิน is written from the general ledger: the profit and loss in its old rows; the balance sheet on 31 December with the tax to claim and to remit, other assets / liabilities and equity as capital, profit brought forward and the year's profit (it balances); the cash flow from the money in and out of cash and bank, with the cash at the start, the taxes paid, other income and expenses and assets sold. The legacy statements were estimates: equity was what was left and cash an accumulated estimate."
+    },
+    {
+      "scenario": "S295-deposit-cash-withdraw-from-bank.spec.ts",
+      "decision": "the owner's decision of 2026-11-12 (\"เอาตามที่เสนอทุกข้อ ข้อความอนุมัติได้เลยครับ\", docs/NOTES.md)",
+      "why": "The capital menu records cash taken to the bank and money taken out of the bank as cash; the general ledger moves the amount between 1010 and 1020 and the business's money as a whole does not change. The legacy app had no bank account apart from cash."
     }
   ]
 }
