@@ -4,7 +4,9 @@
 // round them is refused (403, nothing written). The checks read the save as it will be written (after the hidden
 // values are put back and the costs filled in, storage.ts / costing.ts) against what is stored.
 //
-//   tax periods           closing a month (DB.taxPeriods): the owner or "ปิดงวดภาษี" (doc.taxClose); opening it again: the owner
+//   tax periods           closing a month (DB.taxPeriods): the owner or "ปิดงวดภาษี" (doc.taxClose); opening it again: the owner;
+//                         paying its ภ.พ.30 (its remit, 72-vat-remit.js): the owner or "การเงิน" (doc.fin), on a month not paid,
+//                         nothing else of the month changed; changing or cancelling a payment: the owner
 //   a closed month        documents with VAT dated in it (sales, goods receipts, expenses, assets): nothing that changes their
 //                         tax (date, party, invoice number, lines, discount, VAT, amounts), no cancelling, revising, adjusting
 //                         or removing them, and no new one — for everyone (56-tax-period.js); money in and out still goes;
@@ -130,6 +132,11 @@ const TAX_FIELDS: Record<string, string[]> = {
 const ownAdj = (x?: Rec) => ((x?.adj as Rec[] | undefined) || []).filter(a => a && !a.cn);
 const cancelledTax = (x?: Rec) => ((x?.taxDocs as Rec[] | undefined) || []).filter(d => d && d.cancelled).map(d => d.no);
 
+// A month's ภ.พ.30 paid (72-vat-remit.js): only its remit changes, from none (or one cancelled) to one paid.
+const withoutRemit = (o?: Rec) => { const c: Rec = { ...(o || {}) }; delete c.remit; return c; };
+const paysVat = (was?: Rec, now?: Rec) => same(withoutRemit(was), withoutRemit(now))
+  && !(isObj(was?.remit) && (was!.remit as Rec).done) && isObj(now?.remit) && (now!.remit as Rec).done === true;
+
 async function taxPeriodRules(s: Save, who: Who): Promise<string | null> {
   const tp = await s.whole('DB.taxPeriods');
   if (tp.touched) {
@@ -138,7 +145,8 @@ async function taxPeriodRules(s: Save, who: Who): Promise<string | null> {
       const was = isObj(tp.old?.[mo]) ? tp.old![mo] as Rec : undefined, now = isObj(tp.now?.[mo]) ? tp.now![mo] as Rec : undefined;
       if (same(was, now)) continue;
       const closing = !!now?.closed && !was?.closed;
-      if (!who.owner && !(closing && who.can('doc.taxClose') && same((was?.hist as unknown[] | undefined) || [], ((now?.hist as unknown[]) || []).slice(0, -1))))
+      if (!who.owner && !(closing && who.can('doc.taxClose') && same((was?.hist as unknown[] | undefined) || [], ((now?.hist as unknown[]) || []).slice(0, -1)))
+        && !(paysVat(was, now) && who.can('doc.fin')))
         return `DB.taxPeriods|${mo}`;
     }
   }

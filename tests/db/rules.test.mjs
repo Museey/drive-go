@@ -68,6 +68,25 @@ describe('งวดภาษี (งาน 3.3)', () => {
     assert.equal(await check('owner', save(['DB.taxPeriods', '', open])), null);
   });
 
+  test('บันทึกนำส่ง ภ.พ.30 ได้เฉพาะเจ้าของหรือผู้มีสิทธิ์การเงิน เฉพาะเดือนที่ยังไม่ได้นำส่ง ยกเลิกได้เฉพาะเจ้าของ (72-vat-remit.js)', async () => {
+    const { check, put, grant } = await shop();
+    const remit = { done: true, date: '2026-11-10', method: 'เงินโอน', pvNo: 'MA-PV261100001', amt: 1234.5 };
+    const paid = { '2026-10': { remit } };
+    assert.equal(await check('EMP008', save(['DB.taxPeriods', '', paid])), 'DB.taxPeriods|2026-10');
+    await grant('EMP008', 'doc.fin');
+    assert.equal(await check('EMP008', save(['DB.taxPeriods', '', paid])), null);
+    // with it, nothing else of the month may change: not closing it here
+    assert.equal(await check('EMP008', save(['DB.taxPeriods', '', { '2026-10': { remit, closed: true } }])), 'DB.taxPeriods|2026-10');
+    await put('DB.taxPeriods', '', paid);
+    // paid already: changing or cancelling it is the owner's
+    const voided = { '2026-10': { remit: { done: false, date: '', voided: { pvNo: 'MA-PV261100001', reason: 'x' } } } };
+    assert.equal(await check('EMP008', save(['DB.taxPeriods', '', voided])), 'DB.taxPeriods|2026-10');
+    assert.equal(await check('owner', save(['DB.taxPeriods', '', voided])), null);
+    await put('DB.taxPeriods', '', voided);
+    // cancelled: paid again by the same staff
+    assert.equal(await check('EMP008', save(['DB.taxPeriods', '', { '2026-10': { remit: { ...remit, pvNo: 'MA-PV261100002' } } }])), null);
+  });
+
   test('เดือนที่ปิดงวดแล้ว: เอกสารที่มี VAT แก้ส่วนที่มีผลต่อภาษี ยกเลิก หรือสร้างใหม่ไม่ได้ แม้เป็นเจ้าของ รับเงินได้ตามปกติ', async () => {
     const { DB, check, put } = await shop();
     await put('DB.taxPeriods', '', { '2026-10': { closed: true, hist: [] } });

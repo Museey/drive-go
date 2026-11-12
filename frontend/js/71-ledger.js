@@ -252,6 +252,9 @@
     outV=r2(outV);inV=r2(inV);const due=r2(outV-inV-carry),end=monthEnd(mo);
     const e=E(end,'','ปิดงวดภาษีมูลค่าเพิ่ม (ภ.พ.30) '+moTh(mo),'vat').dr(A('vatOut'),outV).cr(A('vatIn'),inV);
     if(due>=0){e.cr(A('vatClaim'),carry).cr(A('vatDue'),due);carry=0;}else{const now=r2(-due);e.dr(A('vatClaim'),r2(now-carry));carry=now;}});}
+  /* ---------- J29 ภ.พ.30 paid (72-vat-remit.js): DB.taxPeriods[mo].remit ---------- */
+  Object.keys(TP).sort().forEach(mo=>{const r=TP[mo]&&TP[mo].remit,v=r2(r&&r.amt);if(!r||!r.done||!r.pvNo||!(v>EPS))return;
+   E(r.date,r.pvNo,'นำส่งภาษีมูลค่าเพิ่ม (ภ.พ.30) '+moTh(mo),'vatpay').dr(A('vatDue'),v).cr(accOfLabel(r.method),v);});
 
   out.forEach(e=>{e.dr=undefined;e.cr=undefined;delete e.dr;delete e.cr;e.lines=e.lines.filter(l=>l.dr>=EPS||l.cr>=EPS);});
   /* by day; within a day in the order the documents were built (a sale before its payment, a document before its cost) */
@@ -283,10 +286,16 @@
  }
  const check=list=>(list||entries()).filter(e=>Math.abs(r2(e.lines.reduce((t,l)=>t+l.dr-l.cr,0)))>=0.01);
  const codes=list=>[...new Set((list||entries()).flatMap(e=>e.lines.map(l=>l.a)))].sort();
+ /* a month's VAT return (J29): output and input VAT, input VAT carried from earlier months and used, what is owed, and
+    what is carried to the next month (1055) — read from the month's close; null when the month has none */
+ function vat(mo,list){const L=list||entries(),e=L.find(x=>x.src==='vat'&&x.date.slice(0,7)===mo);if(!e)return null;
+  const s=(code,k)=>r2(e.lines.filter(l=>l.a===code).reduce((t,l)=>t+l[k],0)),c=A('vatClaim');
+  let carried=0;L.forEach(x=>{if(x.date<=e.date)x.lines.forEach(l=>{if(l.a===c)carried+=l.dr-l.cr;});});
+  return {date:e.date,out:s(A('vatOut'),'dr'),in:s(A('vatIn'),'cr'),used:s(c,'cr'),due:s(A('vatDue'),'cr'),carried:r2(carried)};}
  /* stock value in the stock register (FIFO lots less what left them) on a day: account 1040 should say the same */
  function fifoValue(to){let v=0;(fifo().lots||[]).forEach(l=>{if(l&&String(l.date||'')<=to)v+=n(l.qty)*n(l.cost);});
   (fifo().allocs||[]).forEach(a=>{if(a&&String(a.date||'')<=to)v-=rem(a)*n(a.cost);});return r2(v);}
- window.PKG_LEDGER={entries,account,balances,check,codes,nameOf,typeOf,fifoValue,sys,NEW};
+ window.PKG_LEDGER={entries,account,balances,check,codes,nameOf,typeOf,fifoValue,sys,vat,NEW};
 
  /* ---------- 08 บัญชี - การเงิน → บัญชีแยกประเภท (proposal Q3 of round 3, owner 2026-11-11): an account, or every
     account that moved, between two days — the balance brought forward, each entry with the running balance, the
