@@ -32,12 +32,25 @@
  /* a month as people say it: 2026-10 → ตุลาคม 2569 */
  const moTh=mo=>(typeof TH_M_FULL!=='undefined'?TH_M_FULL[+mo.slice(5,7)-1]:mo.slice(5,7))+' '+(+mo.slice(0,4)+543);
  const S=window.PKG_SALE,SC=window.PKG_STOCK_CUT;
- /* accounts added after round 3 (owner 2026-11-11): used until the shop has its own in the mapping */
- const NEW={vatDue:['2040','ภาษีมูลค่าเพิ่มค้างชำระ'],vatClaim:['1055','ลูกหนี้กรมสรรพากร'],gainAsset:['4040','กำไรจากการจำหน่ายสินทรัพย์'],lossAsset:['6140','ขาดทุนจากการจำหน่ายสินทรัพย์']};
- const A=k=>(DB.map&&DB.map[k])||(NEW[k]&&NEW[k][0])||DEFAULT_MAP[k]||'';
- const nameOf=code=>accName(code)||((Object.values(NEW).find(x=>x[0]===code)||[])[1])||((DEFAULT_COA.find(x=>x[0]===code)||[])[1])||'';
- const typeOf=code=>{const a=(DB.coa||[]).find(x=>x.code===code);if(a)return a.type;const d=DEFAULT_COA.find(x=>x[0]===code);if(d)return d[2];
-  return code==='1055'?'asset':code==='2040'?'liab':code==='4040'?'revenue':code==='6140'?'expense':'';};
+ /* accounts the system posts to that a shop's chart may not have (accountant round 3, owner 2026-11-11): 1055 for input
+    VAT carried to the next month, 4040 / 6140 for an asset sold or written off (instead of 4030 / 6190). They are not
+    added to the shop's chart (only the chart right may change it, and shops use these codes for their own accounts:
+    the chart's own prompt suggests 6140): reports show them under these names when something is posted to them. A
+    code the shop already uses for another account gives way to the next free code (6140 → 6141 …); the mapping
+    (DB.map[key]) wins when a shop sets one. */
+ const NEW={vatDue:['2040','ภาษีมูลค่าเพิ่มค้างชำระ','liab'],vatClaim:['1055','ลูกหนี้กรมสรรพากร','asset'],
+  gainAsset:['4040','กำไรจากการจำหน่ายสินทรัพย์','revenue'],lossAsset:['6140','ขาดทุนจากการจำหน่ายสินทรัพย์','expense']};
+ function sys(k){
+  const m=DB.map&&DB.map[k];if(m)return m;const [c,nm]=NEW[k],coa=DB.coa||[];
+  const other=code=>{const a=coa.find(x=>x.code===code);return !!a&&a.name!==nm;};
+  if(!other(c))return c;
+  for(let i=1;i<100;i++){const x=String(+c+i);if(!coa.some(a=>a.code===x)&&!Object.values(NEW).some(s=>s[0]===x))return x;}
+  return c;}
+ const sysOf=code=>Object.keys(NEW).find(k=>sys(k)===code);
+ const A=k=>NEW[k]?sys(k):((DB.map&&DB.map[k])||DEFAULT_MAP[k]||'');
+ const dflt=code=>DEFAULT_COA.find(x=>x.code===code);
+ const nameOf=code=>{if(!code)return '';const n=accName(code);if(n)return n;const k=sysOf(code);if(k)return NEW[k][1];return (dflt(code)||{}).name||'';};
+ const typeOf=code=>{const a=(DB.coa||[]).find(x=>x.code===code);if(a)return a.type;const k=sysOf(code);if(k)return NEW[k][2];return (dflt(code)||{}).type||'';};
  /* where money went in or out: cash, or the bank for a transfer, a card or a cheque; unknown → cash, as the trial balance */
  const MONEY={cash:'cash',trans:'bank',card:'bank',check:'bank',chk:'bank'};
  const accOfKey=k=>A(MONEY[k]||'cash');
@@ -273,7 +286,7 @@
  /* stock value in the stock register (FIFO lots less what left them) on a day: account 1040 should say the same */
  function fifoValue(to){let v=0;(fifo().lots||[]).forEach(l=>{if(l&&String(l.date||'')<=to)v+=n(l.qty)*n(l.cost);});
   (fifo().allocs||[]).forEach(a=>{if(a&&String(a.date||'')<=to)v-=rem(a)*n(a.cost);});return r2(v);}
- window.PKG_LEDGER={entries,account,balances,check,codes,nameOf,typeOf,fifoValue,NEW};
+ window.PKG_LEDGER={entries,account,balances,check,codes,nameOf,typeOf,fifoValue,sys,NEW};
 
  /* ---------- 08 บัญชี - การเงิน → บัญชีแยกประเภท (proposal Q3 of round 3, owner 2026-11-11): an account, or every
     account that moved, between two days — the balance brought forward, each entry with the running balance, the
@@ -319,6 +332,7 @@
     <label class="f" style="min-width:260px"><span>บัญชี</span><select id="lgAcc" aria-label="บัญชี"><option value="">ทุกบัญชีที่มีรายการ</option>${cs.map(c=>`<option value="${esc(c)}"${c===ACC?' selected':''}>${esc(c)} ${esc(nameOf(c))}</option>`).join('')}</select></label>
     <label class="f"><span>ตั้งแต่วันที่</span><input type="date" id="lgFrom" aria-label="ตั้งแต่วันที่" value="${esc(FROM)}"></label>
     <label class="f"><span>ถึงวันที่</span><input type="date" id="lgTo" aria-label="ถึงวันที่" value="${esc(TO)}"></label></div>
+   ${sysNote()}
    ${rs.length?rs.map(r=>accTable(r,r.code===A('inv')?fifoValue(TO):null)).join(''):'<p class="empty">ไม่มีรายการในช่วงวันที่นี้</p>'}</div></div>`;
  }
  pane.addEventListener('change',e=>{const t=e.target;
@@ -326,6 +340,10 @@
   else if(t.id==='lgFrom'||t.id==='lgTo'){const f=$i('lgFrom').value,to=$i('lgTo').value;if(f&&to&&f<=to){FROM=f;TO=to;pane.dataset.own='1';}}
   else return;render();});
  function sub(){return 'ตั้งแต่วันที่ '+thDate(FROM)+' ถึงวันที่ '+thDate(TO);}
+ /* the accounts the system posts to that the shop's chart does not have (not on the chart page: the legacy screens of
+    the goldens show it) */
+ function sysNote(){const miss=Object.keys(NEW).map(sys).filter(c=>!(DB.coa||[]).some(a=>a.code===c));
+  return miss.length?`<p class="hint pkg-lg-sys" style="margin:0 0 8px">บัญชีที่ระบบลงรายการเอง (ไม่อยู่ในผังบัญชีของร้าน): ${miss.map(c=>esc(c+' '+nameOf(c))).join(' · ')}</p>`:'';}
  function print(){
   if(!may())return toast('บัญชีนี้ไม่มีสิทธิ์พิมพ์เอกสารนี้');
   const list=entries(),rs=reports(list);if(!rs.length)return toast('ไม่มีรายการในช่วงวันที่นี้');

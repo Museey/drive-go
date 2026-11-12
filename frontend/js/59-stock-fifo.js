@@ -11,7 +11,8 @@
      or an internal issue moved is read from the FIFO ledger whenever a report is made, at the date the stock moved:
      a count's shortage = expense "สินค้าขาดจากการตรวจนับ" (its allocations), a count's surplus = other income
      (its lots, at the register cost), an issue = an expense of the category chosen on it (isExpCat, default
-     "ค่าซ่อมแซมและบำรุงรักษา"). A cancelled document drops out; a provisional cost follows its correction. They
+     "ค่าซ่อมแซมและบำรุงรักษา"), a customer claim's replacement (done, not taken back) = cost of sales (J30, accountant
+     round 3 / owner 2026-11-11). A cancelled document drops out; a provisional cost follows its correction. They
      reach the profit-and-loss (finance, monthlyPnL, renderFS), the expense ranking and the trial balance — never
      cash, payables or vouchers. The count and issue windows show what they booked.
    · A shortage sold to whoever is responsible (R10-ก): an approved count with a shortage has "เปิดใบขายให้ผู้รับผิดชอบ".
@@ -45,16 +46,20 @@
 
  /* ---------- what stock documents book (R10) ---------- */
  function book(pred){
-  const C=new Set(),I=new Map(),b={loss:0,gain:0,issue:0,cats:{}};
+  const C=new Set(),I=new Map(),K=new Set(),b={loss:0,gain:0,issue:0,cats:{},cogs:0,claim:0};
   (DB.stockCounts||[]).forEach(d=>{if(d&&d.no&&d.applied&&!d.cancelled)C.add(d.no);});
   (DB.issues||[]).forEach(d=>{if(d&&d.no&&d.deducted&&!d.cancelled)I.set(d.no,d.expCat||DEF_CAT);});
-  if(!C.size&&!I.size)return b;
-  F().allocs.forEach(a=>{if(!a||!(C.has(a.refNo)||I.has(a.refNo))||!pred(a.date))return;const v=rem(a)*n(a.cost);
-   if(C.has(a.refNo))b.loss+=v;else{const k=I.get(a.refNo);b.issue+=v;b.cats[k]=(b.cats[k]||0)+v;}});
+  /* a customer claim's replacement (J30, accountant round 3 / owner 2026-11-11): its cost is a cost of sales on the
+     day the stock left; a replacement taken back to stock (cutUndone) has nothing left out */
+  (DB.custClaims||[]).forEach(c=>{if(c&&c.no&&c.status==='done'&&c.cut&&!c.cutUndone&&!c.cancelled)K.add(c.no);});
+  if(!C.size&&!I.size&&!K.size)return b;
+  F().allocs.forEach(a=>{if(!a||!(C.has(a.refNo)||I.has(a.refNo)||K.has(a.refNo))||!pred(a.date))return;const v=rem(a)*n(a.cost);
+   if(K.has(a.refNo))b.claim+=v;else if(C.has(a.refNo))b.loss+=v;else{const k=I.get(a.refNo);b.issue+=v;b.cats[k]=(b.cats[k]||0)+v;}});
   F().lots.forEach(l=>{if(l&&l.src==='count'&&C.has(l.refNo)&&pred(l.date))b.gain+=n(l.qty)*n(l.cost);});
   /* a shortage moved to the cost of goods sold (4.3, below): out of the expense, into the cost of sales, same date */
-  b.cogs=0;(DB.stockCounts||[]).forEach(d=>{if(!d||!C.has(d.no)||!(d.toCogs||[]).length)return;
+  (DB.stockCounts||[]).forEach(d=>{if(!d||!C.has(d.no)||!(d.toCogs||[]).length)return;
    const m=movedOf(d,pred);b.loss-=m;b.cogs+=m;});
+  b.claim=r2(b.claim);b.cogs+=b.claim;
   b.loss=r2(b.loss);b.gain=r2(b.gain);b.issue=r2(b.issue);b.cogs=r2(b.cogs);Object.keys(b.cats).forEach(k=>{b.cats[k]=r2(b.cats[k]);});
   return b;}
  const nz=b=>!!(b.loss||b.gain||b.issue||b.cogs);

@@ -8,7 +8,8 @@
      The owner, or staff with "บันทึกค่าใช้จ่าย สินทรัพย์ และเงินลงทุน" (doc.acctEdit).
      a.sale = { date, buyer, custId, tax, rate, base, vat, gross, method, taxNo, nbv, gain, at, by, byName }
    · The accounts, in the year (and month) it left: the sale price before VAT less the value left (cost less the
-     depreciation to that day) is a gain to 4030 รายได้อื่น or a loss to 6190 ค่าใช้จ่ายเบ็ดเตล็ด; an asset marked
+     depreciation to that day) is a gain to 4040 กำไรจากการจำหน่ายสินทรัพย์ or a loss to 6140 ขาดทุนจากการจำหน่ายสินทรัพย์
+     (accountant round 3 / owner 2026-11-11; before: 4030 / 6190; the codes come from PKG_LEDGER.sys); an asset marked
      "จำหน่าย / ตัดออกแล้ว" without a sale is a loss of its value left. The trial balance takes its cost and its
      accumulated depreciation out from that year; cash takes the money received; the sales tax its VAT.
    To be checked by the shop's accountant. */
@@ -129,13 +130,15 @@
    (out||[]).forEach(m=>{const o=within(d=>String(d||'').slice(0,7)===m.key);if(o.gain||o.loss)m.np+=o.gain-o.loss;});return out;};}
  const tb0=window.trialBalance;
  window.trialBalance=function(y){const out=tb0.apply(this,arguments);
-  try{const M=DB.map||{},row=code=>{let w=out.find(r=>r.code===code);if(!w){w={code,name:accName(code),type:((DB.coa||[]).find(z=>z.code===code)||{}).type||'',debit:0,credit:0};out.push(w);}return w;};
+  try{const L=window.PKG_LEDGER,row=code=>{let w=out.find(r=>r.code===code);
+    if(!w){w={code,name:L?L.nameOf(code):accName(code),type:L?L.typeOf(code):((DB.coa||[]).find(z=>z.code===code)||{}).type||'',debit:0,credit:0};out.push(w);}return w;};
    /* gone by the end of the year: its cost and depreciation leave the books */
    all().filter(a=>gone(a)&&yr(a.out)<=y&&yr(a.date)<=y).forEach(a=>{const [ac,dc]=assetAcc(a.cat),d=assetDep(a,y);
     const w1=out.find(r=>r.code===ac);if(w1)w1.debit=r2(w1.debit-n(a.cost));const w2=out.find(r=>r.code===dc);if(w2)w2.credit=r2(w2.credit-d.accEnd);});
    const o=within(d=>inYear(d,y));
-   if(o.gain){const w=row(M.revOther||'4030');w.credit=r2(w.credit+o.gain);}
-   if(o.loss){const w=row('6190');w.debit=r2(w.debit+o.loss);}
+   /* 4040 / 6140 (owner 2026-11-11 after accountant round 3, J20 J36; they were 4030 / 6190) */
+   if(o.gain){const w=row(L?L.sys('gainAsset'):'4040');w.credit=r2(w.credit+o.gain);}
+   if(o.loss){const w=row(L?L.sys('lossAsset'):'6140');w.debit=r2(w.debit+o.loss);}
   }catch(e){console.error('asset sale',e);}
   return out.filter(r=>Math.abs(r.debit)>=0.005||Math.abs(r.credit)>=0.005).sort((a,b)=>a.code.localeCompare(b.code));};
  /* 08 งบการเงิน: a row of its own before the net profit */

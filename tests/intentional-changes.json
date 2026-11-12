@@ -956,7 +956,7 @@
     {
       "scenario": "S268-sell-fixed-asset.spec.ts",
       "decision": "owner's decision 2026-11-06 (remaining accounting work 4: selling an asset, gain 4030 / loss 6190)",
-      "why": "An asset is sold from its window: a VAT-registered shop issues a full tax invoice MA-TX… that prints, the asset is sold on that day, its VAT is in the month's sales tax, the trial balance takes its cost and depreciation out and adds the gain to 4030 and the money to cash; the sale cannot be edited."
+      "why": "An asset is sold from its window: a VAT-registered shop issues a full tax invoice MA-TX… that prints, the asset is sold on that day, its VAT is in the month's sales tax, the trial balance takes its cost and depreciation out and adds the gain to 4030 and the money to cash; the sale cannot be edited. Since 2026-11-12 the gain is on 4040 กำไรจากการจำหน่ายสินทรัพย์ (S289), not 4030."
     },
     {
       "scenario": "S284-staff-page-first-sign-in-opens-real-shop.spec.ts",
@@ -987,6 +987,16 @@
       "scenario": "S288-general-ledger-account-dates-print-excel.spec.ts",
       "decision": "accountant B's answer 8.2 (a general ledger before the pilot) and the owner's decisions after round 3, 2026-11-11: \"เอาตามที่คุณเสนอทุกข้อเลยครับ\" (the general ledger first; docs/ACCOUNTANT-ANSWERS.md)",
       "why": "Menu 08 has \"บัญชีแยกประเภท\": the journal is built from the documents by the posting rules J01-J36 B checked (docs/LEDGER-POSTING.md), nothing stored; an account between two days shows the balance brought forward, every entry with its running balance and the totals; every account that moved can be shown, printed and saved as Excel. The legacy app has no general ledger. For the owner and the staff with \"ดูสรุปการเงิน ภาษี และเงินเดือน\"; screenshots compared with the legacy goldens leave the new sub-item out (tests/support/screenshot-new-items.css)."
+    },
+    {
+      "scenario": "S289-system-accounts-asset-loss-own-code.spec.ts",
+      "decision": "the owner's decisions after accountant round 3, 2026-11-11: \"เอาตามที่คุณเสนอทุกข้อเลยครับ\" (docs/ACCOUNTANT-ANSWERS.md), items 1 and 4 (J20 J36 J29)",
+      "why": "An asset sold or written off gains to 4040 / loses to 6140 (they were 4030 / 6190) and input VAT carried over is on 1055; the accounts are not added to the shop's chart (only the chart right may change it, and shops use these codes themselves): the general ledger page names those the chart lacks, and a code the shop already uses gives way to the next free one."
+    },
+    {
+      "scenario": "S290-customer-claim-replacement-cost-of-sales.spec.ts",
+      "decision": "the owner's decisions after accountant round 3, 2026-11-11: \"เอาตามที่คุณเสนอทุกข้อเลยครับ\" (docs/ACCOUNTANT-ANSWERS.md), item 5 (J30)",
+      "why": "A customer claim's replacement is a cost of sales (5010) on the day it left the stock, in the profit and loss, the statements, the monthly profit and the trial balance; the legacy app only cut the stock."
     }
   ]
 }

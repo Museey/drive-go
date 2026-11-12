@@ -5,7 +5,8 @@ import { test, expect } from '../support/test';
 // the air-conditioning refill machine (MA-FA241200001, cost 58,000.00) from its window to a customer for 40,000.00
 // before VAT, by transfer: a VAT-registered shop issues a full tax invoice (MA-TX…), which prints; the asset is sold on
 // that day; the sales tax of October takes its VAT; the trial balance takes the asset's cost and depreciation out, adds
-// the gain (sale price less the value left) to 4030 and the money to cash. The sale cannot be edited afterwards.
+// the gain (sale price less the value left) to 4040 กำไรจากการจำหน่ายสินทรัพย์ (4030 before the owner's decision of
+// 2026-11-11 after accountant round 3) and the money to cash. The sale cannot be edited afterwards.
 async function go(page: Page, menu: string | RegExp, item: string) {
   const sub = page.getByRole('button', { name: item });
   if (!(await sub.isVisible())) await page.getByRole('button', { name: menu }).click();
@@ -69,12 +70,14 @@ test('S268 ระบบใหม่: ขายสินทรัพย์ ออ
   await go(page, /^08 บัญชี/, '└ รายงานภาษี');
   await expect(page.getByRole('row', { name: /^ภาษีขาย / })).toContainText('6,431.95');   // 3,631.95 + 2,800.00
 
-  // The trial balance: cost and depreciation out, the gain in 4030, the money in, the VAT owed.
+  // The trial balance: cost and depreciation out, the gain in 4040, the money in, the VAT owed.
   const after = await tb(page);
   const d = (code: string, i: 0 | 1) => Math.round(((after[code]?.[i] ?? 0) - (before[code]?.[i] ?? 0)) * 100) / 100;
   expect(d('1230', 0)).toBe(-58000);
   expect(d('1231', 1)).toBeLessThan(-15000);
-  expect(d('4030', 1)).toBe(Math.round(a.sale.gain * 100) / 100);
+  expect(d('4040', 1)).toBe(Math.round(a.sale.gain * 100) / 100);
+  expect(d('4030', 1)).toBe(0);
+  await expect(page.locator('#tbTbl').getByRole('row').filter({ hasText: '4040' })).toContainText('กำไรจากการจำหน่ายสินทรัพย์');
   expect(d('2030', 1)).toBe(2800);
   expect(d('1010', 0)).toBe(42800);
   db = (await app.state()).DB;
