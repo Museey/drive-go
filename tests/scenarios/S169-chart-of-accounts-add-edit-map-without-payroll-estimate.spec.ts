@@ -3,7 +3,7 @@ import { legacyGolden } from '../support/legacy-golden';
 
 // Replaces S56 in the new system (tests/intentional-changes.json, task 3.7, the owner's answer of
 // 2026-10-25 "เฉพาะงวดที่บันทึก"): the chart's balances no longer hold the payroll estimated from the
-// staff list — cash 1010 is 935,644 (legacy 1,598,856 on the other side), 6010 / 6011 / 2060 are
+// staff list — cash 1010 has no payroll in it (legacy 1,598,856 on the other side), 6010 / 6011 / 2060 are
 // empty until a payroll period is recorded. Those balances are left out of the screens and checked
 // here; every step, the rest of each screen and every data change are S56's.
 const S56 = 'S56-chart-of-accounts-add-edit-map.spec.ts';
@@ -12,14 +12,20 @@ test('S169 ระบบใหม่: ผังบัญชี เพิ่มบ
   const golden = legacyGolden(S56, { app, page, testInfo });
   const bal = (code: string) => page.getByRole('row').filter({ has: page.getByRole('cell', { name: code, exact: true }) }).getByRole('cell').nth(3);
   // Task 3.13 (R17, answers 13.1, 13.7): depreciation by the day moves the accumulated depreciation (1221–1281) and
-  // the year's 6130; the input VAT of the asset bought in 2569 (the POS computer, 2,240.00) is in 1050.
+  // the year's 6130.
   // Accountant review 7.2 (the owner's decision of 2026-10-28): the current year counts up to today (13/10/2569),
   // worked out apart from the app's code.
   // J28 (the owner's decisions of 2026-11-11 and 2026-11-12, S293): the capital menu's other income and expenses are in
   // the books — 4030 25,000.00 (scrap metal sold) and 6190 18,000.00 (car park improved).
-  const ASSETS: [string, string][] = [['1050', '2,240.00'], ['1221', '254,015.89'], ['1231', '49,782.53'], ['1261', '17,735.59'],
+  const ASSETS: [string, string][] = [['1221', '254,015.89'], ['1231', '49,782.53'], ['1261', '17,735.59'],
     ['1271', '5,406.23'], ['1281', '37,941.45'], ['6130', '128,581.02'], ['4030', '25,000.00'], ['6190', '18,000.00']];
-  const payroll = () => ['1010', '2060', '6010', '6011', ...ASSETS.map(([c]) => c)].map(bal);
+  // The trial balance from the general ledger (the owner's decision of 2026-11-12): money received or paid by transfer, card
+  // or cheque is on 1020 (cash 960,625.60; 1020 24,981.60 on the credit side, the trial data having no cash taken to the
+  // bank), the VAT of each month that has ended is closed into its return (the POS computer's 2,240.00 is carried on 1055,
+  // which the chart does not have, so 1050 is empty), the years before are in 3030 (236,300.67 of loss, on the debit
+  // side) and the parts revenue is the sum of the bills (44,385.00; legacy 44,385.33 from the year's discount spread).
+  const LEDGER: [string, string][] = [['1010', '960,625.60'], ['1020', '24,981.60'], ['1050', '-'], ['3030', '236,300.67'], ['4010', '44,385.00']];
+  const payroll = () => ['2060', '6010', '6011', ...LEDGER.map(([c]) => c), ...ASSETS.map(([c]) => c)].map(bal);
   await app.loginAsOwner();
   await golden.step('หน้าแรก');
 
@@ -39,7 +45,7 @@ test('S169 ระบบใหม่: ผังบัญชี เพิ่มบ
   // The last question wants the type typed in English; it starts as "expense".
   await expect(answer('หมวดบัญชี: asset / liab / equity / revenue / cogs / expense')).toHaveValue('expense');
   await golden.step('กด + เพิ่มบัญชี กรอกรหัส 6140 ชื่อบัญชี แล้วถึงคำถามหมวดบัญชี');
-  await expect(bal('1010')).toContainText('935,644');
+  for (const [code, v] of LEDGER) await expect(bal(code)).toHaveText(v);
   for (const code of ['2060', '6010', '6011']) await expect(bal(code)).toHaveText('-');
   for (const [code, v] of ASSETS) await expect(bal(code)).toHaveText(v);
   await golden.screen('ask-account-type', { mask: payroll() });

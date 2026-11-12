@@ -6,7 +6,8 @@ import { test, expect } from '../support/test';
 // trial balance and the health page — on screen, printed and exported — carry the depreciation worked out by the day
 // and the assets' input VAT. For 2569: depreciation 164,913.43 (legacy 165,198.35), property and equipment net
 // 416,785.90, the cash paid for the POS computer bought 12/04/2569 34,240.00 (32,000 + VAT 2,240.00 rounded once),
-// 1050 input VAT 2,240.00 (the legacy trial balance had no input VAT of assets), January's depreciation 13,351.11.
+// 1050 input VAT 2,240.00 (the legacy trial balance had no input VAT of assets; since the trial balance is the general
+// ledger's, carried on 1055 after April's VAT return), January's depreciation 13,351.11.
 // The current year counts up to today (accountant review 7.2, the owner's decision of 2026-10-28): on 13/10/2569 the
 // depreciation so far is 128,581.02 (the POS computer 5,406.23) and property and equipment net 818,000 − 364,881.69
 // = 453,118.31, worked out apart from the app's code; January, a whole month gone, stays 13,351.11.
@@ -32,15 +33,18 @@ test('S214 ระบบใหม่: งบการเงิน งบทดล
   // The trial balance: printed and exported for the accounting office.
   await page.getByRole('button', { name: '└ ผังบัญชี', exact: true }).click();
   const tb = (code: string) => page.locator('#tbTbl').getByRole('row').filter({ has: page.getByRole('cell', { name: code, exact: true }) });
-  await expect(tb('1050')).toContainText('2,240.00');
+  // The trial balance is the general ledger's (the owner's decision of 2026-11-12): the POS computer's input VAT was closed
+  // into April's VAT return and is carried on 1055 with what was left of the years before (57,260.00); 1050 is empty.
+  await expect(tb('1050')).toHaveCount(0);
+  await expect(tb('1055')).toContainText('57,260.00');
   await expect(tb('6130')).toContainText('128,581.02');
   await expect(tb('1271')).toContainText('5,406.23');
   await page.getByRole('button', { name: 'พิมพ์งบทดลอง' }).click();
-  await printed(page, ['ภาษีซื้อ', '2,240.00', '128,581.02', '5,406.23']);
+  await printed(page, ['ลูกหนี้กรมสรรพากร', '57,260.00', '128,581.02', '5,406.23']);
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'ส่งออก CSV ให้สำนักงานบัญชี' }).click();
   const csv = readFileSync(await (await download).path(), 'utf8');
-  expect(csv).toContain('"1050","ภาษีซื้อ","1 · สินทรัพย์","2240.00","0.00"');
+  expect(csv).toContain('"1055","ลูกหนี้กรมสรรพากร","1 · สินทรัพย์","57260.00","0.00"');
   expect(csv).toContain('"6130","ค่าเสื่อมราคา","6 · ค่าใช้จ่ายในการขายและบริหาร","128581.02","0.00"');
   expect(csv).toContain('"1271","ค่าเสื่อมราคาสะสม - คอมพิวเตอร์","1 · สินทรัพย์","0.00","5406.23"');
 

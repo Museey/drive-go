@@ -4,7 +4,7 @@ import { test, expect } from '../support/test';
 // New behaviour (owner's decision 2026-11-06, NOTES.md "งานบัญชีที่ค้าง" 1): the tax report records the remittance of a
 // month's ภ.ง.ด.3 / ภ.ง.ด.53, as ภ.ง.ด.1 is remitted — one payment voucher to กรมสรรพากร for the form's rows not remitted
 // yet, which 4.4 then shows remitted (its tick locked); the trial balance's 2050 has what was withheld from vendors and
-// loses what was remitted, and cash keeps the tax withheld until it is remitted. The owner may cancel a remittance.
+// loses what was remitted, and cash (here the bank, paid by transfer) keeps the tax withheld until it is remitted. The owner may cancel a remittance.
 // Fixture: two paid expenses withheld on 13/10 — MA-EX261000001 (ภ.ง.ด.53, 105.00) and MA-EX261000002 (ภ.ง.ด.3, 1,250.00).
 async function go(page: Page, menu: string | RegExp, item: string) {
   const sub = page.getByRole('button', { name: item, exact: true });
@@ -56,7 +56,8 @@ test('S265 ระบบใหม่: บันทึกนำส่ง ภ.ง.�
   await payVendorWithholding(page);   // MA-PV261000001: 1% of 8,700.00 = 87.00, ภ.ง.ด.53, the goods receipt paid in full
 
   const [, wht0] = await tb(page, '2050');
-  const [cash0] = await tb(page, '1010');
+  // Paid by transfer: the bank, 1020 (the trial balance is the general ledger's, the owner's decision of 2026-11-12).
+  const [bankDr0, bankCr0] = await tb(page, '1020');
   expect(wht0).toBe(1442);   // 105.00 + 1,250.00 of the expenses (as before) + 87.00 withheld from the vendor
 
   await go(page, /^08 บัญชี/, '└ รายงานภาษี');
@@ -88,11 +89,11 @@ test('S265 ระบบใหม่: บันทึกนำส่ง ภ.ง.�
   }
   await expect(page.getByRole('row').filter({ hasText: 'MA-EX261000002' }).filter({ visible: true }).getByRole('checkbox', { name: 'นำส่งแล้ว' })).toBeEnabled();
 
-  // The trial balance: 2050 less what was remitted, cash less the payment.
+  // The trial balance: 2050 less what was remitted, the bank less the payment.
   const [, wht1] = await tb(page, '2050');
-  const [cash1] = await tb(page, '1010');
+  const [bankDr1, bankCr1] = await tb(page, '1020');
   expect(wht1).toBe(1250);
-  expect(Math.round((cash0 - cash1) * 100) / 100).toBe(192);
+  expect(Math.round((bankDr0 - bankCr0 - (bankDr1 - bankCr1)) * 100) / 100).toBe(192);
 
   await app.settle();
   let db = (await app.state()).DB;

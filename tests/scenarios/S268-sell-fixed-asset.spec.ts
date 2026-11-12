@@ -6,7 +6,8 @@ import { test, expect } from '../support/test';
 // before VAT, by transfer: a VAT-registered shop issues a full tax invoice (MA-TX…), which prints; the asset is sold on
 // that day; the sales tax of October takes its VAT; the trial balance takes the asset's cost and depreciation out, adds
 // the gain (sale price less the value left) to 4040 กำไรจากการจำหน่ายสินทรัพย์ (4030 before the owner's decision of
-// 2026-11-11 after accountant round 3) and the money to cash. The sale cannot be edited afterwards.
+// 2026-11-11 after accountant round 3) and the money to the bank (cash before the trial balance was the general ledger's,
+// 2026-11-12). The sale cannot be edited afterwards.
 async function go(page: Page, menu: string | RegExp, item: string) {
   const sub = page.getByRole('button', { name: item });
   if (!(await sub.isVisible())) await page.getByRole('button', { name: menu }).click();
@@ -79,7 +80,10 @@ test('S268 ระบบใหม่: ขายสินทรัพย์ ออ
   expect(d('4030', 1)).toBe(0);
   await expect(page.locator('#tbTbl').getByRole('row').filter({ hasText: '4040' })).toContainText('กำไรจากการจำหน่ายสินทรัพย์');
   expect(d('2030', 1)).toBe(2800);
-  expect(d('1010', 0)).toBe(42800);
+  // By transfer: the bank, 1020 (the trial balance is the general ledger's, the owner's decision of 2026-11-12).
+  const net = (code: string) => Math.round((((after[code]?.[0] ?? 0) - (after[code]?.[1] ?? 0)) - ((before[code]?.[0] ?? 0) - (before[code]?.[1] ?? 0))) * 100) / 100;
+  expect(net('1020')).toBe(42800);
+  expect(net('1010')).toBe(0);
   db = (await app.state()).DB;
   expect(db.audit.find((x: any) => x.kind === 'asset' && x.act === 'save' && /^ขายสินทรัพย์ MA-FA241200001/.test(x.note)).note)
     .toBe(`ขายสินทรัพย์ MA-FA241200001 ให้ บริษัท ขนส่งไทยรุ่งเรือง จำกัด 42,800.00 บาท (เงินโอน) · ใบกำกับภาษี ${taxNo} · กำไร ${(Math.round(a.sale.gain * 100) / 100).toLocaleString('th-TH', { minimumFractionDigits: 2 })} บาท`);

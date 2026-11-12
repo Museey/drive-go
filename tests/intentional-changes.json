@@ -275,7 +275,7 @@
       "scenario": "S56-chart-of-accounts-add-edit-map.spec.ts",
       "by": "S169-chart-of-accounts-add-edit-map-without-payroll-estimate.spec.ts",
       "decision": "R12, R13, F5, X2 and answers of 2026-10-25 (task 3.7)",
-      "why": "The chart's balances (1010, 2060, 6010, 6011) no longer hold the payroll estimate; they are checked by their text, every step, the rest of each screen and every data change against S56's goldens. Since 2026-11-12 (J28, S293) the capital menu's other income and expenses are in the books: 4030 25,000.00 and 6190 18,000.00 on the trial data."
+      "why": "The chart's balances (1010, 2060, 6010, 6011) no longer hold the payroll estimate; they are checked by their text, every step, the rest of each screen and every data change against S56's goldens. Since 2026-11-12 (J28, S293) the capital menu's other income and expenses are in the books: 4030 25,000.00 and 6190 18,000.00 on the trial data. Since 2026-11-12 the trial balance is the general ledger's (the owner's decision \"งบทดลองและงบการเงินอ่านจากบัญชีแยกประเภท\", docs/NOTES.md \"งบทดลองอ่านจากบัญชีแยกประเภท\"): 1010 960,625.60, 1020 24,981.60 (transfers, cards, cheques), 1050 empty (the VAT of each month that has ended is closed; input VAT left is on 1055, not in the chart), 3030 236,300.67, 4010 44,385.00 (the sum of the bills); those balances are left out of the screens too."
     },
     {
       "scenario": "S57-chart-of-accounts-delete-reset.spec.ts",
@@ -527,7 +527,7 @@
       "scenario": "S383-chart-trial-balance-csv-statements-print.spec.ts",
       "by": "S456-chart-trial-balance-print-without-payroll-estimate-by-days.spec.ts",
       "decision": "R12, R13, F5, X2 and answers of 2026-10-25 (task 3.7); R17 and answers 13.1, 13.7, 13.9 of 2026-10-26 (task 3.13)",
-      "why": "The printed trial balance has no payroll estimate (1010 on the debit side, no 2060 / 6010 / 6011, as S169), depreciation by the day and the assets' input VAT in 1050 (as S214), so its table is shorter and the picture cannot be S383's: every printed row is checked against the legacy app's with those changes, the rest of the sheet by its text. Every step is checked against S383's goldens. Since 2026-11-12 (J28, S293) the capital menu's other income and expenses are in the books: 4030 25,000.00 and 6190 18,000.00 on the trial data."
+      "why": "The printed trial balance has no payroll estimate (1010 on the debit side, no 2060 / 6010 / 6011, as S169), depreciation by the day and the assets' input VAT in 1050 (as S214), so its table is shorter and the picture cannot be S383's: every printed row is checked against the legacy app's with those changes, the rest of the sheet by its text. Every step is checked against S383's goldens. Since 2026-11-12 (J28, S293) the capital menu's other income and expenses are in the books: 4030 25,000.00 and 6190 18,000.00 on the trial data. Since 2026-11-12 the trial balance is the general ledger's (the owner's decision \"งบทดลองและงบการเงินอ่านจากบัญชีแยกประเภท\", docs/NOTES.md \"งบทดลองอ่านจากบัญชีแยกประเภท\"): 1010 960,625.60, 1020 24,981.60 on the credit side, 1055 57,260.00 instead of 1050, 3030 236,300.67, 4010 44,385.00, and it balances (3,911,735.24); its note says where the figures come from."
     },
     {
       "scenario": "S405-shop-settings-banks-logo-opacity.spec.ts",
@@ -776,7 +776,7 @@
     {
       "scenario": "S211-asset-on-credit-vat-per-invoice-paid-with-withholding.spec.ts",
       "decision": "R17 and answers 13.5–13.7, 13.10 of 2026-10-26 (task 3.13)",
-      "why": "An asset bought on credit is owed until paid in ชำระเงินเจ้าหนี้ (with withholding, a payment voucher and ภ.ง.ด.53); its VAT is worked out once per tax invoice and is in the input tax report with the vendor's tax ID, the home page and the trial balance (1050, 2010)."
+      "why": "An asset bought on credit is owed until paid in ชำระเงินเจ้าหนี้ (with withholding, a payment voucher and ภ.ง.ด.53); its VAT is worked out once per tax invoice and is in the input tax report with the vendor's tax ID, the home page and the trial balance (1050, 2010). Since 2026-11-12 the trial balance is the general ledger's (the owner's decision \"งบทดลองและงบการเงินอ่านจากบัญชีแยกประเภท\", docs/NOTES.md \"งบทดลองอ่านจากบัญชีแยกประเภท\"): 1050 has October's 14.01 only, the POS computer's 2,240.00 of April having been closed into April's VAT and carried on 1055."
     },
     {
       "scenario": "S212-asset-disposal-delete-cancel-monthly-by-days.spec.ts",
@@ -791,7 +791,7 @@
     {
       "scenario": "S214-statements-trial-balance-health-print-export-by-days.spec.ts",
       "decision": "R17 and answers 13.1, 13.7, 13.9 of 2026-10-26 (task 3.13)",
-      "why": "The financial statements, the trial balance (printed and exported) and the health page (printed) carry depreciation by the day, the cash actually paid for assets and their input VAT in 1050."
+      "why": "The financial statements, the trial balance (printed and exported) and the health page (printed) carry depreciation by the day, the cash actually paid for assets and their input VAT in 1050. Since 2026-11-12 the trial balance is the general ledger's (the owner's decision \"งบทดลองและงบการเงินอ่านจากบัญชีแยกประเภท\", docs/NOTES.md \"งบทดลองอ่านจากบัญชีแยกประเภท\"): the input VAT is closed into each month's VAT and what is left carried on 1055 (57,260.00)."
     },
     {
       "scenario": "S232-trial-near-its-end-warns.spec.ts",
@@ -941,7 +941,7 @@
     {
       "scenario": "S265-remit-pnd3-pnd53-voucher-trial-balance.spec.ts",
       "decision": "owner's decision 2026-11-06 (remaining accounting work 1: a button to record the remittance)",
-      "why": "The tax report records the remittance of a month's ภ.ง.ด.3 / 53 with one payment voucher to กรมสรรพากร for the form's rows not remitted yet; 4.4 shows them remitted with their tick locked; the trial balance's 2050 has the tax withheld from vendors and loses what was remitted, cash keeps the tax withheld until it is remitted; the owner may cancel a remittance with a reason."
+      "why": "The tax report records the remittance of a month's ภ.ง.ด.3 / 53 with one payment voucher to กรมสรรพากร for the form's rows not remitted yet; 4.4 shows them remitted with their tick locked; the trial balance's 2050 has the tax withheld from vendors and loses what was remitted, cash keeps the tax withheld until it is remitted; the owner may cancel a remittance with a reason. Since 2026-11-12 the trial balance is the general ledger's (the owner's decision \"งบทดลองและงบการเงินอ่านจากบัญชีแยกประเภท\", docs/NOTES.md \"งบทดลองอ่านจากบัญชีแยกประเภท\"): paid by transfer, the remittance is on 1020."
     },
     {
       "scenario": "S266-cancel-credit-note-in-effect.spec.ts",
@@ -956,7 +956,7 @@
     {
       "scenario": "S268-sell-fixed-asset.spec.ts",
       "decision": "owner's decision 2026-11-06 (remaining accounting work 4: selling an asset, gain 4030 / loss 6190)",
-      "why": "An asset is sold from its window: a VAT-registered shop issues a full tax invoice MA-TX… that prints, the asset is sold on that day, its VAT is in the month's sales tax, the trial balance takes its cost and depreciation out and adds the gain to 4030 and the money to cash; the sale cannot be edited. Since 2026-11-12 the gain is on 4040 กำไรจากการจำหน่ายสินทรัพย์ (S289), not 4030."
+      "why": "An asset is sold from its window: a VAT-registered shop issues a full tax invoice MA-TX… that prints, the asset is sold on that day, its VAT is in the month's sales tax, the trial balance takes its cost and depreciation out and adds the gain to 4030 and the money to cash; the sale cannot be edited. Since 2026-11-12 the gain is on 4040 กำไรจากการจำหน่ายสินทรัพย์ (S289), not 4030. Since 2026-11-12 the trial balance is the general ledger's (the owner's decision \"งบทดลองและงบการเงินอ่านจากบัญชีแยกประเภท\", docs/NOTES.md \"งบทดลองอ่านจากบัญชีแยกประเภท\"): paid by transfer, the money is on 1020."
     },
     {
       "scenario": "S284-staff-page-first-sign-in-opens-real-shop.spec.ts",

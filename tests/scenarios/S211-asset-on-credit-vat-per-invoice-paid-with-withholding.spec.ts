@@ -74,8 +74,9 @@ test('S211 ระบบใหม่: ซื้อสินทรัพย์เ�
 
   // The trial balance: 1050 input VAT, 2010 owed to the vendor.
   await page.getByRole('button', { name: '└ ผังบัญชี', exact: true }).click();
-  // 2,240.00 of the POS computer bought in April + 14.01
-  await expect(page.locator('#tbTbl').getByRole('row').filter({ hasText: '1050' })).toContainText('2,254.01');
+  // October's 14.01: the trial balance is the general ledger's (the owner's decision of 2026-11-12), where each month that
+  // has ended closes its VAT into its return — the POS computer's 2,240.00 of April is carried on 1055 — and October has not.
+  await expect(page.locator('#tbTbl').getByRole('row').filter({ has: page.getByRole('cell', { name: '1050', exact: true }) }).getByRole('cell').nth(3)).toHaveText('14.01');
   await expect(page.locator('#tbTbl').getByRole('row').filter({ hasText: '2010' })).toContainText('214.11');
   // The home page's tax card for October: the asset's VAT is input VAT.
   await page.getByRole('button', { name: '00 Mr.DriveGo' }).click();
