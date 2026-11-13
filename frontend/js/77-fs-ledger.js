@@ -13,7 +13,8 @@
    · งบกระแสเงินสด (อย่างย่อ) — the money in and out of cash (1010) and the bank (1020) in the year, by what moved it, from
      the cash and bank at the start of the year (with the opening balances, 73-opening.js) to the end: the same as the
      trial balance's 1010 + 1020.
-   The home page, 08 สุขภาพการเงิน and the capital page keep the old figures (finance) for now (proposal item 5). */
+   The home page and 08 สุขภาพการเงิน keep the old figures (finance) for now (proposal item 5); the capital page's cards
+   of cash, equity, assets and liabilities are the balance sheet's (2026-11-13). */
 (function(){
  const L=window.PKG_LEDGER;
  if(!L||typeof renderFS!=='function'||typeof DEFAULT_MAP==='undefined')return;
@@ -71,7 +72,7 @@
  }
 
  /* ---------- the balance sheet on 31 December ---------- */
- function bsRows(es,y){
+ function bsTotals(es,y){
   const bal=new Map(L.balances(y+'-12-31',es).map(b=>[b.code,b.debit-b.credit]));
   const G={cash:[A('cash'),A('bank')],ar:[A('ar')],inv:[A('inv')],taxA:[A('vatIn'),L.sys('vatClaim'),A('whtIn')],
    ap:[A('ap'),A('accrued')],taxL:[A('vatOut'),L.sys('vatDue'),A('whtOut'),A('sso')],loan:[A('loan')],ret:[A('retained')]};
@@ -83,6 +84,10 @@
   /* debit balances for assets; credit for liabilities and equity */
   const a=k=>r2(g[k]),c=k=>r2(-g[k]);
   const tA=r2(g.cash+g.ar+g.inv+g.taxA+g.ppe+g.othA),tL=r2(-(g.ap+g.taxL+g.loan+g.othL)),eq=r2(-(g.cap+g.ret+g.np));
+  return {g,a,c,tA,tL,eq};
+ }
+ function bsRows(es,y){
+  const {g,a,c,tA,tL,eq}=bsTotals(es,y);
   return head('สินทรัพย์')+
    row('เงินสดและเงินฝากธนาคาร',a('cash'))+row('ลูกหนี้การค้า',a('ar'))+row('สินค้าคงเหลือ (ราคาทุน)',a('inv'))+
    row('ภาษีรอใช้สิทธิ์ / ขอคืน (ภาษีซื้อ ภาษีถูกหัก ณ ที่จ่าย ลูกหนี้กรมสรรพากร)',a('taxA'))+
@@ -142,5 +147,16 @@
   window.printFS=function(){const pd=window.printDocs;
    window.printDocs=function(h){return pd.call(this,String(h).replace(OLD,NEW));};
    try{return pf0.apply(this,arguments);}finally{window.printDocs=pd;}};}
- window.PKG_FS_LEDGER={pl,plRows,bsRows,cfRows};
+ /* 08 เงินลงทุน / เงินสด (owner 2026-11-13, "เปลี่ยนการ์ดหน้าเงินลงทุนตามที่แนะนำ"): the cards of cash and bank, equity,
+    total assets and liabilities are the balance sheet's on 31 December, the whole business; the cash card says so */
+ const CASH_OLD='ประมาณการจากกระแสเงินสดสะสม',CASH_NEW='เงินสดและเงินฝากธนาคารจากบัญชีแยกประเภท';
+ {const s=$i('cCash')&&$i('cCash').parentElement.querySelector('.s');if(s&&s.textContent.trim()===CASH_OLD)s.textContent=CASH_NEW;}
+ if(typeof renderCap==='function'){const rc0=window.renderCap;
+  window.renderCap=function(){const out=rc0.apply(this,arguments);
+   try{const y=acctY(),rep=R(),es=rep&&rep.company?rep.company(()=>L.entries()):L.entries(),t=bsTotals(es,y);
+    const set=(id,v)=>{const el=$i(id);if(el)el.textContent=money0(v);};
+    set('cCash',t.a('cash'));set('cEquity',t.eq);set('cAssets',t.tA);set('cLiab',t.tL);
+   }catch(e){console.error('capital cards from the ledger',e);}
+   return out;};}
+ window.PKG_FS_LEDGER={pl,plRows,bsTotals,bsRows,cfRows};
 })();

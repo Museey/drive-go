@@ -10,7 +10,8 @@ import { legacyGolden } from '../support/legacy-golden';
 // it is cancelled with a reason instead ("ยกเลิก", not "ลบ"): the POS computer stays in the register as cancelled,
 // out of its sums ("รวม 7 รายการ") and of the cash it took (the same cash as deleting it, 993,634). Those two steps,
 // their data change and the register's screen (depreciation by the day) are checked here; the equity card is left out
-// of the screens (its figure follows depreciation by the day, S167 checks it).
+// of the screens (its figure follows depreciation by the day, S167 checks it). Since 2026-11-13 the cash card's line says the
+// figure is the general ledger's (S167): the whole cash card is left out of the screens; its figures stay 993,634 / 968,634.
 const S58 = 'S58-delete-expense-asset-capital.spec.ts';
 
 test('S171 ระบบใหม่: ลบรายการบัญชีที่บันทึกผิด เงินสดคงเหลือไม่มีเงินเดือนประมาณการ', async ({ app, page }, testInfo) => {
@@ -69,7 +70,7 @@ test('S171 ระบบใหม่: ลบรายการบัญชีท�
   await expect(page.getByText('25 รายการ', { exact: true }).filter({ visible: true })).toBeVisible();
   await expect(page.getByText('993,634', { exact: true })).toBeVisible();
   await golden.step('หน้าเงินลงทุน / เงินสด 25 รายการ');
-  await golden.screen('capital-before', { mask: [page.locator('#cCash'), page.locator('#cEquity').locator('..'), page.locator('#cAssets').locator('..')] });
+  await golden.screen('capital-before', { mask: [page.locator('#cCash').locator('..'), page.locator('#cEquity').locator('..'), page.locator('#cAssets').locator('..')] });
   await scrap.getByRole('button', { name: 'ลบ' }).click();
   await expect(page.getByText('ลบรายการนี้?', { exact: true })).toBeVisible();
   await golden.step('กดลบรายรับขายเศษเหล็ก ระบบถามยืนยัน (ไม่บอกว่าเป็นรายการไหน)');
@@ -82,6 +83,6 @@ test('S171 ระบบใหม่: ลบรายการบัญชีท�
   const cash = page.getByText('968,634', { exact: true });
   await expect(cash).toBeVisible();
   await cash.scrollIntoViewIfNeeded();
-  await golden.screen('capital-after', { mask: [page.locator('#cCash'), page.locator('#cEquity').locator('..'), page.locator('#cAssets').locator('..')] });
+  await golden.screen('capital-after', { mask: [page.locator('#cCash').locator('..'), page.locator('#cEquity').locator('..'), page.locator('#cAssets').locator('..')] });
   golden.done();
 });

@@ -9,8 +9,12 @@ import { legacyGolden } from '../support/legacy-golden';
 // (accumulated 401,214.10 instead of 407,029.65): equity 1,891,418 and assets 2,331,418, after 2,091,418 / 2,531,418.
 // Accountant review 7.2 (the owner's decision of 2026-10-28): the current year counts up to today, so on 13/10/2569
 // 36,332.41 less is accumulated (364,881.69): equity 1,927,750 and assets 2,367,750, after 2,127,750 / 2,567,750.
-// Those figures are left out of the screens and checked here; every step, the rest of each screen
-// and the data change are S45's.
+// The capital page's cards of cash, equity, assets and liabilities are the balance sheet's from the general ledger (the
+// owner's decision of 2026-11-13; S294): equity 1,980,113 and assets 2,425,100 (the tax to claim and to remit are in;
+// liabilities 444,987), after the investment 2,180,113 / 2,625,100; the cash card says the figure is the ledger's
+// ("เงินสดและเงินฝากธนาคารจากบัญชีแยกประเภท", legacy "ประมาณการจากกระแสเงินสดสะสม").
+// Those figures (and the cash card's line) are left out of the screens and checked here; every step, the rest of each
+// screen and the data change are S45's.
 const S45 = 'S45-record-owner-capital-investment.spec.ts';
 
 test('S167 ระบบใหม่: บันทึกเงินลงทุนเพิ่มโดยเจ้าของ 200,000 บาท เงินสดและส่วนของเจ้าของไม่มีเงินเดือนประมาณการ', async ({ app, page }, testInfo) => {
@@ -26,9 +30,11 @@ test('S167 ระบบใหม่: บันทึกเงินลงทุ�
     const c = page.getByText(cash, { exact: true }).filter({ visible: true }), e = page.getByText(equity, { exact: true }).filter({ visible: true });
     const a = page.getByText(assets, { exact: true }).filter({ visible: true });
     await expect(c).toBeVisible(); await expect(e).toBeVisible(); await expect(a).toBeVisible();
-    return [c, e, a.locator('..')];   /* "สินทรัพย์รวม … · หนี้สิน …": the liabilities move with the assets' width */
+    return [c.locator('..'), e, a.locator('..')];   /* the cash card's line; "สินทรัพย์รวม … · หนี้สิน …": the liabilities move with the assets' width */
   };
-  await golden.screen('capital-before', { mask: await figures('935,644', '1,927,750', '2,367,750') });
+  await expect(page.locator('#cLiab')).toHaveText('444,987');
+  await expect(page.getByText('เงินสดและเงินฝากธนาคารจากบัญชีแยกประเภท', { exact: true })).toBeVisible();
+  await golden.screen('capital-before', { mask: await figures('935,644', '1,980,113', '2,425,100') });
 
   await page.getByRole('button', { name: '+ บันทึกรายการ' }).click();
   const save = page.getByRole('button', { name: 'บันทึก', exact: true }).filter({ visible: true }).last();
@@ -50,6 +56,6 @@ test('S167 ระบบใหม่: บันทึกเงินลงทุ�
   await expect(page.getByRole('row').filter({ hasText: 'เจ้าของเพิ่มทุนซื้อเครื่องวิเคราะห์แบตเตอรี่ EV' })).toContainText('200,000.00');
   await golden.step('หลังบันทึกเงินลงทุน');
   await golden.stateChange('owner-investment', before);
-  await golden.screen('capital-after', { mask: await figures('1,135,644', '2,127,750', '2,567,750') });
+  await golden.screen('capital-after', { mask: await figures('1,135,644', '2,180,113', '2,625,100') });
   golden.done();
 });

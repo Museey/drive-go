@@ -263,7 +263,7 @@
       "scenario": "S45-record-owner-capital-investment.spec.ts",
       "by": "S167-capital-investment-cash-without-payroll-estimate.spec.ts",
       "decision": "R12, R13, F5, X2 and answers of 2026-10-25 (task 3.7)",
-      "why": "Cash and equity no longer take off the payroll estimated from the staff list; those figures are checked by their text, every step, the rest of each screen and the data change against S45's goldens."
+      "why": "Cash and equity no longer take off the payroll estimated from the staff list; those figures are checked by their text, every step, the rest of each screen and the data change against S45's goldens. Since 2026-11-13 the capital page's cards of cash, equity, assets and liabilities are the balance sheet's from the general ledger (the owner's decision; S294) and the cash card's line says so (\"เงินสดและเงินฝากธนาคารจากบัญชีแยกประเภท\"): the whole cash card is left out of the screens; equity 1,980,113 and assets 2,425,100 (2,180,113 / 2,625,100 after the investment)."
     },
     {
       "scenario": "S55-shop-settings-logo-license.spec.ts",
@@ -287,7 +287,7 @@
       "scenario": "S58-delete-expense-asset-capital.spec.ts",
       "by": "S171-delete-wrong-entries-cash-without-payroll-estimate.spec.ts",
       "decision": "R12, R13, F5, X2 and answers of 2026-10-25 (task 3.7)",
-      "why": "Cash no longer takes off the payroll estimate (993,634 and 968,634); the cash, equity and assets figures are checked by their text, every step, the rest of each screen and every data change against S58's goldens."
+      "why": "Cash no longer takes off the payroll estimate (993,634 and 968,634); the cash, equity and assets figures are checked by their text, every step, the rest of each screen and every data change against S58's goldens. Since 2026-11-13 the capital page's cards of cash, equity, assets and liabilities are the balance sheet's from the general ledger (the owner's decision; S294) and the cash card's line says so (\"เงินสดและเงินฝากธนาคารจากบัญชีแยกประเภท\"): the whole cash card is left out of the screens; its figures stay 993,634 / 968,634."
     },
     {
       "scenario": "S41-cashier-account-limited-menus.spec.ts",
