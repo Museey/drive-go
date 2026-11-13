@@ -13,7 +13,7 @@ import { test, expect } from '../support/test';
 //   08/10/2569 towards MA-SA261000006); the other income and expenses of the capital menu, net 7,000.00 (25,000.00 −
 //   18,000.00), which the old one left out; 935,644.00 at the end, the trial balance's 1010 960,625.60 less the 1020
 //   24,981.60 on its credit side.
-// · Printed, the sheets carry the same rows.
+// · Printed, the sheets carry the same rows, and the note under the balance sheet says where the figures come from.
 async function go(page: Page, item: string) {
   const sub = page.getByRole('button', { name: item, exact: true });
   if (!(await sub.isVisible())) await page.getByRole('button', { name: /^08 บัญชี/ }).click();
@@ -94,4 +94,7 @@ test('S294 ระบบใหม่: งบการเงินจากบั�
   await expect(sheet).toContainText('งบแสดงฐานะการเงิน');
   const printed = await rows(sheet);
   for (const r of [...PL, ...BS, ...CF]) expect(printed).toContain(r);
+  // The note under the balance sheet says where the figures come from (approved 2026-11-13; it said some were estimated).
+  await expect(sheet).toContainText('จัดทำจากบัญชีแยกประเภทที่สร้างจากเอกสารในระบบ ผู้ทำบัญชีควรตรวจสอบและปรับปรุงรายการก่อนนำส่งกรมสรรพากร');
+  await expect(sheet).not.toContainText('ตัวเลขบางรายการเป็นการประมาณการ');
 });

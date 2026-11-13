@@ -134,5 +134,13 @@
    put('plTbl',plRows(pl(mine,y)));put('bsTbl',bsRows(all,y));put('cfTbl',cfRows(all,y));
   }catch(e){console.error('statements from the ledger',e);}
   return out;};
+ /* the print: the note under the balance sheet says where the figures come from (the old one said some were estimated;
+    approved 2026-11-13) */
+ const OLD='ตัวเลขบางรายการเป็นการประมาณการจากข้อมูลที่บันทึกในระบบ ควรให้ผู้ทำบัญชีตรวจสอบและปรับปรุงรายการก่อนนำส่งกรมสรรพากร',
+  NEW='จัดทำจากบัญชีแยกประเภทที่สร้างจากเอกสารในระบบ ผู้ทำบัญชีควรตรวจสอบและปรับปรุงรายการก่อนนำส่งกรมสรรพากร';
+ if(typeof printFS==='function'){const pf0=window.printFS;
+  window.printFS=function(){const pd=window.printDocs;
+   window.printDocs=function(h){return pd.call(this,String(h).replace(OLD,NEW));};
+   try{return pf0.apply(this,arguments);}finally{window.printDocs=pd;}};}
  window.PKG_FS_LEDGER={pl,plRows,bsRows,cfRows};
 })();
