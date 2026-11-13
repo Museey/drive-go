@@ -12,7 +12,7 @@ import { legacyGolden } from '../support/legacy-golden';
 // The capital page's cards of cash, equity, assets and liabilities are the balance sheet's from the general ledger (the
 // owner's decision of 2026-11-13; S294): equity 1,980,113 and assets 2,425,100 (the tax to claim and to remit are in;
 // liabilities 444,987), after the investment 2,180,113 / 2,625,100; the cash card says the figure is the ledger's
-// ("เงินสดและเงินฝากธนาคารจากบัญชีแยกประเภท", legacy "ประมาณการจากกระแสเงินสดสะสม").
+// ("ยอดจากบัญชีแยกประเภท", legacy "ประมาณการจากกระแสเงินสดสะสม").
 // Those figures (and the cash card's line) are left out of the screens and checked here; every step, the rest of each
 // screen and the data change are S45's.
 const S45 = 'S45-record-owner-capital-investment.spec.ts';
@@ -33,7 +33,7 @@ test('S167 ระบบใหม่: บันทึกเงินลงทุ�
     return [c.locator('..'), e, a.locator('..')];   /* the cash card's line; "สินทรัพย์รวม … · หนี้สิน …": the liabilities move with the assets' width */
   };
   await expect(page.locator('#cLiab')).toHaveText('444,987');
-  await expect(page.getByText('เงินสดและเงินฝากธนาคารจากบัญชีแยกประเภท', { exact: true })).toBeVisible();
+  await expect(page.getByText('ยอดจากบัญชีแยกประเภท', { exact: true })).toBeVisible();
   await golden.screen('capital-before', { mask: await figures('935,644', '1,980,113', '2,425,100') });
 
   await page.getByRole('button', { name: '+ บันทึกรายการ' }).click();

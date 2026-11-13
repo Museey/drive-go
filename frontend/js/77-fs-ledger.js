@@ -149,7 +149,7 @@
    try{return pf0.apply(this,arguments);}finally{window.printDocs=pd;}};}
  /* 08 เงินลงทุน / เงินสด (owner 2026-11-13, "เปลี่ยนการ์ดหน้าเงินลงทุนตามที่แนะนำ"): the cards of cash and bank, equity,
     total assets and liabilities are the balance sheet's on 31 December, the whole business; the cash card says so */
- const CASH_OLD='ประมาณการจากกระแสเงินสดสะสม',CASH_NEW='เงินสดและเงินฝากธนาคารจากบัญชีแยกประเภท';
+ const CASH_OLD='ประมาณการจากกระแสเงินสดสะสม',CASH_NEW='ยอดจากบัญชีแยกประเภท';
  {const s=$i('cCash')&&$i('cCash').parentElement.querySelector('.s');if(s&&s.textContent.trim()===CASH_OLD)s.textContent=CASH_NEW;}
  if(typeof renderCap==='function'){const rc0=window.renderCap;
   window.renderCap=function(){const out=rc0.apply(this,arguments);
