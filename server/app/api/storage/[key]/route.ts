@@ -56,7 +56,20 @@ export async function GET(req: Request, ctx: Ctx) {
   }));
 }
 
+// A big request (a save that replaces the whole data, 21 MB for a shop with three years of documents; a big blob) takes
+// its turn with the other heavy requests before its body is read (lib/heavy.ts). Found on the test server
+// (2026-11-13): the load balancer gave up on such a save while the database was still writing it, the browser sent it
+// again and again (it retries what the server could not answer), and the copies held in memory together brought the
+// server down. Now they wait their turn, holding nothing; once the first is written, a copy answers 409 and the
+// browser reads the data again.
+const BIG = 2 * 1024 * 1024;
+const big = (req: Request) => Number(req.headers.get('content-length')) > BIG;
+
 export async function POST(req: Request, ctx: Ctx) {
+  return big(req) ? heavy(() => post(req, ctx)) : post(req, ctx);
+}
+
+async function post(req: Request, ctx: Ctx) {
   const { key } = await ctx.params;
   if (!rootOf(key)) return json({ error: 'not a main data key' }, 400);
   const body = await readJson<{ base: Record<string, number>; changes: Changes; session?: Record<string, string>;
@@ -110,7 +123,12 @@ export async function POST(req: Request, ctx: Ctx) {
 }
 
 export async function PUT(req: Request, ctx: Ctx) {
+  // (a backup point takes its turn below, from the server's own data: never two turns at once)
   const { key } = await ctx.params;
+  return big(req) && !isBackupKey(key) ? heavy(() => put(req, key)) : put(req, key);
+}
+
+async function put(req: Request, key: string) {
   if (rootOf(key)) return json({ error: 'main data keys are saved with POST' }, 400);
   const raw = await readBody(req, MAX_SAVE_BYTES);
   if (!raw) return json({ error: 'too-large' }, 413);

@@ -11,6 +11,7 @@ import { COUNTERS, type Claims, type Counters, type Renumbered, numberOf, number
 import { type Changes, type Row, assemble, rootOf } from './units.ts';
 import { type Mask, maskRows, masksUnit, restoreRow } from './visibility.ts';
 import { dropRefs, keepForBackup, syncRefs } from './files.ts';
+import { chunks } from './chunks.ts';
 
 // Version of each row, keyed "<unit>|<key>"; the browser sends back the
 // versions it last saw so the server can refuse a save that would overwrite
@@ -143,13 +144,13 @@ export async function writeMain(c: pg.ClientBase, branch: string, storeKey: stri
   }
   const updates = upsert.filter(r => current.has(vkey(r.unit, r.key)));
   const inserts = upsert.filter(r => !current.has(vkey(r.unit, r.key)));
-  if (updates.length) {
+  for (const part of chunks(updates, r => r.data.length)) {
     const { rows } = await c.query<{ unit: string; key: string; version: number }>(
       `update records r set data = u.data::json, version = r.version + 1, updated_at = now(), updated_by = $5
          from unnest($2::text[], $3::text[], $4::text[]) as u(unit, key, data)
         where r.shop_id = app_shop() and r.branch_id = $1 and r.unit = u.unit and r.key = u.key
         returning r.unit, r.key, r.version`,
-      [branch, updates.map(r => r.unit), updates.map(r => r.key), updates.map(r => r.data), userId]);
+      [branch, part.map(r => r.unit), part.map(r => r.key), part.map(r => r.data), userId]);
     for (const r of rows) versions[vkey(r.unit, r.key)] = r.version;
   }
   if (inserts.length) {
@@ -158,12 +159,13 @@ export async function writeMain(c: pg.ClientBase, branch: string, storeKey: stri
     const { rows } = await c.query<{ unit: string; last: string }>(
       'select unit, max(pos)::text as last from records where shop_id = app_shop() and branch_id = $1 and unit = any($2) group by unit', [branch, units]);
     const next = new Map(rows.map(r => [r.unit, Number(r.last) + 1]));
-    const pos = inserts.map(r => { const p = next.get(r.unit) ?? 0; next.set(r.unit, p + 1); return p; });
-    await c.query(
-      `insert into records (shop_id, branch_id, unit, key, pos, data, updated_by)
-       select app_shop(), $1, u.unit, u.key, u.pos, u.data::json, $6
-         from unnest($2::text[], $3::text[], $4::bigint[], $5::text[]) as u(unit, key, pos, data)`,
-      [branch, inserts.map(r => r.unit), inserts.map(r => r.key), pos, inserts.map(r => r.data), userId]);
+    const placed = inserts.map(r => { const p = next.get(r.unit) ?? 0; next.set(r.unit, p + 1); return { r, p }; });
+    for (const part of chunks(placed, x => x.r.data.length))
+      await c.query(
+        `insert into records (shop_id, branch_id, unit, key, pos, data, updated_by)
+         select app_shop(), $1, u.unit, u.key, u.pos, u.data::json, $6
+           from unnest($2::text[], $3::text[], $4::bigint[], $5::text[]) as u(unit, key, pos, data)`,
+        [branch, part.map(x => x.r.unit), part.map(x => x.r.key), part.map(x => x.p), part.map(x => x.r.data), userId]);
     for (const r of inserts) versions[vkey(r.unit, r.key)] = 1;
   }
   for (const [unit, keys] of Object.entries(changes.order)) {
@@ -191,12 +193,13 @@ export async function writeMain(c: pg.ClientBase, branch: string, storeKey: stri
   // Which files the data refers to (task 3.11): a file no row refers to any more is deleted.
   await syncRefs(c, branch, log);
   if (keepLog && log.length) {
-    await c.query(
-      `insert into change_log (shop_id, branch_id, user_id, store_key, unit, key, op, version, before, after)
-       select app_shop(), $1, $2, $3, l.unit, l.key, l.op, l.version, l.before::json, l.after::json
-         from unnest($4::text[], $5::text[], $6::text[], $7::int[], $8::text[], $9::text[]) as l(unit, key, op, version, before, after)`,
-      [branch, userId, storeKey, log.map(l => l.unit), log.map(l => l.key), log.map(l => l.op), log.map(l => l.version ?? null),
-        log.map(l => l.before), log.map(l => l.after)]);
+    for (const part of chunks(log, l => (l.before?.length ?? 0) + (l.after?.length ?? 0)))
+      await c.query(
+        `insert into change_log (shop_id, branch_id, user_id, store_key, unit, key, op, version, before, after)
+         select app_shop(), $1, $2, $3, l.unit, l.key, l.op, l.version, l.before::json, l.after::json
+           from unnest($4::text[], $5::text[], $6::text[], $7::int[], $8::text[], $9::text[]) as l(unit, key, op, version, before, after)`,
+        [branch, userId, storeKey, part.map(l => l.unit), part.map(l => l.key), part.map(l => l.op), part.map(l => l.version ?? null),
+          part.map(l => l.before), part.map(l => l.after)]);
   }
   return { ok: true, versions, logId };
 }

@@ -6,6 +6,7 @@
 // The job: a new quotation (a customer of the shop, one part in stock, one labour line) → approve it → the stock
 // cut from it, paid in cash in full at once (the payment panel's "ปิดการขาย"), which issues the receipt.
 import { chromium } from 'playwright';
+import { LAUNCH_OPTIONS } from '../../tests/support/config.mjs';
 
 // Signs in and waits until the browser has nothing more to save (the first open's saves).
 async function signIn(page, url, user, pass) {
@@ -30,7 +31,7 @@ async function quiet(page, ms = 2500) {
 
 // Opens the shop (warm-up only).
 export async function openShop({ url, user, pass }) {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch(LAUNCH_OPTIONS);
   try { await signIn(await browser.newPage(), url, user, pass); } finally { await browser.close(); }
 }
 
@@ -41,7 +42,7 @@ export async function openShop({ url, user, pass }) {
 // first (openShop ran before), so boot has the day's ordinary open. job: the saves of garage.v22 of the second of two
 // jobs (the first job of a shop may write a field the data has not had yet), with the server's answers.
 export async function captureJob({ url, user, pass }) {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch(LAUNCH_OPTIONS);
   const page = await browser.newPage();
   const boot = [];
   let saves = [], step = 'sign in', quoteNo = '', signedIn = false, booting = true;
