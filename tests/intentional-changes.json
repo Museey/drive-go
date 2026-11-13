@@ -1022,6 +1022,11 @@
       "scenario": "S295-deposit-cash-withdraw-from-bank.spec.ts",
       "decision": "the owner's decision of 2026-11-12 (\"เอาตามที่เสนอทุกข้อ ข้อความอนุมัติได้เลยครับ\", docs/NOTES.md)",
       "why": "The capital menu records cash taken to the bank and money taken out of the bank as cash; the general ledger moves the amount between 1010 and 1020 and the business's money as a whole does not change. The legacy app had no bank account apart from cash."
+    },
+    {
+      "scenario": "S296-statements-some-branches-from-ledger.spec.ts",
+      "decision": "the owner's decisions of 2026-11-12 (the statements from the general ledger) with the branch reports of 37.js (user 2026-10-06)",
+      "why": "With some branches picked, the profit and loss is those branches' general ledger while the balance sheet and the cash flow stay the whole business's; the capital menu's other income and expenses are the whole business's and stay in every branch's profit and loss, as before the ledger."
     }
   ]
 }
