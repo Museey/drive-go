@@ -3,9 +3,11 @@
 // the new system prints, as PDFs, made by running the scenarios that print them (tests/support/test.ts PRINT_CAPTURE).
 // Everything ends up in one zip to send on.
 //
-//   node tools/accountant-pack.mjs [--out accountant-pack] [--skip-run]
+//   node tools/accountant-pack.mjs [--out accountant-pack] [--skip-run] [--from NN] [--sheet <xlsx>]
 //
 // --skip-run uses the PDFs of the last run (<out>/.captured) and only builds the questions and the zip again.
+// A later round: --from NN makes only the samples numbered NN and up, --sheet puts that round's workbook in the zip
+// instead of the questions of docs/ACCOUNTANT-REVIEW.md (round 4: tools/accountant-round4.py, samples from 27).
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -43,11 +45,22 @@ const SAMPLES = [
   ['24', 'ใบเพิ่มหนี้', 'S267', /ใบเพิ่มหนี้/],
   ['25', 'ใบสำคัญจ่ายนำส่ง ภ.ง.ด.53', 'S265', /ใบสำคัญจ่าย/],
   ['26', 'ใบกำกับภาษีขายสินทรัพย์', 'S268', /ใบกำกับภาษี/],
+  // round 4 (2026-11-13): the trial balance and the statements from the general ledger, and what was done after round 3
+  ['27', 'งบทดลอง (จากบัญชีแยกประเภท)', 'S214', /งบทดลอง/],
+  ['28', 'งบการเงิน (งบกำไรขาดทุน งบแสดงฐานะการเงิน งบกระแสเงินสด)', 'S294', /งบกำไรขาดทุน/],
+  ['29', 'บัญชีแยกประเภท', 'S288', /บัญชีแยกประเภท/],
+  ['30', 'ใบสำคัญจ่ายนำส่ง ภ.พ.30', 'S291', /ใบสำคัญจ่าย/],
+  ['31', 'ใบกำกับภาษีของรายรับอื่น', 'S293', /ใบกำกับภาษี/],
+  ['32', 'ภ.ง.ด.53 พร้อมใบแนบ (แบบใหม่)', 'S264', /ภ\.ง\.ด\.53_/],
+  ['33', 'ภ.ง.ด.3 พร้อมใบแนบ (แบบใหม่)', 'S264', /ภ\.ง\.ด\.3_/],
+  ['34', 'ใบลดหนี้ (เหตุตามมาตรา 82-10)', 'S142', /ใบลดหนี้/],
 ];
+const from = arg('--from'), sheetFile = arg('--sheet');
+const PICK = SAMPLES.filter(([no]) => !from || no >= from);
 
 if (!process.argv.includes('--skip-run')) {
   rmSync(captured, { recursive: true, force: true });
-  const scenarios = [...new Set(SAMPLES.map(s => s[2]))];
+  const scenarios = [...new Set(PICK.map(s => s[2]))];
   const files = readdirSync('tests/scenarios').filter(f => scenarios.includes(f.split('-')[0])).map(f => `tests/scenarios/${f}`);
   console.log(`printing from ${files.length} scenarios on the new system …`);
   const run = spawnSync('npx', ['playwright', 'test', ...files, '--workers=3', '--reporter=line', `--output=${join(out, '.results')}`], {
@@ -60,12 +73,22 @@ rmSync(samplesDir, { recursive: true, force: true });
 mkdirSync(samplesDir, { recursive: true });
 const printed = existsSync(captured) ? readdirSync(captured).sort() : [];
 const missing = [];
-for (const [no, label, scenario, name] of SAMPLES) {
+for (const [no, label, scenario, name] of PICK) {
   const file = printed.find(f => f.startsWith(`${scenario}-`) && name.test(f));
   if (file) copyFileSync(join(captured, file), join(samplesDir, `${no} ${label}.pdf`));
   else missing.push(`${no} ${label} (${scenario})`);
 }
 if (missing.length) { console.error(`not printed: ${missing.join(', ')}`); process.exitCode = 1; }
+
+if (sheetFile) {
+  const name = sheetFile.split('/').pop();
+  copyFileSync(resolve(sheetFile), join(out, name));
+  const zip = `${out}.zip`;
+  rmSync(zip, { force: true });
+  const z = spawnSync('zip', ['-qr', zip, name, 'ตัวอย่างเอกสาร'], { cwd: out, stdio: 'inherit' });
+  console.log(z.status === 0 ? `ready: ${zip}` : `the workbook and samples are in ${out} (zip failed)`);
+  process.exit(z.status === 0 ? process.exitCode || 0 : 1);
+}
 
 // The questions as an Excel file the accountant answers in: the sheet "คำถาม" has one row per numbered item (###) with
 // yellow cells to fill in (result, comment, reference); the sheet "วิธีตรวจ" has the introduction, a count of the answers
