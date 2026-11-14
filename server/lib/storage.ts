@@ -212,8 +212,43 @@ export type SaveResult = { ok: true; versions: Versions; logId: number | null; r
 export async function saveMain(c: pg.ClientBase, branch: string, storeKey: string, base: Versions, changes: Changes,
   claims: Claims = {}, userId: string | null = null, whole?: string): Promise<SaveResult> {
   const n = await issueNumbers(c, branch, storeKey, base, changes, claims);
-  const r = await writeMain(c, branch, storeKey, n.base, n.changes, userId, { whole });
+  const m = await mergeUseCount(c, branch, storeKey, n.base, n.changes, !!whole);
+  const r = await writeMain(c, branch, storeKey, m.base, m.changes, userId, { whole });
   return r.ok ? { ...r, renumbered: n.renumbered, counters: n.counters } : r;
+}
+
+// The new sales system counts its use in one row (DB.pkgSaleFlow.used, 16.js used()) at nearly every step of a sale,
+// so two devices selling at the same moment, other parts to other customers, refused each other's save for that row
+// alone (the load test on the test server, 2026-11-13, docs/LOAD-TEST.md; the owner's decision of 2026-11-14). The
+// count only tells whether the system may still be switched off (16.js), which it no longer may (S440). So when the
+// row a save writes differs from the server's only in the count, what the browser saw of it does not matter (as for
+// the counters of document numbers): the save keeps the higher count. Any other change of the row (the switch, its
+// settings) over a newer one is refused as before, and so is every whole-data save. Every save that writes or
+// removes the row locks it first, so they run one after another and never wait on each other's other rows.
+const SALE_FLOW = 'DB.pkgSaleFlow';
+type UseCount = { used: number } & Record<string, unknown>;
+const useCount = (text: string): UseCount | null => {
+  try {
+    const v = JSON.parse(text);
+    return v && typeof v === 'object' && !Array.isArray(v) && typeof v.used === 'number' ? v : null;
+  } catch { return null; }
+};
+async function mergeUseCount(c: pg.ClientBase, branch: string, storeKey: string, base: Versions, changes: Changes, whole: boolean) {
+  const none = { base, changes };
+  if (rootOf(storeKey) !== 'DB') return none;
+  const i = changes.upsert.findIndex(r => r.unit === SALE_FLOW && r.key === '');
+  if (i < 0 && !changes.remove.some(r => r.unit === SALE_FLOW && r.key === '')) return none;
+  const { rows } = await c.query<{ version: number; data: string }>(
+    `select version, data::text as data from records
+      where shop_id = app_shop() and branch_id = $1 and unit = $2 and key = '' for update`, [branch, SALE_FLOW]);
+  const k = vkey(SALE_FLOW, ''), stored = rows[0];
+  if (i < 0 || whole || !stored || stored.version === base[k]) return none;
+  const mine = useCount(changes.upsert[i].data), theirs = useCount(stored.data);
+  if (!mine || !theirs || JSON.stringify({ ...mine, used: 0 }) !== JSON.stringify({ ...theirs, used: 0 })) return none;
+  const used = Math.max(mine.used, theirs.used);
+  const upsert = used === mine.used ? changes.upsert
+    : changes.upsert.map((r, j) => j === i ? { ...r, data: JSON.stringify({ ...mine, used }) } : r);
+  return { base: { ...base, [k]: stored.version }, changes: { ...changes, upsert } };
 }
 
 // The counters (DB.seq rows) of the numbers a save issued, or that it writes

@@ -194,6 +194,68 @@ describe('บันทึก (T5)', () => {
     assert.notEqual(now.db.cust[0].name, 'B แก้ลูกค้าด้วย');
   });
 
+  // The new sales system counts its use in one row at nearly every step of a sale (16.js used(); the owner's decision
+  // of 2026-11-14, docs/NOTES.md "ทดสอบรับโหลดบน server ทดสอบ"): saved as the route saves (saveMain).
+  async function saveRoute(view, whole) {
+    const next = split(view.key, JSON.stringify(view.db));
+    const changes = diff(view.last, next);
+    const r = await asApp(view.shopId, '', c => saveMain(c, '', view.key, view.base, changes, {}, null, whole));
+    if (r.ok) { Object.assign(view.base, r.versions); view.last = next; }
+    return r;
+  }
+  const FLOW = 'DB.pkgSaleFlow|';
+
+  test('สองเครื่องขายพร้อมกัน: ตัวนับการใช้ระบบขายแบบใหม่ (DB.pkgSaleFlow.used) ไม่ทำให้ชนกัน server เก็บค่าที่มากกว่า', async () => {
+    const { shopId } = await newShop('biz-trial', 'biz');
+    const a = await open(shopId), b = await open(shopId), c = await open(shopId);
+    const used = a.db.pkgSaleFlow.used;
+    assert.equal(a.db.pkgSaleFlow.on, true);
+    a.db.pkgSaleFlow.used += 1;
+    a.db.receipts[0].note = 'A ขาย';
+    assert.ok((await saveRoute(a)).ok);
+    b.db.pkgSaleFlow.used += 1;
+    b.db.cust[0].name = 'B ขายอีกคน';
+    assert.ok((await saveRoute(b)).ok, 'another sale is not refused for the count alone');
+    let now = await open(shopId);
+    assert.equal(now.db.receipts[0].note, 'A ขาย');
+    assert.equal(now.db.cust[0].name, 'B ขายอีกคน');
+    assert.equal(now.db.pkgSaleFlow.used, used + 1);
+    // A device that saw fewer uses than the server keeps the server's higher count.
+    c.db.pkgSaleFlow.used = used + 3;
+    assert.ok((await saveRoute(c)).ok);
+    b.db.pkgSaleFlow.used += 1;
+    b.db.cust[1].name = 'B ขายคนที่สาม';
+    assert.ok((await saveRoute(b)).ok);
+    now = await open(shopId);
+    assert.equal(now.db.pkgSaleFlow.used, used + 3);
+    assert.equal(now.db.cust[1].name, 'B ขายคนที่สาม');
+    // Everything but the count is as the browsers wrote it.
+    assert.deepEqual({ ...now.db.pkgSaleFlow, used: 0 }, { ...a.db.pkgSaleFlow, used: 0 });
+  });
+
+  test('ตัวนับการใช้ระบบขายแบบใหม่: ส่วนอื่นของสวิตช์ที่อีกเครื่องเพิ่งแก้ และการบันทึกข้อมูลทั้งก้อน ยังชนกันตามเดิม', async () => {
+    const { shopId } = await newShop('biz-trial', 'biz');
+    const a = await open(shopId), b = await open(shopId), c = await open(shopId);
+    a.db.pkgSaleFlow.partial = false;
+    assert.ok((await saveRoute(a)).ok);
+    b.db.pkgSaleFlow.used += 1;
+    const r = await saveRoute(b);
+    assert.equal(r.ok, false);
+    assert.deepEqual(r.conflicts, [FLOW]);
+    const now = await open(shopId);
+    assert.equal(now.db.pkgSaleFlow.partial, false);
+    assert.equal(now.db.pkgSaleFlow.used, a.db.pkgSaleFlow.used);
+    // A save that replaces the whole data (restore, import) over a newer count: refused as before.
+    const d = await open(shopId);
+    d.db.pkgSaleFlow.used += 1;
+    assert.ok((await saveRoute(d)).ok);
+    c.db.pkgSaleFlow.partial = false;
+    c.db.pkgSaleFlow.used += 5;
+    const w = await saveRoute(c, 'restore');
+    assert.equal(w.ok, false);
+    assert.ok(w.conflicts.includes(FLOW));
+  });
+
   test('ตัวนับเลขเอกสารเดียวกัน (ก่อนเลขออกที่ server): คนที่สองถูกปฏิเสธ คนละตัวนับไม่ชนกัน', async () => {
     const { shopId } = await newShop('biz-trial', 'biz');
     const a = await open(shopId), b = await open(shopId), c = await open(shopId);
