@@ -4,8 +4,12 @@ import { LEGACY_URL } from '../support/config.mjs';
 // The very first open of the program in a browser that never had it (no starting data written in first, unlike every
 // other scenario): the address without a package shows the page that asks which program, and the program creates its
 // local database then (the only time its "upgradeneeded" handler runs, docs/BEHAVIORS.md). Choosing Biz opens Biz's
-// own sign-in page, which after preparing opens the program by itself as the owner, without a password. (The
-// sample data is still being written in the background for a while after that, so no record counts are taken.)
+// own sign-in page, which after preparing opens the program by itself as the owner, without a password. This file
+// (the "ready to try" test copy) then builds its trial data by itself under the veil "กำลังเตรียมข้อมูลทดลอง — รอสักครู่"
+// (55.js PKG_AUTO_TRIAL): its windows open and close by themselves for a few seconds (รับชำระเงินลูกหนี้, ตรวจก่อนบันทึก,
+// ใบกำกับภาษี), then the pop-up "ข้อมูลทดลองพร้อมใช้งาน" stays until it is answered. The step is taken there, the first
+// state that does not change by itself (the owner's decision of 2026-11-14: the earlier golden caught the payment
+// window for the one second it was open, docs/NOTES.md "S309 ไม่แน่นอน"). No record counts are taken.
 // The new system has no package-choosing page (S260, owner's decision of 2026-10-30) and no local database.
 test('S309 เปิดโปรแกรมครั้งแรกบนเบราว์เซอร์ใหม่: หน้าเลือกโปรแกรม เลือก Biz แล้วโปรแกรมเปิดเข้าในนามเจ้าของร้านเองโดยไม่ถามรหัสผ่าน', async ({ app, page, golden }) => {
   test.slow(); // the package-choosing page builds its own sample data on first open
@@ -22,10 +26,8 @@ test('S309 เปิดโปรแกรมครั้งแรกบนเบ
   // Biz's sign-in page shows "กำลังเตรียมโปรแกรม…" for a moment (how long depends on the machine, so no step is
   // recorded there); on a browser that never had the program it then opens by itself as the owner, no password asked.
   await expect(page.getByRole('button', { name: /00 Mr\.DriveGo/ })).toBeVisible({ timeout: 120_000 });
-  // On a slow machine the pop-up "ข้อมูลทดลองพร้อมใช้งาน" can still be up for a moment before the home page's own
-  // "รับชำระเงินลูกหนี้" takes its place: wait for that.
-  await expect(page.getByText('ข้อมูลทดลองพร้อมใช้งาน', { exact: true }).filter({ visible: true })).toHaveCount(0, { timeout: 120_000 });
-  await expect(page.getByText('รับชำระเงินลูกหนี้', { exact: true }).filter({ visible: true }).first()).toBeVisible({ timeout: 120_000 });
+  await expect(page.getByText('ข้อมูลทดลองพร้อมใช้งาน', { exact: true }).filter({ visible: true })).toBeVisible({ timeout: 120_000 });
+  await expect(page.getByText('กำลังเตรียมข้อมูลทดลอง — รอสักครู่', { exact: true })).toHaveCount(0);
   await app.settle();
-  await golden.step('เลือก Biz โปรแกรมเปิดเข้าหน้าแรกในนามเจ้าของร้านเอง');
+  await golden.step('เลือก Biz โปรแกรมเปิดเข้าในนามเจ้าของร้านเอง สร้างข้อมูลทดลองแล้วแจ้งว่าพร้อมใช้งาน');
 });
