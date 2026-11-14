@@ -18,7 +18,8 @@ test('S25 รับชำระตามใบวางบิลด้วยเ�
   await page.getByRole('radio', { name: 'แยกใบเสร็จตามบิล' }).check();
   await page.getByText('รับชำระ ฿3,304.10 · ตัดครบ 2 ใบ').filter({ visible: true }).waitFor();
   // เลื่อนให้เห็นตารางหัก ณ ที่จ่าย (45.00) และสถานะ 50 ทวิ ในภาพหน้าจอ
-  await page.getByRole('button', { name: 'ยังไม่ได้รับ — ตามทีหลัง' }).scrollIntoViewIfNeeded();
+  // (the window draws its withholding table again just after each click, 51.js again(): try again if the button was replaced)
+  await expect(() => page.getByRole('button', { name: 'ยังไม่ได้รับ — ตามทีหลัง' }).scrollIntoViewIfNeeded({ timeout: 2000 })).toPass();
   await golden.step('เงินสดเต็มจำนวน 3,304.10 แยกใบเสร็จตามบิล');
   await golden.screen('settle-billing');
 

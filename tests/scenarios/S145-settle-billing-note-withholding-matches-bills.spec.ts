@@ -27,7 +27,8 @@ test('S145 ระบบใหม่: รับชำระตามใบวา�
   await page.getByRole('button', { name: 'เงินสดเต็มจำนวน' }).filter({ visible: true }).click();
   await page.getByRole('radio', { name: 'แยกใบเสร็จตามบิล' }).check();
   await page.getByText('รับชำระ ฿3,304.10 · ตัดครบ 2 ใบ').filter({ visible: true }).waitFor();
-  await page.getByRole('button', { name: 'ยังไม่ได้รับ — ตามทีหลัง' }).scrollIntoViewIfNeeded();
+  // The window draws its withholding table again just after each click (51.js again()): try again if the button was replaced.
+  await expect(() => page.getByRole('button', { name: 'ยังไม่ได้รับ — ตามทีหลัง' }).scrollIntoViewIfNeeded({ timeout: 2000 })).toPass();
   await golden.step('เงินสดเต็มจำนวน 3,304.10 แยกใบเสร็จตามบิล');
   // The withholding table's "คงค้าง" is what the bill table shows.
   const whtRow = page.getByRole('row').filter({ has: page.getByRole('spinbutton', { name: 'หัก ณ ที่จ่ายของ MA-SA261000008' }) });
