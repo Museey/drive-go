@@ -64,7 +64,7 @@ try {
   }
   say('web: /api/health ok (the app reaches the database as drivego_app over TLS)');
   // DriveGo's own pages (SITE_DIR in the image): the landing page, the central sign-in page and its script.
-  for (const [p, mark] of [['/', 'href="/login"'], ['/login', 'src="/site/login.js"'], ['/site/login.js', 'dg_signin']]) {
+  for (const [p, mark] of [['/', 'href="/login"'], ['/site/landing.js', 'applyCss'], ['/site/landing.css', '.coming'], ['/login', 'src="/site/login.js"'], ['/site/login.js', 'dg_signin']]) {
     const r = await fetch(`${base}${p}`);
     if (r.status !== 200 || !(await r.text()).includes(mark)) fail(`${p}: ${r.status}`);
   }

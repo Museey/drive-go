@@ -8,6 +8,8 @@ export const dynamic = 'force-dynamic';
 const FILES: Record<string, string> = {
   'site.css': 'text/css; charset=utf-8',
   'login.js': 'text/javascript; charset=utf-8',
+  'landing.css': 'text/css; charset=utf-8',
+  'landing.js': 'text/javascript; charset=utf-8',
   'logo.jpg': 'image/jpeg',
 };
 

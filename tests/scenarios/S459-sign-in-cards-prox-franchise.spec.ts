@@ -21,14 +21,14 @@ const opened = async (page: Page, code: string) => {
 
 test.describe('ProX', () => {
   test.use({ dataset: 'prox-trial' });
-  test('S459 ระบบใหม่: ร้าน ProX เข้าสู่ระบบที่การ์ด DriveGoProX ของหน้าเข้าระบบกลาง ได้ร้านของตัวเอง ที่การ์ด Biz ถูกปฏิเสธและบอกการ์ดที่ถูก', async ({ app, page }) => {
+  test('S459 ระบบใหม่: ร้าน ProX เข้าสู่ระบบที่การ์ด DriveGo ProX ของหน้าเข้าระบบกลาง ได้ร้านของตัวเอง ที่การ์ด BaziX ถูกปฏิเสธและบอกการ์ดที่ถูก', async ({ app, page }) => {
     await app.open();
     const at = new URL(page.url()), code = at.pathname.split('/')[1];
     await page.goto(`${at.origin}/login`);
-    await signIn(page, 'DriveGoBiz', code, 'dg1688', '123456');
-    await expect(page.getByRole('alert')).toHaveText('ร้านนี้ใช้แพ็กเกจ DriveGoProX — กรุณาเข้าสู่ระบบที่การ์ด DriveGoProX');
+    await signIn(page, 'DriveGo BaziX', code, 'dg1688', '123456');
+    await expect(page.getByRole('alert')).toHaveText('ร้านนี้ใช้แพ็กเกจ DriveGo ProX — กรุณาเข้าสู่ระบบที่การ์ด DriveGo ProX');
     await expect(page).toHaveURL(`${at.origin}/login`);
-    await signIn(page, 'DriveGoProX', code, 'dg1688', '123456');
+    await signIn(page, 'DriveGo ProX', code, 'dg1688', '123456');
     await opened(page, code);
     await app.settle();
     await expect(page.getByText('ออกจากระบบ', { exact: true }).filter({ visible: true }).first()).toBeVisible();
@@ -37,13 +37,13 @@ test.describe('ProX', () => {
 
 test.describe('Franchise', () => {
   test.use({ dataset: 'franchise-trial' });
-  test('S459 ระบบใหม่: สำนักงานใหญ่ของเครือ Franchise เข้าสู่ระบบที่การ์ด DriveGoFranchise ได้ร้านของตัวเอง ที่การ์ด ProX ถูกปฏิเสธและบอกการ์ดที่ถูก', async ({ app, page }) => {
+  test('S459 ระบบใหม่: สำนักงานใหญ่ของเครือ Franchise เข้าสู่ระบบที่การ์ด DriveGo Franchise ได้ร้านของตัวเอง ที่การ์ด ProX ถูกปฏิเสธและบอกการ์ดที่ถูก', async ({ app, page }) => {
     await app.open();
     const at = new URL(page.url()), code = at.pathname.split('/')[1];
     await page.goto(`${at.origin}/login`);
-    await signIn(page, 'DriveGoProX', code, 'hq', '1234');
-    await expect(page.getByRole('alert')).toHaveText('ร้านนี้ใช้แพ็กเกจ DriveGoFranchise — กรุณาเข้าสู่ระบบที่การ์ด DriveGoFranchise');
-    await signIn(page, 'DriveGoFranchise', code, 'hq', '1234');
+    await signIn(page, 'DriveGo ProX', code, 'hq', '1234');
+    await expect(page.getByRole('alert')).toHaveText('ร้านนี้ใช้แพ็กเกจ DriveGo Franchise — กรุณาเข้าสู่ระบบที่การ์ด DriveGo Franchise');
+    await signIn(page, 'DriveGo Franchise', code, 'hq', '1234');
     await opened(page, code);
     await app.settle();
     await expect(page.getByText('ออกจากระบบ', { exact: true }).filter({ visible: true }).first()).toBeVisible();

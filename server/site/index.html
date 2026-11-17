@@ -3,83 +3,200 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DriveGo · ระบบบริหารงานอู่ซ่อมรถ</title>
-<meta name="description" content="DriveGo ระบบบริหารงานอู่ซ่อมรถ ใบเสนอราคา ตัดสต็อก รับเงิน ใบกำกับภาษี สต๊อกอะไหล่ และบัญชี ใช้ได้ทุกเครื่องในอู่">
+<title>DriveGo X · ระบบบริหารอู่และศูนย์บริการรถยนต์บน Cloud</title>
+<meta name="description" content="DriveGo ระบบบริหารอู่ซ่อมรถยนต์และศูนย์บริการ แบบครบวงจรบน Cloud: ใบเสนอราคา สต๊อก บัญชี ภาษี และลูกค้า">
 <link rel="icon" href="/site/logo.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&family=Manrope:wght@500;600;700;800&display=swap">
-<link rel="stylesheet" href="/site/site.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/site/landing.css">
+<script src="/site/landing.js" defer></script>
 </head>
-<body class="landing">
-<header class="top">
-  <a class="brand" href="/" aria-label="DriveGo หน้าแรก"><img src="/site/logo.jpg" alt=""><span>Drive<b>Go</b></span></a>
-  <nav>
-    <a href="#features">ความสามารถ</a>
-    <a href="#packages">แพ็กเกจ</a>
-    <a href="#contact">ติดต่อเรา</a>
-    <a class="btn btn-gold" href="/login">เข้าสู่ระบบ</a>
-  </nav>
+<body>
+<!-- DriveGo's landing page: the team's design of 2026-11-17 (docs/NOTES.md "หน้าแรกและหน้าเข้าระบบกลาง"). Its texts are in
+     /site/landing.js (Thai and English), drawn when the page loads. -->
+<svg class="sprite" width="0" height="0" aria-hidden="true"><defs>
+  <symbol id="i-crm" viewBox="0 0 24 24"><path d="M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 10a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M21 19v-1a4 4 0 0 0-3-3.9M15.5 3.2a3.5 3.5 0 0 1 0 6.6"/></symbol>
+  <symbol id="i-bay" viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5v8l9 5 9-5zM3 8l9 5 9-5M12 13v8"/></symbol>
+  <symbol id="i-fin" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2M20 20v-3"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 14l2 2 4-4"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.500-8-9V6zM9 12l2 2 4-4"/></symbol>
+  <symbol id="i-branch" viewBox="0 0 24 24"><path d="M4 21V9l8-6 8 6v12M9 21v-6h6v6M2 21h20"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18a4.500 4.500 0 0 1-.6-9A6 6 0 0 1 18 8.500a4.500 4.500 0 0 1-.5 9.500z"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.500l4.500 4.500L19 7"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><path d="M6 11h12v9H6zM8.500 11V8a3.500 3.500 0 0 1 7 0v3"/></symbol>
+  <symbol id="i-role" viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0"/></symbol>
+  <symbol id="i-db" viewBox="0 0 24 24"><path d="M4 6c0-1.700 3.600-3 8-3s8 1.300 8 3-3.600 3-8 3-8-1.300-8-3zM4 6v6c0 1.700 3.600 3 8 3s8-1.300 8-3V6M4 12v6c0 1.700 3.600 3 8 3s8-1.300 8-3v-6"/></symbol>
+  <symbol id="i-sync" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5l2 2M20 5v4h-4M20 12a8 8 0 0 1-14 5l-2-2M4 19v-4h4"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 21h4"/></symbol>
+</defs></svg>
+
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="DriveGo X"><span class="logo-m"><svg class="lx" viewBox="0 0 48 48" aria-hidden="true"><circle class="tr" cx="24" cy="24" r="20.500"/><circle class="rm" cx="24" cy="24" r="15"/><g transform="translate(24 24) scale(1.150) translate(-12 -12)"><path d="M4 20h5L20 4h-5z"/><path class="c" d="M4 4h5l2.450 3.560-2.500 3.640zM20 20h-5l-2.450-3.560 2.500-3.640z"/></g></svg></span><span>DriveGo <span class="lgx">X</span></span></a>
+    <nav class="nav-l" aria-label="Main">
+      <a href="#eco" data-i18n="nav.eco"></a><a href="#plans" data-i18n="nav.plans"></a><a href="#show" data-i18n="nav.show"></a><a href="#contact" data-i18n="nav.contact"></a>
+    </nav>
+    <div class="nav-r">
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" data-lang="th" aria-pressed="true">TH</button><button type="button" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+      <a class="btn btn-g login" href="/login" data-i18n="nav.login"></a>
+      <a class="btn btn-a cta" href="#contact"><span class="lg" data-i18n="nav.cta"></span><span class="sm">Demo</span></a>
+    </div>
+  </div>
 </header>
 
-<section class="hero">
-  <div class="hero-text">
-    <p class="eyebrow">ระบบบริหารงานอู่ซ่อมรถ</p>
-    <h1>งานซ่อม สต๊อก เงิน และบัญชี<br>ของอู่คุณ อยู่ในที่เดียว</h1>
-    <p class="lead">ตั้งแต่ใบเสนอราคา ตัดสต็อก รับเงิน จนถึงใบกำกับภาษีและงบการเงิน ทุกเครื่องในอู่เห็นข้อมูลชุดเดียวกัน คนหนึ่งบันทึก อีกเครื่องเห็นทันที</p>
-    <div class="cta">
-      <a class="btn btn-gold btn-lg" href="/login">เข้าสู่ระบบ</a>
-      <a class="btn btn-line btn-lg" href="https://lin.ee/tV7nV8x" target="_blank" rel="noopener">สอบถามทาง LINE</a>
+<main id="top">
+<section class="hero" id="hero">
+  <div class="grid-bg"></div><div class="aura a1" data-par=".12"></div><div class="aura a2" data-par=".2"></div>
+  <div class="wrap">
+    <div>
+      <span class="eyebrow rv" data-i18n="hero.eyebrow"></span>
+      <h1 class="rv" data-css="--d:.08s" data-i18n-html="hero.h"></h1>
+      <div class="lead rv" data-css="--d:.16s" id="lead"></div>
+      <div class="hero-cta rv" data-css="--d:.24s">
+        <a class="btn btn-a" href="#contact"><span data-i18n="hero.cta1"></span><svg class="ic"><use href="#i-arrow"/></svg></a>
+        <a class="btn btn-g" href="#eco" data-i18n="hero.cta2"></a>
+      </div>
+      <div class="pil rv" data-css="--d:.32s" id="pil"></div>
     </div>
-    <p class="hint">ใช้งานผ่านเว็บ Chrome, Edge หรือ Safari ได้ทั้งคอมพิวเตอร์ แท็บเล็ต และมือถือ ไม่ต้องติดตั้งโปรแกรม</p>
-  </div>
-  <div class="hero-card" aria-hidden="true">
-    <div class="flow">
-      <div class="step"><span>1</span>ใบเสนอราคา</div>
-      <div class="step"><span>2</span>อนุมัติซ่อม</div>
-      <div class="step"><span>3</span>ตัดสต็อกอะไหล่</div>
-      <div class="step"><span>4</span>รับเงิน · ใบเสร็จ</div>
-      <div class="step"><span>5</span>ใบกำกับภาษี</div>
-    </div>
-    <div class="figures">
-      <div><b>FIFO</b><small>ต้นทุนอะไหล่ตามล็อต</small></div>
-      <div><b>VAT</b><small>ภ.พ.30 · ภ.ง.ด.3/53</small></div>
-      <div><b>งบ</b><small>งบทดลอง · งบการเงิน</small></div>
+    <div class="stage rv r" data-css="--d:.2s" id="stage">
+      <div class="tilt" id="tilt">
+        <div id="heroUI"></div>
+        <div class="fl f2" data-depth="1.4"><span class="fi"><svg class="ic"><use href="#i-bell"/></svg></span><div><b data-i18n="hero.fl2a"></b><span data-i18n="hero.fl2b"></span></div></div>
+        <div class="fl f1" data-depth="-1"><span class="fi"><span class="coin">DG</span></span><div><b data-i18n="hero.fl1a"></b><span data-i18n="hero.fl1b"></span></div></div>
+      </div>
+      <p class="note" data-i18n="hero.note"></p>
     </div>
   </div>
 </section>
 
-<section class="features" id="features">
-  <h2>ทำอะไรได้บ้าง</h2>
-  <div class="grid">
-    <article><h3>งานซ่อมครบขั้นตอน</h3><p>ใบเสนอราคา อนุมัติซ่อม ตัดสต็อก ติดตามงานค้างส่งมอบ นัดหมายและนัดตรวจเช็กของลูกค้า</p></article>
-    <article><h3>รับเงินและเอกสารภาษี</h3><p>รับเงินสด โอน บัตร หรือแบ่งจ่าย ได้ใบเสร็จทันที ออกใบกำกับภาษี ใบวางบิล ใบลดหนี้ และหัก ณ ที่จ่าย</p></article>
-    <article><h3>สต๊อกอะไหล่</h3><p>ทะเบียนอะไหล่ ราคาขายหลายระดับ รับสินค้าจากผู้ขาย เบิกใช้ภายใน ตรวจนับ และต้นทุนแบบเข้าก่อนออกก่อน</p></article>
-    <article><h3>บัญชีและการเงิน</h3><p>ลงบัญชีให้เองจากเอกสารทุกใบ งบทดลอง บัญชีแยกประเภท งบการเงิน และรายงานภาษีรายเดือน ส่งให้ผู้ทำบัญชีได้ทันที</p></article>
-    <article><h3>พนักงานและสิทธิ์</h3><p>ทุกคนมีบัญชีของตัวเอง กำหนดได้ว่าใครเห็นหรือทำอะไร จ่ายเงินเดือนพร้อมประกันสังคม และระบบจดว่าใครทำอะไร</p></article>
-    <article><h3>ข้อมูลปลอดภัย</h3><p>ข้อมูลของแต่ละร้านแยกกันที่ฐานข้อมูล รหัสผ่านเก็บแบบเข้ารหัส สำรองข้อมูลให้ทุกวัน</p></article>
+<section id="why">
+  <div class="wrap">
+    <span class="eyebrow rv" data-i18n="why.eyebrow"></span>
+    <h2 class="sec-h rv" data-i18n="why.h"></h2>
+    <div class="pain" id="pain"></div>
+    <p class="quote rv" data-i18n="why.foot"></p>
+    <div class="ba rv" id="ba"></div>
   </div>
 </section>
 
-<section class="packages" id="packages">
-  <h2>แพ็กเกจ</h2>
-  <div class="grid three">
-    <article><h3>DriveGo<b>Biz</b></h3><p>สำหรับอู่ซ่อมรถทั่วไป งานซ่อม การขาย สต๊อก พนักงาน และบัญชีครบในร้านเดียว รองรับหลายสาขา</p></article>
-    <article><h3>DriveGo<b>ProX</b></h3><p>ทุกอย่างของ Biz พร้อมเครื่องมือดูแลลูกค้า เช่น รับคิวจอง และเปิดใบเสนอราคาจากอาการเสียที่ลูกค้าแจ้ง</p></article>
-    <article><h3>DriveGo<b>Franchise</b></h3><p>สำหรับเครือหลายสาขา สำนักงานใหญ่ดูยอดรวมทุกสาขา ดูแลคลังกลาง และอนุมัติใบขอเบิกของสาขา</p></article>
+<section id="eco">
+  <div class="garage" data-par=".04"><svg id="garage" viewBox="0 0 1440 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div>
+  <div class="wrap">
+    <span class="eyebrow rv" data-i18n="eco.eyebrow"></span>
+    <h2 class="sec-h rv" data-i18n="eco.h"></h2>
+    <p class="sec-p rv" data-i18n="eco.p"></p>
+    <div class="eco-g">
+      <div class="tabs rv" role="tablist" id="tabs" aria-label="Modules"></div>
+      <div class="eco-p rv" data-css="--d:.1s" role="tabpanel" id="ecoP">
+        <div class="eco-t" id="ecoT"></div>
+        <div class="eco-m" id="ecoM"></div>
+      </div>
+    </div>
   </div>
 </section>
 
-<section class="contact" id="contact">
-  <div>
-    <h2>สนใจใช้ DriveGo</h2>
-    <p>สอบถามรายละเอียดหรือขอเปิดร้านทดลองใช้ได้ทาง LINE Official ของเรา</p>
+<section id="plans">
+  <div class="wrap">
+    <span class="eyebrow rv" data-i18n="plans.eyebrow"></span>
+    <h2 class="sec-h rv" data-i18n="plans.h"></h2>
+    <p class="sec-p rv" data-i18n="plans.p"></p>
+    <div class="pk" id="pk"></div>
+    <div class="cmp rv" id="cmp"></div>
+    <div class="st-g">
+      <div class="rv"><h3 class="mini-h" data-i18n="start.h"></h3><ol class="steps" id="steps"></ol><p class="st-n" data-i18n="start.note"></p></div>
+      <div class="rv r"><h3 class="mini-h" data-i18n="start.why"></h3><div class="rel" id="whyus"></div></div>
+    </div>
   </div>
-  <a class="btn btn-line btn-lg" href="https://lin.ee/tV7nV8x" target="_blank" rel="noopener">เพิ่มเพื่อนทาง LINE</a>
 </section>
 
-<footer class="foot">
-  <span>© DriveGo · ระบบบริหารงานอู่ซ่อมรถ</span>
-  <a href="/login">เข้าสู่ระบบ</a>
+<section id="show">
+  <div class="wrap">
+    <h2 class="sec-h rv" data-i18n="show.h"></h2>
+    <div class="roles rv" role="tablist" id="roles" aria-label="Roles"></div>
+    <div class="show-g rv" data-css="--d:.1s">
+      <div class="show-s" id="showS"></div>
+      <div class="hs-l" id="hsL"></div>
+    </div>
+      </div>
+</section>
+
+<section id="cloud">
+  <div class="wrap">
+    <span class="eyebrow rv" data-i18n="dev.eyebrow"></span>
+    <h2 class="sec-h rv" data-i18n="dev.h"></h2>
+    <p class="sec-p rv" data-i18n="dev.p"></p>
+    <div class="dev-g">
+      <div class="rv">
+        <div class="devs">
+          <div class="d-desk" id="dDesk"></div>
+          <div class="d-tab" id="dTab" data-par="-.05"></div>
+          <div class="d-ph" id="dPh" data-par="-.09"></div>
+        </div>
+        <div class="dl"><span data-i18n="dev.d1"></span><span data-i18n="dev.d2"></span><span data-i18n="dev.d3"></span></div>
+      </div>
+      <div class="rel rv r" id="rel"></div>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="wrap">
+    <div class="cta-b rv" id="ctaB">
+      <div>
+        <span class="eyebrow" data-i18n="cta.eyebrow"></span>
+        <h2 class="sec-h" data-i18n="cta.h"></h2>
+        <p data-i18n="cta.p"></p>
+        <ul>
+          <li><svg class="ic"><use href="#i-check"/></svg><span data-i18n="cta.l1"></span></li>
+          <li><svg class="ic"><use href="#i-check"/></svg><span data-i18n="cta.l2"></span></li>
+          <li><svg class="ic"><use href="#i-check"/></svg><span data-i18n="cta.l3"></span></li>
+        </ul>
+      </div>
+      <div>
+        <form id="demoForm" novalidate>
+          <div class="fd"><label for="fName" data-i18n="form.name"></label><input id="fName" autocomplete="name" required></div>
+          <div class="fd"><label for="fTel" data-i18n="form.tel"></label><input id="fTel" type="tel" inputmode="tel" autocomplete="tel" required></div>
+          <div class="fd w"><label for="fShop" data-i18n="form.shop"></label><input id="fShop" autocomplete="organization" required></div>
+          <div class="fd"><label for="fBr" data-i18n="form.br"></label><select id="fBr"></select></div>
+          <div class="fd"><label for="fMod" data-i18n="form.mod"></label><select id="fMod"></select></div>
+          <div class="fd w"><label for="fMsg" data-i18n="form.msg"></label><textarea id="fMsg" rows="3"></textarea></div>
+          <p class="err" id="fErr" role="alert"></p>
+          <button class="btn btn-a" type="submit"><span data-i18n="form.send"></span><svg class="ic"><use href="#i-arrow"/></svg></button>
+        </form>
+        <div class="fdone" id="done">
+          <h3><svg class="ic"><use href="#i-check"/></svg><span data-i18n="form.okh"></span></h3>
+          <pre id="sum"></pre>
+          <p data-i18n="form.okp"></p>
+          <div class="bt mt1">
+            <a class="btn btn-a" id="copyB" href="https://lin.ee/tV7nV8x" target="_blank" rel="noopener" data-i18n="form.copy"></a>
+            <button class="btn btn-g" type="button" id="editB" data-i18n="form.edit"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="ft">
+      <div>
+        <a class="logo" href="#top"><span class="logo-m"><svg class="lx" viewBox="0 0 48 48" aria-hidden="true"><circle class="tr" cx="24" cy="24" r="20.500"/><circle class="rm" cx="24" cy="24" r="15"/><g transform="translate(24 24) scale(1.150) translate(-12 -12)"><path d="M4 20h5L20 4h-5z"/><path class="c" d="M4 4h5l2.450 3.560-2.500 3.640zM20 20h-5l-2.450-3.560 2.500-3.640z"/></g></svg></span><span>DriveGo <span class="lgx">X</span></span></a>
+        <p class="ft-tag" data-i18n="foot.tag"></p>
+      </div>
+      <div><h5 data-i18n="foot.prod"></h5><p>DriveGo BaziX<br>DriveGo ProX<br>DriveGo BOOK</p></div>
+      <div><h5 data-i18n="foot.menu"></h5><p><a href="#eco" data-i18n="nav.eco"></a><br><a href="#plans" data-i18n="nav.plans"></a><br><a href="#cloud" data-i18n="nav.cloud"></a><br><a href="#show" data-i18n="nav.show"></a><br><a href="/login" data-i18n="nav.login"></a></p></div>
+      <div><h5 data-i18n="foot.support"></h5><a class="tel" href="tel:+66821087000">082-108-7000</a><p class="mt035"><a href="mailto:sales@drivegox.com">sales@drivegox.com</a></p><p class="mt05"><a href="https://lin.ee/tV7nV8x" target="_blank" rel="noopener">LINE Official</a></p><p class="mt05">Drivebiz Mecalyze Solution Co., Ltd.</p></div>
+    </div>
+    <div class="cp"><span>© 2026 Drivebiz Mecalyze Solution Co., Ltd. <span data-i18n="foot.rights"></span></span><span>DriveGo BaziX® · DriveGo ProX®</span></div>
+  </div>
 </footer>
 </body>
 </html>

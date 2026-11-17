@@ -6,8 +6,10 @@ import { test, expect } from '../support/test';
 // password on one page, then opens that shop as that person, through the shop page's own sign-in. A wrong password gets
 // the shop's own message; a user or a shop that does not exist gets one message that does not say which part was wrong.
 // The device keeps the shop code for next time. A shop's own address works as before.
-// Owner 2026-11-17 (sales): the page has one card per package (Biz, ProX, Franchise) and the form opens in the card
+// Owner 2026-11-17 (sales): the page has one card per package (BaziX, ProX, Franchise) and the form opens in the card
 // picked; right sign-in on another package's card is refused with the card to use (S459: ProX and Franchise shops).
+// The landing page is the team's design (same day): Thai and English, what the system does not do yet tagged "เร็ว ๆ นี้",
+// a demo request summed up for the visitor to send on LINE (nothing stored).
 const signIn = async (page: Page, code: string, user: string, pass: string) => {
   await page.getByLabel('รหัสร้าน').fill(code);
   await page.getByLabel('ชื่อผู้ใช้ / อีเมล / เบอร์โทร').fill(user);
@@ -22,22 +24,41 @@ test('S297 ระบบใหม่: หน้าแรกของเว็บ�
 
   // The landing page.
   await page.goto(`${origin}/`);
-  await expect(page).toHaveTitle('DriveGo · ระบบบริหารงานอู่ซ่อมรถ');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('งานซ่อม สต๊อก เงิน และบัญชีของอู่คุณ อยู่ในที่เดียว');
-  await expect(page.getByRole('link', { name: 'สอบถามทาง LINE' })).toHaveAttribute('href', 'https://lin.ee/tV7nV8x');
-  await expect(page.getByRole('link', { name: 'เพิ่มเพื่อนทาง LINE' })).toHaveAttribute('href', 'https://lin.ee/tV7nV8x');
-  await page.getByRole('link', { name: 'เข้าสู่ระบบ' }).first().click();
+  await expect(page).toHaveTitle('DriveGo X · ระบบบริหารอู่และศูนย์บริการรถยนต์บน Cloud');
+  const h1 = page.getByRole('heading', { level: 1 });
+  await expect(h1).toHaveText('ข้อมูลเพื่อการจัดการที่ดี นำสู่ความสำเร็จ');
+  await expect(page.getByRole('link', { name: 'LINE Official' })).toHaveAttribute('href', 'https://lin.ee/tV7nV8x');
+  // What the system does not do yet carries its tag (here the API row of the comparison table).
+  await expect(page.getByRole('row', { name: /เชื่อมต่อระบบภายนอก \(API\) เร็ว ๆ นี้/ })).toBeAttached();
+  // English, and back to Thai.
+  await page.getByRole('button', { name: 'EN', exact: true }).click();
+  await expect(h1).toHaveText('Accurate information leads to successful management');
+  await expect(page.getByRole('row', { name: /External system connection \(API\) Coming soon/ })).toBeAttached();
+  await page.getByRole('button', { name: 'TH', exact: true }).click();
+  await expect(h1).toHaveText('ข้อมูลเพื่อการจัดการที่ดี นำสู่ความสำเร็จ');
+  // A demo request: missing details are asked for; then a summary, and the button to send it is LINE Official.
+  await page.getByRole('button', { name: 'ขอนัด Demo' }).click();
+  await expect(page.locator('#fErr')).toHaveText('กรอกชื่อ ชื่ออู่ และเบอร์โทรให้ครบก่อนส่ง');
+  await page.getByLabel('ชื่อผู้ติดต่อ').fill('สมชาย ใจดี');
+  await page.getByLabel('เบอร์โทร').fill('081-234-5678');
+  await page.getByLabel('ชื่ออู่หรือศูนย์บริการ').fill('สมชายการช่าง');
+  await page.getByRole('button', { name: 'ขอนัด Demo' }).click();
+  await expect(page.getByText('สรุปคำขอพร้อมแล้ว')).toBeVisible();
+  await expect(page.locator('#sum')).toHaveText(['ขอนัด Demo DriveGo ProX', 'ชื่อผู้ติดต่อ: สมชาย ใจดี', 'ชื่ออู่หรือศูนย์บริการ: สมชายการช่าง',
+    'เบอร์โทร: 081-234-5678', 'จำนวนสาขา: 1 สาขา', 'โมดูลที่สนใจ: ทั้งระบบ'].join('\n'));
+  await expect(page.getByRole('link', { name: 'คัดลอกแล้วส่งทาง LINE' })).toHaveAttribute('href', 'https://lin.ee/tV7nV8x');
+  await page.getByRole('link', { name: 'เข้าระบบ', exact: true }).first().click();
   await expect(page).toHaveURL(`${origin}/login`);
   await expect(page.getByRole('heading', { name: 'เข้าสู่ระบบ', exact: true })).toBeVisible();
   await expect(page.getByText('เลือกแพ็กเกจที่ร้านของคุณใช้')).toBeVisible();
-  for (const name of ['DriveGoBiz', 'DriveGoProX', 'DriveGoFranchise'])
+  for (const name of ['DriveGo BaziX', 'DriveGo ProX', 'DriveGo Franchise'])
     await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
   // No form until a card is picked; picked, it opens in that card.
   await expect(page.getByLabel('รหัสร้าน')).toBeHidden();
-  await page.getByRole('button', { name: 'เข้าสู่ระบบ DriveGoBiz' }).click();
-  const biz = page.getByRole('region', { name: 'DriveGoBiz' });
+  await page.getByRole('button', { name: 'เข้าสู่ระบบ DriveGo BaziX' }).click();
+  const biz = page.getByRole('region', { name: 'DriveGo BaziX' });
   await expect(biz.getByLabel('รหัสร้าน')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'เข้าสู่ระบบ DriveGoBiz' })).toBeHidden();
+  await expect(page.getByRole('button', { name: 'เข้าสู่ระบบ DriveGo BaziX' })).toBeHidden();
   await expect(page.getByLabel('รหัสร้าน')).toHaveValue('');
 
   // Refused: an empty form, a wrong password, a shop that does not exist; the page stays.
@@ -52,13 +73,13 @@ test('S297 ระบบใหม่: หน้าแรกของเว็บ�
   await expect(page).toHaveURL(`${origin}/login`);
 
   // Right, but on the ProX card: refused, with the card to use; what was typed moves with the form.
-  await page.getByRole('button', { name: 'เข้าสู่ระบบ DriveGoProX' }).click();
-  await expect(page.getByRole('region', { name: 'DriveGoProX' }).getByLabel('รหัสร้าน')).toHaveValue('no-such-shop');
-  await expect(page.getByRole('button', { name: 'เข้าสู่ระบบ DriveGoBiz' })).toBeVisible();
+  await page.getByRole('button', { name: 'เข้าสู่ระบบ DriveGo ProX' }).click();
+  await expect(page.getByRole('region', { name: 'DriveGo ProX' }).getByLabel('รหัสร้าน')).toHaveValue('no-such-shop');
+  await expect(page.getByRole('button', { name: 'เข้าสู่ระบบ DriveGo BaziX' })).toBeVisible();
   await signIn(page, code, 'dg1688', '123456');
-  await expect(page.getByRole('alert')).toHaveText('ร้านนี้ใช้แพ็กเกจ DriveGoBiz — กรุณาเข้าสู่ระบบที่การ์ด DriveGoBiz');
+  await expect(page.getByRole('alert')).toHaveText('ร้านนี้ใช้แพ็กเกจ DriveGo BaziX — กรุณาเข้าสู่ระบบที่การ์ด DriveGo BaziX');
   await expect(page).toHaveURL(`${origin}/login`);
-  await page.getByRole('button', { name: 'เข้าสู่ระบบ DriveGoBiz' }).click();
+  await page.getByRole('button', { name: 'เข้าสู่ระบบ DriveGo BaziX' }).click();
   await expect(page.getByRole('alert')).toBeHidden();
 
   // Right: the shop opens, signed in as its owner; what was handed over is gone.
@@ -76,7 +97,7 @@ test('S297 ระบบใหม่: หน้าแรกของเว็บ�
   await page.getByPlaceholder('กรอกรหัสผ่าน').waitFor();
   await app.settle();
   await page.goto(`${origin}/login`);
-  await page.getByRole('button', { name: 'เข้าสู่ระบบ DriveGoBiz' }).click();
+  await page.getByRole('button', { name: 'เข้าสู่ระบบ DriveGo BaziX' }).click();
   await expect(page.getByLabel('รหัสร้าน')).toHaveValue(code);
   await page.getByLabel('ชื่อผู้ใช้ / อีเมล / เบอร์โทร').fill('dg1688');
   await page.getByLabel('รหัสผ่าน').fill('123456');

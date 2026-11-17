@@ -8,13 +8,15 @@ test('01 เริ่มต้นใช้งาน', async ({ app, page }) => {
   // The system's own pages (S297).
   const at = new URL(page.url());
   await page.goto(`${at.origin}/`);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('ข้อมูลเพื่อการจัดการที่ดี นำสู่ความสำเร็จ');
   await page.evaluate(() => document.fonts.ready);
-  await shot(page, '01-landing', { mark: [[page.getByRole('link', { name: 'เข้าสู่ระบบ' }).nth(1), '1']], scroll: false, part: page.locator('.hero') });
+  await page.waitForTimeout(1500);   // the page's own entrance animation
+  await shot(page, '01-landing', { mark: [[page.getByRole('link', { name: 'เข้าระบบ', exact: true }).first(), '1']], scroll: false });
   await page.goto(`${at.origin}/login`);
   await page.evaluate(() => document.fonts.ready);
   // One card per package: the reader picks their shop's (S297, S459).
   const heading = page.getByRole('heading', { name: 'เข้าสู่ระบบ', exact: true }), plans = page.locator('.plans');
-  const pick = page.getByRole('button', { name: 'เข้าสู่ระบบ DriveGoBiz' });
+  const pick = page.getByRole('button', { name: 'เข้าสู่ระบบ DriveGo BaziX' });
   await shot(page, '01-plans', { scroll: false, mark: [[pick, '2']], area: [heading, plans], pad: 24 });
   await pick.click();
   // Example values in the picture: the shop code as the sample shop shows it in menu 10 (DG-1688), and a password of a
