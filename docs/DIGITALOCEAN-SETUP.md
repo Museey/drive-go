@@ -111,12 +111,27 @@ server ทดสอบนี้ใช้ข้อมูลทดลองเท�
 4. **สร้างบัญชีทีมงานคนแรก**: แอป **drivego-test** → ส่วนประกอบ **web** → แท็บ **Console** → ทำตาม [STAFF-TOOLS.md](STAFF-TOOLS.md)
    "วิธีรันบน server ทดสอบ" (export MIGRATE_DATABASE_URL) แล้วพิมพ์
    `node tools/shop-admin.mjs staff add ชื่อผู้ใช้ --name "ชื่อจริง" --by ชื่อของคุณ` จะได้รหัสชั่วคราว (แสดงครั้งเดียว)
-5. **ลองเข้า**: เปิด URL ของแอปต่อด้วย **`/ops/`** (เช่น `https://drivego-test-xxxxx.ondigitalocean.app/ops/`) → ใส่ชื่อผู้ใช้และรหัสชั่วคราว
+5. **ลองเข้า**: เปิด URL ของแอปต่อด้วย **`/ops/`** (`https://app.drivegox.com/ops/`) → ใส่ชื่อผู้ใช้และรหัสชั่วคราว
    → ตั้งรหัสผ่านของตัวเอง (อย่างน้อย 12 ตัว) → ติดตั้ง Google Authenticator หรือ Microsoft Authenticator ในมือถือ แล้วสแกน QR
    → ใส่รหัส 6 หลัก แล้วจะเห็นรายการร้านทั้งหมด
 
 **ข้อควรรู้**: การเข้าระบบของหน้าทีมงานอยู่เฉพาะแท็บที่เข้า (แท็บใหม่ต้องเข้าใหม่ และถ้าเปิดหน้าร้านในแท็บเดียวกัน กลับมาต้องเข้าใหม่)
 ถ้าวันหนึ่งวางไฟล์ `.do/app.yaml` ทับ App Spec อีกครั้ง ต้องใส่ `STAFF_DATABASE_URL` ใหม่ (เหมือน `MIGRATE_DATABASE_URL` ของงาน migrate, nightly, watch)
+
+## ส่วนที่ 5: โดเมนของเราเอง (ทำแล้ว 2026-11-17: `app.drivegox.com`)
+
+โดเมน `drivegox.com` ซื้อที่ GoDaddy และให้ GoDaddy ดูแล DNS ต่อ ใช้โดเมนย่อย `app` เพราะ GoDaddy ชี้ชื่อหลัก (@) ด้วย CNAME ไม่ได้
+1. **DigitalOcean**: แอป **drivego-test** → แท็บ **Networking** → หัวข้อ **Domains** → **Add domain** → Domain: **`app.drivegox.com`**
+   → Management options: **You manage your domain** → คัดลอก **CNAME alias** (ลงท้าย `ondigitalocean.app`) → **Add domain**
+2. **GoDaddy**: โดเมน → **DNS** → **Add New Record** → Type **CNAME** · Name **`app`** · Value: alias ที่คัดลอกมา · TTL ค่าตั้งต้น → Save
+3. รอให้ Networking → Domains ขึ้นว่าใช้งานได้ (ไม่กี่นาทีถึง 1 ชั่วโมง, นานสุด 72 ชั่วโมง) DigitalOcean ออกใบรับรอง https ให้เอง
+
+- โดเมนอยู่ใน `.do/app.yaml` แล้ว (`domains:`) วางไฟล์ทับ App Spec อีกครั้งโดเมนจึงไม่หลุด (ไม่มี `zone` เพราะ DNS อยู่ที่ GoDaddy)
+- ที่อยู่เดิม `https://drivego-test-asaao.ondigitalocean.app` ยังใช้ได้เหมือนเดิม
+- ตรวจแล้ว 2026-11-17 ผ่านโดเมนใหม่: `node tools/server-check.mjs --url https://app.drivegox.com` ผ่าน 12 ข้อ (จาก session ของ Claude ต้องใส่
+  `NODE_USE_ENV_PROXY=1 NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt` และเพิ่ม host ใน Allowed domains ของ environment ก่อน)
+- ชื่อหลัก `drivegox.com` ยังเป็นหน้าของ GoDaddy ถ้าอยากให้พาไปที่ระบบ ตั้ง **Forwarding** ของโดเมนที่ GoDaddy ไป `https://app.drivegox.com` (ไม่บังคับ)
+- ถ้าใบรับรองไม่ออก: ถ้าโดเมนมีรายการ CAA ต้องมีทั้ง `letsencrypt.org` และ `pki.goog`
 
 ## เสร็จส่วนที่ 1–2 แล้วบอก Claude
 

@@ -22,6 +22,9 @@
 #   panel before the first deploy), which Row-Level Security applies to. The cluster only takes TLS: DATABASE_CA_CERT
 #   carries its CA (server/lib/pg-config.ts).
 # · Deploys follow the branch deploy/test, which CI moves only after every check passed (.github/workflows/ci.yml).
+# · domains: app.drivegox.com (the owner's domain, bought at GoDaddy, which keeps its DNS: a CNAME "app" to the app's
+#   ondigitalocean.app alias; no `zone`, as DigitalOcean does not manage the DNS; docs/DIGITALOCEAN-SETUP.md part 5). The
+#   app's own ondigitalocean.app address keeps working.
 name: drivego-test
 region: sgp
 services:
@@ -130,6 +133,9 @@ databases:
     cluster_name: drivego-test-db
     db_name: defaultdb
     db_user: drivego_app
+domains:
+  - domain: app.drivegox.com
+    type: PRIMARY
 ingress:
   rules:
     - component:
