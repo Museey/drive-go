@@ -2,7 +2,8 @@
 // session cookie, or { error } with the legacy app's message for that case.
 // check: true (the central sign-in page /login, owner 2026-11-17): the same checks and the same limit on wrong tries,
 // but no session: the shop's own page signs in after it (frontend/js/78-central-login.js). Its refusal names the shop
-// code too, as the shop code is typed there.
+// code too, as the shop code is typed there. Its answer names the shop's package (biz, prox, franchise), only once the
+// password is right: the page has one card per package and refuses the wrong card (owner 2026-11-17).
 import { clientAddress, json, readJson } from '@/lib/api';
 import { MESSAGES, deviceFailed, deviceLocked, signInBiz, signInFranchise, userIdOf } from '@/lib/auth';
 import { pool, withShop } from '@/lib/db';
@@ -38,6 +39,6 @@ export async function POST(req: Request) {
     return { cookie: started.cookie };
   });
   if ('error' in r) return refused(r.error as string);
-  if ('checked' in r) return json({ ok: true });
+  if ('checked' in r) return json({ ok: true, package: shop.package });
   return new Response(JSON.stringify({ ok: true }), { headers: { 'content-type': 'application/json', 'set-cookie': r.cookie } });
 }

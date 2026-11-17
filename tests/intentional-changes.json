@@ -1032,6 +1032,11 @@
       "scenario": "S297-landing-page-central-sign-in.spec.ts",
       "decision": "Owner 2026-11-17: a landing page at / and one central sign-in page (shop code, user, password)",
       "why": "The legacy file had no address of its own: each shop opens at /<shop code>/ (Q1). The new system's own address shows what DriveGo is and signs in at /login, then opens the shop through its own sign-in."
+    },
+    {
+      "scenario": "S459-sign-in-cards-prox-franchise.spec.ts",
+      "decision": "Owner 2026-11-17: the central sign-in page has one card per package (Biz, ProX, Franchise); the right sign-in on another package's card is refused, naming the card to use",
+      "why": "Sales want people to see the three packages when they sign in. S297 covers a Biz shop; this one covers a ProX shop and a Franchise network's head office signing in on their own cards, and on the wrong card."
     }
   ]
 }

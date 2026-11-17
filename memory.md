@@ -75,6 +75,9 @@
 - **หน้าแรก + /login (2026-11-17)**: server/site (index.html login.html login.js site.css logo.jpg), app/route.ts app/login app/site/[file],
   login API `check: true`, frontend 78-central-login.js (sessionStorage dg_signin), S297 · ข้อความอนุมัติแล้ว 2026-11-17 · คู่มือ PDF สร้างใหม่แล้ว
   (บท 1 มีภาพ 01-landing 01-signin แล้ว) · Next.js อัปเกรด 16.4.6: เจ้าของบอก "ไว้ค่อยอัปเกรด" (GHSA-mfr8-8qww-v76h ไม่กระทบ ไม่มี 'use cache')
+- **หน้าเข้าระบบ 3 การ์ด (2026-11-17)**: login.html/login.js/site.css, API check ตอบ package (เฉพาะรหัสถูก), S297 + S459 (ProX, Franchise hq/1234)
+  เจ้าของเลือก: กดการ์ดแล้วฟอร์มขึ้นในการ์ด, ผิดการ์ดไม่ให้เข้าบอกการ์ดที่ถูก, การ์ดมีคำอธิบายแพ็กเกจเท่านั้น · **ข้อความใหม่รออนุมัติ**
+  เพิ่มบัญชีทีมงาน /ops: `node tools/shop-admin.mjs staff add LOGIN --name "ชื่อ" --by ชื่อ` ใน Console ของ web (MIGRATE_DATABASE_URL = doadmin)
 - **คู่มือ PDF (2026-11-17)**: `node tools/manual/build.mjs --out <dir>` (ต้อง `CHROMIUM_PATH=/opt/pw-browsers/chromium` ในเครื่อง session, ใช้ flock new.lock)
   ส่งไฟล์ให้เจ้าของด้วย SendUserFile · ดูภาพหลายภาพทีเดียว: ทำ contact sheet ด้วย sharp (`node_modules/sharp/dist/index.mjs`)
   ตรวจทั้งเล่มแล้ว 2026-11-17 (NOTES.md "คู่มือการใช้งาน PDF"): เลขบนภาพ = เลขข้อ (`mark: [[locator, '3']]`, `steps` มี `start`),

@@ -14,10 +14,27 @@
 <header class="top">
   <a class="brand" href="/" aria-label="DriveGo หน้าแรก"><img src="/site/logo.jpg" alt=""><span>Drive<b>Go</b></span></a>
 </header>
-<main class="signin-box">
+<main class="signin-wrap">
   <h1>เข้าสู่ระบบ</h1>
-  <p class="sub">ร้านของคุณบน DriveGo</p>
-  <form id="signin" novalidate>
+  <p class="sub">เลือกแพ็กเกจที่ร้านของคุณใช้</p>
+  <div class="plans">
+    <section class="plan" data-package="biz" data-name="DriveGoBiz" aria-labelledby="plan-biz">
+      <h2 id="plan-biz">DriveGo<b>Biz</b></h2>
+      <p>สำหรับอู่ซ่อมรถทั่วไป งานซ่อม การขาย สต๊อก พนักงาน และบัญชีครบในร้านเดียว รองรับหลายสาขา</p>
+      <button class="btn btn-ghost btn-block pick" type="button">เข้าสู่ระบบ DriveGoBiz</button>
+    </section>
+    <section class="plan" data-package="prox" data-name="DriveGoProX" aria-labelledby="plan-prox">
+      <h2 id="plan-prox">DriveGo<b>ProX</b></h2>
+      <p>ทุกอย่างของ Biz พร้อมเครื่องมือดูแลลูกค้า เช่น รับคิวจอง และเปิดใบเสนอราคาจากอาการเสียที่ลูกค้าแจ้ง</p>
+      <button class="btn btn-ghost btn-block pick" type="button">เข้าสู่ระบบ DriveGoProX</button>
+    </section>
+    <section class="plan" data-package="franchise" data-name="DriveGoFranchise" aria-labelledby="plan-franchise">
+      <h2 id="plan-franchise">DriveGo<b>Franchise</b></h2>
+      <p>สำหรับเครือหลายสาขา สำนักงานใหญ่ดูยอดรวมทุกสาขา ดูแลคลังกลาง และอนุมัติใบขอเบิกของสาขา</p>
+      <button class="btn btn-ghost btn-block pick" type="button">เข้าสู่ระบบ DriveGoFranchise</button>
+    </section>
+  </div>
+  <form id="signin" novalidate hidden>
     <label for="code">รหัสร้าน</label>
     <input id="code" name="code" autocomplete="organization" autocapitalize="none" spellcheck="false" placeholder="เช่น somchai-auto" required>
     <label for="user">ชื่อผู้ใช้ / อีเมล / เบอร์โทร</label>

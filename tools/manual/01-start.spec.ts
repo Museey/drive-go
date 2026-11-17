@@ -12,14 +12,19 @@ test('01 เริ่มต้นใช้งาน', async ({ app, page }) => {
   await shot(page, '01-landing', { mark: [[page.getByRole('link', { name: 'เข้าสู่ระบบ' }).nth(1), '1']], scroll: false, part: page.locator('.hero') });
   await page.goto(`${at.origin}/login`);
   await page.evaluate(() => document.fonts.ready);
+  // One card per package: the reader picks their shop's (S297, S459).
+  const heading = page.getByRole('heading', { name: 'เข้าสู่ระบบ', exact: true }), plans = page.locator('.plans');
+  const pick = page.getByRole('button', { name: 'เข้าสู่ระบบ DriveGoBiz' });
+  await shot(page, '01-plans', { scroll: false, mark: [[pick, '2']], area: [heading, plans], pad: 24 });
+  await pick.click();
   // Example values in the picture: the shop code as the sample shop shows it in menu 10 (DG-1688), and a password of a
   // proper length (the sample shop's own is shorter than what a new password must be).
   await page.getByLabel('รหัสร้าน').fill('dg-1688');
   await page.getByLabel('ชื่อผู้ใช้ / อีเมล / เบอร์โทร').fill('dg1688');
   await page.getByLabel('รหัสผ่าน').fill('Somchai#2569');
-  await shot(page, '01-signin', { scroll: false, mark: [
-    [page.getByLabel('รหัสร้าน'), '2'], [page.getByLabel('ชื่อผู้ใช้ / อีเมล / เบอร์โทร'), '3'], [page.getByLabel('รหัสผ่าน'), '3'],
-    [page.getByRole('button', { name: 'เข้าสู่ระบบ' }), '3']] });
+  await shot(page, '01-signin', { scroll: false, area: [heading, plans], pad: 24, mark: [
+    [page.getByLabel('รหัสร้าน'), '3'], [page.getByLabel('ชื่อผู้ใช้ / อีเมล / เบอร์โทร'), '4'], [page.getByLabel('รหัสผ่าน'), '4'],
+    [page.getByRole('button', { name: 'เข้าสู่ระบบ', exact: true }), '4']] });
 
   // A shop's own sign-in page.
   await app.open();
