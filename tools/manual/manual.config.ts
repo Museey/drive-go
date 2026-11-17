@@ -13,6 +13,9 @@ export default defineConfig({
   expect: { timeout: 20_000 },
   reporter: [['list']],
   // Pictures people read: twice the pixels (the PDF shows them at half size, sharp on screen and paper).
-  use: { ...CONTEXT_OPTIONS, deviceScaleFactor: 2, browserName: 'chromium', launchOptions: LAUNCH_OPTIONS, trace: 'off', actionTimeout: 30_000 },
+  // 1280 × 960: a little taller than the tests' 800, so a list shows its first rows under its filters. --lang: date and
+  // time fields drawn the Thai way (13/10/2026, 09:00) instead of the US way; the page's locale alone does not do it.
+  use: { ...CONTEXT_OPTIONS, viewport: { width: 1280, height: 960 }, deviceScaleFactor: 2, browserName: 'chromium',
+    launchOptions: { ...LAUNCH_OPTIONS, args: [...LAUNCH_OPTIONS.args, '--lang=th-TH'] }, trace: 'off', actionTimeout: 30_000 },
   globalSetup: '../../tests/support/new-system-setup.mjs',
 });

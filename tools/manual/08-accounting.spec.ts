@@ -9,13 +9,13 @@ async function go(page: Page, item: string) {
   await page.waitForTimeout(500);
 }
 
-// Chapter 8: the accounts: chart of accounts and trial balance, general ledger, statements, opening balances,
-// capital and cash/bank, financial health.
+// Chapter 9 of the manual: the accounts: opening balances, chart of accounts and trial balance, general ledger,
+// statements, capital and cash/bank, financial health. Numbers on a picture are the numbers of its steps, or the numbers
+// in brackets in its paragraph.
 test('08 บัญชีและการเงิน', async ({ app, page }) => {
   await app.loginAsOwner();
   await go(page, '└ ผังบัญชี');
   await app.settle();
-  await shot(page, '08-coa', { mark: [page.getByRole('button', { name: 'พิมพ์งบทดลอง' })] });
   const csv = page.getByRole('button', { name: 'ส่งออก CSV ให้สำนักงานบัญชี' });
   await shot(page, '08-tb', { mark: [[page.getByRole('button', { name: 'พิมพ์งบทดลอง' }), '1'], [csv, '2']] });
 
@@ -29,8 +29,9 @@ test('08 บัญชีและการเงิน', async ({ app, page }) =
   await go(page, '└ งบการเงิน');
   await app.settle();
   await shot(page, '08-fs', { mark: [page.getByRole('button', { name: 'พิมพ์งบการเงิน' })] });
-  await page.locator('#bsTbl').scrollIntoViewIfNeeded();
-  await shot(page, '08-fs-bs', { mark: [page.locator('#bsTbl')], scroll: false });
+  await page.locator('#bsTbl').evaluate(e => e.scrollIntoView({ block: 'start' }));
+  await page.mouse.wheel(0, -60);
+  await shot(page, '08-fs-bs', { scroll: false });
 
   await go(page, '└ ยอดยกมา');
   await app.settle();
@@ -40,13 +41,13 @@ test('08 บัญชีและการเงิน', async ({ app, page }) =
   await go(page, '└ เงินลงทุน / เงินสด');
   await app.settle();
   const addCap = page.getByRole('button', { name: '+ บันทึกรายการ' });
-  await shot(page, '08-capital', { mark: [addCap] });
+  await shot(page, '08-capital', { mark: [[addCap, '1']] });
   await addCap.click();
   const form = page.locator('#mCap');
   await form.getByLabel('ประเภทรายการ *').selectOption({ label: 'ฝากเงินสดเข้าธนาคาร' });
   await form.getByLabel('จำนวนเงิน (บาท) *').fill('50000');
   await form.getByLabel('รายละเอียด').fill('นำเงินสดหน้าร้านฝากธนาคาร');
-  await shot(page, '08-capital-deposit', { mark: [[form.getByLabel('ประเภทรายการ *'), '1'], [form.getByLabel('จำนวนเงิน (บาท) *'), '2']], scroll: false });
+  await shot(page, '08-capital-deposit', { mark: [[form.getByLabel('ประเภทรายการ *'), '2'], [form.getByLabel('จำนวนเงิน (บาท) *'), '2'], [form.getByRole('button', { name: 'บันทึก', exact: true }), '3']], scroll: false });
   await form.getByRole('button', { name: 'บันทึก', exact: true }).click();
   await app.settle();
 

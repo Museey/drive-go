@@ -8,7 +8,7 @@ const OUT = join(process.env.MANUAL_OUT || 'user-manual', 'img');
 // A picture of the page (or of one part of it), with red frames around what the reader presses or looks at, numbered
 // when there are several. The frames are drawn over the page for the picture only, then taken away.
 // keepToast: show the message at the bottom (hidden otherwise, as it comes and goes on a timer).
-export async function shot(page: Page, name: string, opts: { mark?: (Locator | [Locator, string])[]; part?: Locator; pad?: number; keepToast?: boolean; scroll?: boolean } = {}) {
+export async function shot(page: Page, name: string, opts: { mark?: (Locator | [Locator, string])[]; part?: Locator; pad?: number; keepToast?: boolean; scroll?: boolean; area?: Locator[] } = {}) {
   mkdirSync(OUT, { recursive: true });
   await page.mouse.move(0, 0);
   await page.waitForTimeout(400);
@@ -29,13 +29,15 @@ export async function shot(page: Page, name: string, opts: { mark?: (Locator | [
     for (const b of bs) {
       const d = document.createElement('div');
       d.className = '__manual_mark';
-      d.style.cssText = `position:fixed;left:${b.x - 4}px;top:${b.y - 4}px;width:${b.w + 8}px;height:${b.h + 8}px;` +
-        'border:3px solid #e11d48;border-radius:8px;z-index:2147483647;pointer-events:none;box-shadow:0 0 0 3px rgba(225,29,72,.18)';
+      d.style.cssText = `position:fixed;left:${b.x - 6}px;top:${b.y - 6}px;width:${b.w + 12}px;height:${b.h + 12}px;` +
+        'border:3px solid #7c3aed;border-radius:8px;z-index:2147483647;pointer-events:none;box-shadow:0 0 0 3px rgba(124,58,237,.18)';
       if (b.label) {
         const n = document.createElement('span');
         n.textContent = b.label;
-        n.style.cssText = 'position:absolute;left:-14px;top:-14px;min-width:24px;height:24px;border-radius:12px;background:#e11d48;' +
-          'color:#fff;font:700 14px/24px sans-serif;text-align:center;padding:0 4px';
+        // beside the frame, on the left (on the right when the frame is at the window's left edge), so it never covers a label
+        const side = b.x > 40 ? 'left:-34px' : 'right:-34px';
+        n.style.cssText = `position:absolute;${side};top:calc(50% - 13px);min-width:26px;height:26px;border-radius:13px;background:#7c3aed;` +
+          'color:#fff;font:700 15px/26px sans-serif;text-align:center;padding:0 4px;box-shadow:0 0 0 2px #fff';
         d.append(n);
       }
       document.body.append(d);
@@ -43,6 +45,17 @@ export async function shot(page: Page, name: string, opts: { mark?: (Locator | [
   }, boxes);
   const file = join(OUT, `${name}.png`);
   const style = opts.keepToast ? '#saveFx, #pkg-loading { visibility: hidden !important; }' : '#toast, #saveFx, #pkg-loading { visibility: hidden !important; }';
+  // area: only the part of the window around these elements (what else is on the page stays out of the picture).
+  if (opts.area) {
+    const bs = (await Promise.all(opts.area.map(l => l.first().boundingBox({ timeout: 5000 }).catch(() => null)))).filter(Boolean) as
+      { x: number; y: number; width: number; height: number }[];
+    const pad = opts.pad ?? 28, vw = page.viewportSize()!;
+    const x0 = Math.max(0, Math.min(...bs.map(b => b.x)) - pad), y0 = Math.max(0, Math.min(...bs.map(b => b.y)) - pad);
+    const x1 = Math.min(vw.width, Math.max(...bs.map(b => b.x + b.width)) + pad), y1 = Math.min(vw.height, Math.max(...bs.map(b => b.y + b.height)) + pad);
+    await page.screenshot({ path: file, style, clip: { x: x0, y: y0, width: x1 - x0, height: y1 - y0 } });
+    await page.evaluate(() => document.querySelectorAll('.__manual_mark').forEach(e => e.remove()));
+    return;
+  }
   if (opts.part) {
     const b = await opts.part.first().boundingBox({ timeout: 5000 }).catch(() => null);
     const pad = opts.pad ?? 12, vw = page.viewportSize()!;
