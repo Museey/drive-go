@@ -41,6 +41,7 @@ npm run test:unit                          # test ของ server/lib (แบ�
 node tools/split-legacy.mjs --check        # พิสูจน์ว่า frontend/ ตรงกับระบบเดิมทุกไบต์ ยกเว้นจุดที่จดใน frontend/CHANGES.md
 node tools/build-client.mjs                # สร้าง frontend/js/00-server-storage.js จาก server/client/ (--check ตรวจว่าตรงกับต้นฉบับ)
 node tools/accountant-pack.mjs            # ชุดตรวจสำหรับผู้ทำบัญชี: คำถามจาก docs/ACCOUNTANT-REVIEW.md เป็น Excel ให้ตอบ + เอกสารที่ระบบใหม่พิมพ์ (PDF) รวมเป็น accountant-pack.zip
+node tools/manual/build.mjs [--out user-manual] [--skip-run]   # คู่มือการใช้งาน DriveGoBiz (PDF) พร้อมภาพหน้าจอจากระบบใหม่ (บทละไฟล์ tools/manual/NN-*.spec.ts, เนื้อหา content.mjs)
 docker build -t drivego:smoke . && node tools/image-smoke.mjs   # ลอง image ของ server ทดสอบแบบที่ DigitalOcean รัน (ฐานข้อมูล TLS, job migrate, เข้าระบบร้านตัวอย่าง, เปิดร้านจริง)
 node tools/shop-admin.mjs new|password|list|show|renew|close|told|staff …   # เครื่องมือทีมงาน: เปิดร้านจริง ลืมรหัสผ่าน วันหมดอายุ จดว่าโทรแจ้งร้านแล้ว บัญชีของหน้าเว็บทีมงาน (คู่มือ docs/STAFF-TOOLS.md)
 node tools/nightly.mjs                     # งานทุกคืนของ server (.do/app.yaml job nightly): ลบข้อมูลร้านที่ครบกำหนด ไฟล์ที่ถูกลบเกิน 30 วัน และบอกร้านที่ทีมงานต้องโทรแจ้ง (จบด้วย 3)

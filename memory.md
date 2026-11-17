@@ -71,6 +71,8 @@
   · ระบบขายแบบใหม่ล็อกเปิดไว้ (เจ้าของ 2026-11-09, CHANGES 145–146, S440) · **รวมเข้า branch หลักแล้ว 2026-11-10**
 
 ## สิ่งที่รอเจ้าของโปรเจกต์
+- **คู่มือ PDF (2026-11-17)**: `node tools/manual/build.mjs --out <dir>` (ต้อง `CHROMIUM_PATH=/opt/pw-browsers/chromium` ในเครื่อง session, ใช้ flock new.lock)
+  ส่งไฟล์ให้เจ้าของด้วย SendUserFile · ดูภาพหลายภาพทีเดียว: ทำ contact sheet ด้วย sharp (`node_modules/sharp/dist/index.mjs`)
 - **โดเมน (2026-11-17)**: `https://app.drivegox.com` → server ทดสอบ (GoDaddy CNAME `app`, `.do/app.yaml` domains) ตรวจแล้ว 12/12
   ตรวจจาก session: `NODE_USE_ENV_PROXY=1 NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt node tools/server-check.mjs --url https://app.drivegox.com`
   (DNS ในเครื่อง session ตอบเฉพาะ host ที่อนุญาต; ต่อตรงไม่ผ่าน proxy ถูกปฏิเสธ อย่าลอง) ผ่าน proxy ช่อง live ถูกตัดใน 1–2 วินาที = proxy ไม่ใช่แอป

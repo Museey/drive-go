@@ -10,3 +10,4 @@ server/next-env.d.ts
 *.tsbuildinfo
 accountant-pack/
 accountant-pack.zip
+user-manual/
