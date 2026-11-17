@@ -32,8 +32,7 @@ test('07 ลูกหนี้และใบวางบิล', async ({ app, 
   // Settling a billing note: the one of a company that withholds tax (from the trial data), to show that part.
   const row = page.getByRole('row').filter({ hasText: 'MA-BL261000001' }).filter({ visible: true });
   const go = row.getByRole('button', { name: 'ไปหน้าตัดชำระลูกหนี้' });
-  await row.evaluate(e => e.scrollIntoView({ block: 'center', inline: 'start' }));
-  await shot(page, '07-bl-settle', { mark: [[go, '1']], scroll: false });
+  await shot(page, '07-bl-settle', { mark: [[go, '1']] });
   await go.click();
   const wht = page.getByRole('spinbutton', { name: 'หัก ณ ที่จ่ายของ MA-SA261000008' });
   await wht.waitFor();
@@ -58,5 +57,8 @@ test('07 ลูกหนี้และใบวางบิล', async ({ app, 
   await page.getByText('บัญชี - การเงิน', { exact: true }).click();
   await page.getByRole('button', { name: 'ลูกหนี้ (ค้างรับ)' }).click();
   await app.settle();
-  await shot(page, '07-ar-list', { mark: [page.getByRole('button', { name: '+ รับชำระเงิน' })] });
+  // The list itself: from the totals of the search down to the bills
+  await page.getByText('ผลการค้นหา', { exact: true }).filter({ visible: true }).first().evaluate(e => e.scrollIntoView({ block: 'start' }));
+  await page.mouse.wheel(0, -24);
+  await shot(page, '07-ar-list', { scroll: false });
 });

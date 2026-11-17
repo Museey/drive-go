@@ -32,8 +32,8 @@ test('09 ภาษี', async ({ app, page }) => {
   const record = page.getByRole('button', { name: 'บันทึกการนำส่ง' });
   await page.waitForTimeout(400);
   await shot(page, '09-pp30', { mark: [[amount, '2'], [record, '3']], scroll: false });
-  await page.keyboard.press('Escape');
-  await page.waitForTimeout(400);
+  await page.getByRole('button', { name: 'ยกเลิก', exact: true }).filter({ visible: true }).click();
+  await expect(amount).toBeHidden();
 
   // Withholding tax (PND 3 / 53): print, then record the remittance
   const p3 = page.getByRole('button', { name: 'พิมพ์ ภ.ง.ด.3 + ใบแนบ' });

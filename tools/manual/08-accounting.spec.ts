@@ -29,9 +29,6 @@ test('08 บัญชีและการเงิน', async ({ app, page }) =
   await go(page, '└ งบการเงิน');
   await app.settle();
   await shot(page, '08-fs', { mark: [page.getByRole('button', { name: 'พิมพ์งบการเงิน' })] });
-  await page.locator('#bsTbl').evaluate(e => e.scrollIntoView({ block: 'start' }));
-  await page.mouse.wheel(0, -60);
-  await shot(page, '08-fs-bs', { scroll: false });
 
   await go(page, '└ ยอดยกมา');
   await app.settle();

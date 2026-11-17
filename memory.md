@@ -77,6 +77,9 @@
   (บท 1 มีภาพ 01-landing 01-signin แล้ว) · Next.js อัปเกรด 16.4.6: เจ้าของบอก "ไว้ค่อยอัปเกรด" (GHSA-mfr8-8qww-v76h ไม่กระทบ ไม่มี 'use cache')
 - **คู่มือ PDF (2026-11-17)**: `node tools/manual/build.mjs --out <dir>` (ต้อง `CHROMIUM_PATH=/opt/pw-browsers/chromium` ในเครื่อง session, ใช้ flock new.lock)
   ส่งไฟล์ให้เจ้าของด้วย SendUserFile · ดูภาพหลายภาพทีเดียว: ทำ contact sheet ด้วย sharp (`node_modules/sharp/dist/index.mjs`)
+  ตรวจทั้งเล่มแล้ว 2026-11-17 (NOTES.md "คู่มือการใช้งาน PDF"): เลขบนภาพ = เลขข้อ (`mark: [[locator, '3']]`, `steps` มี `start`),
+  ช่องวันที่ไทยต้องใช้ `LANG=th_TH.UTF-8` · เรื่องที่พบระหว่างตรวจและรอเจ้าของ: ภ.พ.30 ยอด 0 บันทึกไม่ได้ + แถวสรุป ภ.พ.30 ไม่หักภาษีซื้อยกมา,
+  ไอคอนตาช่องรหัสผ่านว่าง (lucide), ข้อความ drivegobiz.com / เชิงอรรถรูปแบบเลขที่เอกสารในเมนู 10, คำแนะนำเมื่อเลขที่เอกสารถูกเปลี่ยน
 - **โดเมน (2026-11-17)**: `https://app.drivegox.com` → server ทดสอบ (GoDaddy CNAME `app`, `.do/app.yaml` domains) ตรวจแล้ว 12/12
   ตรวจจาก session: `NODE_USE_ENV_PROXY=1 NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt node tools/server-check.mjs --url https://app.drivegox.com`
   (DNS ในเครื่อง session ตอบเฉพาะ host ที่อนุญาต; ต่อตรงไม่ผ่าน proxy ถูกปฏิเสธ อย่าลอง) ผ่าน proxy ช่อง live ถูกตัดใน 1–2 วินาที = proxy ไม่ใช่แอป

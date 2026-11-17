@@ -17,9 +17,11 @@ test('03 งานขายและซ่อม', async ({ app, page }) => {
   await shot(page, '03-quote-customer', { mark: [[custBox, '2']] });
   await custBox.locator('..').getByText('ปรีชา ทองสุข').click();
   await page.getByPlaceholder('1.', { exact: true }).fill('แบตเตอรี่หมด สตาร์ทไม่ติด');
+  await shot(page, '03-quote-problem', { mark: [[page.getByPlaceholder('1.', { exact: true }), '3']] });
   const quick = visible(page.getByRole('combobox', { name: 'ค้นหาสินค้าเร็ว' }));
   await quick.fill('EL-118');
-  await shot(page, '03-quote-part', { mark: [[page.getByPlaceholder('1.', { exact: true }), '3'], [quick, '4']] });
+  await page.getByRole('option', { name: /EL-118/ }).waitFor();
+  await shot(page, '03-quote-part', { mark: [[quick, '4']] });
   await page.getByRole('option', { name: /EL-118/ }).click();
   await page.getByRole('button', { name: '+ เพิ่มบรรทัดค่าแรง / ค่าบริการ' }).click();
   const labor = page.getByRole('row').filter({ has: page.getByText('ค่าแรง', { exact: true }) }).filter({ has: page.getByRole('spinbutton') });

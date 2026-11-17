@@ -8,7 +8,10 @@ test('06 สต๊อกอะไหล่', async ({ app, page }) => {
   await page.getByText('สต๊อกอะไหล่', { exact: true }).click();
   await app.settle();
   const add = page.getByRole('button', { name: '+ เพิ่มอะไหล่' });
-  await shot(page, '06-register', { mark: [[add, '1']] });
+  // The register's own heading at the top (the stock summary above it stays out of the picture)
+  await page.getByText('ทะเบียนอะไหล่และระดับสต๊อก', { exact: true }).evaluate(e => e.scrollIntoView({ block: 'start' }));
+  await page.mouse.wheel(0, -16);
+  await shot(page, '06-register', { mark: [[add, '1']], scroll: false });
   await add.click();
   const code = page.getByLabel('รหัสสินค้าของอู่ *').filter({ visible: true });
   await code.fill('BR-030');
