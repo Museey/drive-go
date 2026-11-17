@@ -76,9 +76,11 @@
   login API `check: true`, frontend 78-central-login.js (sessionStorage dg_signin), S297 · ข้อความอนุมัติแล้ว 2026-11-17 · คู่มือ PDF สร้างใหม่แล้ว
   (บท 1 มีภาพ 01-landing 01-signin แล้ว) · Next.js อัปเกรด 16.4.6: เจ้าของบอก "ไว้ค่อยอัปเกรด" (GHSA-mfr8-8qww-v76h ไม่กระทบ ไม่มี 'use cache')
 - **หน้าแรกแบบใหม่ (2026-11-17)**: server/site/index.html + landing.css + landing.js (จากแบบของทีม, ข้อความ TH/EN ใน landing.js, `§` = ป้ายเร็ว ๆ นี้,
-  inline style → data-css + CSSOM) · เจ้าของเลือก BaziX ทั้งหน้าแรก/Login, ป้ายเร็ว ๆ นี้, Demo ส่ง LINE, TH/EN · รอ: อนุมัติข้อความ, sales@drivegox.com, BaziX หลายสาขา
+  inline style → data-css + CSSOM) · เจ้าของเลือก BaziX ทั้งหน้าแรก/Login, ป้ายเร็ว ๆ นี้, Demo ส่ง LINE, TH/EN · ข้อความอนุมัติแล้ว
+  หน้า Login สีดำทองแล้ว · **ค้าง**: อีเมล sales@ (ยังไม่มี; ตัวเลือก Google Workspace / Zoho ฟรี / ส่งต่อ Gmail) และ BaziX สาขาเดียว
+  (โปรแกรมต้องแก้: เพิ่มสาขาที่ frontend/js/19.js เมนู 11.4 และ 55.js ข้อมูล 36 เดือน; แนะนำจำกัดตามร้านใน shops + rules.ts, test เดิมไม่กระทบ)
 - **หน้าเข้าระบบ 3 การ์ด (2026-11-17)**: login.html/login.js/site.css, API check ตอบ package (เฉพาะรหัสถูก), S297 + S459 (ProX, Franchise hq/1234)
-  เจ้าของเลือก: กดการ์ดแล้วฟอร์มขึ้นในการ์ด, ผิดการ์ดไม่ให้เข้าบอกการ์ดที่ถูก, การ์ดมีคำอธิบายแพ็กเกจเท่านั้น · **ข้อความใหม่รออนุมัติ**
+  เจ้าของเลือก: กดการ์ดแล้วฟอร์มขึ้นในการ์ด, ผิดการ์ดไม่ให้เข้าบอกการ์ดที่ถูก, การ์ดมีคำอธิบายแพ็กเกจเท่านั้น · ข้อความอนุมัติแล้ว
   เพิ่มบัญชีทีมงาน /ops: `node tools/shop-admin.mjs staff add LOGIN --name "ชื่อ" --by ชื่อ` ใน Console ของ web (MIGRATE_DATABASE_URL = doadmin)
 - **คู่มือ PDF (2026-11-17)**: `node tools/manual/build.mjs --out <dir>` (ต้อง `CHROMIUM_PATH=/opt/pw-browsers/chromium` ในเครื่อง session, ใช้ flock new.lock)
   ส่งไฟล์ให้เจ้าของด้วย SendUserFile · ดูภาพหลายภาพทีเดียว: ทำ contact sheet ด้วย sharp (`node_modules/sharp/dist/index.mjs`)
