@@ -19,7 +19,7 @@ RUN npm run build --workspace server && rm -rf server/.next/cache
 
 FROM node:22.22.0-bookworm-slim
 WORKDIR /app
-ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 FRONTEND_DIR=/app/frontend STAFF_UI_DIR=/app/server/staff-ui FILE_STORE=postgres PORT=8080
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 FRONTEND_DIR=/app/frontend STAFF_UI_DIR=/app/server/staff-ui SITE_DIR=/app/server/site FILE_STORE=postgres PORT=8080
 COPY package.json package-lock.json ./
 COPY server/package.json server/
 RUN npm ci --workspace server --include-workspace-root=false --omit=dev --no-audit --no-fund && npm cache clean --force

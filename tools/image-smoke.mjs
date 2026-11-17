@@ -63,6 +63,11 @@ try {
     await new Promise(r => setTimeout(r, 500));
   }
   say('web: /api/health ok (the app reaches the database as drivego_app over TLS)');
+  // DriveGo's own pages (SITE_DIR in the image): the landing page, the central sign-in page and its script.
+  for (const [p, mark] of [['/', 'href="/login"'], ['/login', 'src="/site/login.js"'], ['/site/login.js', 'dg_signin']]) {
+    const r = await fetch(`${base}${p}`);
+    if (r.status !== 200 || !(await r.text()).includes(mark)) fail(`${p}: ${r.status}`);
+  }
   const page = await fetch(`${base}/demo-biz/`);
   if (page.status !== 200 || !/<script[^>]+js\/03\.js/.test(await page.text())) fail(`/demo-biz/ answered ${page.status}`);
   say('web: /demo-biz/ serves the screens');

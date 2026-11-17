@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>เข้าสู่ระบบ · DriveGo</title>
+<link rel="icon" href="/site/logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&family=Manrope:wght@500;600;700;800&display=swap">
+<link rel="stylesheet" href="/site/site.css">
+<script src="/site/login.js" defer></script>
+</head>
+<body class="signin">
+<header class="top">
+  <a class="brand" href="/" aria-label="DriveGo หน้าแรก"><img src="/site/logo.jpg" alt=""><span>Drive<b>Go</b></span></a>
+</header>
+<main class="signin-box">
+  <h1>เข้าสู่ระบบ</h1>
+  <p class="sub">ร้านของคุณบน DriveGo</p>
+  <form id="signin" novalidate>
+    <label for="code">รหัสร้าน</label>
+    <input id="code" name="code" autocomplete="organization" autocapitalize="none" spellcheck="false" placeholder="เช่น somchai-auto" required>
+    <label for="user">ชื่อผู้ใช้ / อีเมล / เบอร์โทร</label>
+    <input id="user" name="user" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+    <label for="pass">รหัสผ่าน</label>
+    <input id="pass" name="pass" type="password" autocomplete="current-password" required>
+    <p class="error" id="error" role="alert" hidden></p>
+    <button class="btn btn-gold btn-block" type="submit">เข้าสู่ระบบ</button>
+  </form>
+  <div class="help">
+    <p><b>ไม่ทราบรหัสร้าน</b> ดูจากข้อความที่ทีมงานส่งตอนเปิดร้าน หรือถามเจ้าของร้าน</p>
+    <p><b>ลืมรหัสผ่าน</b> พนักงานให้เจ้าของร้านตั้งรหัสใหม่ให้ เจ้าของร้านติดต่อทีมงานทาง <a href="https://lin.ee/tV7nV8x" target="_blank" rel="noopener">LINE</a></p>
+  </div>
+</main>
+</body>
+</html>

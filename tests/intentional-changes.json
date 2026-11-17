@@ -1027,6 +1027,11 @@
       "scenario": "S296-statements-some-branches-from-ledger.spec.ts",
       "decision": "the owner's decisions of 2026-11-12 (the statements from the general ledger) with the branch reports of 37.js (user 2026-10-06)",
       "why": "With some branches picked, the profit and loss is those branches' general ledger while the balance sheet and the cash flow stay the whole business's; the capital menu's other income and expenses are the whole business's and stay in every branch's profit and loss, as before the ledger."
+    },
+    {
+      "scenario": "S297-landing-page-central-sign-in.spec.ts",
+      "decision": "Owner 2026-11-17: a landing page at / and one central sign-in page (shop code, user, password)",
+      "why": "The legacy file had no address of its own: each shop opens at /<shop code>/ (Q1). The new system's own address shows what DriveGo is and signs in at /login, then opens the shop through its own sign-in."
     }
   ]
 }
