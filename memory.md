@@ -79,7 +79,8 @@
   inline style → data-css + CSSOM) · เจ้าของเลือก BaziX ทั้งหน้าแรก/Login, ป้ายเร็ว ๆ นี้, Demo ส่ง LINE, TH/EN · ข้อความอนุมัติแล้ว
   หน้า Login สีดำทองแล้ว · อีเมล sales@ ยังไม่มี เจ้าของ "ไว้ค่อยทำ" (ตัวเลือก Google Workspace / Zoho ฟรี / ส่งต่อ Gmail)
 - **BaziX สาขาเดียว (2026-11-17)**: ล็อกเสมอ rules.ts ONE_BRANCH + 19.js (CHANGES 165), S460, S186/S247/S249/S296 ย้ายเป็น prox-trial,
-  S37/S307/S327/S404/S409 replaced by S460 + สำเนา ProX S461–S465 (เฉลยอนุมัติ) · ถ้าภาพใน CI ไม่ตรง: workflow P4
+  S37/S307/S327/S404/S409 replaced by S460 + สำเนา ProX S461–S465 (เฉลยอนุมัติ) · ภาพ S464/S465 บันทึกใหม่ด้วย P4 แล้ว (af659f1)
+  หมายเหตุ: commit ของ P4 ไม่เริ่ม CI เอง ต้อง push ถัดไป
 - **หน้าเข้าระบบ 3 การ์ด (2026-11-17)**: login.html/login.js/site.css, API check ตอบ package (เฉพาะรหัสถูก), S297 + S459 (ProX, Franchise hq/1234)
   เจ้าของเลือก: กดการ์ดแล้วฟอร์มขึ้นในการ์ด, ผิดการ์ดไม่ให้เข้าบอกการ์ดที่ถูก, การ์ดมีคำอธิบายแพ็กเกจเท่านั้น · ข้อความอนุมัติแล้ว
   เพิ่มบัญชีทีมงาน /ops: `node tools/shop-admin.mjs staff add LOGIN --name "ชื่อ" --by ชื่อ` ใน Console ของ web (MIGRATE_DATABASE_URL = doadmin)
