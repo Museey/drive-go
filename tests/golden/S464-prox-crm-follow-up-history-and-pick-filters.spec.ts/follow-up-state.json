@@ -1,0 +1,60 @@
+{
+  "DB.crm[#0].done": [
+    false,
+    true
+  ],
+  "DB.crm[#0].doneDate": [
+    null,
+    "2026-10-13"
+  ],
+  "DB.crm[#0].doneResult": [
+    null,
+    "noans"
+  ],
+  "DB.crm[#0].doneResultText": [
+    null,
+    "ติดต่อไม่ได้ / ไม่รับสาย"
+  ],
+  "DB.crm[#0].doneChannel": [
+    null,
+    "call"
+  ],
+  "DB.crm[#0].doneNote": [
+    null,
+    "โทร 2 ครั้ง ไม่รับสาย"
+  ],
+  "DB.crm[#0].doneBy": [
+    null,
+    "เจ้าของกิจการ"
+  ],
+  "DB.crm[#0].doneById": [
+    null,
+    ""
+  ],
+  "DB.audit": {
+    "added": [
+      {
+        "id": "@DB.audit[#52]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "crm",
+        "docId": "@DB.crm[#0]",
+        "no": "",
+        "act": "done",
+        "note": "ลูกค้า ปรีชา ทองสุข · นัดหมายวันที่ 10/01/2570"
+      },
+      {
+        "id": "@DB.audit[#53]",
+        "ts": "2026-10-13T02:00:00.000Z",
+        "user": "",
+        "userName": "เจ้าของกิจการ / ผู้ดูแลระบบ",
+        "kind": "crm",
+        "docId": "@DB.crm[#0]",
+        "no": "",
+        "act": "save",
+        "note": "ผลการติดตาม: ติดต่อไม่ได้ / ไม่รับสาย · ช่องทาง โทร · ผู้ติดตาม เจ้าของกิจการ · วันที่ 13/10/2569 · โทร 2 ครั้ง ไม่รับสาย"
+      }
+    ]
+  }
+}

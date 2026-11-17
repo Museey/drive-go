@@ -540,6 +540,36 @@
       "by": "S458-sign-in-show-hide-password-no-demo-line.spec.ts",
       "decision": "A1, A3",
       "why": "As S103 / S105: the sign-in screen has no test account line and no way in without a password, so the card is shorter and S411's picture cannot be taken; the shown password is checked by its value. Every step is checked against S411's goldens."
+    },
+    {
+      "scenario": "S37-transfer-between-branches.spec.ts",
+      "by": "S460-bazix-one-branch.spec.ts",
+      "decision": "Owner 2026-11-17: DriveGo BaziX (the Biz package) has one branch; asked to lock it always (docs/NOTES.md \"BaziX ได้สาขาเดียว\")",
+      "why": "It adds a second branch to a Biz shop in menu 11.4, which the new system refuses (S460). Its flow runs on a ProX shop as S461 (S461-prox-transfer-between-branches.spec.ts, goldens from the legacy app with ?package=prox), on both systems."
+    },
+    {
+      "scenario": "S307-switch-working-branch-top-bar.spec.ts",
+      "by": "S460-bazix-one-branch.spec.ts",
+      "decision": "Owner 2026-11-17: DriveGo BaziX (the Biz package) has one branch; asked to lock it always (docs/NOTES.md \"BaziX ได้สาขาเดียว\")",
+      "why": "It adds a second branch to a Biz shop in menu 11.4, which the new system refuses (S460). Its flow runs on a ProX shop as S462 (S462-prox-switch-working-branch-top-bar.spec.ts, goldens from the legacy app with ?package=prox), on both systems."
+    },
+    {
+      "scenario": "S327-transfer-register-new-filter-search-open.spec.ts",
+      "by": "S460-bazix-one-branch.spec.ts",
+      "decision": "Owner 2026-11-17: DriveGo BaziX (the Biz package) has one branch; asked to lock it always (docs/NOTES.md \"BaziX ได้สาขาเดียว\")",
+      "why": "It adds a second branch to a Biz shop in menu 11.4, which the new system refuses (S460). Its flow runs on a ProX shop as S463 (S463-prox-transfer-register-new-filter-search-open.spec.ts, goldens from the legacy app with ?package=prox), on both systems."
+    },
+    {
+      "scenario": "S404-crm-follow-up-history-and-pick-filters.spec.ts",
+      "by": "S460-bazix-one-branch.spec.ts",
+      "decision": "Owner 2026-11-17: DriveGo BaziX (the Biz package) has one branch; asked to lock it always (docs/NOTES.md \"BaziX ได้สาขาเดียว\")",
+      "why": "It adds a second branch to a Biz shop in menu 11.4, which the new system refuses (S460). Its flow runs on a ProX shop as S464 (S464-prox-crm-follow-up-history-and-pick-filters.spec.ts, goldens from the legacy app with ?package=prox), on both systems."
+    },
+    {
+      "scenario": "S409-billing-note-branch-and-printed-date.spec.ts",
+      "by": "S460-bazix-one-branch.spec.ts",
+      "decision": "Owner 2026-11-17: DriveGo BaziX (the Biz package) has one branch; asked to lock it always (docs/NOTES.md \"BaziX ได้สาขาเดียว\")",
+      "why": "It adds a second branch to a Biz shop in menu 11.4, which the new system refuses (S460). Its flow runs on a ProX shop as S465 (S465-prox-billing-note-branch-and-printed-date.spec.ts, goldens from the legacy app with ?package=prox), on both systems."
     }
   ],
   "added": [

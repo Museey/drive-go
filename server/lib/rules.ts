@@ -73,6 +73,9 @@ class Save {
   private changes: Changes;
   constructor(c: pg.ClientBase, branch: string, changes: Changes) { this.c = c; this.branch = branch; this.changes = changes; }
   units() { return new Set([...this.changes.upsert, ...this.changes.remove].map(r => r.unit)); }
+  changesOf(unit: string) {
+    return { upsert: this.changes.upsert.filter(r => r.unit === unit), remove: this.changes.remove.filter(r => r.unit === unit) };
+  }
   async stored(unit: string, keys: string[]): Promise<Map<string, Rec>> {
     const have = this.cache.get(unit) ?? new Map<string, Rec>();
     const want = keys.filter(k => !have.has(k));
@@ -93,6 +96,12 @@ class Save {
       ...up.map(r => ({ key: r.key, old: old.get(r.key), now: JSON.parse(r.data) as Rec })),
       ...rm.map(r => ({ key: r.key, old: old.get(r.key) })),
     ];
+  }
+  // The keys of a unit's stored records.
+  async keys(unit: string): Promise<string[]> {
+    const { rows } = await this.c.query<{ key: string }>(
+      'select key from records where shop_id = app_shop() and branch_id = $1 and unit = $2', [this.branch, unit]);
+    return rows.map(r => r.key);
   }
   // How many records of a unit are stored.
   async count(unit: string): Promise<number> {
@@ -402,6 +411,20 @@ async function settingsRules(s: Save, who: Who, pkg: string): Promise<string | n
   return null;
 }
 
+// DriveGo BaziX has one branch (the owner's decision of 2026-11-17, docs/NOTES.md "BaziX ได้สาขาเดียว"): a Biz shop's
+// branch list (menu 11.4, 19.js) never grows past one, whoever saves it (the owner too) and however: a branch added, a
+// restore, an import, sample data. A shop that already has more (from before the decision) keeps them, to edit or close,
+// but adds none. ProX and Franchise are not limited.
+export const ONE_BRANCH = 'DB.branches: one branch';
+async function oneBranchRules(s: Save, pkg: string): Promise<string | null> {
+  if (pkg !== 'biz' || !s.units().has('DB.branches')) return null;
+  const stored = new Set(await s.keys('DB.branches'));
+  const now = new Set(stored);
+  for (const r of s.changesOf('DB.branches').remove) now.delete(r.key);
+  for (const r of s.changesOf('DB.branches').upsert) now.add(r.key);
+  return now.size > 1 && now.size > stored.size ? ONE_BRANCH : null;
+}
+
 // The costs HQ ships a branch request at (accountant review 4.2): only HQ writes them.
 async function reqCostRules(s: Save, a: Actor): Promise<string | null> {
   if (a.role === 'HQ' || a.role === 'owner' || !s.units().has('FR.reqs')) return null;
@@ -418,6 +441,8 @@ export async function refuseRules(c: pg.ClientBase, a: Actor, branch: string, ke
   if (key === 'franchise.v22') return reqCostRules(new Save(c, branch, changes), a);
   if (!/^garage\.v22/.test(key)) return null;
   const s = new Save(c, branch, changes), who = await whoOf(c, a);
+  const one = await oneBranchRules(s, a.pkg);
+  if (one) return one;
   for (const rule of [taxPeriodRules, creditNoteRules, noVatRules, shortRules, toCogsRules, surplusRules, payrollRules, moneyRules, cancelRules, peopleRules,
     (x: Save, w: Who) => settingsRules(x, w, a.pkg)]) {
     const r = await rule(s, who);

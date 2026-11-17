@@ -1,6 +1,10 @@
 import { test, expect, type Page } from '../support/test';
 import { secondDevice } from '../support/live';
 
+// On a ProX shop: DriveGo BaziX (Biz) has one branch (the owner's decision of 2026-11-17, S460). The ProX trial data is
+// the Biz trial data (tests/fixtures: the same shop data, another package), so every figure here is as it was.
+test.use({ dataset: 'prox-trial' });
+
 // New behaviour (task 3.10, answer 10.7): signing in, an employee starts in their home branch ("สาขาประจำ" in the staff
 // form), whatever branch anybody else is working in. The owner adds สาขาบางนา (as in S37), lets the front desk (EMP005)
 // work in both branches with บางนา as their home, and gives them a login; they sign in on their own device in บางนา while

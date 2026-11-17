@@ -1,6 +1,10 @@
 import { test, expect } from '../support/test';
 import { managerWithoutCost, sameCostsAsLegacy } from '../support/cost-blind';
 
+// On a ProX shop: DriveGo BaziX (Biz) has one branch (the owner's decision of 2026-11-17, S460). The ProX trial data is
+// the Biz trial data (tests/fixtures: the same shop data, another package), so every figure here is as it was.
+test.use({ dataset: 'prox-trial' });
+
 // New behaviour (task 3.9, R14-ข): someone without "แสดงต้นทุน" (EMP004 here, without the cost switch and the jobs
 // that see purchase prices) gets no cost from the server, yet transfers brake pads to a new branch as S37's owner did: the server works out
 // the transfer's line cost (what it took from its lot, 850) and the cost of the lot and the move

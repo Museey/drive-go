@@ -1,6 +1,10 @@
 import type { Locator, Page } from '@playwright/test';
 import { test, expect } from '../support/test';
 
+// On a ProX shop: DriveGo BaziX (Biz) has one branch (the owner's decision of 2026-11-17, S460). The ProX trial data is
+// the Biz trial data (tests/fixtures: the same shop data, another package), so every figure here is as it was.
+test.use({ dataset: 'prox-trial' });
+
 // New behaviour (the owner's decisions of 2026-11-12, docs/NOTES.md "งบการเงินจากบัญชีแยกประเภท"; branch reports of 37.js,
 // user 2026-10-06): with two branches, 08 → งบการเงิน for some of them has the profit and loss of those branches' general
 // ledger, while the balance sheet and the cash flow stay the whole business's. A second branch BN · สาขาบางนา pays

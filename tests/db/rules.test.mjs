@@ -404,13 +404,38 @@ describe('ตั้งค่าองค์กรและผังบัญช�
     assert.equal(await check('EMP008', save(['DB.shop', '', { ...DB.shop, ssoOwn: { from: '2026-10', max: 15000 } }])), 'DB.shop: ssoOwn');
     assert.equal(await check('EMP008', save(['DB.shop', '', { ...DB.shop, logo: 'data:image/png;base64,' }])), null, 'logo');
     assert.equal(await check('EMP004', save(['DB.shop', '', { ...DB.shop, vatReg: false }])), null);
+    // (a Biz shop has one branch: the right is checked on editing it, the limit below)
     const b = DB.branches[0];
-    assert.equal(await check('EMP008', save(['DB.branches', 'b2', { ...b, id: 'b2', code: 'BN' }])), 'DB.branches|b2');
-    assert.equal(await check('EMP004', save(['DB.branches', 'b2', { ...b, id: 'b2', code: 'BN' }])), null);
+    assert.equal(await check('EMP008', save(['DB.branches', b.id, { ...b, tel: '02-000-0000' }])), `DB.branches|${b.id}`);
+    assert.equal(await check('EMP004', save(['DB.branches', b.id, { ...b, tel: '02-000-0000' }])), null);
     const acc = DB.coa[0];
     assert.equal(await check('EMP008', save(['DB.coa', acc.code, { ...acc, name: 'x' }])), `DB.coa|${acc.code}`);
     assert.equal(await check('EMP008', save(['DB.map', '', { ...DB.map, sale: '9999' }])), 'DB.map');
     assert.equal(await check('EMP004', save(['DB.coa', acc.code, { ...acc, name: 'x' }])), null);
+  });
+
+  test('DriveGo BaziX ได้สาขาเดียว: ไม่มีใครเพิ่มสาขาที่ 2 ได้ ทั้งเพิ่มเอง กู้คืน หรือนำเข้า ร้าน ProX เพิ่มได้ (เจ้าของโปรเจกต์ 2026-11-17)', async () => {
+    const { DB, check, put } = await shop();
+    const b = DB.branches[0], b2 = { ...b, id: 'b2', code: 'BN', name: 'คลังบางนา', main: false };
+    assert.equal(DB.branches.length, 1);
+    assert.equal(await check('owner', save(['DB.branches', 'b2', b2])), 'DB.branches: one branch');
+    assert.equal(await check('EMP004', save(['DB.branches', 'b2', b2])), 'DB.branches: one branch');
+    // the one branch is edited, or replaced by another (one either way)
+    assert.equal(await check('owner', save(['DB.branches', b.id, { ...b, name: 'สาขาเดียว' }])), null);
+    assert.equal(await check('owner', save(['DB.branches', b.id, undefined], ['DB.branches', 'b2', b2])), null);
+    // a whole-data save (restore, import) that brings two
+    assert.equal(await check('owner', save(['DB.branches', b.id, b], ['DB.branches', 'b2', b2])), 'DB.branches: one branch');
+    // a shop that has two from before the decision: edits and closes them, adds none
+    await put('DB.branches', 'b2', b2);
+    assert.equal(await check('owner', save(['DB.branches', 'b2', { ...b2, active: false }])), null);
+    assert.equal(await check('owner', save(['DB.branches', 'b3', { ...b2, id: 'b3', code: 'RS' }])), 'DB.branches: one branch');
+    assert.equal(await check('owner', save(['DB.branches', 'b2', undefined])), null);
+    // ProX and Franchise: no limit
+    const prox = await createShop(ownerPool, { code: `R-${++n}`, pkg: 'prox', data: fixture('prox-trial') });
+    const P = JSON.parse((await asApp(prox.shopId, c => readMain(c, '', 'garage.v22'))).json);
+    const owner = { pkg: 'prox', role: 'owner', ref: '', branch: '' };
+    const add = (id, code) => ['DB.branches', id, { ...P.branches[0], id, code, main: false }];
+    assert.equal(await asApp(prox.shopId, c => refuseRules(c, owner, '', 'garage.v22', save(add('p2', 'BN'), add('p3', 'RS')))), null);
   });
 
   test('ยอดยกมาบันทึกได้เฉพาะเจ้าของหรือผู้มีสิทธิ์ผังบัญชี (73-opening.js)', async () => {

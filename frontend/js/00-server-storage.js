@@ -929,7 +929,9 @@
     // task 3.11 (R19-ค, answers 11.2 and 11.4, owner approved 2026-10-26): a file the server would not keep
     fileTooLarge: "บันทึกไม่สำเร็จ — ไฟล์แนบใหญ่เกิน 5 MB (คลิปเกิน 15 MB) กรุณาลดขนาดไฟล์ก่อนแนบ กดตกลงเพื่อโหลดข้อมูลล่าสุด",
     spaceFull: "บันทึกไม่สำเร็จ — พื้นที่ไฟล์ของร้านเต็มแล้ว (2 GB) แนบรูปสินค้า ไฟล์คลังความรู้ และคลิปไม่ได้ กดตกลงเพื่อโหลดข้อมูลล่าสุด",
-    renumbered: (r) => `บันทึกแล้ว เอกสารได้เลขที่ ${r.map((x) => x[1]).join(", ")} เพราะเลขที่ ${r.map((x) => x[0]).join(", ")} ถูกใช้ไปแล้ว`
+    renumbered: (r) => `บันทึกแล้ว เอกสารได้เลขที่ ${r.map((x) => x[1]).join(", ")} เพราะเลขที่ ${r.map((x) => x[0]).join(", ")} ถูกใช้ไปแล้ว`,
+    // owner 2026-11-17: DriveGo BaziX has one branch (server/lib/rules.ts ONE_BRANCH; a restore or import that brings more)
+    oneBranch: "บันทึกไม่สำเร็จ — DriveGo BaziX ใช้ได้ 1 สาขา ถ้าต้องการหลายสาขา ติดต่อทีมงานเพื่อเปลี่ยนเป็น DriveGo ProX กดตกลงเพื่อโหลดข้อมูลล่าสุด"
   };
   var SHOP = decodeURIComponent(location.pathname.split("/")[1] || "");
   var signedIn = null;
@@ -959,7 +961,7 @@
     return new Promise(() => {
     });
   }
-  var refused = (what, body) => mustReload(/"error":"expired"/.test(body) ? MESSAGES.expired : MESSAGES.notAllowed, `not allowed to ${what}: ${body}`);
+  var refused = (what, body) => mustReload(/"error":"expired"/.test(body) ? MESSAGES.expired : /"what":"DB\.branches: one branch"/.test(body) ? MESSAGES.oneBranch : MESSAGES.notAllowed, `not allowed to ${what}: ${body}`);
   async function send(input, init, saving) {
     for (let attempt = 0; ; attempt++) {
       try {

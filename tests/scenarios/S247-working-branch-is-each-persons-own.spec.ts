@@ -1,6 +1,10 @@
 import { test, expect, type Page } from '../support/test';
 import { secondDevice } from '../support/live';
 
+// On a ProX shop: DriveGo BaziX (Biz) has one branch (the owner's decision of 2026-11-17, S460). The ProX trial data is
+// the Biz trial data (tests/fixtures: the same shop data, another package), so every figure here is as it was.
+test.use({ dataset: 'prox-trial' });
+
 // New behaviour (task 3.10, answer 10.7): the branch each person works in is their own. The legacy app kept it in
 // the shop's data, so one person changing branch moved everybody and rewrote every stock record. One device changes
 // to a new branch (สาขาบางนา, as in S37) and has that branch's stock; the other device stays in the main branch with

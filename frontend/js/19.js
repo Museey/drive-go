@@ -161,6 +161,7 @@
 
  /* ---------- settings: menu 11.4 ---------- */
  const may=()=>!curEmp()||can('doc.orgEdit');
+ const ONE_BRANCH='DriveGo BaziX ใช้ได้ 1 สาขา — ถ้าต้องการหลายสาขา ติดต่อทีมงานเพื่อเปลี่ยนเป็น DriveGo ProX';
  let edit='';
  /* the settings window is built by a later module: attach once the page is parsed */
  const whenReady=fn=>{if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(fn,0));else setTimeout(fn,0);};
@@ -202,6 +203,8 @@
     if(!f.active&&b.id===ctx())return toast('ปิดสาขาที่กำลังทำงานอยู่ไม่ได้ — สลับไปสาขาอื่นก่อน');
     Object.assign(b,f);logAudit('emp',{no:b.code},'save','แก้ไขสาขา '+b.code+' · '+b.name);}
    else{
+    /* DriveGo BaziX has one branch (owner 2026-11-17; the server refuses a second one too, server/lib/rules.ts) */
+    if(window.PKG_PLAN==='biz'&&list().length>=1)return toast(ONE_BRANCH);
     if(!/^[A-Z0-9]{2,3}$/.test(code))return toast('รหัสสาขาต้องเป็นตัวอักษรอังกฤษ / ตัวเลข 2–3 ตัว');
     if(list().some(x=>x.code===code))return toast('มีรหัสสาขา '+code+' อยู่แล้ว');
     const b=Object.assign({id:uid(),code,main:false},f);DB.branches.push(b);logAudit('emp',{no:code},'save','เพิ่มสาขา '+code+' · '+name);

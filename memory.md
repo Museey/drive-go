@@ -77,8 +77,9 @@
   (บท 1 มีภาพ 01-landing 01-signin แล้ว) · Next.js อัปเกรด 16.4.6: เจ้าของบอก "ไว้ค่อยอัปเกรด" (GHSA-mfr8-8qww-v76h ไม่กระทบ ไม่มี 'use cache')
 - **หน้าแรกแบบใหม่ (2026-11-17)**: server/site/index.html + landing.css + landing.js (จากแบบของทีม, ข้อความ TH/EN ใน landing.js, `§` = ป้ายเร็ว ๆ นี้,
   inline style → data-css + CSSOM) · เจ้าของเลือก BaziX ทั้งหน้าแรก/Login, ป้ายเร็ว ๆ นี้, Demo ส่ง LINE, TH/EN · ข้อความอนุมัติแล้ว
-  หน้า Login สีดำทองแล้ว · **ค้าง**: อีเมล sales@ (ยังไม่มี; ตัวเลือก Google Workspace / Zoho ฟรี / ส่งต่อ Gmail) และ BaziX สาขาเดียว
-  (โปรแกรมต้องแก้: เพิ่มสาขาที่ frontend/js/19.js เมนู 11.4 และ 55.js ข้อมูล 36 เดือน; แนะนำจำกัดตามร้านใน shops + rules.ts, test เดิมไม่กระทบ)
+  หน้า Login สีดำทองแล้ว · อีเมล sales@ ยังไม่มี เจ้าของ "ไว้ค่อยทำ" (ตัวเลือก Google Workspace / Zoho ฟรี / ส่งต่อ Gmail)
+- **BaziX สาขาเดียว (2026-11-17)**: ล็อกเสมอ rules.ts ONE_BRANCH + 19.js (CHANGES 165), S460, S186/S247/S249/S296 ย้ายเป็น prox-trial,
+  S37/S307/S327/S404/S409 replaced by S460 + สำเนา ProX S461–S465 (เฉลยอนุมัติ) · ถ้าภาพใน CI ไม่ตรง: workflow P4
 - **หน้าเข้าระบบ 3 การ์ด (2026-11-17)**: login.html/login.js/site.css, API check ตอบ package (เฉพาะรหัสถูก), S297 + S459 (ProX, Franchise hq/1234)
   เจ้าของเลือก: กดการ์ดแล้วฟอร์มขึ้นในการ์ด, ผิดการ์ดไม่ให้เข้าบอกการ์ดที่ถูก, การ์ดมีคำอธิบายแพ็กเกจเท่านั้น · ข้อความอนุมัติแล้ว
   เพิ่มบัญชีทีมงาน /ops: `node tools/shop-admin.mjs staff add LOGIN --name "ชื่อ" --by ชื่อ` ใน Console ของ web (MIGRATE_DATABASE_URL = doadmin)

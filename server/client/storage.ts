@@ -49,6 +49,8 @@ const MESSAGES = {   // decision Q5
   fileTooLarge: 'บันทึกไม่สำเร็จ — ไฟล์แนบใหญ่เกิน 5 MB (คลิปเกิน 15 MB) กรุณาลดขนาดไฟล์ก่อนแนบ กดตกลงเพื่อโหลดข้อมูลล่าสุด',
   spaceFull: 'บันทึกไม่สำเร็จ — พื้นที่ไฟล์ของร้านเต็มแล้ว (2 GB) แนบรูปสินค้า ไฟล์คลังความรู้ และคลิปไม่ได้ กดตกลงเพื่อโหลดข้อมูลล่าสุด',
   renumbered: (r: Renumbered) => `บันทึกแล้ว เอกสารได้เลขที่ ${r.map(x => x[1]).join(', ')} เพราะเลขที่ ${r.map(x => x[0]).join(', ')} ถูกใช้ไปแล้ว`,
+  // owner 2026-11-17: DriveGo BaziX has one branch (server/lib/rules.ts ONE_BRANCH; a restore or import that brings more)
+  oneBranch: 'บันทึกไม่สำเร็จ — DriveGo BaziX ใช้ได้ 1 สาขา ถ้าต้องการหลายสาขา ติดต่อทีมงานเพื่อเปลี่ยนเป็น DriveGo ProX กดตกลงเพื่อโหลดข้อมูลล่าสุด',
 };
 
 // The shop's address is /<shop code>/ (decision Q1).
@@ -114,9 +116,11 @@ async function mustReload(text: string, why: string): Promise<never> {
   return new Promise<never>(() => {});
 }
 
-// A write the server refused (403): the permission checks (task T10), or the shop is read-only (task 3.15).
+// A write the server refused (403): the permission checks (task T10), the shop is read-only (task 3.15), or a BaziX
+// shop's second branch.
 const refused = (what: string, body: string) =>
-  mustReload(/"error":"expired"/.test(body) ? MESSAGES.expired : MESSAGES.notAllowed, `not allowed to ${what}: ${body}`);
+  mustReload(/"error":"expired"/.test(body) ? MESSAGES.expired : /"what":"DB\.branches: one branch"/.test(body) ? MESSAGES.oneBranch
+    : MESSAGES.notAllowed, `not allowed to ${what}: ${body}`);
 
 // Sends a request, retrying while the server cannot be reached. Returns the
 // response for any answer the server gave (including 409 / 401).
