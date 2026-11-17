@@ -73,7 +73,7 @@
 ## สิ่งที่รอเจ้าของโปรเจกต์
 
 - **หน้าแรก + /login (2026-11-17)**: server/site (index.html login.html login.js site.css logo.jpg), app/route.ts app/login app/site/[file],
-  login API `check: true`, frontend 78-central-login.js (sessionStorage dg_signin), S297 · **รอเจ้าของอนุมัติข้อความ** แล้วสร้างคู่มือ PDF ใหม่
+  login API `check: true`, frontend 78-central-login.js (sessionStorage dg_signin), S297 · ข้อความอนุมัติแล้ว 2026-11-17 · คู่มือ PDF สร้างใหม่แล้ว
   (บท 1 มีภาพ 01-landing 01-signin แล้ว) · Next.js อัปเกรด 16.4.6: เจ้าของบอก "ไว้ค่อยอัปเกรด" (GHSA-mfr8-8qww-v76h ไม่กระทบ ไม่มี 'use cache')
 - **คู่มือ PDF (2026-11-17)**: `node tools/manual/build.mjs --out <dir>` (ต้อง `CHROMIUM_PATH=/opt/pw-browsers/chromium` ในเครื่อง session, ใช้ flock new.lock)
   ส่งไฟล์ให้เจ้าของด้วย SendUserFile · ดูภาพหลายภาพทีเดียว: ทำ contact sheet ด้วย sharp (`node_modules/sharp/dist/index.mjs`)
