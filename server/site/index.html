@@ -22,7 +22,7 @@
   <symbol id="i-fin" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2M20 20v-3"/></symbol>
   <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 14l2 2 4-4"/></symbol>
   <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.500-8-9V6zM9 12l2 2 4-4"/></symbol>
-  <symbol id="i-branch" viewBox="0 0 24 24"><path d="M4 21V9l8-6 8 6v12M9 21v-6h6v6M2 21h20"/></symbol>
+  <symbol id="i-branch" viewBox="0 0 24 24"><path d="M9 13.200l3-2.700 3 2.700V17H9zM10.500 4.700L12 3.400l1.500 1.300v2h-3zM2.500 19.500L4 18.200l1.500 1.300v2h-3zM18.500 19.500L20 18.200l1.500 1.300v2h-3zM12 6.700v3.800M9 16l-3.600 2.700M15 16l3.600 2.700"/></symbol>
   <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18a4.500 4.500 0 0 1-.6-9A6 6 0 0 1 18 8.500a4.500 4.500 0 0 1-.5 9.500z"/></symbol>
   <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
@@ -145,6 +145,21 @@
   </div>
 </section>
 
+<section id="privacy">
+  <div class="wrap">
+    <div class="pv rv">
+      <span class="pvi"><svg class="ic"><use href="#i-shield"/></svg></span>
+      <div>
+        <span class="eyebrow" data-i18n="priv.eyebrow"></span>
+        <h2 class="sec-h" data-i18n="priv.h"></h2>
+        <p data-i18n="priv.p1"></p>
+        <p class="mt08" data-i18n-html="priv.p2"></p>
+        <div class="pvr" id="pvr"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="contact">
   <div class="wrap">
     <div class="cta-b rv" id="ctaB">
@@ -168,6 +183,7 @@
           <div class="fd w"><label for="fMsg" data-i18n="form.msg"></label><textarea id="fMsg" rows="3"></textarea></div>
           <p class="err" id="fErr" role="alert"></p>
           <button class="btn btn-a" type="submit"><span data-i18n="form.send"></span><svg class="ic"><use href="#i-arrow"/></svg></button>
+          <p class="fpv"><span data-i18n="priv.form"></span> <a href="#privacy" data-i18n="priv.h"></a></p>
         </form>
         <div class="fdone" id="done">
           <h3><svg class="ic"><use href="#i-check"/></svg><span data-i18n="form.okh"></span></h3>
@@ -192,8 +208,8 @@
         <p class="ft-tag" data-i18n="foot.tag"></p>
       </div>
       <div><h5 data-i18n="foot.prod"></h5><p>DriveGo BaziX<br>DriveGo ProX<br>DriveGo BOOK</p></div>
-      <div><h5 data-i18n="foot.menu"></h5><p><a href="#eco" data-i18n="nav.eco"></a><br><a href="#plans" data-i18n="nav.plans"></a><br><a href="#cloud" data-i18n="nav.cloud"></a><br><a href="#show" data-i18n="nav.show"></a><br><a href="/login" data-i18n="nav.login"></a></p></div>
-      <div><h5 data-i18n="foot.support"></h5><a class="tel" href="tel:+66821087000">082-108-7000</a><p class="mt035"><a href="mailto:sales@drivegox.com">sales@drivegox.com</a></p><p class="mt05"><a href="https://lin.ee/tV7nV8x" target="_blank" rel="noopener">LINE Official</a></p><p class="mt05">Drivebiz Mecalyze Solution Co., Ltd.</p></div>
+      <div><h5 data-i18n="foot.menu"></h5><p><a href="#eco" data-i18n="nav.eco"></a><br><a href="#plans" data-i18n="nav.plans"></a><br><a href="#cloud" data-i18n="nav.cloud"></a><br><a href="#show" data-i18n="nav.show"></a><br><a href="/login" data-i18n="nav.login"></a><br><a href="#privacy" data-i18n="priv.h"></a></p></div>
+      <div><h5 data-i18n="foot.support"></h5><a class="tel" href="tel:+66821087000">082-108-7000</a><p class="mt035"><a href="mailto:sales@drivegox.com">sales@drivegox.com</a></p><p class="mt05"><a href="https://lin.ee/tV7nV8x" target="_blank" rel="noopener">LINE Official</a></p><p class="ft-co"><b data-i18n="foot.co"></b><br><span data-i18n="foot.addr"></span></p></div>
     </div>
     <div class="cp"><span>© 2026 Drivebiz Mecalyze Solution Co., Ltd. <span data-i18n="foot.rights"></span></span><span>DriveGo BaziX® · DriveGo ProX®</span></div>
   </div>

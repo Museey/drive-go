@@ -36,6 +36,23 @@ test('S297 ระบบใหม่: หน้าแรกของเว็บ�
   await expect(page.getByRole('row', { name: /External system connection \(API\) Coming soon/ })).toBeAttached();
   await page.getByRole('button', { name: 'TH', exact: true }).click();
   await expect(h1).toHaveText('ข้อมูลเพื่อการจัดการที่ดี นำสู่ความสำเร็จ');
+  // The team's update of 2026-11-18: the package cards' tags, a privacy section that the demo form and the footer link
+  // to, and the company's name and address in the footer. (The design's full policy page is not written yet: no link.)
+  await expect(page.locator('#pk')).toContainText('Top PerformanceSystem');
+  const privacy = page.locator('#privacy');
+  await expect(privacy.getByRole('heading', { name: 'นโยบายความเป็นส่วนตัว', exact: true })).toBeVisible();
+  await expect(privacy.getByRole('link', { name: 'sales@drivegox.com' })).toHaveAttribute('href', 'mailto:sales@drivegox.com');
+  await expect(privacy.getByText('ถอนความยินยอม', { exact: true })).toBeVisible();
+  await expect(page.locator('#demoForm').getByRole('link', { name: 'นโยบายความเป็นส่วนตัว' })).toHaveAttribute('href', '#privacy');
+  const footer = page.getByRole('contentinfo');
+  await expect(footer.getByRole('link', { name: 'นโยบายความเป็นส่วนตัว' })).toHaveAttribute('href', '#privacy');
+  await expect(footer.getByText('บริษัท ไดร์ฟบิซ เมคคาไลซ์ โซลูชั่น จำกัด', { exact: true })).toBeVisible();
+  await expect(footer.getByText('เลขที่ 66 ซอยแสมดำ 13 แขวงแสมดำ เขตบางขุนเทียน กรุงเทพมหานคร 10150', { exact: true })).toBeVisible();
+  // Every link goes somewhere that exists: a part of this page, sign-in, LINE, the phone or the e-mail.
+  for (const href of await page.locator('body a[href]').evaluateAll(as => as.map(a => a.getAttribute('href') ?? ''))) {
+    expect(href).toMatch(/^(#[a-z]+|\/login|https:\/\/lin\.ee\/tV7nV8x|tel:\+66821087000|mailto:sales@drivegox\.com)$/);
+    if (href.startsWith('#')) await expect(page.locator(href)).toHaveCount(1);
+  }
   // A demo request: missing details are asked for; then a summary, and the button to send it is LINE Official.
   await page.getByRole('button', { name: 'ขอนัด Demo' }).click();
   await expect(page.locator('#fErr')).toHaveText('กรอกชื่อ ชื่ออู่ และเบอร์โทรให้ครบก่อนส่ง');

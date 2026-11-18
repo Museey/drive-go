@@ -78,6 +78,9 @@
 - **หน้าแรกแบบใหม่ (2026-11-17)**: server/site/index.html + landing.css + landing.js (จากแบบของทีม, ข้อความ TH/EN ใน landing.js, `§` = ป้ายเร็ว ๆ นี้,
   inline style → data-css + CSSOM) · เจ้าของเลือก BaziX ทั้งหน้าแรก/Login, ป้ายเร็ว ๆ นี้, Demo ส่ง LINE, TH/EN · ข้อความอนุมัติแล้ว
   หน้า Login สีดำทองแล้ว · อีเมล sales@ ยังไม่มี เจ้าของ "ไว้ค่อยทำ" (ตัวเลือก Google Workspace / Zoho ฟรี / ส่งต่อ Gmail)
+  แบบของทีมรุ่นแก้ 2026-11-18 ทำตามแล้ว (artifact เดิม Y3eSDQfFeQc9F1tKjZiruf): ป้ายการ์ด 2 ท่อน, ส่วน #privacy, ชื่อบริษัทไทย+ที่อยู่ท้ายหน้า
+  landing.js สร้างด้วย `python3 -I tools/landing-from-design.py <แบบ.html> server/site/landing.js` HTML/CSS รวมด้วยมือ ·
+  privacy.html (นโยบายฉบับเต็ม) ยังไม่มี ลิงก์ชี้ #privacy ไปก่อน รอเจ้าของ/นักกฎหมาย PDPA
 - **BaziX สาขาเดียว (2026-11-17)**: ล็อกเสมอ rules.ts ONE_BRANCH + 19.js (CHANGES 165), S460, S186/S247/S249/S296 ย้ายเป็น prox-trial,
   S37/S307/S327/S404/S409 replaced by S460 + สำเนา ProX S461–S465 (เฉลยอนุมัติ) · ภาพ S464/S465 บันทึกใหม่ด้วย P4 แล้ว (af659f1)
   หมายเหตุ: commit ของ P4 ไม่เริ่ม CI เอง ต้อง push ถัดไป
