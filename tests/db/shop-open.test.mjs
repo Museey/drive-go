@@ -78,7 +78,7 @@ describe('เปิดร้านจริง (เครื่องมือ�
 
   test('รหัสร้านต้องเป็นตัวพิมพ์เล็ก ตัวเลข ขีด ไม่ซ้ำ และไม่ใช่ทางเข้าของระบบ ต้องมีชื่อร้านและชื่อเจ้าของ', async () => {
     await openRealShop(ownerPool, { ...garage, code: 'taken-1' });
-    for (const [code, why] of [['taken-1', /exists already/], ['Big-Shop', /small letters/], ['ab', /small letters/], ['api', /not api/], ['demo-biz', /not api/]])
+    for (const [code, why] of [['taken-1', /exists already/], ['Big-Shop', /small letters/], ['ab', /small letters/], ['api', /not api/], ['testdrive', /not api/], ['demo-biz', /not api/]])
       await assert.rejects(openRealShop(ownerPool, { ...garage, code }), why);
     await assert.rejects(openRealShop(ownerPool, { ...garage, code: 'no-name', name: ' ' }), /name is required/);
     await assert.rejects(openRealShop(ownerPool, { ...garage, code: 'no-owner', owner: '' }), /owner is required/);

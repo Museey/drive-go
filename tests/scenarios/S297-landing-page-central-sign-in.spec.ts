@@ -36,21 +36,27 @@ test('S297 ระบบใหม่: หน้าแรกของเว็บ�
   await expect(page.getByRole('row', { name: /External system connection \(API\) Coming soon/ })).toBeAttached();
   await page.getByRole('button', { name: 'TH', exact: true }).click();
   await expect(h1).toHaveText('ข้อมูลเพื่อการจัดการที่ดี นำสู่ความสำเร็จ');
-  // The team's update of 2026-11-18: the package cards' tags, a privacy section that the demo form and the footer link
-  // to, and the company's name and address in the footer. (The design's full policy page is not written yet: no link.)
+  // The team's update of 2026-11-18: the package cards' tags, a privacy section with the full policy behind it (/privacy,
+  // also linked from the demo form and the footer), and the company's name and address in the footer. The design's own
+  // pages are in the menus (owner 2026-11-18): Test Drive and the articles (S466).
   await expect(page.locator('#pk')).toContainText('Top PerformanceSystem');
   const privacy = page.locator('#privacy');
   await expect(privacy.getByRole('heading', { name: 'นโยบายความเป็นส่วนตัว', exact: true })).toBeVisible();
   await expect(privacy.getByRole('link', { name: 'sales@drivegox.com' })).toHaveAttribute('href', 'mailto:sales@drivegox.com');
   await expect(privacy.getByText('ถอนความยินยอม', { exact: true })).toBeVisible();
-  await expect(page.locator('#demoForm').getByRole('link', { name: 'นโยบายความเป็นส่วนตัว' })).toHaveAttribute('href', '#privacy');
+  await expect(privacy.getByRole('link', { name: 'อ่านนโยบายฉบับเต็ม' })).toHaveAttribute('href', '/privacy');
+  await expect(page.locator('#demoForm').getByRole('link', { name: 'นโยบายความเป็นส่วนตัว' })).toHaveAttribute('href', '/privacy');
   const footer = page.getByRole('contentinfo');
-  await expect(footer.getByRole('link', { name: 'นโยบายความเป็นส่วนตัว' })).toHaveAttribute('href', '#privacy');
+  await expect(footer.getByRole('link', { name: 'นโยบายความเป็นส่วนตัว' })).toHaveAttribute('href', '/privacy');
+  await expect(footer.getByRole('link', { name: 'Test Drive', exact: true })).toHaveAttribute('href', '/testdrive');
+  await expect(page.getByRole('navigation', { name: 'Main' }).getByRole('link'))
+    .toHaveText(['ระบบนิเวศ', 'แพ็กเกจ', 'Test Drive', 'บทความน่ารู้', 'ติดต่อ']);
+  await expect(page.locator('#show').getByRole('link', { name: 'Test Drive ดูภาพหน้าจอจริงทั้ง 58 หน้าจอ' })).toHaveAttribute('href', '/testdrive');
   await expect(footer.getByText('บริษัท ไดร์ฟบิซ เมคคาไลซ์ โซลูชั่น จำกัด', { exact: true })).toBeVisible();
   await expect(footer.getByText('เลขที่ 66 ซอยแสมดำ 13 แขวงแสมดำ เขตบางขุนเทียน กรุงเทพมหานคร 10150', { exact: true })).toBeVisible();
-  // Every link goes somewhere that exists: a part of this page, sign-in, LINE, the phone or the e-mail.
+  // Every link goes somewhere that exists: a part of this page, sign-in, the design's pages, LINE, the phone or the e-mail.
   for (const href of await page.locator('body a[href]').evaluateAll(as => as.map(a => a.getAttribute('href') ?? ''))) {
-    expect(href).toMatch(/^(#[a-z]+|\/login|https:\/\/lin\.ee\/tV7nV8x|tel:\+66821087000|mailto:sales@drivegox\.com)$/);
+    expect(href).toMatch(/^(#[a-z]+|\/(login|testdrive|articles|privacy)|https:\/\/lin\.ee\/tV7nV8x|tel:\+66821087000|mailto:sales@drivegox\.com)$/);
     if (href.startsWith('#')) await expect(page.locator(href)).toHaveCount(1);
   }
   // On a phone (owner 2026-11-18): the section links, sign-in and the demo button are behind the menu button, a link
@@ -59,14 +65,15 @@ test('S297 ระบบใหม่: หน้าแรกของเว็บ�
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'เมนู', exact: true }).click();
   const menu = page.getByRole('navigation', { name: 'Main' });
-  await expect(menu.getByRole('link')).toHaveText(['ระบบนิเวศ', 'แพ็กเกจ', 'หน้าจอจริง', 'ติดต่อ', 'เข้าระบบ', 'ทดลองใช้งานฟรี']);
+  await expect(menu.getByRole('link')).toHaveText(['ระบบนิเวศ', 'แพ็กเกจ', 'Test Drive', 'บทความน่ารู้', 'ติดต่อ', 'เข้าระบบ', 'ทดลองใช้งานฟรี']);
   await menu.getByRole('link', { name: 'แพ็กเกจ', exact: true }).click();
   await expect(menu).toBeHidden();
   const table = page.getByRole('table');
   await expect(table.getByRole('columnheader')).toHaveText(['ความสามารถ', 'BaziX', 'ProX']);
   expect(await page.locator('#cmp').evaluate(box => box.scrollWidth - box.clientWidth)).toBe(0);
   await page.setViewportSize(desk);
-  // A demo request: missing details are asked for; then a summary, and the button to send it is LINE Official.
+  // A demo request: missing details are asked for; then a summary to copy, to send by e-mail (written into the mail app)
+  // or on LINE Official (owner 2026-11-18).
   await page.getByRole('button', { name: 'ขอนัด Demo' }).click();
   await expect(page.locator('#fErr')).toHaveText('กรอกชื่อ ชื่ออู่ และเบอร์โทรให้ครบก่อนส่ง');
   await page.getByLabel('ชื่อผู้ติดต่อ').fill('สมชาย ใจดี');
@@ -76,6 +83,13 @@ test('S297 ระบบใหม่: หน้าแรกของเว็บ�
   await expect(page.getByText('สรุปคำขอพร้อมแล้ว')).toBeVisible();
   await expect(page.locator('#sum')).toHaveText(['ขอนัด Demo DriveGo ProX', 'ชื่อผู้ติดต่อ: สมชาย ใจดี', 'ชื่ออู่หรือศูนย์บริการ: สมชายการช่าง',
     'เบอร์โทร: 081-234-5678', 'จำนวนสาขา: 1 สาขา', 'โมดูลที่สนใจ: ทั้งระบบ'].join('\n'));
+  await expect(page.getByText('คัดลอกข้อความนี้ส่งมาที่ sales@drivegox.com หรือโทร 082-108-7000 เพื่อนัดเวลา')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'คัดลอกข้อความ', exact: true })).toBeVisible();
+  const mail = await page.getByRole('link', { name: 'ส่งทางอีเมล' }).getAttribute('href');
+  expect(mail).toMatch(/^mailto:sales@drivegox\.com\?subject=/);
+  const q = new URL(mail!).searchParams;
+  expect([q.get('subject'), q.get('body')]).toEqual(['ขอนัด Demo DriveGo ProX', ['ขอนัด Demo DriveGo ProX', 'ชื่อผู้ติดต่อ: สมชาย ใจดี',
+    'ชื่ออู่หรือศูนย์บริการ: สมชายการช่าง', 'เบอร์โทร: 081-234-5678', 'จำนวนสาขา: 1 สาขา', 'โมดูลที่สนใจ: ทั้งระบบ'].join('\n')]);
   await expect(page.getByRole('link', { name: 'คัดลอกแล้วส่งทาง LINE' })).toHaveAttribute('href', 'https://lin.ee/tV7nV8x');
   await page.getByRole('link', { name: 'เข้าระบบ', exact: true }).first().click();
   await expect(page).toHaveURL(`${origin}/login`);

@@ -1,7 +1,8 @@
 // DriveGo's landing page (/, server/site/index.html): the team's design of 2026-11-17, updated 2026-11-18 (dark, amber;
 // built by tools/landing-from-design.py), the owner's choices of 2026-11-17: Thai and English (no Chinese), what the
-// system does not do yet tagged "เร็ว ๆ นี้" (a text ending in §), no links to pages that do not exist, and the demo
-// request summed up for the visitor to send on LINE (nothing is stored).
+// system does not do yet tagged "เร็ว ๆ นี้" (a text ending in §); of 2026-11-18: the design's own pages (Test Drive,
+// articles, privacy policy at /testdrive, /articles, /privacy), and the demo request summed up for the visitor to copy,
+// send by e-mail or on LINE (nothing is stored).
 // The page's Content-Security-Policy allows no inline styles: the mock screens' sizes go in data-css and are set
 // through CSSOM (applyCss). Everything here is the page's own text; nothing typed by a visitor is put in as HTML.
 (() => {
@@ -33,7 +34,7 @@ th:{
  dev:{eyebrow:'Multi-Device & Cloud',h:'หน้าร้าน หน้าลาน และผู้บริหาร เห็นข้อมูลชุดเดียวกัน',p:'ทำงานผ่านเบราว์เซอร์ ไม่ต้องติดตั้งโปรแกรม ข้อมูลอัปเดตถึงกันทุกเครื่อง',d1:'Desktop ที่เคาน์เตอร์',d2:'Tablet หน้าลาน',d3:'Smartphone ของผู้บริหาร'},
  rel:[{t:'เข้ารหัสการเชื่อมต่อ',d:'ข้อมูลรับส่งผ่าน HTTPS ตลอดเส้นทาง แนวทางเดียวกับบริการธนาคารออนไลน์'},{t:'สิทธิ์ตามตำแหน่ง',d:'กำหนดได้ว่าใครเห็นราคา ใครอนุมัติ ใครแก้เอกสาร พร้อมรายงานตรวจสอบการใช้งาน'},{t:'ข้อมูลอยู่บน Cloud',d:'ข้อมูลไม่ผูกกับเครื่องใดเครื่องหนึ่ง เครื่องเสียหรือหายก็ทำงานต่อจากเครื่องอื่นได้'},{t:'อัปเดตถึงกันทุกเครื่อง',d:'ช่างปิดงานที่หน้าลาน เคาน์เตอร์เห็นบิล และผู้บริหารเห็นยอดต่อเนื่องกัน'}],
  cta:{eyebrow:'เริ่มต้นใช้งาน',h:'นัดดู Demo กับทีม DriveGo',p:'บอกขนาดอู่และงานที่อยากแก้ ทีมงานจะเตรียมตัวอย่างที่ตรงกับอู่ของคุณ',l1:'ดูระบบทำงานจริงตั้งแต่รับรถจนถึงออกใบกำกับภาษี',l2:'ถามตอบเรื่องโมดูลที่เหมาะกับอู่ของคุณ',l3:'โทร 082-108-7000 หรืออีเมล sales@drivegox.com'},
- form:{name:'ชื่อผู้ติดต่อ',shop:'ชื่ออู่หรือศูนย์บริการ',tel:'เบอร์โทร',br:'จำนวนสาขา',brs:['1 สาขา','2 ถึง 5 สาขา','6 สาขาขึ้นไป'],mod:'โมดูลที่สนใจ',all:'ทั้งระบบ',msg:'สิ่งที่อยากให้ระบบช่วย (ไม่บังคับ)',send:'ขอนัด Demo',err:'กรอกชื่อ ชื่ออู่ และเบอร์โทรให้ครบก่อนส่ง',okh:'สรุปคำขอพร้อมแล้ว',okp:'กดปุ่มด้านล่าง ระบบคัดลอกข้อความนี้แล้วเปิด LINE Official ของเรา วางข้อความแล้วส่งได้เลย หรือโทร 082-108-7000 เพื่อนัดเวลา',copy:'คัดลอกแล้วส่งทาง LINE',copied:'คัดลอกแล้ว',edit:'แก้ไขข้อมูล',sumh:'ขอนัด Demo DriveGo ProX'},
+ form:{name:'ชื่อผู้ติดต่อ',shop:'ชื่ออู่หรือศูนย์บริการ',tel:'เบอร์โทร',br:'จำนวนสาขา',brs:['1 สาขา','2 ถึง 5 สาขา','6 สาขาขึ้นไป'],mod:'โมดูลที่สนใจ',all:'ทั้งระบบ',msg:'สิ่งที่อยากให้ระบบช่วย (ไม่บังคับ)',send:'ขอนัด Demo',err:'กรอกชื่อ ชื่ออู่ และเบอร์โทรให้ครบก่อนส่ง',okh:'สรุปคำขอพร้อมแล้ว',okp:'คัดลอกข้อความนี้ส่งมาที่ sales@drivegox.com หรือโทร 082-108-7000 เพื่อนัดเวลา',copy:'คัดลอกข้อความ',mail:'ส่งทางอีเมล',line:'คัดลอกแล้วส่งทาง LINE',copied:'คัดลอกแล้ว',edit:'แก้ไขข้อมูล',sumh:'ขอนัด Demo DriveGo ProX'},
  why:{eyebrow:'ปัญหาที่อู่เจอ',h:'ศูนย์บริการของคุณเจอปัญหาเหล่านี้หรือไม่',fixl:'DriveGo ช่วยได้',q:['ปลวกกิน น้ำรั่ว แฟ้มหาย เอกสารกระดาษเสียหายได้ทุกวัน','ซื้อมา 100 ขาย 200 ลดให้ลูกค้า 20 เหลือกำไร 80 จริงหรือเปล่า','นับสต๊อกแต่ละครั้ง ไม่รู้จะเริ่มตรงไหน และจะเสร็จเมื่อไร','ลูกค้าไม่กลับมา แปลว่าเราซ่อมจบ หรือเขาไปอู่อื่นแล้ว'],foot:'ปัญหาเหล่านี้ไม่ได้เกิดจากช่างไม่เก่ง แต่เกิดจากอู่ยังไม่มีระบบกลางที่เก็บข้อมูลไว้ที่เดียว',
   pain:[['เอกสารยังอยู่บนกระดาษ','ใบสั่งซ่อม ใบเสนอราคา และใบเสร็จเขียนด้วยมือ ค้นย้อนหลังไม่ได้ และตกหล่นบ่อย'],['ไม่รู้ต้นทุนจริงของงาน','ค่าแรง ค่าอะไหล่ และส่วนลดปนกันอยู่ สิ้นเดือนจึงไม่รู้ว่างานไหนได้กำไรจริง'],['สต๊อกอะไหล่คุมไม่อยู่','ของที่มีลูกค้าไม่มาซ่อม ของที่ต้องใช้กลับไม่มี เกิดของค้างสต๊อกจมทุน'],['ลูกค้าไม่กลับมาใช้ซ้ำ','ไม่มีประวัติรถรายคัน ไม่มีการแจ้งเตือนรอบเซอร์วิส ลูกค้าจึงหายไปอย่างเงียบ ๆ']],
   bt:'ก่อนใช้ DriveGo',bh:'ทำงานด้วยความจำและกระดาษ',b:['ค้นใบสั่งซ่อมเก่าต้องรื้อแฟ้มทีละเล่ม','รู้กำไรตอนสิ้นเดือน และมักไม่ตรงกับที่คิดไว้','สั่งอะไหล่ตามความรู้สึก ของขาดสลับกับของค้าง','ลูกค้าจะกลับมาหรือไม่ ขึ้นอยู่กับว่าลูกค้าจำเราได้ไหม'],
@@ -89,7 +90,7 @@ en:{
  dev:{eyebrow:'Multi-Device & Cloud',h:'Front desk, workshop floor and management see the same data',p:'It runs in the browser with nothing to install, and every device stays up to date.',d1:'Desktop at the counter',d2:'Tablet on the floor',d3:'Smartphone for management'},
  rel:[{t:'Encrypted connection',d:'Data travels over HTTPS end to end, the same approach online banking uses.'},{t:'Permissions by position',d:'Decide who sees prices, who approves and who edits documents, with a usage audit report.'},{t:'Your data lives in the cloud',d:'Nothing is tied to one machine. If a computer fails or goes missing, carry on from another.'},{t:'Every device in step',d:'A technician closes a job, the counter sees the bill, and management sees the total.'}],
  cta:{eyebrow:'Get started',h:'Book a demo with the DriveGo team',p:'Tell us the size of your garage and what you want to fix. We will prepare an example that fits your shop.',l1:'See the full flow from check-in to tax invoice',l2:'Ask which modules suit your garage',l3:'Call 082-108-7000 or e-mail sales@drivegox.com'},
- form:{name:'Contact name',shop:'Garage or service centre',tel:'Phone',br:'Branches',brs:['1 branch','2 to 5 branches','6 or more'],mod:'Module of interest',all:'The whole system',msg:'What should the system help with? (optional)',send:'Request a demo',err:'Enter your name, garage name and phone number first',okh:'Your request summary is ready',okp:'The button below copies this message and opens our LINE Official account: paste it and send. Or call 082-108-7000 to arrange a time.',copy:'Copy and send on LINE',copied:'Copied',edit:'Edit details',sumh:'DriveGo ProX demo request'},
+ form:{name:'Contact name',shop:'Garage or service centre',tel:'Phone',br:'Branches',brs:['1 branch','2 to 5 branches','6 or more'],mod:'Module of interest',all:'The whole system',msg:'What should the system help with? (optional)',send:'Request a demo',err:'Enter your name, garage name and phone number first',okh:'Your request summary is ready',okp:'Copy this message and send it to sales@drivegox.com, or call 082-108-7000 to arrange a time.',copy:'Copy message',mail:'Send by e-mail',line:'Copy and send on LINE',copied:'Copied',edit:'Edit details',sumh:'DriveGo ProX demo request'},
  why:{eyebrow:'The problem',h:'Does your service centre face these problems?',fixl:'With DriveGo',q:['Termites, leaks, lost folders: paper can be ruined any day.','Bought at 100, sold at 200, gave 20 off. Is the profit really 80?','Every stock count: where to start, and when will it end?','No return visit: was the repair that good, or did they go elsewhere?'],foot:'None of this happens because the technicians lack skill. It happens because the garage has no central system that keeps its data in one place.',
   pain:[['Paperwork is still on paper','Job orders, quotations and receipts are handwritten, hard to look up later, and often incomplete.'],['The real cost of a job is unknown','Labour, parts and discounts are mixed together, so at month end nobody knows which jobs made money.'],['Parts stock is out of control','What is on the shelf is not what customers need, and capital sits in slow stock.'],['Customers do not come back','No per-car history and no service reminders, so customers quietly drift away.']],
   bt:'Before DriveGo',bh:'Running on memory and paper',b:['Finding an old job order means digging through files','Profit is known at month end, and rarely matches expectations','Parts are ordered by feel, swinging between shortage and surplus','Whether a customer returns depends on whether they remember you'],
@@ -258,9 +259,9 @@ $('#showS').addEventListener('click',e=>{const b=e.target.closest('.hs');if(!b)r
 $('#hsL').addEventListener('click',e=>{const b=e.target.closest('.hs-i');if(!b)return;hot=+b.dataset.h;lit()});
 document.addEventListener('click',e=>{const b=e.target.closest('.ap .bt button.y');if(b)b.closest('.ap').classList.add('done')});
 
-/* form: composes a message the visitor sends on LINE (the copy button is a link to LINE Official): nothing is stored */
+/* form: composes a message the visitor copies, or sends by e-mail or on LINE (#mailB, #lineB): nothing is stored */
 function buildSum(){const f=t('form');const v=id=>$('#'+id).value.trim();
-  $('#sum').textContent=[f.sumh,`${f.name}: ${v('fName')}`,`${f.shop}: ${v('fShop')}`,`${f.tel}: ${v('fTel')}`,`${f.br}: ${$('#fBr').value}`,`${f.mod}: ${$('#fMod').value}`,v('fMsg')?`${f.msg.replace(/\s*[（(].*$/,'')}: ${v('fMsg')}`:''].filter(Boolean).join('\n')}
+  $('#sum').textContent=[f.sumh,`${f.name}: ${v('fName')}`,`${f.shop}: ${v('fShop')}`,`${f.tel}: ${v('fTel')}`,`${f.br}: ${$('#fBr').value}`,`${f.mod}: ${$('#fMod').value}`,v('fMsg')?`${f.msg.replace(/\s*[（(].*$/,'')}: ${v('fMsg')}`:''].filter(Boolean).join('\n');mailTo()}
 $('#demoForm').addEventListener('submit',e=>{e.preventDefault();
   if(!$('#fName').value.trim()||!$('#fShop').value.trim()||$('#fTel').value.replace(/\D/g,'').length<9){$('#fErr').textContent=t('form.err');return}
   buildSum();$('#ctaB').classList.add('sent')});
@@ -336,4 +337,10 @@ setLang(I[saved]?saved:'th'); frame();
   // The menu's own language switch (the smallest phones; the top bar's one is wired above).
   $('#menuP .lang').addEventListener('click',e=>{const x=e.target.closest('button');if(x)setLang(x.dataset.lang)});
 })();
+
+/* ============ demo request by e-mail or on LINE (DriveGo's addition, owner 2026-11-18) ============ */
+/* The e-mail button opens the visitor's own mail app with the summary written in; the LINE button copies the summary
+   and opens LINE Official. */
+function mailTo(){const s=$('#sum').textContent;$('#mailB').href='mailto:sales@drivegox.com?subject='+encodeURIComponent(s.split('\n')[0])+'&body='+encodeURIComponent(s)}
+$('#lineB').addEventListener('click',()=>{try{navigator.clipboard.writeText($('#sum').textContent).catch(()=>{})}catch(x){}});
 })();

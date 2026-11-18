@@ -66,19 +66,19 @@ def mark(text, items):
         text = text.replace(a, b)
     return text
 th = mark(th, SOON_TH); en = mark(en, SOON_EN)
-# Text changes agreed with the owner (2026-11-17): Thai and English only, the summary goes on LINE.
-th = rep(th, "okp:'คัดลอกข้อความนี้ส่งมาที่ sales@drivegox.com หรือโทร 082-108-7000 เพื่อนัดเวลา',copy:'คัดลอกข้อความ'",
-             "okp:'กดปุ่มด้านล่าง ระบบคัดลอกข้อความนี้แล้วเปิด LINE Official ของเรา วางข้อความแล้วส่งได้เลย หรือโทร 082-108-7000 เพื่อนัดเวลา',copy:'คัดลอกแล้วส่งทาง LINE'")
-en = rep(en, "okp:'Copy this message and send it to sales@drivegox.com, or call 082-108-7000 to arrange a time.',copy:'Copy message'",
-             "okp:'The button below copies this message and opens our LINE Official account: paste it and send. Or call 082-108-7000 to arrange a time.',copy:'Copy and send on LINE'")
+# Text changes agreed with the owner: Thai and English only (2026-11-17). The demo request as the design has it, plus
+# a button that writes the e-mail and one that sends it on LINE (2026-11-18; the LINE text approved on 2026-11-17).
+th = rep(th, "copy:'คัดลอกข้อความ',", "copy:'คัดลอกข้อความ',mail:'ส่งทางอีเมล',line:'คัดลอกแล้วส่งทาง LINE',")
+en = rep(en, "copy:'Copy message',", "copy:'Copy message',mail:'Send by e-mail',line:'Copy and send on LINE',")
 th = rep(th, "f2:'ภาษา ไทย อังกฤษ จีน',", "")
 en = rep(en, "f2:'languages: Thai, English, Chinese',", "")
 th = rep(th, "\nth:{\n", "\nth:{\n soon:'เร็ว ๆ นี้',\n")
 en = rep(en, "\nen:{\n", "\nen:{\n soon:'Coming soon',\n")
 head = """// DriveGo's landing page (/, server/site/index.html): the team's design of 2026-11-17, updated 2026-11-18 (dark, amber;
 // built by tools/landing-from-design.py), the owner's choices of 2026-11-17: Thai and English (no Chinese), what the
-// system does not do yet tagged "เร็ว ๆ นี้" (a text ending in §), no links to pages that do not exist, and the demo
-// request summed up for the visitor to send on LINE (nothing is stored).
+// system does not do yet tagged "เร็ว ๆ นี้" (a text ending in §); of 2026-11-18: the design's own pages (Test Drive,
+// articles, privacy policy at /testdrive, /articles, /privacy), and the demo request summed up for the visitor to copy,
+// send by e-mail or on LINE (nothing is stored).
 // The page's Content-Security-Policy allows no inline styles: the mock screens' sizes go in data-css and are set
 // through CSSOM (applyCss). Everything here is the page's own text; nothing typed by a visitor is put in as HTML.
 (() => {
@@ -110,7 +110,8 @@ code = rep(code, "renderStatic(); renderEco(); renderShow(); renderDevices();", 
 code = rep(code, "$('#ecoM').innerHTML=MM[mod]();", "$('#ecoM').innerHTML=MM[mod](); applyCss($('#ecoP'));")
 code = rep(code, "$('#showS').innerHTML=ROLE[role]();", "$('#showS').innerHTML=ROLE[role](); applyCss($('#showS'));")
 code = rep(code, "/* form: composes a message the visitor can copy. Wire the submit handler to your CRM, LINE or e-mail endpoint in production. */",
-                 "/* form: composes a message the visitor sends on LINE (the copy button is a link to LINE Official): nothing is stored */")
+                 "/* form: composes a message the visitor copies, or sends by e-mail or on LINE (#mailB, #lineB): nothing is stored */")
+code = rep(code, ".filter(Boolean).join('\\n')}", ".filter(Boolean).join('\\n');mailTo()}")
 code = rep(code, "$('#copyB').addEventListener('click',async e=>{const b=e.currentTarget;try{await navigator.clipboard.writeText($('#sum').textContent);b.textContent=t('form.copied')}catch(x){",
                  "$('#copyB').addEventListener('click',async e=>{const b=e.currentTarget;try{await navigator.clipboard.writeText($('#sum').textContent);put(b,t('form.copied'))}catch(x){")
 code = rep(code, "setTimeout(()=>b.textContent=t('form.copy'),1800)});", "setTimeout(()=>put(b,t('form.copy')),1800)});")
@@ -131,6 +132,12 @@ MENU = """
   // The menu's own language switch (the smallest phones; the top bar's one is wired above).
   $('#menuP .lang').addEventListener('click',e=>{const x=e.target.closest('button');if(x)setLang(x.dataset.lang)});
 })();
+
+/* ============ demo request by e-mail or on LINE (DriveGo's addition, owner 2026-11-18) ============ */
+/* The e-mail button opens the visitor's own mail app with the summary written in; the LINE button copies the summary
+   and opens LINE Official. */
+function mailTo(){const s=$('#sum').textContent;$('#mailB').href='mailto:sales@drivegox.com?subject='+encodeURIComponent(s.split('\\n')[0])+'&body='+encodeURIComponent(s)}
+$('#lineB').addEventListener('click',()=>{try{navigator.clipboard.writeText($('#sum').textContent).catch(()=>{})}catch(x){}});
 """
 code = code.rstrip() + "\n" + MENU + "})();\n"
 open(out, 'w', encoding='utf-8').write(dict + code)

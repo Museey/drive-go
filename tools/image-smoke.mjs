@@ -63,11 +63,14 @@ try {
     await new Promise(r => setTimeout(r, 500));
   }
   say('web: /api/health ok (the app reaches the database as drivego_app over TLS)');
-  // DriveGo's own pages (SITE_DIR in the image): the landing page, the central sign-in page and its script.
-  for (const [p, mark] of [['/', 'href="/login"'], ['/site/landing.js', 'applyCss'], ['/site/landing.css', '.coming'], ['/login', 'src="/site/login.js"'], ['/site/login.js', 'dg_signin']]) {
+  // DriveGo's own pages (SITE_DIR in the image): the landing page, the central sign-in page and its script, the design's
+  // sub-pages (Test Drive, privacy, articles) and a Test Drive picture.
+  for (const [p, mark] of [['/', 'href="/login"'], ['/site/landing.js', 'applyCss'], ['/site/landing.css', '.coming'], ['/login', 'src="/site/login.js"'], ['/site/login.js', 'dg_signin'], ['/testdrive', 'src="/site/testdrive.js"'], ['/site/testdrive.js', '/site/tour/'], ['/privacy', 'src="/site/privacy.js"'], ['/articles', 'src="/site/articles.js"'], ['/site/sub.js', 'css(r=document)']]) {
     const r = await fetch(`${base}${p}`);
     if (r.status !== 200 || !(await r.text()).includes(mark)) fail(`${p}: ${r.status}`);
   }
+  const tour = await fetch(`${base}/site/tour/x-home.webp`);
+  if (tour.status !== 200 || tour.headers.get('content-type') !== 'image/webp') fail(`/site/tour/x-home.webp: ${tour.status}`);
   const page = await fetch(`${base}/demo-biz/`);
   if (page.status !== 200 || !/<script[^>]+js\/03\.js/.test(await page.text())) fail(`/demo-biz/ answered ${page.status}`);
   say('web: /demo-biz/ serves the screens');

@@ -3,7 +3,7 @@ import type { NextConfig } from 'next';
 const STAFF_CSP = "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; " +
   "form-action 'self'; frame-ancestors 'none'; base-uri 'none'";
 
-// DriveGo's own pages (/, /login, /site/…: server/site): their own script and style only, the app's fonts from Google,
+// DriveGo's own pages (/, /login, /testdrive, /privacy, /articles, /site/…: server/site): their own script and style only, the app's fonts from Google,
 // never framed.
 const SITE_CSP = "default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; " +
   "font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'";
@@ -37,11 +37,14 @@ const config: NextConfig = {
       // script-src: script files only from the app itself, so a <script src> from another site never loads (SECURITY-REVIEW 4;
       // the names and texts a shop types are escaped where they are shown, S286). The legacy screens need inline code,
       // onclick attributes and eval: ten of their files read a window's open document, a top-level `let`, with (0,eval)('Q').
-      { source: '/((?!api/files/|ops/|site/|login$)(?!$).*)', headers: [{ key: 'Content-Security-Policy', value: "frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'" }] },
+      { source: '/((?!api/files/|ops/|site/|(?:login|testdrive|privacy|articles)$)(?!$).*)', headers: [{ key: 'Content-Security-Policy', value: "frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'" }] },
       // The staff web page (app/ops, server/staff-ui) has no inline code: only its own script and style, never framed.
       { source: '/ops/:path*', headers: [{ key: 'Content-Security-Policy', value: STAFF_CSP }] },
       { source: '/', headers: [{ key: 'Content-Security-Policy', value: SITE_CSP }] },
       { source: '/login', headers: [{ key: 'Content-Security-Policy', value: SITE_CSP }] },
+      { source: '/testdrive', headers: [{ key: 'Content-Security-Policy', value: SITE_CSP }] },
+      { source: '/privacy', headers: [{ key: 'Content-Security-Policy', value: SITE_CSP }] },
+      { source: '/articles', headers: [{ key: 'Content-Security-Policy', value: SITE_CSP }] },
       { source: '/site/:path*', headers: [{ key: 'Content-Security-Policy', value: SITE_CSP }] },
     ];
   },

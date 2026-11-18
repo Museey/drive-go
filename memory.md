@@ -80,7 +80,10 @@
   หน้า Login สีดำทองแล้ว · อีเมล sales@ ยังไม่มี เจ้าของ "ไว้ค่อยทำ" (ตัวเลือก Google Workspace / Zoho ฟรี / ส่งต่อ Gmail)
   แบบของทีมรุ่นแก้ 2026-11-18 ทำตามแล้ว (artifact เดิม Y3eSDQfFeQc9F1tKjZiruf): ป้ายการ์ด 2 ท่อน, ส่วน #privacy, ชื่อบริษัทไทย+ที่อยู่ท้ายหน้า
   landing.js สร้างด้วย `python3 -I tools/landing-from-design.py <แบบ.html> server/site/landing.js` HTML/CSS รวมด้วยมือ ·
-  privacy.html (นโยบายฉบับเต็ม) ยังไม่มี ลิงก์ชี้ #privacy ไปก่อน รอเจ้าของ/นักกฎหมาย PDPA
+  หน้าย่อยตามแบบ (2026-11-18): artifact มี 65 ไฟล์ (testdrive privacy articles login .html, site.css/js, tour/*.webp 58 ภาพ)
+  ดูรายการไฟล์ก่อนเสมอ (Artifact list scope files) · `python3 -I tools/subpages-from-design.py <โฟลเดอร์แบบ> server/site`
+  /testdrive /privacy /articles + /site/tour/ · ฟอร์ม Demo: คัดลอก + อีเมล + LINE · Test Drive ป้ายเร็ว ๆ นี้ BOOK/Admin/ProX ออนไลน์ · S466
+  ยังไม่ได้ถาม: ปุ่มเมนูบนมือถือของหน้าย่อย · นโยบายให้นักกฎหมาย PDPA ดู (ไม่บอกว่าข้อมูลอยู่สิงคโปร์)
   มือถือ (เจ้าของ "แก้ทั้ง 3 ข้อ" 2026-11-18): ตารางพอดีจอ, ปุ่มเมนู ☰ (<68rem; TH/EN เข้าแผงเมื่อ ≤21rem), การ์ดลอย/ตัวเลขไม่ล้น,
   main{overflow-x:clip} · CSS ท้าย landing.css "DriveGo's additions", เมนู JS ใน tools/landing-from-design.py
 - **BaziX สาขาเดียว (2026-11-17)**: ล็อกเสมอ rules.ts ONE_BRANCH + 19.js (CHANGES 165), S460, S186/S247/S249/S296 ย้ายเป็น prox-trial,

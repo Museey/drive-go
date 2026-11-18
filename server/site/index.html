@@ -39,7 +39,7 @@
   <div class="wrap">
     <a class="logo" href="#top" aria-label="DriveGo X"><span class="logo-m"><svg class="lx" viewBox="0 0 48 48" aria-hidden="true"><circle class="tr" cx="24" cy="24" r="20.500"/><circle class="rm" cx="24" cy="24" r="15"/><g transform="translate(24 24) scale(1.150) translate(-12 -12)"><path d="M4 20h5L20 4h-5z"/><path class="c" d="M4 4h5l2.450 3.560-2.500 3.640zM20 20h-5l-2.450-3.560 2.500-3.640z"/></g></svg></span><span>DriveGo <span class="lgx">X</span></span></a>
     <nav class="nav-l" aria-label="Main">
-      <a href="#eco" data-i18n="nav.eco"></a><a href="#plans" data-i18n="nav.plans"></a><a href="#show" data-i18n="nav.show"></a><a href="#contact" data-i18n="nav.contact"></a>
+      <a href="#eco" data-i18n="nav.eco"></a><a href="#plans" data-i18n="nav.plans"></a><a href="/testdrive">Test Drive</a><a href="/articles" data-i18n="nav.art"></a><a href="#contact" data-i18n="nav.contact"></a>
     </nav>
     <div class="nav-r">
       <div class="lang" role="group" aria-label="Language">
@@ -52,7 +52,7 @@
   </div>
   <nav class="menu-p" id="menuP" aria-label="Main" hidden>
     <div class="wrap">
-      <a href="#eco" data-i18n="nav.eco"></a><a href="#plans" data-i18n="nav.plans"></a><a href="#show" data-i18n="nav.show"></a><a href="#contact" data-i18n="nav.contact"></a><a href="/login" data-i18n="nav.login"></a>
+      <a href="#eco" data-i18n="nav.eco"></a><a href="#plans" data-i18n="nav.plans"></a><a href="/testdrive">Test Drive</a><a href="/articles" data-i18n="nav.art"></a><a href="#contact" data-i18n="nav.contact"></a><a href="/login" data-i18n="nav.login"></a>
       <a class="btn btn-a" href="#contact" data-i18n="nav.cta"></a>
       <div class="lang" role="group" aria-label="Language">
         <button type="button" data-lang="th" aria-pressed="true">TH</button><button type="button" data-lang="en" aria-pressed="false">EN</button>
@@ -134,7 +134,8 @@
       <div class="show-s" id="showS"></div>
       <div class="hs-l" id="hsL"></div>
     </div>
-      </div>
+    <p class="rv mt2"><a class="btn btn-a" href="/testdrive"><span data-i18n="show.td"></span><svg class="ic"><use href="#i-arrow"/></svg></a></p>
+  </div>
 </section>
 
 <section id="cloud">
@@ -166,6 +167,7 @@
         <p data-i18n="priv.p1"></p>
         <p class="mt08" data-i18n-html="priv.p2"></p>
         <div class="pvr" id="pvr"></div>
+        <a class="btn btn-g mt14" href="/privacy"><span data-i18n="priv.link"></span><svg class="ic"><use href="#i-arrow"/></svg></a>
       </div>
     </div>
   </div>
@@ -194,14 +196,16 @@
           <div class="fd w"><label for="fMsg" data-i18n="form.msg"></label><textarea id="fMsg" rows="3"></textarea></div>
           <p class="err" id="fErr" role="alert"></p>
           <button class="btn btn-a" type="submit"><span data-i18n="form.send"></span><svg class="ic"><use href="#i-arrow"/></svg></button>
-          <p class="fpv"><span data-i18n="priv.form"></span> <a href="#privacy" data-i18n="priv.h"></a></p>
+          <p class="fpv"><span data-i18n="priv.form"></span> <a href="/privacy" data-i18n="priv.h"></a></p>
         </form>
         <div class="fdone" id="done">
           <h3><svg class="ic"><use href="#i-check"/></svg><span data-i18n="form.okh"></span></h3>
           <pre id="sum"></pre>
           <p data-i18n="form.okp"></p>
           <div class="bt mt1">
-            <a class="btn btn-a" id="copyB" href="https://lin.ee/tV7nV8x" target="_blank" rel="noopener" data-i18n="form.copy"></a>
+            <button class="btn btn-a" type="button" id="copyB" data-i18n="form.copy"></button>
+            <a class="btn btn-g" id="mailB" href="mailto:sales@drivegox.com" data-i18n="form.mail"></a>
+            <a class="btn btn-g" id="lineB" href="https://lin.ee/tV7nV8x" target="_blank" rel="noopener" data-i18n="form.line"></a>
             <button class="btn btn-g" type="button" id="editB" data-i18n="form.edit"></button>
           </div>
         </div>
@@ -219,7 +223,7 @@
         <p class="ft-tag" data-i18n="foot.tag"></p>
       </div>
       <div><h5 data-i18n="foot.prod"></h5><p>DriveGo BaziX<br>DriveGo ProX<br>DriveGo BOOK</p></div>
-      <div><h5 data-i18n="foot.menu"></h5><p><a href="#eco" data-i18n="nav.eco"></a><br><a href="#plans" data-i18n="nav.plans"></a><br><a href="#cloud" data-i18n="nav.cloud"></a><br><a href="#show" data-i18n="nav.show"></a><br><a href="/login" data-i18n="nav.login"></a><br><a href="#privacy" data-i18n="priv.h"></a></p></div>
+      <div><h5 data-i18n="foot.menu"></h5><p><a href="#eco" data-i18n="nav.eco"></a><br><a href="#plans" data-i18n="nav.plans"></a><br><a href="#cloud" data-i18n="nav.cloud"></a><br><a href="/testdrive">Test Drive</a><br><a href="/articles" data-i18n="nav.art"></a><br><a href="/login" data-i18n="nav.login"></a><br><a href="/privacy" data-i18n="priv.h"></a></p></div>
       <div><h5 data-i18n="foot.support"></h5><a class="tel" href="tel:+66821087000">082-108-7000</a><p class="mt035"><a href="mailto:sales@drivegox.com">sales@drivegox.com</a></p><p class="mt05"><a href="https://lin.ee/tV7nV8x" target="_blank" rel="noopener">LINE Official</a></p><p class="ft-co"><b data-i18n="foot.co"></b><br><span data-i18n="foot.addr"></span></p></div>
     </div>
     <div class="cp"><span>© 2026 Drivebiz Mecalyze Solution Co., Ltd. <span data-i18n="foot.rights"></span></span><span>DriveGo BaziX® · DriveGo ProX®</span></div>

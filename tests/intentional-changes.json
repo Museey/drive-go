@@ -1067,6 +1067,11 @@
       "scenario": "S459-sign-in-cards-prox-franchise.spec.ts",
       "decision": "Owner 2026-11-17: the central sign-in page has one card per package (Biz, ProX, Franchise); the right sign-in on another package's card is refused, naming the card to use",
       "why": "Sales want people to see the three packages when they sign in. S297 covers a Biz shop; this one covers a ProX shop and a Franchise network's head office signing in on their own cards, and on the wrong card."
+    },
+    {
+      "scenario": "S466-landing-test-drive-privacy-articles.spec.ts",
+      "decision": "Owner 2026-11-18: the landing page's own pages as the team's design has them: Test Drive, the privacy policy in full, the articles; what the system does not do yet tagged",
+      "why": "The legacy file had no website. The team's design has a step-by-step tour of the system's screens, the full privacy policy behind the landing page's privacy section, and articles for garage owners."
     }
   ]
 }

@@ -1,0 +1,54 @@
+// privacy: the team's design, built by tools/subpages-from-design.py (texts in Thai and English are
+// shown; the Chinese ones are unused).
+(() => {
+const M='<a href="mailto:sales@drivegox.com">sales@drivegox.com</a>', T='<a href="tel:+66821087000">082-108-7000</a>';
+const P={
+th:{eb:'ความเป็นส่วนตัวของข้อมูล',h:'นโยบายความเป็นส่วนตัว',upd:'ปรับปรุงล่าสุด 17 พฤศจิกายน 2569',
+ lede:'บริษัท ไดร์ฟบิซ เมคคาไลซ์ โซลูชั่น จำกัด ให้ความสำคัญกับการคุ้มครองข้อมูลส่วนบุคคล โดยเก็บรวบรวม ใช้ และเปิดเผยข้อมูลเท่าที่จำเป็นตามวัตถุประสงค์ที่แจ้งไว้ ภายใต้พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562',
+ s:[
+ ['ขอบเขตของนโยบาย','<p>นโยบายนี้ใช้กับเว็บไซต์ DriveGo และบริการในเครือ ได้แก่ DriveGo BaziX, DriveGo ProX, DriveGo-Franchise และ DriveGo BOOK</p>'],
+ ['ข้อมูลที่เราเก็บรวบรวม','<ul><li><b>ข้อมูลติดต่อ</b> เช่น ชื่อ ชื่ออู่หรือศูนย์บริการ เบอร์โทร และอีเมล ที่ท่านให้ไว้เมื่อขอนัด Demo หรือสมัครใช้บริการ</li><li><b>ข้อมูลบัญชีผู้ใช้</b> เช่น ชื่อผู้ใช้ ตำแหน่ง และสิทธิ์การใช้งานในระบบ</li><li><b>ข้อมูลที่อู่บันทึกในระบบ</b> เช่น ข้อมูลลูกค้า ทะเบียนรถ ประวัติการซ่อม และเอกสารการขาย</li><li><b>ข้อมูลการใช้งาน</b> เช่น บันทึกการเข้าใช้ระบบ เพื่อความปลอดภัยและการตรวจสอบย้อนหลัง</li></ul>'],
+ ['วัตถุประสงค์ในการใช้ข้อมูล','<ul><li>ให้บริการระบบตามสัญญา และดูแลหลังการขาย</li><li>ติดต่อกลับตามที่ท่านร้องขอ</li><li>รักษาความปลอดภัยของระบบและป้องกันการใช้งานที่ไม่ถูกต้อง</li><li>ปฏิบัติตามหน้าที่ที่กฎหมายกำหนด</li><li>แจ้งข่าวสารและข้อเสนอ เฉพาะเมื่อได้รับความยินยอม</li></ul>'],
+ ['ข้อมูลที่อู่บันทึกในระบบ','<p>ข้อมูลลูกค้าและข้อมูลรถที่อู่บันทึกในระบบเป็นข้อมูลของอู่ บริษัทใช้ข้อมูลดังกล่าวเพื่อให้บริการระบบเท่านั้น และไม่นำไปใช้เพื่อวัตถุประสงค์อื่น</p>'],
+ ['การเปิดเผยข้อมูล','<p>บริษัทไม่ขายข้อมูลส่วนบุคคล และจะเปิดเผยข้อมูลเฉพาะในกรณีต่อไปนี้</p><ul><li>เมื่อได้รับความยินยอมจากเจ้าของข้อมูล</li><li>แก่ผู้ให้บริการที่จำเป็นต่อการให้บริการระบบ ภายใต้ข้อตกลงรักษาความลับ</li><li>เมื่อกฎหมายหรือคำสั่งของหน่วยงานที่มีอำนาจกำหนด</li></ul><p>สำหรับ DriveGo Ecosystem และ DriveGo BOOK ประวัติรถจะเปิดเผยแก่อู่ในเครือข่ายเฉพาะส่วนที่ผู้ใช้รถให้ความยินยอม</p>'],
+ ['ระยะเวลาเก็บรักษา','<p>บริษัทเก็บรักษาข้อมูลเท่าที่จำเป็นตามวัตถุประสงค์ที่แจ้งไว้ ตลอดระยะเวลาที่ใช้บริการ และตามระยะเวลาที่กฎหมายกำหนด เมื่อพ้นกำหนดจะลบหรือทำให้ไม่สามารถระบุตัวบุคคลได้</p>'],
+ ['การรักษาความมั่นคงปลอดภัย','<p>บริษัทมีมาตรการรักษาความมั่นคงปลอดภัยของข้อมูล เช่น การกำหนดสิทธิ์ผู้ใช้ตามตำแหน่ง การบันทึกการเข้าใช้ระบบ และการเข้ารหัสการเชื่อมต่อ เพื่อป้องกันการเข้าถึง ใช้ เปลี่ยนแปลง หรือเปิดเผยข้อมูลโดยไม่ได้รับอนุญาต</p>'],
+ ['สิทธิของเจ้าของข้อมูล','<p>ท่านมีสิทธิตามที่กฎหมายกำหนด ดังนี้</p><ul><li>ขอเข้าถึงและขอรับสำเนาข้อมูล</li><li>ขอแก้ไขข้อมูลให้ถูกต้องและเป็นปัจจุบัน</li><li>ขอลบหรือทำลายข้อมูล</li><li>ขอระงับหรือคัดค้านการใช้ข้อมูล</li><li>ขอรับหรือโอนย้ายข้อมูล</li><li>ถอนความยินยอมที่เคยให้ไว้</li><li>ร้องเรียนต่อสำนักงานคณะกรรมการคุ้มครองข้อมูลส่วนบุคคล</li></ul>'],
+ ['ช่องทางติดต่อ','<p>หากต้องการใช้สิทธิหรือมีข้อสงสัยเกี่ยวกับนโยบายนี้ ติดต่อบริษัท ไดร์ฟบิซ เมคคาไลซ์ โซลูชั่น จำกัด เลขที่ 66 ซอยแสมดำ 13 แขวงแสมดำ เขตบางขุนเทียน กรุงเทพมหานคร 10150 อีเมล '+M+' หรือโทร '+T+'</p>'],
+ ['การปรับปรุงนโยบาย','<p>บริษัทอาจปรับปรุงนโยบายนี้เป็นครั้งคราว และจะแสดงฉบับล่าสุดพร้อมวันที่ปรับปรุงไว้บนหน้านี้</p>']]},
+en:{eb:'Data privacy',h:'Privacy policy',upd:'Last updated 17 November 2026',
+ lede:'Drivebiz Mecalyze Solution Co., Ltd. takes the protection of personal data seriously. We collect, use and disclose data only as necessary for the purposes we have stated, under Thailand’s Personal Data Protection Act B.E. 2562 (2019).',
+ s:[
+ ['Scope','<p>This policy applies to the DriveGo website and related services: DriveGo BaziX, DriveGo ProX, DriveGo-Franchise and DriveGo BOOK.</p>'],
+ ['Data we collect','<ul><li><b>Contact details</b> such as name, garage or service centre name, phone and e-mail, given when you request a demo or sign up.</li><li><b>Account data</b> such as user name, position and system permissions.</li><li><b>Data the garage records in the system</b> such as customers, licence plates, repair history and sales documents.</li><li><b>Usage data</b> such as sign-in logs, kept for security and audit.</li></ul>'],
+ ['Why we use data','<ul><li>To provide the system under contract and support it after the sale.</li><li>To contact you when you ask us to.</li><li>To keep the system secure and prevent misuse.</li><li>To meet legal obligations.</li><li>To send news and offers, only with consent.</li></ul>'],
+ ['Data the garage records','<p>Customer and vehicle data a garage records in the system belongs to the garage. The company uses that data only to provide the system, and for no other purpose.</p>'],
+ ['Disclosure','<p>The company does not sell personal data and discloses it only:</p><ul><li>with the data subject’s consent;</li><li>to service providers needed to run the system, under confidentiality agreements;</li><li>when the law or a competent authority requires it.</li></ul><p>In the DriveGo Ecosystem and DriveGo BOOK, car history is shown to network garages only to the extent the driver has consented.</p>'],
+ ['Retention','<p>We keep data for as long as needed for the stated purposes, for the period of service, and for any period the law requires. After that it is deleted or anonymised.</p>'],
+ ['Security','<p>We apply security measures such as permissions by position, sign-in logging and encrypted connections, to prevent unauthorised access, use, alteration or disclosure.</p>'],
+ ['Your rights','<p>You have the rights the law provides:</p><ul><li>to access your data and obtain a copy;</li><li>to have it corrected and kept up to date;</li><li>to have it deleted or destroyed;</li><li>to restrict or object to its use;</li><li>to receive or transfer it;</li><li>to withdraw consent;</li><li>to complain to the Office of the Personal Data Protection Committee.</li></ul>'],
+ ['Contact','<p>To exercise your rights or ask about this policy, contact Drivebiz Mecalyze Solution Co., Ltd., 66 Soi Samae Dam 13, Samae Dam, Bang Khun Thian, Bangkok 10150, Thailand, at '+M+' or '+T+'.</p>'],
+ ['Changes to this policy','<p>We may update this policy from time to time. The latest version and its date are shown on this page.</p>']]},
+zh:{eb:'数据隐私',h:'隐私政策',upd:'最近更新：2026 年 11 月 17 日',
+ lede:'Drivebiz Mecalyze Solution Co., Ltd. 重视个人数据保护，仅在已告知目的所必需的范围内收集、使用和披露数据，并遵守泰国《个人数据保护法》（佛历 2562 年）。',
+ s:[
+ ['适用范围','<p>本政策适用于 DriveGo 网站及相关服务：DriveGo BaziX、DriveGo ProX、DriveGo-Franchise 和 DriveGo BOOK。</p>'],
+ ['我们收集的数据','<ul><li><b>联系信息</b>：您在申请演示或注册时提供的姓名、门店名称、电话和电子邮件。</li><li><b>账户数据</b>：用户名、职位和系统权限。</li><li><b>门店录入系统的数据</b>：客户资料、车牌、维修履历和销售单据。</li><li><b>使用数据</b>：登录记录，用于安全与审计。</li></ul>'],
+ ['数据使用目的','<ul><li>按合同提供系统并进行售后支持。</li><li>应您的要求与您联系。</li><li>保障系统安全，防止不当使用。</li><li>履行法律义务。</li><li>仅在取得同意后发送资讯与优惠。</li></ul>'],
+ ['门店录入系统的数据','<p>门店录入系统的客户和车辆数据归门店所有。公司仅为提供系统服务而使用这些数据，不作其他用途。</p>'],
+ ['数据披露','<p>公司不出售个人数据，仅在以下情形披露：</p><ul><li>取得数据主体同意；</li><li>向提供系统服务所必需的服务商披露，并签有保密协议；</li><li>法律或主管机关要求。</li></ul><p>在 DriveGo Ecosystem 和 DriveGo BOOK 中，车辆履历仅在车主同意的范围内向网络内的门店展示。</p>'],
+ ['保存期限','<p>我们在实现所述目的所需的期间、服务期间以及法律规定的期间内保存数据，期满后予以删除或匿名化。</p>'],
+ ['安全保障','<p>公司采取按岗位授权、登录记录和加密连接等安全措施，防止数据被未经授权地访问、使用、更改或披露。</p>'],
+ ['数据主体的权利','<p>您依法享有以下权利：</p><ul><li>查阅数据并获取副本；</li><li>要求更正并保持数据最新；</li><li>要求删除或销毁数据；</li><li>限制或反对使用数据；</li><li>获取或转移数据；</li><li>撤回已给予的同意；</li><li>向个人数据保护委员会办公室投诉。</li></ul>'],
+ ['联系方式','<p>如需行使权利或对本政策有疑问，请联系 Drivebiz Mecalyze Solution Co., Ltd.（66 Soi Samae Dam 13, Samae Dam, Bang Khun Thian, Bangkok 10150, Thailand）：'+M+' 或 '+T+'。</p>'],
+ ['政策更新','<p>公司可能不时更新本政策，最新版本及更新日期将显示在本页面。</p>']]}
+};
+const $=s=>document.querySelector(s);
+function render(){
+  const p=P[DG.lang];
+  $('#eb').textContent=p.eb; $('#h1').textContent=p.h; $('#lede').textContent=p.lede; $('#upd').textContent=p.upd;
+  $('#toc').innerHTML=p.s.map((x,i)=>`<a href="#s${i+1}"><i>${String(i+1).padStart(2,'0')}</i><span>${x[0]}</span></a>`).join('');
+  $('#doc').innerHTML=p.s.map((x,i)=>`<section id="s${i+1}"><h2><i>${i+1}</i><span>${x[0]}</span></h2>${x[1]}</section>`).join('');
+}
+DG.onLang(render); DG.start();
+})();

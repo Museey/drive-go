@@ -398,7 +398,7 @@ footer{border-top:1px solid var(--line);padding-block:3rem 2rem;font-size:.9rem}
 
 /* DriveGo additions: what the design had inline (the page's CSP allows no inline styles), and the "coming soon" tag */
 .sprite{position:absolute;width:0;height:0;overflow:hidden}
-.mt1{margin-top:1rem}.mt035{margin-top:.35rem}.mt05{margin-top:.5rem}.mt08{margin-top:.8rem}
+.mt1{margin-top:1rem}.mt035{margin-top:.35rem}.mt05{margin-top:.5rem}.mt08{margin-top:.8rem}.mt14{margin-top:1.4rem}.mt2{margin-top:2rem}
 .ft-co{margin-top:.5rem;font-size:.85rem;line-height:1.6}.ft-co b{color:var(--ink)}
 .ft-tag{margin-top:.9rem;max-width:20rem}
 span.coming.coming{display:inline-block;width:auto;margin:0 0 0 .35em;padding:0 .6em;border:1px solid rgba(251,191,36,.55);

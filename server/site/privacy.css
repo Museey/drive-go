@@ -1,0 +1,20 @@
+/* privacy: the team's design, built by tools/subpages-from-design.py */
+.top{padding-block:clamp(2.5rem,6vw,4.5rem) 0}
+.top h1{font-size:clamp(2rem,4.4vw,3rem);font-weight:800;letter-spacing:-.02em;margin-block:.9rem .7rem}
+.top .lede{max-width:46rem;font-size:1.1rem;color:var(--ink);line-height:1.75}
+.upd{font-size:.82rem;color:var(--faint);margin-top:.9rem}
+.lay{display:grid;gap:2.5rem;margin-top:2.5rem;align-items:start}
+@media(min-width:64rem){.lay{grid-template-columns:16rem minmax(0,1fr)}}
+.toc{border:1px solid var(--line);border-radius:1.25rem;background:var(--panel);padding:1rem;display:grid;gap:.1rem}
+@media(min-width:64rem){.toc{position:sticky;top:5.5rem}}
+.toc a{display:flex;gap:.6rem;padding:.4rem .5rem;border-radius:.5rem;font-size:.86rem;line-height:1.45}
+.toc a:hover{color:var(--glow);background:var(--panel2)}
+.toc i{font-style:normal;color:var(--faint);font-size:.72rem;font-variant-numeric:tabular-nums;width:1.3rem;flex:none;padding-top:.1rem}
+.doc section{padding-bottom:1.75rem;margin-bottom:1.75rem;border-bottom:1px solid var(--line);max-width:46rem;scroll-margin-top:5.5rem}
+.doc section:last-child{border:0}
+.doc h2{font-size:1.25rem;display:flex;gap:.8rem;align-items:baseline;margin-bottom:.7rem}
+.doc h2 i{font-style:normal;font-size:.78rem;font-weight:800;color:#1A1000;background:var(--amber);border-radius:50%;width:1.7rem;height:1.7rem;display:grid;place-items:center;flex:none;font-variant-numeric:tabular-nums}
+.doc p{margin-bottom:.8rem}
+.doc ul{margin:0 0 .8rem 1.3rem;display:grid;gap:.4rem}
+.doc li::marker{color:var(--glow)}
+.doc b{color:var(--ink)}.doc a{color:var(--glow);font-weight:600}

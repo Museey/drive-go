@@ -1,0 +1,89 @@
+/* Shared styles for DriveGo's sub-pages (Test Drive, privacy, articles): the team's design, built by
+   tools/subpages-from-design.py. Sizes in rem; 1px only for hairlines. */
+:root{
+  --bg:#0A0A0B; --panel:#141417; --panel2:#1B1B1F;
+  --line:rgba(248,250,252,.08); --line2:rgba(248,250,252,.14);
+  --amber:#F59E0B; --amber-d:#D97706; --glow:#FBBF24;
+  --ink:#F8FAFC; --mut:#94A3B8; --faint:#64748B;
+  --ok:#34D399; --bad:#F87171;
+  --f:'Plus Jakarta Sans','IBM Plex Sans Thai','Noto Sans SC',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --r:1rem; --wrap:76rem;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:5rem}
+body{background:var(--bg);color:var(--mut);font-family:var(--f);font-size:1rem;line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden;min-height:100vh;display:flex;flex-direction:column}
+main{flex:1}
+h1,h2,h3,h4{color:var(--ink);line-height:1.3;text-wrap:balance;font-weight:700}
+:lang(th) h1,:lang(th) h2{line-height:1.45}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+:focus-visible{outline:.125rem solid var(--glow);outline-offset:.2rem;border-radius:.4rem}
+svg.ic{width:1.25em;height:1.25em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.wrap{max-width:var(--wrap);margin-inline:auto;padding-inline:1.25rem;width:100%}
+.eyebrow{display:inline-flex;align-items:center;gap:.6rem;font-size:.78rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--glow)}
+.eyebrow::before{content:"";width:1.75rem;height:1px;background:linear-gradient(90deg,transparent,var(--glow))}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.55rem;padding:.8rem 1.4rem;border-radius:62rem;font-weight:700;font-size:.95rem;transition:transform .25s,box-shadow .25s,background .25s,border-color .25s;white-space:nowrap}
+.btn-a{background:linear-gradient(180deg,var(--glow),var(--amber) 55%,var(--amber-d));color:#1A1000;box-shadow:0 0 0 1px rgba(251,191,36,.5),0 .5rem 2rem -.4rem rgba(245,158,11,.65),inset 0 1px 0 rgba(255,255,255,.45)}
+.btn-a:hover{transform:translateY(-.125rem);box-shadow:0 0 0 1px rgba(251,191,36,.8),0 .9rem 2.6rem -.3rem rgba(251,191,36,.8),inset 0 1px 0 rgba(255,255,255,.5)}
+.btn-g{border:1px solid var(--line2);color:var(--ink);background:rgba(248,250,252,.03)}
+.btn-g:hover{border-color:rgba(251,191,36,.55);background:rgba(251,191,36,.07)}
+.btn svg{transition:transform .25s}.btn:hover svg{transform:translateX(.2rem)}
+
+.nav{position:sticky;top:0;z-index:50;background:rgba(10,10,11,.78);backdrop-filter:blur(1rem) saturate(1.4);-webkit-backdrop-filter:blur(1rem) saturate(1.4);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:1rem;height:4.25rem}
+.logo{display:flex;align-items:center;gap:.6rem;font-weight:800;color:var(--ink);font-size:1.1rem;letter-spacing:-.01em}
+.logo-m{width:2.25rem;height:2.25rem;border-radius:50%;flex:none;background:linear-gradient(140deg,var(--glow),var(--amber-d));display:grid;place-items:center;box-shadow:0 0 1.2rem -.2rem rgba(245,158,11,.8)}
+.lx{width:100%;height:100%;fill:#1A1000;animation:spin 7s linear infinite}.lx .c{opacity:.5}
+.lx .tr{fill:none;stroke:#1A1000;stroke-width:3.200;stroke-dasharray:4.600 2.400}.lx .rm{fill:none;stroke:#1A1000;stroke-width:1.400;opacity:.5}
+.logo:hover .lx{animation-duration:1.2s}
+@keyframes spin{to{transform:rotate(360deg)}}
+.lgx{color:var(--glow);font-weight:800}
+.nav-l{display:none;gap:1.6rem;margin-left:1.5rem;font-size:.9rem;font-weight:500}
+.nav-l a{position:relative;padding-block:.4rem;transition:color .2s}
+.nav-l a::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--glow);transform:scaleX(0);transform-origin:left;transition:transform .3s}
+.nav-l a:hover,.nav-l a[aria-current]{color:var(--ink)}.nav-l a:hover::after,.nav-l a[aria-current]::after{transform:scaleX(1)}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:.75rem}
+.lang{display:flex;border:1px solid var(--line2);border-radius:62rem;padding:.2rem;background:rgba(20,20,23,.7)}
+.lang button{padding:.3rem .65rem;border-radius:62rem;font-size:.74rem;font-weight:700;letter-spacing:.06em;color:var(--mut);transition:.2s}
+.lang button[aria-pressed="true"]{background:var(--amber);color:#1A1000}
+.nav .btn{padding:.6rem 1.1rem;font-size:.85rem}
+@media(min-width:60rem){.nav-l{display:flex}}
+@media(max-width:30rem){.nav .wrap{gap:.5rem}.nav-r{gap:.4rem}.lang button{padding:.3rem .5rem}.nav .btn{padding:.55rem .8rem}}
+
+footer{border-top:1px solid var(--line);padding-block:2.5rem 2rem;font-size:.9rem;margin-top:4rem}
+.ft{display:flex;flex-wrap:wrap;gap:1.5rem 3rem;align-items:center;justify-content:space-between}
+.ft .tel{font-size:1.3rem;font-weight:800;color:var(--glow);font-variant-numeric:tabular-nums}
+.cp{margin-top:1.75rem;padding-top:1.1rem;border-top:1px solid var(--line);font-size:.78rem;color:var(--faint)}
+
+/* garage line-art (shared with the home page) */
+.garage{position:absolute;inset:0;pointer-events:none;-webkit-mask-image:linear-gradient(180deg,transparent,#000 14%,#000 78%,transparent);mask-image:linear-gradient(180deg,transparent,#000 14%,#000 78%,transparent)}
+.garage svg{width:100%;height:100%;display:block;fill:none;stroke:rgba(248,250,252,.2);stroke-width:1.500;stroke-linecap:round;stroke-linejoin:round}
+.garage .dr{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 2.4s cubic-bezier(.4,0,.2,1) forwards}
+.garage .thin{stroke:rgba(248,250,252,.1)}
+.garage .lamp{stroke:rgba(251,191,36,.55);animation:lamp 4s ease-in-out infinite}
+.garage .up,.garage .roll,.garage .door,.garage .wh{transform-box:fill-box;transform-origin:center}
+.garage .up{animation:lift 9s ease-in-out infinite alternate}
+.garage .roll{animation:roll 11s ease-in-out infinite alternate}
+.garage .roll .wh{animation:whl 11s ease-in-out infinite alternate}
+.garage .door{animation:door 12s ease-in-out infinite alternate}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes lamp{50%{opacity:.25}}
+@keyframes lift{from{transform:translateY(0)}to{transform:translateY(-80%)}}
+@keyframes roll{from{transform:translateX(26%)}to{transform:translateX(-11%)}}
+@keyframes whl{from{transform:rotate(0)}to{transform:rotate(-440deg)}}
+@keyframes door{0%,35%{transform:translateY(0)}100%{transform:translateY(-100%)}}
+
+.fade{animation:fade .6s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--d,0s)}
+@keyframes fade{from{opacity:0;transform:translateY(1.25rem)}}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}.garage .dr{stroke-dasharray:none;stroke-dashoffset:0}
+}
+
+/* DriveGo additions: what the design had inline (the pages' CSP allows no inline styles), and the "coming soon" tag */
+.sprite{position:absolute;width:0;height:0;overflow:hidden}
+span.coming.coming{display:inline-block;width:auto;margin:0 0 0 .35em;padding:0 .6em;border:1px solid rgba(251,191,36,.55);
+  border-radius:62rem;background:rgba(245,158,11,.1);color:var(--glow);font-size:.72rem;font-weight:600;line-height:1.7;
+  letter-spacing:0;text-transform:none;white-space:nowrap;vertical-align:.1em}
