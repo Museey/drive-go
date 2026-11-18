@@ -404,3 +404,38 @@ footer{border-top:1px solid var(--line);padding-block:3rem 2rem;font-size:.9rem}
 span.coming.coming{display:inline-block;width:auto;margin:0 0 0 .35em;padding:0 .6em;border:1px solid rgba(251,191,36,.55);
   border-radius:62rem;background:rgba(245,158,11,.1);color:var(--glow);font-size:.72rem;font-weight:600;line-height:1.7;
   letter-spacing:0;text-transform:none;white-space:nowrap;vertical-align:.1em}
+
+/* ---------- DriveGo's additions for phones and tablets (owner 2026-11-18) ---------- */
+/* The design shows the section links only from 68rem and hides the demo button below 34rem: one menu button holds
+   them (and sign-in) on narrower screens. */
+.menu-b{display:grid;place-items:center;width:2.5rem;height:2.5rem;border-radius:62rem;border:1px solid var(--line2);background:rgba(20,20,23,.7);color:var(--ink);font-size:1.1rem;flex:none}
+.menu-b .ic-x,.nav.open .menu-b .ic-m{display:none}.nav.open .menu-b .ic-x{display:block}
+.nav.open{background:rgba(10,10,11,.97);border-color:var(--line)}
+.menu-p{border-top:1px solid var(--line);background:rgba(10,10,11,.97);max-height:calc(100vh - 4.25rem);overflow-y:auto}
+.nav .menu-p .wrap{display:grid;height:auto;gap:0;align-items:stretch;padding-block:.5rem 1.25rem}
+.menu-p a:not(.btn){padding:.85rem .25rem;border-bottom:1px solid var(--line);color:var(--ink);font-weight:600}
+.menu-p .btn{margin-top:1rem}
+@media(min-width:68rem){.menu-b,.menu-p{display:none!important}}
+@media(max-width:24rem){.logo{font-size:1rem;gap:.45rem}.logo-m{width:2rem;height:2rem}.menu-b{width:2.25rem;height:2.25rem}}
+/* The smallest phones (up to 336px) have no room for the language switch in the top bar: it moves into the menu. */
+.menu-p .lang{display:none;justify-self:start;margin-top:1rem}
+@media(max-width:21rem){.nav-r>.lang{display:none}.menu-p .lang{display:flex}}
+/* The comparison table fits a phone: both packages without swiping. */
+@media(max-width:40rem){
+  .cmp table{min-width:0;font-size:.84rem}
+  .cmp th,.cmp td{padding:.7rem}
+  .cmp th:not(:first-child),.cmp td:not(:first-child){width:4.6rem;padding-inline:.3rem}
+}
+/* Phones: the hero's floating card stays clear of the sample-data note; the role screens drop their side menu, as the
+   hero's screen does, so their figures are not cut off. */
+@media(max-width:40rem){
+  .note{margin-top:6.5rem}
+  .show-s .ui-side{display:none}.show-s .ui-main{grid-template-columns:minmax(0,1fr)}
+}
+/* Small phones: the four figures of the mock dashboards two by two. */
+@media(max-width:25rem){#heroUI .kp,.show-s .kp{grid-template-columns:repeat(2,minmax(0,1fr))}#ecoM .two{grid-template-columns:minmax(0,1fr)}}
+/* Module 6's mock: the warranty tag and the rating wrap in a narrow panel instead of running past it. */
+#ecoM .pn>.tg{white-space:normal}#ecoM .two .row{flex-wrap:wrap;gap:.2em .8em}
+/* Parts that slide in from the right (.rv.r) stuck out 20px before they were shown, so phones and tablets laid the
+   page out wider than the screen. */
+main{overflow-x:clip}

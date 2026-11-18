@@ -53,6 +53,19 @@ test('S297 ระบบใหม่: หน้าแรกของเว็บ�
     expect(href).toMatch(/^(#[a-z]+|\/login|https:\/\/lin\.ee\/tV7nV8x|tel:\+66821087000|mailto:sales@drivegox\.com)$/);
     if (href.startsWith('#')) await expect(page.locator(href)).toHaveCount(1);
   }
+  // On a phone (owner 2026-11-18): the section links, sign-in and the demo button are behind the menu button, a link
+  // closes the menu; the comparison table shows both packages without swiping.
+  const desk = page.viewportSize()!;
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: 'เมนู', exact: true }).click();
+  const menu = page.getByRole('navigation', { name: 'Main' });
+  await expect(menu.getByRole('link')).toHaveText(['ระบบนิเวศ', 'แพ็กเกจ', 'หน้าจอจริง', 'ติดต่อ', 'เข้าระบบ', 'ทดลองใช้งานฟรี']);
+  await menu.getByRole('link', { name: 'แพ็กเกจ', exact: true }).click();
+  await expect(menu).toBeHidden();
+  const table = page.getByRole('table');
+  await expect(table.getByRole('columnheader')).toHaveText(['ความสามารถ', 'BaziX', 'ProX']);
+  expect(await page.locator('#cmp').evaluate(box => box.scrollWidth - box.clientWidth)).toBe(0);
+  await page.setViewportSize(desk);
   // A demo request: missing details are asked for; then a summary, and the button to send it is LINE Official.
   await page.getByRole('button', { name: 'ขอนัด Demo' }).click();
   await expect(page.locator('#fErr')).toHaveText('กรอกชื่อ ชื่ออู่ และเบอร์โทรให้ครบก่อนส่ง');

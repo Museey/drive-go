@@ -216,6 +216,7 @@ function renderDevices(){
 function renderStatic(){
   $$('[data-i18n]').forEach(e=>put(e,t(e.dataset.i18n)));
   $$('[data-i18n-html]').forEach(e=>e.innerHTML=t(e.dataset.i18nHtml));
+  $$('[data-i18n-aria]').forEach(e=>e.setAttribute('aria-label',t(e.dataset.i18nAria)));
   $('#pvr').innerHTML=t('priv.r').map(x=>`<span>${ic('check')}${x}</span>`).join('');
   const hp=t('hero.p'), KI=['fin','box','shield'];
   $('#lead').innerHTML=`<p class="l1"><b>DriveGo</b>${hp.l1}</p><p class="l2">${hp.l2}</p><div class="kw">${hp.k.map((k,i)=>`<span data-css="--k:${i*1.2}s">${ic(KI[i])}${k}</span>`).join('')}</div>`;
@@ -321,4 +322,18 @@ if('IntersectionObserver' in window){
 
 let saved=null;try{saved=localStorage.getItem('dg-lang')}catch(e){}
 setLang(I[saved]?saved:'th'); frame();
+
+/* ============ menu of phones and tablets (DriveGo's addition, owner 2026-11-18) ============ */
+/* The section links, sign-in and the demo button behind one button where the top bar has no room for them. */
+(function(){
+  const nav=$('#nav'),b=$('#menuB'),p=$('#menuP');
+  const open=o=>{p.hidden=!o;b.setAttribute('aria-expanded',String(o));nav.classList.toggle('open',o)};
+  b.addEventListener('click',()=>open(p.hidden));
+  p.addEventListener('click',e=>{if(e.target.closest('a'))open(false)});
+  document.addEventListener('click',e=>{if(!p.hidden&&!nav.contains(e.target))open(false)});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!p.hidden){open(false);b.focus()}});
+  matchMedia('(min-width:68rem)').addEventListener('change',e=>{if(e.matches)open(false)});
+  // The menu's own language switch (the smallest phones; the top bar's one is wired above).
+  $('#menuP .lang').addEventListener('click',e=>{const x=e.target.closest('button');if(x)setLang(x.dataset.lang)});
+})();
 })();

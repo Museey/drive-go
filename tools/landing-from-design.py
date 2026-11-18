@@ -114,6 +114,24 @@ code = rep(code, "/* form: composes a message the visitor can copy. Wire the sub
 code = rep(code, "$('#copyB').addEventListener('click',async e=>{const b=e.currentTarget;try{await navigator.clipboard.writeText($('#sum').textContent);b.textContent=t('form.copied')}catch(x){",
                  "$('#copyB').addEventListener('click',async e=>{const b=e.currentTarget;try{await navigator.clipboard.writeText($('#sum').textContent);put(b,t('form.copied'))}catch(x){")
 code = rep(code, "setTimeout(()=>b.textContent=t('form.copy'),1800)});", "setTimeout(()=>put(b,t('form.copy')),1800)});")
-code = code.rstrip() + "\n})();\n"
+# Labels read by screen readers (data-i18n-aria), and the menu of phones and tablets (index.html #menuB, #menuP).
+HTML_LINE = "  $$('[data-i18n-html]').forEach(e=>e.innerHTML=t(e.dataset.i18nHtml));\n"
+code = rep(code, HTML_LINE, HTML_LINE + "  $$('[data-i18n-aria]').forEach(e=>e.setAttribute('aria-label',t(e.dataset.i18nAria)));\n")
+MENU = """
+/* ============ menu of phones and tablets (DriveGo's addition, owner 2026-11-18) ============ */
+/* The section links, sign-in and the demo button behind one button where the top bar has no room for them. */
+(function(){
+  const nav=$('#nav'),b=$('#menuB'),p=$('#menuP');
+  const open=o=>{p.hidden=!o;b.setAttribute('aria-expanded',String(o));nav.classList.toggle('open',o)};
+  b.addEventListener('click',()=>open(p.hidden));
+  p.addEventListener('click',e=>{if(e.target.closest('a'))open(false)});
+  document.addEventListener('click',e=>{if(!p.hidden&&!nav.contains(e.target))open(false)});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!p.hidden){open(false);b.focus()}});
+  matchMedia('(min-width:68rem)').addEventListener('change',e=>{if(e.matches)open(false)});
+  // The menu's own language switch (the smallest phones; the top bar's one is wired above).
+  $('#menuP .lang').addEventListener('click',e=>{const x=e.target.closest('button');if(x)setLang(x.dataset.lang)});
+})();
+"""
+code = code.rstrip() + "\n" + MENU + "})();\n"
 open(out, 'w', encoding='utf-8').write(dict + code)
 print('ok', len(dict + code))
