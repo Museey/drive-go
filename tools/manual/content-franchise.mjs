@@ -1,7 +1,9 @@
 // The user manual of DriveGo-Franchise (tools/manual/build.mjs --package franchise; the owner's request of 2026-11-19):
-// head office (HQ) and its branches. A branch works with the screens of DriveGo ProX (the ProX manual) plus its
-// requisitions from head office. Pictures 31-*: tools/manual/31-franchise.spec.ts (the franchise-trial network).
+// head office (HQ) and its branches, in one book (the owner's choice of 2026-11-19). A branch works with the screens of
+// DriveGo ProX, so chapters 2–12 are the ProX manual's, with the same numbers (their text points at each other by
+// number); head office's chapters follow (13–16). Pictures 31-*: tools/manual/31-franchise.spec.ts.
 import { chapters as biz } from './content.mjs';
+import { chapters as prox } from './content-prox.mjs';
 
 export const title = 'คู่มือการใช้งาน DriveGo-Franchise';
 export const subtitle = 'ระบบบริหารเครืออู่หลายสาขา · สำหรับสำนักงานใหญ่และสาขา';
@@ -9,13 +11,13 @@ export const edition = 'ฉบับอู่นำร่อง · พฤศจ�
 export const footer = 'DriveGo-Franchise';
 
 // "เมื่อมีปัญหา" of BaziX, with who sets a password and rights in a network.
-const fix = t => t.replace('ให้เจ้าของร้านเพิ่มสิทธิ์ (บท 2)', 'ให้ผู้จัดการสาขาเพิ่มสิทธิ์ที่เมนู `10 ตั้งค่าองค์กร` หรือสำนักงานใหญ่เปิดเมนูให้สาขา (บทที่ 3)')
+const fix = t => t.replace('ให้เจ้าของร้านเพิ่มสิทธิ์ (บท 2)', 'ให้ผู้จัดการสาขาเพิ่มสิทธิ์ที่เมนู `10 ตั้งค่าองค์กร` หรือสำนักงานใหญ่เปิดเมนูให้สาขา (บทที่ 14)')
   .replace('พนักงานลืมรหัส: เจ้าของร้านกด', 'พนักงานของสาขาลืมรหัส: ผู้จัดการสาขากด')
-  .replace('เจ้าของร้านลืมรหัส: ติดต่อทีมงาน DriveGo', 'รหัสของสาขาลืม: สำนักงานใหญ่กด `รีเซ็ตรหัสผ่าน` (บทที่ 3) · สำนักงานใหญ่ลืมรหัส: ติดต่อทีมงาน DriveGo');
+  .replace('เจ้าของร้านลืมรหัส: ติดต่อทีมงาน DriveGo', 'รหัสของสาขาลืม: สำนักงานใหญ่กด `รีเซ็ตรหัสผ่าน` (บทที่ 14) · สำนักงานใหญ่ลืมรหัส: ติดต่อทีมงาน DriveGo');
 const last = biz[biz.length - 1];
 const trouble = { ...last, blocks: last.blocks.map(b => b.list ? { ...b, list: b.list.map(fix) } : b) };
 
-export const chapters = [
+const own = [
   {
     title: 'เริ่มต้นใช้งาน',
     blocks: [
@@ -25,10 +27,11 @@ export const chapters = [
       { steps: [
         'เปิดเว็บ **https://app.drivegox.com** แล้วกด `เข้าระบบ` ที่มุมขวาบน',
         'กด `เข้าสู่ระบบ Franchise` ที่การ์ด DriveGo-Franchise แล้วใส่ `รหัสร้าน` ของเครือที่ได้จากทีมงาน DriveGo (สำนักงานใหญ่และทุกสาขาใช้รหัสเดียวกัน)',
-        '`ชื่อผู้ใช้` สำนักงานใหญ่ใช้ชื่อผู้ใช้ของสำนักงานใหญ่ที่ได้จากทีมงาน สาขาใช้รหัสผู้ใช้ของสาขาที่สำนักงานใหญ่ออกให้ (บทที่ 3) ใส่ `รหัสผ่าน` แล้วกด `เข้าสู่ระบบ`',
+        '`ชื่อผู้ใช้` สำนักงานใหญ่ใช้ชื่อผู้ใช้ของสำนักงานใหญ่ที่ได้จากทีมงาน สาขาใช้รหัสผู้ใช้ของสาขาที่สำนักงานใหญ่ออกให้ (บทที่ 14) ใส่ `รหัสผ่าน` แล้วกด `เข้าสู่ระบบ`',
       ] },
       { img: '31-signin', cap: 'การ์ด DriveGo-Franchise: กรอกรหัสร้าน ชื่อผู้ใช้ และรหัสผ่าน', small: true },
-      { p: 'สำนักงานใหญ่เห็นเมนู `HQ ศูนย์กลางแฟรนไชส์` (บทที่ 2–5) สาขาเห็นเมนูเหมือน DriveGo ProX ทุกอย่าง (บทที่ 6)' },
+      { p: 'สำนักงานใหญ่เห็นเมนู `HQ ศูนย์กลางแฟรนไชส์` (บทที่ 13–16) สาขาเห็นเมนูเหมือน DriveGo ProX ทุกอย่าง (บทที่ 2–12) และขอเบิกสินค้าจากสำนักงานใหญ่ได้ (บทที่ 16)' },
+      { note: 'บทที่ 2–12 เป็นงานประจำวันของสาขา ภาพหน้าจอส่วนใหญ่ถ่ายจากร้าน BaziX ซึ่งหน้าจอและเมนูเหมือนกัน เมนูที่สาขาเห็นขึ้นกับสิทธิ์ที่สำนักงานใหญ่เปิดให้ (บทที่ 14) ผู้จัดการสาขาตั้งรหัสและสิทธิ์ของพนักงานในสาขาเองที่เมนู `10 ตั้งค่าองค์กร` และโอนสินค้าระหว่างสาขาได้ที่เมนู `07 สต๊อกอะไหล่` → `โอนสินค้าระหว่างสาขา`' },
     ],
   },
   {
@@ -69,7 +72,7 @@ export const chapters = [
         'แก้ยอดคงคลัง Min Max และทุนต่อหน่วยในตารางได้เลย ทุนต่อหน่วยคือราคาที่ส่งไปกับของให้สาขา',
       ] },
       { img: '31-central', cap: 'คลังกลางสำนักงานใหญ่' },
-      { note: 'เมื่ออนุมัติใบขอเบิก (บทที่ 5) ระบบตัดยอดจากคลังกลางนี้เอง' },
+      { note: 'เมื่ออนุมัติใบขอเบิก (บทที่ 16) ระบบตัดยอดจากคลังกลางนี้เอง' },
     ],
   },
   {
@@ -100,16 +103,12 @@ export const chapters = [
       { img: '31-receive', cap: 'สาขายืนยันรับของเข้าสต๊อก' },
     ],
   },
-  {
-    title: 'งานประจำวันของสาขา',
-    blocks: [
-      { p: 'สาขาใช้เมนูเหมือน DriveGo ProX ทุกอย่าง: ลูกค้าและรถ งานซ่อมและการขาย ลูกหนี้ รายจ่าย สต๊อก เงินเดือน บัญชี และภาษี ดูขั้นตอนได้ใน**คู่มือการใช้งาน DriveGo ProX** (ดาวน์โหลดได้ที่หน้าเข้าสู่ระบบ https://app.drivegox.com/login)' },
-      { list: [
-        'เมนูที่สาขาเห็นขึ้นกับสิทธิ์ที่สำนักงานใหญ่เปิดให้ (บทที่ 3)',
-        'ผู้จัดการสาขาตั้งรหัสและสิทธิ์ของพนักงานในสาขาเองที่เมนู `10 ตั้งค่าองค์กร`',
-        'โอนสินค้าระหว่างสาขาได้ที่เมนู `07 สต๊อกอะไหล่` → `โอนสินค้าระหว่างสาขา`',
-      ] },
-    ],
-  },
-  trouble,
 ];
+
+
+// The start of the ProX manual's chapter 1 from its home page on (the home page, the parts of the screen).
+const home = prox[0].blocks.slice(prox[0].blocks.findIndex(b => b.h === 'หน้าแรก (00 Mr.DriveGo)'));
+if (!home.length) throw new Error('content-franchise: the ProX manual has no home-page section');
+
+// 1 getting started, 2–12 the ProX chapters (same numbers), 13–16 head office and requisitions, 17 when there is a problem.
+export const chapters = [{ ...own[0], blocks: [...own[0].blocks, ...home] }, ...prox.slice(1, -1), ...own.slice(1), trouble];
