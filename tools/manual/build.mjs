@@ -1,5 +1,7 @@
-// The user manual of DriveGoBiz as a PDF, with pictures of the real screens (the owner's request of 2026-11-17).
-//   node tools/manual/build.mjs [--out user-manual] [--skip-run]
+// The user manual as a PDF, with pictures of the real screens (the owner's request of 2026-11-17): DriveGoBiz (BaziX),
+// and since 2026-11-19 DriveGo ProX and DriveGo-Franchise too (the three manuals of the sign-in page).
+//   node tools/manual/build.mjs [--package biz|prox|franchise] [--out user-manual] [--skip-run]
+// --package: which manual (content.mjs, content-prox.mjs, content-franchise.mjs); the pictures of all are taken.
 // 1. takes the pictures: tools/manual/NN-*.spec.ts on the new system (TARGET=new, the fixture biz-trial, the clock of the
 //    scenarios; builds server/ first unless NO_BUILD=1), into <out>/img;
 // 2. writes <out>/manual.html from tools/manual/content.mjs and prints it to <out>/คู่มือการใช้งาน DriveGoBiz.pdf
@@ -11,10 +13,12 @@ import { join, resolve } from 'node:path';
 import { chromium } from '@playwright/test';
 import sharp from 'sharp';
 import { LAUNCH_OPTIONS } from '../../tests/support/config.mjs';
-import { chapters, title, subtitle, edition } from './content.mjs';
 
 const arg = (name, dflt) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : dflt; };
 const out = resolve(arg('--out', 'user-manual'));
+const pkg = arg('--package', 'biz');
+if (!['biz', 'prox', 'franchise'].includes(pkg)) { console.error(`[manual] unknown package: ${pkg}`); process.exit(1); }
+const { chapters, title, subtitle, edition, footer = 'DriveGoBiz' } = await import(`./content${pkg === 'biz' ? '' : '-' + pkg}.mjs`);
 mkdirSync(join(out, 'img'), { recursive: true });
 
 if (!process.argv.includes('--skip-run')) {
@@ -143,7 +147,7 @@ try {
     await p.evaluate(() => document.fonts.ready);
     await p.waitForFunction(() => [...document.images].every(i => i.complete));
     await p.pdf({ path: pdf, format: 'A4', printBackground: true, outline: true, displayHeaderFooter: true, headerTemplate: '<div></div>',
-      footerTemplate: '<div style="width:100%;font-size:8px;color:#888;text-align:center;font-family:sans-serif">DriveGoBiz · <span class="pageNumber"></span> / <span class="totalPages"></span></div>',
+      footerTemplate: `<div style="width:100%;font-size:8px;color:#888;text-align:center;font-family:sans-serif">${esc(footer)} · <span class="pageNumber"></span> / <span class="totalPages"></span></div>`,
       margin: { top: '16mm', bottom: '18mm', left: '15mm', right: '15mm' } });
   };
   // Twice: the table of contents gets each chapter's page from the first print (pdftotext, poppler-utils; without it the
