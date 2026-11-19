@@ -45,7 +45,7 @@ test.describe('Franchise', () => {
     const at = new URL(page.url()), code = at.pathname.split('/')[1];
     await page.goto(`${at.origin}/login`);
     await signIn(page, 'ProX', code, 'hq', '1234');
-    await expect(page.getByRole('alert')).toHaveText('ร้านนี้ใช้แพ็กเกจ DriveGo Franchise — กรุณาเข้าสู่ระบบที่การ์ด DriveGo Franchise');
+    await expect(page.getByRole('alert')).toHaveText('ร้านนี้ใช้แพ็กเกจ DriveGo-Franchise — กรุณาเข้าสู่ระบบที่การ์ด DriveGo-Franchise');
     await signIn(page, 'Franchise', code, 'hq', '1234');
     await opened(page, code);
     await app.settle();

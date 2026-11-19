@@ -34,8 +34,8 @@
       offline: 'Cannot reach the server. Check the internet connection and try again.',
       card: n => `This shop uses ${n} — please log in on the ${n} card` },
   };
-  // The package names in the wrong-card message (approved 2026-11-17).
-  const NAME = { biz: 'DriveGo BaziX', prox: 'DriveGo ProX', franchise: 'DriveGo Franchise' };
+  // The package names in the wrong-card message: the cards' own titles (owner 2026-11-19).
+  const NAME = { biz: 'DriveGo BaziX', prox: 'DriveGo ProX', franchise: 'DriveGo-Franchise' };
   const IC = { biz: 'box', prox: 'cloud' };
   // The design's animated branch network for Franchise: head office in the middle, three branches, data flowing.
   const hs = (x, y, r) => `M${x - r} ${y}l${r}-${(r * .9).toFixed(2)} ${r} ${(r * .9).toFixed(2)}v${r}h-${2 * r}z`;
