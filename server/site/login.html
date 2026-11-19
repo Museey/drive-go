@@ -3,52 +3,56 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>เข้าสู่ระบบ · DriveGo</title>
+<title>DriveGo X Login</title>
+<meta name="description" content="เข้าสู่ระบบ DriveGo BaziX, DriveGo ProX และ DriveGo-Franchise">
+<meta name="theme-color" content="#0A0A0B">
 <link rel="icon" href="/site/logo.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="/site/site.css">
+<link rel="stylesheet" href="/site/sub.css">
+<link rel="stylesheet" href="/site/login.css">
+<script src="/site/sub.js" defer></script>
 <script src="/site/login.js" defer></script>
 </head>
-<body class="signin">
-<header class="top">
-  <a class="logo" href="/" aria-label="DriveGo หน้าแรก"><span class="logo-m"><svg class="lx" viewBox="0 0 48 48" aria-hidden="true"><circle class="tr" cx="24" cy="24" r="20.5"/><circle class="rm" cx="24" cy="24" r="15"/><g transform="translate(24 24) scale(1.15) translate(-12 -12)"><path d="M4 20h5L20 4h-5z"/><path class="c" d="M4 4h5l2.45 3.56-2.5 3.64zM20 20h-5l-2.45-3.56 2.5-3.64z"/></g></svg></span><span>DriveGo <span class="lgx">X</span></span></a>
-</header>
-<main class="signin-wrap">
-  <h1>เข้าสู่ระบบ</h1>
-  <p class="sub">เลือกแพ็กเกจที่ร้านของคุณใช้</p>
-  <div class="plans">
-    <section class="plan" data-package="biz" data-name="DriveGo BaziX" aria-labelledby="plan-biz">
-      <h2 id="plan-biz">DriveGo <b>BaziX</b></h2>
-      <p>สำหรับอู่ซ่อมรถทั่วไป งานซ่อม การขาย สต๊อก พนักงาน และบัญชีครบในร้านเดียว</p>
-      <button class="btn btn-ghost btn-block pick" type="button">เข้าสู่ระบบ DriveGo BaziX</button>
-    </section>
-    <section class="plan" data-package="prox" data-name="DriveGo ProX" aria-labelledby="plan-prox">
-      <h2 id="plan-prox">DriveGo <b>ProX</b></h2>
-      <p>ทุกอย่างของ BaziX พร้อมเครื่องมือดูแลลูกค้า เช่น รับคิวจอง และเปิดใบเสนอราคาจากอาการเสียที่ลูกค้าแจ้ง</p>
-      <button class="btn btn-ghost btn-block pick" type="button">เข้าสู่ระบบ DriveGo ProX</button>
-    </section>
-    <section class="plan" data-package="franchise" data-name="DriveGo Franchise" aria-labelledby="plan-franchise">
-      <h2 id="plan-franchise">DriveGo <b>Franchise</b></h2>
-      <p>สำหรับเครือหลายสาขา สำนักงานใหญ่ดูยอดรวมทุกสาขา ดูแลคลังกลาง และอนุมัติใบขอเบิกของสาขา</p>
-      <button class="btn btn-ghost btn-block pick" type="button">เข้าสู่ระบบ DriveGo Franchise</button>
-    </section>
-  </div>
-  <form id="signin" novalidate hidden>
-    <label for="code">รหัสร้าน</label>
-    <input id="code" name="code" autocomplete="organization" autocapitalize="none" spellcheck="false" placeholder="เช่น somchai-auto" required>
-    <label for="user">ชื่อผู้ใช้ / อีเมล / เบอร์โทร</label>
-    <input id="user" name="user" autocomplete="username" autocapitalize="none" spellcheck="false" required>
-    <label for="pass">รหัสผ่าน</label>
-    <input id="pass" name="pass" type="password" autocomplete="current-password" required>
-    <p class="error" id="error" role="alert" hidden></p>
-    <button class="btn btn-gold btn-block" type="submit">เข้าสู่ระบบ</button>
-  </form>
-  <div class="help">
-    <p><b>ไม่ทราบรหัสร้าน</b> ดูจากข้อความที่ทีมงานส่งตอนเปิดร้าน หรือถามเจ้าของร้าน</p>
-    <p><b>ลืมรหัสผ่าน</b> พนักงานให้เจ้าของร้านตั้งรหัสใหม่ให้ เจ้าของร้านติดต่อทีมงานทาง <a href="https://lin.ee/tV7nV8x" target="_blank" rel="noopener">LINE</a></p>
-  </div>
+<!-- The central sign-in page: the team's design (docs/design/drivegox-website-2026-11-19/login.html) with DriveGo's
+     sign-in form in the card picked (login.js; docs/NOTES.md "หน้าแรกและหน้าเข้าระบบกลาง"). -->
+<body data-page="login">
+<svg class="sprite" width="0" height="0" aria-hidden="true"><defs>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.500l4.500 4.500L19 7"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5v8l9 5 9-5zM3 8l9 5 9-5M12 13v8"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18a4.500 4.500 0 0 1-.6-9A6 6 0 0 1 18 8.500a4.500 4.500 0 0 1-.5 9.500z"/></symbol>
+  <symbol id="i-wheel" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22"/><circle cx="24" cy="24" r="15"/><circle cx="24" cy="24" r="4"/><path d="M24 9v11M24 28v11M9 24h11M28 24h11M13.400 13.400l7.800 7.800M26.800 26.800l7.800 7.800M34.600 13.400l-7.800 7.800M21.200 26.800l-7.800 7.800"/></symbol>
+</defs></svg>
+
+<header class="nav" id="hdr"></header>
+<main>
+  <section class="stage">
+    <div class="garage"><svg id="garage" viewBox="0 0 1440 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div>
+    <div class="aura"></div>
+    <div class="wrap">
+      <div class="head fade">
+        <span class="eyebrow" id="eb"></span>
+        <h1 id="h1"></h1>
+        <p id="sub"></p>
+      </div>
+      <div class="cards" id="cards"></div>
+      <form id="signin" novalidate hidden>
+        <label for="code" id="lCode"></label>
+        <input id="code" name="code" autocomplete="organization" autocapitalize="none" spellcheck="false" required>
+        <label for="user" id="lUser"></label>
+        <input id="user" name="user" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+        <label for="pass" id="lPass"></label>
+        <input id="pass" name="pass" type="password" autocomplete="current-password" required>
+        <p class="error" id="error" role="alert" hidden></p>
+        <button class="btn btn-a" type="submit" id="go"></button>
+        <div class="hint" id="hint"></div>
+      </form>
+      <p class="help" id="help"></p>
+    </div>
+  </section>
 </main>
+<footer id="ftr"></footer>
 </body>
 </html>

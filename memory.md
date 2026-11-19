@@ -72,6 +72,11 @@
 
 ## สิ่งที่รอเจ้าของโปรเจกต์
 
+- **หน้าเข้าระบบตามแบบของทีม (2026-11-19, session หน้าเว็บ)**: /login ใช้หน้าของแบบแล้ว (login.html login.js + login.css จาก
+  tools/subpages-from-design.py + login-form.css), หน้าแรก/หน้าย่อยเทียบแล้วตรงแบบ · รอเจ้าของ: ส่วนคู่มือ PDF (มีแค่ BaziX),
+  ข้อความอังกฤษของฟอร์มเข้าระบบ, ปิด Email Obfuscation ของ Cloudflare · S297 ตรวจว่าไม่มีอะไรถูก CSP บล็อก (ไม่นับ style ของตัวทดสอบเอง)
+  · TARGET=new ล้มด้วย SecurityFatalError ของ Next.js ให้รันซ้ำ (เจ้าของยังไม่อัปเกรด)
+
 - **หน้าแรก + /login (2026-11-17)**: server/site (index.html login.html login.js site.css logo.jpg), app/route.ts app/login app/site/[file],
   login API `check: true`, frontend 78-central-login.js (sessionStorage dg_signin), S297 · ข้อความอนุมัติแล้ว 2026-11-17 · คู่มือ PDF สร้างใหม่แล้ว
   (บท 1 มีภาพ 01-landing 01-signin แล้ว) · Next.js อัปเกรด 16.4.6: เจ้าของบอก "ไว้ค่อยอัปเกรด" (GHSA-mfr8-8qww-v76h ไม่กระทบ ไม่มี 'use cache')

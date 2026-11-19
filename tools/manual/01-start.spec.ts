@@ -15,8 +15,9 @@ test('01 เริ่มต้นใช้งาน', async ({ app, page }) => {
   await page.goto(`${at.origin}/login`);
   await page.evaluate(() => document.fonts.ready);
   // One card per package: the reader picks their shop's (S297, S459).
-  const heading = page.getByRole('heading', { name: 'เข้าสู่ระบบ', exact: true }), plans = page.locator('.plans');
-  const pick = page.getByRole('button', { name: 'เข้าสู่ระบบ DriveGo BaziX' });
+  const heading = page.getByRole('heading', { level: 1 }), plans = page.locator('#cards');
+  await page.waitForTimeout(1500);   // the page's own entrance animation
+  const pick = page.getByRole('button', { name: 'เข้าสู่ระบบ BaziX', exact: true });
   await shot(page, '01-plans', { scroll: false, mark: [[pick, '2']], area: [heading, plans], pad: 24 });
   await pick.click();
   // Example values in the picture: the shop code as the sample shop shows it in menu 10 (DG-1688), and a password of a

@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 // The files of DriveGo's own pages (server/site): these and nothing else.
 const FILES: Record<string, string> = {
-  'site.css': 'text/css; charset=utf-8',
+  'login.css': 'text/css; charset=utf-8',
   'login.js': 'text/javascript; charset=utf-8',
   'landing.css': 'text/css; charset=utf-8',
   'landing.js': 'text/javascript; charset=utf-8',

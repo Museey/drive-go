@@ -122,6 +122,15 @@ def articles(c):
     c = rep(c, "</span></a>`).join('');\n}\nfunction read(a){", "</span></a>`).join('');\n  DG.css($('#grid'));\n}\nfunction read(a){")
     return c
 
+# The sign-in page (/login): only the design's styles are taken as they are (login.css). Its markup and script are
+# DriveGo's own (server/site/login.html, login.js), merged by hand from the design's login.html like the landing page:
+# the design's cards open the shop's sign-in form in the card picked (owner 2026-11-17), which the design does not have.
+s = read('login.html')
+styles = re.findall(r'<style>(.*?)</style>', s, re.S)
+assert len(styles) == 1
+write('login.css', "/* The sign-in page (/login): the team's design, built by tools/subpages-from-design.py, then DriveGo's sign-in form */\n"
+      + styles[0].strip() + '\n' + open(os.path.join(out, 'login-form.css'), encoding='utf-8').read())
+
 page('testdrive', testdrive)
 page('privacy', privacy)
 page('articles', articles)
