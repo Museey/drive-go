@@ -15,6 +15,7 @@
       sys: [{ k: 'biz', n: 'BaziX', full: 'DriveGo', tier: 'Professional System', d: 'ระบบบริหารอู่สำหรับคุมทั้งอู่ ตั้งแต่เอกสาร สต๊อก จนถึงต้นทุนงาน', l: ['ใบสั่งซ่อม ใบเสนอราคา และใบเสร็จ', 'คลังอะไหล่และตัดสต๊อกอัตโนมัติ', 'ต้นทุนและกำไรรายบิล'] },
         { k: 'prox', n: 'ProX', full: 'DriveGo', tier: 'Top Performance System', d: 'ระบบครบวงจรพร้อม Ecosystem เชื่อมลูกค้า ซัพพลายเออร์ และแอปผู้ใช้รถ', l: ['ทุกความสามารถของ BaziX', 'แดชบอร์ดวิเคราะห์เชิงลึก', 'คิวจองและประวัติรถจาก DriveGo BOOK'] },
         { k: 'franchise', n: 'Franchise', full: 'DriveGo-', tier: 'หลายสาขาและแฟรนไชส์', d: 'ศูนย์กลางควบคุมทุกสาขา มาตรฐานเอกสารและขั้นตอนเดียวกันทั้งเครือ', l: ['เห็นตัวเลขทั้งเครือจากหน้าจอเดียว', 'เปรียบเทียบผลงานระหว่างสาขา', 'โอนย้ายอะไหล่ระหว่างสาขา'] }],
+      mh: 'คู่มือการใช้งานระบบ', mp: 'ดาวน์โหลดคู่มือของระบบที่คุณใช้ เพื่ออ่านขั้นตอนการทำงานทีละหน้าจอ ตั้งแต่เปิดงานจนถึงปิดบิล', ml: 'คู่มือ', pdf: 'PDF',
       td: 'เปิด Test Drive คู่มือภาพออนไลน์ทุกหน้าจอ', help: 'เข้าสู่ระบบไม่ได้หรือยังไม่ได้เป็นสมาชิก โทร',
       code: 'รหัสร้าน', codeEg: 'เช่น somchai-auto', user: 'ชื่อผู้ใช้ / อีเมล / เบอร์โทร', pass: 'รหัสผ่าน', submit: 'เข้าสู่ระบบ',
       hint: ['<b>ไม่ทราบรหัสร้าน</b> ดูจากข้อความที่ทีมงานส่งตอนเปิดร้าน หรือถามเจ้าของร้าน',
@@ -26,6 +27,7 @@
       sys: [{ k: 'biz', n: 'BaziX', full: 'DriveGo', tier: 'Professional System', d: 'Garage management that keeps the whole shop under control, from documents and stock to job cost.', l: ['Job orders, quotations and receipts', 'Parts warehouse with automatic stock deduction', 'Cost and profit per bill'] },
         { k: 'prox', n: 'ProX', full: 'DriveGo', tier: 'Top Performance System', d: 'The complete system with the Ecosystem that links customers, suppliers and the driver app.', l: ['Everything in BaziX', 'In-depth analytics dashboard', 'Bookings and car history from DriveGo BOOK'] },
         { k: 'franchise', n: 'Franchise', full: 'DriveGo-', tier: 'Multi-branch and franchise', d: 'A control centre for every branch, with one document and process standard across the group.', l: ['Group figures on a single screen', 'Compare performance across branches', 'Transfer parts between branches'] }],
+      mh: 'User manuals', mp: 'Download the manual for the system you use and follow the workflow screen by screen, from opening a job to closing the bill.', ml: 'Manual', pdf: 'PDF',
       td: 'Open Test Drive, the online picture guide to every screen', help: 'Cannot log in, or not a member yet? Call',
       code: 'Shop code', codeEg: 'e.g. somchai-auto', user: 'User name / e-mail / phone', pass: 'Password', submit: 'Log in',
       hint: ['<b>Don’t know your shop code?</b> It is in the message the team sent when your shop was opened, or ask the shop owner.',
@@ -37,6 +39,8 @@
   // The package names in the wrong-card message: the cards' own titles (owner 2026-11-19).
   const NAME = { biz: 'DriveGo BaziX', prox: 'DriveGo ProX', franchise: 'DriveGo-Franchise' };
   const IC = { biz: 'box', prox: 'cloud' };
+  // The user manuals (server/site/manual, tools/manual/build.mjs; the owner's decision of 2026-11-19).
+  const MANUAL = { biz: 'bazix', prox: 'prox', franchise: 'franchise' };
   // The design's animated branch network for Franchise: head office in the middle, three branches, data flowing.
   const hs = (x, y, r) => `M${x - r} ${y}l${r}-${(r * .9).toFixed(2)} ${r} ${(r * .9).toFixed(2)}v${r}h-${2 * r}z`;
   const NET = `<svg class="net-ic" viewBox="0 0 48 48" aria-hidden="true"><path class="ln" d="M24 17V11"/><path class="ln" d="M18.500 28L10.500 35"/><path class="ln" d="M29.500 28L37.500 35"/><circle class="rg" cx="24" cy="24" r="9"/><path class="nd n0" d="${hs(24, 22.5, 6)}"/><path class="nd n1" d="${hs(24, 6.5, 3.6)}"/><path class="nd n2" d="${hs(7.5, 38, 3.6)}"/><path class="nd n3" d="${hs(40.500, 38, 3.6)}"/></svg>`;
@@ -69,6 +73,9 @@
       <ul>${s.l.map(l => `<li>${ic('check')}<span>${l}</span></li>`).join('')}</ul>
       <button class="btn btn-a pick" type="button">${x.go} ${s.n} ${ic('arrow')}</button></section>`).join('');
     [...cards.children].forEach((c, i) => c.style.setProperty('--d', `${.1 + i * .1}s`));
+    $('#man').style.setProperty('--d', '.4s');
+    $('#man').innerHTML = `<div class="tx"><span class="mi">${ic('book')}</span><div><h2>${x.mh}</h2><p>${x.mp}</p></div></div>
+      <div class="dls">${x.sys.map(s => `<a class="dl" href="/site/manual/drivego-${MANUAL[s.k]}-manual.pdf" download>${ic('down')}<span>${x.ml} ${s.full}${s.full.endsWith('-') ? '' : ' '}${s.n}</span><small>${x.pdf}</small></a>`).join('')}</div>`;
     $('#lCode').textContent = x.code; code.placeholder = x.codeEg; $('#lUser').textContent = x.user; $('#lPass').textContent = x.pass;
     button.textContent = x.submit;
     $('#hint').innerHTML = x.hint.map(h => `<p>${h}</p>`).join('');

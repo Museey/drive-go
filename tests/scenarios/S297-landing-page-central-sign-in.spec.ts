@@ -112,7 +112,14 @@ test('S297 ระบบใหม่: หน้าแรกของเว็บ�
   expect(csp).toEqual([]);
   await expect(page.locator('#help').getByRole('link', { name: 'เปิด Test Drive คู่มือภาพออนไลน์ทุกหน้าจอ' })).toHaveAttribute('href', '/testdrive');
   for (const href of await page.locator('body a[href]').evaluateAll(as => as.map(a => a.getAttribute('href') ?? '')))
-    expect(href).toMatch(/^(\/|\/#[a-z]+|\/(login|testdrive|articles|privacy)|https:\/\/lin\.ee\/tV7nV8x|tel:\+66821087000|mailto:sales@drivegox\.com)$/);
+    expect(href).toMatch(/^(\/|\/#[a-z]+|\/(login|testdrive|articles|privacy)|https:\/\/lin\.ee\/tV7nV8x|tel:\+66821087000|mailto:sales@drivegox\.com|\/site\/manual\/drivego-(bazix|prox|franchise)-manual\.pdf)$/);
+  // The user manuals of the three packages (owner 2026-11-19): each link downloads its PDF.
+  const manuals = page.locator('#man').getByRole('link');
+  await expect(manuals).toHaveText(['คู่มือ DriveGo BaziXPDF', 'คู่มือ DriveGo ProXPDF', 'คู่มือ DriveGo-FranchisePDF']);
+  for (const href of await manuals.evaluateAll(as => as.map(a => a.getAttribute('href') ?? ''))) {
+    const r = await page.request.get(origin + href);
+    expect([r.status(), r.headers()['content-type'], (await r.body()).subarray(0, 5).toString()]).toEqual([200, 'application/pdf', '%PDF-']);
+  }
   // No form until a card is picked; picked, it opens in that card.
   await expect(page.getByLabel('รหัสร้าน')).toBeHidden();
   await page.getByRole('button', { name: 'เข้าสู่ระบบ BaziX', exact: true }).click();

@@ -74,9 +74,8 @@
 
 - **หน้าเข้าระบบตามแบบของทีม (2026-11-19, session หน้าเว็บ)**: /login ใช้หน้าของแบบแล้ว (login.html login.js + login.css จาก
   tools/subpages-from-design.py + login-form.css), หน้าแรก/หน้าย่อยเทียบแล้วตรงแบบ · เจ้าของตอบ: EN อนุมัติ, ปิด Cloudflare
-  Email Obfuscation เอง, **คู่มือ ProX + Franchise ทำแล้ว** (Franchise รวมเล่มเดียวตามเจ้าของเลือก: บท 2–12 ของ ProX เลขเดิม, 13–16 HQ) (tools/manual content-prox/franchise, 21/31 spec, build.mjs --package) PDF ส่งให้เจ้าของตรวจ
-  2026-11-19 **รออนุมัติ** แล้วจึงใส่ส่วนคู่มือในหน้าเข้าระบบ: PDF ไป server/site/manual/drivego-{bazix,prox,franchise}-manual.pdf,
-  route app/site/manual/[file] + โค้ดส่วน .man ใน login.html/js (ร่างอยู่ใน scratchpad ของ session นี้ ทำใหม่ได้จากแบบ: mh mp ml pdf) · S297 ตรวจว่าไม่มีอะไรถูก CSP บล็อก (ไม่นับ style ของตัวทดสอบเอง)
+  Email Obfuscation เอง, **คู่มือ 3 เล่มอนุมัติและขึ้นหน้าเข้าระบบแล้ว 2026-11-19** (server/site/manual/*.pdf, app/site/manual/[file], S297) ·
+  ต่อไป: หลัง deploy เทียบเว็บจริงกับแบบอีกรอบ แล้วรายงานเจ้าของว่าตรงไหนต่างและเพราะอะไร (เจ้าของขอ)
   · TARGET=new ล้มด้วย SecurityFatalError ของ Next.js ให้รันซ้ำ (เจ้าของยังไม่อัปเกรด)
 
 - **หน้าแรก + /login (2026-11-17)**: server/site (index.html login.html login.js site.css logo.jpg), app/route.ts app/login app/site/[file],
