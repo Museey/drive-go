@@ -149,6 +149,10 @@ describe('ใบลดหนี้ (งาน 3.3)', () => {
     assert.equal(await check('owner', save(['DB.creditNotes', 'cn1', voided])), null);
     await put('DB.taxPeriods', '', { '2026-10': { closed: true, hist: [] } });
     assert.equal(await check('owner', save(['DB.creditNotes', 'cn1', voided])), 'DB.creditNotes|cn1: tax period closed');
+    // Removed, as a restore of an older backup point does since 2026-11-19 (03.js dbReplace): refused in a closed month.
+    assert.equal(await check('owner', save(['DB.creditNotes', 'cn1', undefined])), 'DB.creditNotes|cn1: tax period closed');
+    await put('DB.taxPeriods', '', { '2026-10': { closed: false, hist: [] } });
+    assert.equal(await check('owner', save(['DB.creditNotes', 'cn1', undefined])), null);
   });
 });
 

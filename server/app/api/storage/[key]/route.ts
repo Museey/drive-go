@@ -22,6 +22,7 @@ import { MAX_SAVE_BYTES, inlineFile, readBody } from '@/lib/files';
 import { licenceOf, pinData, refuseExpiredKey, refuseExpiredSave } from '@/lib/licence';
 import { liveCursor } from '@/lib/live';
 import { heavy } from '@/lib/heavy';
+import { keepBeforeWhole, refuseMassRemoval } from '@/lib/whole-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -105,7 +106,14 @@ async function post(req: Request, ctx: Ctx) {
     const broken = await refuseRules(c, actor, branch, key, changes);
     if (broken) return json({ error: 'not allowed', what: broken }, 403);
     // whole: the browser is replacing the whole data set (3.2d: wipe, restore, import, sample data); the other devices reload (10.5).
-    const whole = typeof body.whole === 'string' && /^[a-z-]{1,20}$/.test(body.whole) ? body.whole : undefined;
+    const whole = typeof body.whole === 'string' && /^[a-z][a-z0-9-]{0,19}$/.test(body.whole) ? body.whole : undefined;
+    // Many documents or master records removed by anything else: refused; a whole replacement always has a copy first
+    // (lib/whole-data.ts, team's check of 2026-11-18).
+    if (rootOf(key) === 'DB') {
+      const mass = refuseMassRemoval(changes, whole);
+      if (mass) return json({ error: 'not allowed', what: mass }, 403);
+    }
+    if (whole) await keepBeforeWhole(c, branch, key, whole);
     const r = await saveMain(c, branch, key, body.base || {}, changes, body.numbers || {}, s.userId, whole);
     if (!r.ok) return json({ conflicts: r.conflicts }, 409);
     if (body.session) await saveSessionFields(c, s, key, body.session);

@@ -1077,6 +1077,16 @@
       "scenario": "S467-close-tax-month-after-pp30-paid.spec.ts",
       "decision": "Task 3.3 (closing a tax month, S141) with J29 (paying a month's ภ.พ.30, S291): both on the same month, in that order",
       "why": "The legacy file has neither. Paying a month's ภ.พ.30 first made its tax-period record without a history, and closing the month then failed (team's check of 2026-11-18)."
+    },
+    {
+      "scenario": "S468-test-copy-links-and-sample-data-in-real-shop.spec.ts",
+      "decision": "A1, the owner's decision of 2026-10-30 (sample data in trial shops only) and of 2026-11-19 (team's check): the test-copy links do nothing, sample data only in a trial shop even when called directly, no mass removal by an ordinary save",
+      "why": "The legacy file's test-copy links (?freshTrial=1) and sample-data functions called directly replaced a paying shop's documents without a copy (team's check of 2026-11-18)."
+    },
+    {
+      "scenario": "S469-restore-drops-what-backup-lacks.spec.ts",
+      "decision": "The owner's decision of 2026-11-19 (team's check): a restore or an import replaces the whole data",
+      "why": "The legacy app merged the backup into the data, so kinds the backup lacked stayed: a credit note made after the backup point stayed while its stock and refund went back."
     }
   ]
 }

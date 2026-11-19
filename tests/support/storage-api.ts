@@ -30,6 +30,11 @@ export function storageApi(page: Page) {
       const a = await call('POST', key, { base: {}, changes: { upsert: [], remove: [], order: {} }, whole });
       return { status: a.status, body: json(a) };
     },
+    // Records removed in one ordinary save, as the browser would send it.
+    async removeRows(key: string, rows: { unit: string; key: string }[]) {
+      const a = await call('POST', key, { base: {}, changes: { upsert: [], remove: rows.map(r => ({ ...r, data: '' })), order: {} } });
+      return { status: a.status, body: json(a) };
+    },
     async remove(key: string) {
       const a = await call('DELETE', key);
       return { status: a.status, body: json(a) };
