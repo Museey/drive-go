@@ -34,9 +34,15 @@
  document.querySelectorAll('#v-setting button').forEach(b=>{if(/^extendLic\(/.test(b.getAttribute('onclick')||''))b.style.visibility='hidden';});
  window.extendLic=function(){};
  /* sample data (owner's decision of 2026-10-30): only a trial shop may load it over its data; a pilot or paying shop's
-    buttons stay in place, hidden (the server refuses it too) */
- function sampleButtons(){const ok=!LIC||LIC.kind==='trial';
+    buttons stay in place, hidden (the server refuses it too). Team's check of 2026-11-18 (owner 2026-11-19): the buttons
+    stay hidden until the licence says trial (also when it cannot be read), and the functions themselves do nothing
+    outside a trial shop (seedDemoNow called directly went past the server as an ordinary save). */
+ const trial=()=>!!LIC&&LIC.kind==='trial'&&!LIC.readOnly;
+ function sampleButtons(){const ok=trial();
   document.querySelectorAll('button').forEach(b=>{if(/^seedDemo(36)?\(/.test(b.getAttribute('onclick')||''))b.style.visibility=ok?'':'hidden';});}
+ sampleButtons();
+ ['seedDemo','seedDemo36'].forEach(name=>{const f=window[name];if(typeof f==='function')window[name]=function(){if(!trial())return false;return f.apply(this,arguments);};});
+ ['seedDemoNow','seedDemo36Now'].forEach(name=>{const f=window[name];if(typeof f==='function')window[name]=function(){if(!trial())return false;return f.apply(this,arguments);};});
 
  /* the server's dates, whatever the data set in hand says */
  const save0=window.save;window.save=async function(){pin();return save0.apply(this,arguments);};

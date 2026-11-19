@@ -180,9 +180,12 @@ async function taxPeriodRules(s: Save, who: Who): Promise<string | null> {
     const sale = isObj(t.now?.sale) ? t.now!.sale as Rec : undefined;
     if (sale && num(sale.vat) > 0 && !same(t.old?.sale, sale) && closed(sale.date)) return `DB.assets|${t.key}: tax period closed`;
   }
-  // A credit note cancelled in a closed month (its own date's month).
-  if (s.units().has('DB.creditNotes')) for (const t of await s.touched('DB.creditNotes'))
+  // A credit note cancelled in a closed month (its own date's month), or one of a closed month removed (a restore of an
+  // older backup point replaces the whole data since 2026-11-19: it may not drop a credit note already filed).
+  if (s.units().has('DB.creditNotes')) for (const t of await s.touched('DB.creditNotes')) {
     if (t.now?.voided && !t.old?.voided && closed(t.now.date)) return `DB.creditNotes|${t.key}: tax period closed`;
+    if (!t.now && t.old && closed(t.old.date)) return `DB.creditNotes|${t.key}: tax period closed`;
+  }
   // A revision of a sale of a closed month.
   for (const t of s.units().has('DB.stockCuts') ? await s.touched('DB.stockCuts') : []) {
     if (t.old || !t.now?.revOf) continue;

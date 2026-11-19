@@ -132,6 +132,16 @@ async function guardWholeData(o){
   logAudit('data',{id:'',no:''},o.act,o.note+' (ระบบสำรองข้อมูลไว้ก่อนแล้ว)'); save();
   return true;
 }
+/* DriveGo new system (team's check of 2026-11-18, owner 2026-11-19): a restore or an import replaces the whole data.
+   Object.assign kept the kinds the backup or file does not have, so a credit note made after the backup point stayed
+   while its stock and refund went back. Now only the signed-in person's own fields stay (and the chart of accounts, its
+   mapping and the shop, when the backup has none, as a wipe keeps them). */
+function dbReplace(v){
+  const keep={curEmp:DB.curEmp,curBranch:DB.curBranch};['coa','map','shop'].forEach(k=>{if(!(k in v)&&k in DB)keep[k]=DB[k];});
+  Object.keys(DB).forEach(k=>{delete DB[k];});Object.assign(DB,v,keep);
+  try{if(window.pkgFifo&&pkgFifo.reindex)pkgFifo.reindex();}catch(e){}
+  return DB;
+}
 async function listBackups(){
   const list=(await STORE.keys()).filter(k=>String(k).startsWith(KEY+'.bak.')).sort().reverse();
   return list.map(k=>({key:k,day:String(k).replace(KEY+'.bak.','')}));
@@ -4655,7 +4665,7 @@ async function restoreBackup(){
       try{
         const v=await STORE.get(key); if(!v){ toast('อ่านจุดสำรองไม่สำเร็จ'); return false; }
         await STORE.set(KEY+'.bak.before-restore',JSON.stringify(DB));
-        DB=Object.assign(DB,JSON.parse(v)); await save(true); boot(); renderStoreBox();
+        DB=dbReplace(JSON.parse(v)); await save(true); boot(); renderStoreBox();
         toast('กู้คืนข้อมูลเรียบร้อยแล้ว');
       }catch(e){ toast('กู้คืนไม่สำเร็จ: '+e.message); return false; }
     }});
@@ -4667,7 +4677,7 @@ function importData(inp){ if(!can('doc.import')){ if(inp) inp.value=''; return t
   rd.onload=()=>{let v;try{v=JSON.parse(rd.result);}catch(e){return toast('ไฟล์ไม่ถูกต้อง อ่านข้อมูลไม่ได้');}
     guardWholeData({kind:'import',act:'import',note:'นำเข้าข้อมูลจากไฟล์ '+f.name,
       ask:{title:'นำเข้าข้อมูล',text:'นำเข้าข้อมูลจากไฟล์ '+f.name+' ?\nข้อมูลปัจจุบันจะถูกแทนที่ทั้งหมด',yes:'นำเข้า',no:'ยังไม่นำเข้า'},
-      run:()=>{try{DB=Object.assign(DB,v);save();boot();toast('นำเข้าข้อมูลเรียบร้อย');}catch(e){toast('ไฟล์ไม่ถูกต้อง อ่านข้อมูลไม่ได้');return false;}}});};
+      run:()=>{try{DB=dbReplace(v);save();boot();toast('นำเข้าข้อมูลเรียบร้อย');}catch(e){toast('ไฟล์ไม่ถูกต้อง อ่านข้อมูลไม่ได้');return false;}}});};
   rd.readAsText(f); inp.value=''; }
 async function wipe(){ if(!can('doc.wipe')) return toast('บัญชีนี้ไม่มีสิทธิล้างข้อมูล');
   await guardWholeData({kind:'wipe',act:'wipe',note:'ล้างข้อมูลทั้งหมด',

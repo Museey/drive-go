@@ -31,6 +31,19 @@ import { dataToMain } from '../lib/branch-stock.ts';
 // tab removes it here, before any of the page's own scripts (and whatever they show) run.
 try { sessionStorage.removeItem('dg_ops'); } catch { /* no storage: nothing kept */ }
 
+// The legacy file's test-copy links (frontend/js/55.js: ?freshTrial=1 replaces every document with a trial set,
+// ?restoreTrial=1, ?addTestBranches=1, ?shopName=…) are not part of the system (decision A1; found by the team on the
+// test server 2026-11-18: a link was enough to replace a paying shop's documents). Their parameters go before the
+// page's scripts read them.
+const TEST_COPY = ['freshTrial', 'restoreTrial', 'addTestBranches', 'shopName'];
+try {
+  const u = new URL(location.href);
+  if (TEST_COPY.some(p => u.searchParams.has(p))) {
+    TEST_COPY.forEach(p => u.searchParams.delete(p));
+    history.replaceState(history.state, '', u.toString());
+  }
+} catch { /* no URL API: nothing to remove */ }
+
 const API = '/api/storage';
 // The legacy app later wraps window.fetch to show its loading overlay on every
 // call; saves happen in the background and must not cover the screen.
@@ -341,7 +354,8 @@ const storage = {
       // Backup points are copied on the server from its own data, so their
       // (whole-data) value is not uploaded.
       const backup = /\.bak\./.test(key);
-      const safety = /^(.+?)\.bak\.safety-.*-([a-z]+)$/.exec(key);
+      // The kind may have digits (demo36: the 36-month test data; until 2026-11-19 it did not match and went untagged).
+      const safety = /^(.+?)\.bak\.safety-.*-([a-z][a-z0-9]*)$/.exec(key);
       if (safety && rootOf(safety[1])) whole.set(safety[1], safety[2]);
       await enqueue(async () => {
         const r = await send(url(key), { method: 'PUT', body: backup ? '' : value }, true);

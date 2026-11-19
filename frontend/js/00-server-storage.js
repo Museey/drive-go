@@ -913,6 +913,15 @@
     sessionStorage.removeItem("dg_ops");
   } catch {
   }
+  var TEST_COPY = ["freshTrial", "restoreTrial", "addTestBranches", "shopName"];
+  try {
+    const u = new URL(location.href);
+    if (TEST_COPY.some((p) => u.searchParams.has(p))) {
+      TEST_COPY.forEach((p) => u.searchParams.delete(p));
+      history.replaceState(history.state, "", u.toString());
+    }
+  } catch {
+  }
   var API = "/api/storage";
   var fetch0 = window.fetch.bind(window);
   var MESSAGES = {
@@ -1169,7 +1178,7 @@
         }
       } else {
         const backup = /\.bak\./.test(key);
-        const safety = /^(.+?)\.bak\.safety-.*-([a-z]+)$/.exec(key);
+        const safety = /^(.+?)\.bak\.safety-.*-([a-z][a-z0-9]*)$/.exec(key);
         if (safety && rootOf(safety[1])) whole.set(safety[1], safety[2]);
         await enqueue(async () => {
           const r = await send(url(key), { method: "PUT", body: backup ? "" : value }, true);
