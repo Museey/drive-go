@@ -1072,6 +1072,11 @@
       "scenario": "S466-landing-test-drive-privacy-articles.spec.ts",
       "decision": "Owner 2026-11-18: the landing page's own pages as the team's design has them: Test Drive, the privacy policy in full, the articles; what the system does not do yet tagged",
       "why": "The legacy file had no website. The team's design has a step-by-step tour of the system's screens, the full privacy policy behind the landing page's privacy section, and articles for garage owners."
+    },
+    {
+      "scenario": "S467-close-tax-month-after-pp30-paid.spec.ts",
+      "decision": "Task 3.3 (closing a tax month, S141) with J29 (paying a month's ภ.พ.30, S291): both on the same month, in that order",
+      "why": "The legacy file has neither. Paying a month's ภ.พ.30 first made its tax-period record without a history, and closing the month then failed (team's check of 2026-11-18)."
     }
   ]
 }

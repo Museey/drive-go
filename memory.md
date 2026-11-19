@@ -84,6 +84,8 @@
   ดูรายการไฟล์ก่อนเสมอ (Artifact list scope files) · `python3 -I tools/subpages-from-design.py <โฟลเดอร์แบบ> server/site`
   /testdrive /privacy /articles + /site/tour/ · ฟอร์ม Demo: คัดลอก + อีเมล + LINE · Test Drive ป้ายเร็ว ๆ นี้ BOOK/Admin/ProX ออนไลน์ · S466
   ยังไม่ได้ถาม: ปุ่มเมนูบนมือถือของหน้าย่อย · นโยบายให้นักกฎหมาย PDPA ดู (ไม่บอกว่าข้อมูลอยู่สิงคโปร์)
+- **ทีมตรวจระบบ (2026-11-18)**: 7 เรื่อง (NOTES.md "ทีมตรวจระบบ") ปิดงวดภาษีหลังนำส่ง ภ.พ.30 แก้แล้ว (CHANGES 166, S467)
+  ที่เหลือส่ง agent ตรวจ 3 ชุด (ตัวเลขไม่ตรง / ใบหัก ณ ที่จ่าย+กู้คืน+ปุ่มข้อมูลทดสอบ / ตรวจค่า) ยังไม่ได้รายงานเจ้าของ
   มือถือ (เจ้าของ "แก้ทั้ง 3 ข้อ" 2026-11-18): ตารางพอดีจอ, ปุ่มเมนู ☰ (<68rem; TH/EN เข้าแผงเมื่อ ≤21rem), การ์ดลอย/ตัวเลขไม่ล้น,
   main{overflow-x:clip} · CSS ท้าย landing.css "DriveGo's additions", เมนู JS ใน tools/landing-from-design.py
 - **BaziX สาขาเดียว (2026-11-17)**: ล็อกเสมอ rules.ts ONE_BRANCH + 19.js (CHANGES 165), S460, S186/S247/S249/S296 ย้ายเป็น prox-trial,

@@ -8,7 +8,8 @@
    · A full tax invoice can still be issued for a sale of a closed month (T2-ก): after a warning, dated on the sale;
      the closed month's sales tax report keeps the number it was filed under and notes the late invoice (`late`).
    DB.taxPeriods = { 'YYYY-MM': { closed, date, at, by, byName, hist: [{ act: 'close' | 'open', date, at, by, byName, reason }] } }
-   (created at the first close: shops that never close a month have no such key) */
+   (created at the first close: shops that never close a month have no such key; a month whose ภ.พ.30 was paid first has
+   only its remit, 72-vat-remit.js, and gets its hist at its first close) */
 (function(){
  if(typeof renderTax!=='function')return;
  const ym=d=>String(d||'').slice(0,7);
@@ -31,7 +32,8 @@
   if(!owner()&&!can('doc.taxClose'))return;
   if(closed(mo)||mo>=iso().slice(0,7))return;
   if(!await askP({title:'ปิดงวดภาษีเดือน '+label(mo)+'?',text:'หลังปิดงวด เอกสารที่มี VAT ของเดือนนี้แก้ได้ด้วยใบลดหนี้เท่านั้น',yes:'ปิดงวดภาษี',no:'ยังไม่ปิด'}))return;
-  DB.taxPeriods=DB.taxPeriods||{};const p=DB.taxPeriods[mo]=DB.taxPeriods[mo]||{hist:[]},s=stamp();
+  /* a month whose ภ.พ.30 was paid first (72-vat-remit.js) has its record already, without a history yet */
+  DB.taxPeriods=DB.taxPeriods||{};const p=DB.taxPeriods[mo]=DB.taxPeriods[mo]||{},s=stamp();p.hist=p.hist||[];
   Object.assign(p,{closed:true},s);p.hist.push(Object.assign({act:'close'},s));
   logAudit('taxperiod',{id:mo,no:mo},'close','ปิดงวดภาษีเดือน '+label(mo));
   save();renderTax();toast('ปิดงวดภาษีเดือน '+label(mo)+' แล้ว');
@@ -40,7 +42,7 @@
   if(!owner()||!closed(mo))return;
   const why=await askPromptP({title:'เปิดงวดภาษีเดือน '+label(mo)+' กลับ',text:'เหตุผลที่เปิดงวดกลับ',yes:'เปิดงวดกลับ',no:'ยกเลิก',required:true});
   const reason=String(why||'').trim();if(!reason)return;
-  const p=DB.taxPeriods[mo];p.closed=false;p.hist.push(Object.assign({act:'open',reason},stamp()));
+  const p=DB.taxPeriods[mo];p.hist=p.hist||[];p.closed=false;p.hist.push(Object.assign({act:'open',reason},stamp()));
   logAudit('taxperiod',{id:mo,no:mo},'reopen','เปิดงวดภาษีเดือน '+label(mo)+' กลับ · เหตุผล: '+reason);
   save();renderTax();toast('เปิดงวดภาษีเดือน '+label(mo)+' กลับแล้ว');
  }
