@@ -73,8 +73,8 @@
 ## สิ่งที่รอเจ้าของโปรเจกต์
 
 - **หน้าเข้าระบบตามแบบของทีม (2026-11-19, session หน้าเว็บ)**: /login ใช้หน้าของแบบแล้ว (login.html login.js + login.css จาก
-  tools/subpages-from-design.py + login-form.css), หน้าแรก/หน้าย่อยเทียบแล้วตรงแบบ · รอเจ้าของ: ส่วนคู่มือ PDF (มีแค่ BaziX),
-  ข้อความอังกฤษของฟอร์มเข้าระบบ, ปิด Email Obfuscation ของ Cloudflare · S297 ตรวจว่าไม่มีอะไรถูก CSP บล็อก (ไม่นับ style ของตัวทดสอบเอง)
+  tools/subpages-from-design.py + login-form.css), หน้าแรก/หน้าย่อยเทียบแล้วตรงแบบ · เจ้าของตอบ: EN อนุมัติ, ปิด Cloudflare
+  Email Obfuscation เอง, **ทำคู่มือ ProX + Franchise แล้วใส่ 3 เล่มในหน้าเข้าระบบ** (งานถัดไป, ข้อความคู่มือใหม่ให้เจ้าของดูก่อน) · S297 ตรวจว่าไม่มีอะไรถูก CSP บล็อก (ไม่นับ style ของตัวทดสอบเอง)
   · TARGET=new ล้มด้วย SecurityFatalError ของ Next.js ให้รันซ้ำ (เจ้าของยังไม่อัปเกรด)
 
 - **หน้าแรก + /login (2026-11-17)**: server/site (index.html login.html login.js site.css logo.jpg), app/route.ts app/login app/site/[file],
