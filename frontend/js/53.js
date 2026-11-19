@@ -193,11 +193,15 @@
     it is other income (4030), the VAT is output VAT, all of it cash, on the day it was paid. Which document is its tax
     invoice waits for the accountant: the tax report adds it to the month's figures, not to the list of tax invoices. ---------- */
  const feeVatOf=(fee,L)=>{const rate=n(L&&L.vat);return fee>0&&rate>0?r2(fee*rate/(100+rate)):0;};
- function cardFees(inP){const o={gross:0,base:0,vat:0};
-  (DB.receipts||[]).forEach(L=>{if(!L||!L.pkgSale||L.cancelled)return;
+ function cardFees(inP){const o={gross:0,base:0,vat:0},add=(fee,L)=>{const vat=feeVatOf(fee,L);o.gross+=fee;o.vat+=vat;o.base+=r2(fee-vat);};
+  /* DriveGo new system (team's check of 2026-11-18, the owner's decision of 2026-11-19): receipts from before the sale flow
+     have their card fees too, as the ledger books them (71-ledger.js): paid in the payment window, by its payments; paid
+     the original way, the receipt's own fee (receiptTotals) on the day it was paid */
+  (DB.receipts||[]).forEach(L=>{if(!L||L.cancelled)return;
+   if(!L.pkgSale&&!(L.payments||[]).length){if(L.paid&&inP(L.paidDate||L.date)){const fee=r2(n(receiptTotals(L).fee));if(fee>0)add(fee,L);}return;}
    (L.payments||[]).forEach(p=>{if(!p||p.cancelled||!inP(p.date))return;
     const fee=ownMethods(p).filter(m=>m.k==='card').reduce((t,m)=>t+n(m.fee),0);if(!(fee>0))return;
-    const vat=feeVatOf(fee,L);o.gross+=fee;o.vat+=vat;o.base+=r2(fee-vat);});});
+    add(fee,L);});});
   o.gross=r2(o.gross);o.vat=r2(o.vat);o.base=r2(o.base);return o;}
  let lastFee=null;   /* the fee of the latest finance() call (a branch's report filters the data only while it runs) */
  if(typeof finance==='function'){const fin0=finance;window.finance=function(y){const f=fin0.apply(this,arguments);if(!f)return f;

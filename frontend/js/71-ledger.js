@@ -63,7 +63,9 @@
  const allocCost=no=>{let v=0,d='';(fifo().allocs||[]).forEach(a=>{if(a&&a.refNo===no){v+=rem(a)*n(a.cost);if(!d||a.date<d)d=a.date;}});return {v:r2(v),date:d};};
 
  function entries(o){
-  const out=[];
+  /* noCost: without the cost of sales (FIFO: most of the time it takes); arOnly: only what can post to the receivables
+     (sales, payments, credit and debit notes, the opening balances), for arOn */
+  const out=[],arOnly=!!(o&&o.arOnly),noCost=arOnly||!!(o&&o.noCost);
   const E=(date,no,desc,src)=>{const e={date:String(date||'').slice(0,10),no:no||'',desc:desc||'',src:src||'',lines:[]};
    e.dr=(a,v)=>{v=r2(v);if(a&&Math.abs(v)>=EPS)e.lines.push(v>0?{a,dr:v,cr:0}:{a,dr:0,cr:-v});return e;};
    e.cr=(a,v)=>{v=r2(v);if(a&&Math.abs(v)>=EPS)e.lines.push(v>0?{a,dr:0,cr:v}:{a,dr:-v,cr:0});return e;};
@@ -75,7 +77,7 @@
    const t=receiptTotals(soldAs(L)),date=L.date||(c&&c.date),no=c?c.no:(L.no||''),who=custOf(L.custId);
    const lab=t.sub>EPS?r2(t.base*n(t.labor)/t.sub):0;
    E(date,no,'ขาย'+(who?' · '+who:''),'sale').dr(A('ar'),t.gross).cr(A('revLabor'),lab).cr(A('revParts'),r2(t.base)-lab).cr(A('vatOut'),t.vat);
-   const cost=typeof cogsOf==='function'?r2(cogsOf(L)):0;
+   const cost=!noCost&&typeof cogsOf==='function'?r2(cogsOf(L)):0;
    if(cost>EPS)E(date,no,'ต้นทุนขาย'+(who?' · '+who:''),'cogs').dr(A('cogs'),cost).cr(A('inv'),cost);
   }
   function received(L,c){
@@ -122,7 +124,7 @@
     if(deb)E(x.date,x.no,'ใบเพิ่มหนี้ '+(x.saleNo||'')+(who?' · '+who:''),'dn').dr(A('ar'),x.gross).cr(A('revLabor'),lab).cr(A('revParts'),parts).cr(A('vatOut'),x.vat);
     else{
      E(x.date,x.no,'ใบลดหนี้ '+(x.saleNo||'')+(who?' · '+who:''),'cn').dr(A('revLabor'),lab).dr(A('revParts'),parts).dr(A('vatOut'),x.vat).cr(A('ar'),x.gross);
-     const back=allocBack(x);if(back>EPS)E(x.date,x.no,'สินค้ารับคืนตามใบลดหนี้','cnstock').dr(A('inv'),back).cr(A('cogs'),back);
+     const back=noCost?0:allocBack(x);if(back>EPS)E(x.date,x.no,'สินค้ารับคืนตามใบลดหนี้','cnstock').dr(A('inv'),back).cr(A('cogs'),back);
     }}
    /* money paid back: on the day it took effect; it stays paid when the note is cancelled (the customer owes it again) */
    if(!deb&&refund>EPS&&(ok||x.voided))E(rday,x.no,'คืนเงินลูกค้าตามใบลดหนี้'+(who?' · '+who:''),'refund').dr(A('ar'),refund).cr(A(x.money.method==='trans'?'bank':'cash'),refund);
@@ -133,6 +135,12 @@
     const al=(fifo().allocs||[]).filter(a=>a&&a.refNo===ref&&a.stockId===l.stockId);
     const q=al.reduce((t,a)=>t+n(a.qty),0);if(q>EPS)v+=n(l.qty)*al.reduce((t,a)=>t+n(a.qty)*n(a.cost),0)/q;});
    return r2(v);}
+
+  /* arOnly: nothing below posts to the receivables but the opening balances (J32, as below) */
+  if(arOnly){const OPa=!(o&&o.raw)&&DB.opening&&DB.opening.date?DB.opening:null;
+   if(OPa){for(let i=out.length-1;i>=0;i--)if(!(out[i].date>=OPa.date))out.splice(i,1);
+    const e=E(OPa.date,'','ยอดยกมา','opening');(OPa.lines||[]).forEach(l=>{if(!l||!l.a)return;e.dr(l.a,n(l.dr));e.cr(l.a,n(l.cr));});}
+   out.forEach(e=>{delete e.dr;delete e.cr;e.lines=e.lines.filter(l=>l.dr>=EPS||l.cr>=EPS);});return out.filter(e=>e.lines.length);}
 
   /* ---------- J09–J11 goods received and vendor payments ---------- */
   (DB.purchases||[]).forEach(p=>{if(!p||p.cancelled||!p.posted)return;
@@ -316,7 +324,10 @@
  /* stock value in the stock register (FIFO lots less what left them) on a day: account 1040 should say the same */
  function fifoValue(to){let v=0;(fifo().lots||[]).forEach(l=>{if(l&&String(l.date||'')<=to)v+=n(l.qty)*n(l.cost);});
   (fifo().allocs||[]).forEach(a=>{if(a&&String(a.date||'')<=to)v-=rem(a)*n(a.cost);});return r2(v);}
- window.PKG_LEDGER={entries,account,balances,before,check,codes,nameOf,typeOf,fifoValue,sys,vat,NEW};
+ /* the receivables (1030) on a day: the home card and 08 สุขภาพการเงิน show the ledger's figure (team's check of
+    2026-11-18, the owner's decision of 2026-11-19); built from what can post to it only (sales, payments, notes, opening balances): 2 ms where the whole ledger takes 800 */
+ function arOn(to,list){const a=A('ar');let v=0;(list||entries({arOnly:true})).forEach(e=>{if(e.date>to)return;e.lines.forEach(l=>{if(l.a===a)v+=l.dr-l.cr;});});return r2(v);}
+ window.PKG_LEDGER={entries,account,balances,before,check,codes,nameOf,typeOf,fifoValue,sys,vat,arOn,NEW};
 
  /* ---------- 08 บัญชี - การเงิน → บัญชีแยกประเภท (proposal Q3 of round 3, owner 2026-11-11): an account, or every
     account that moved, between two days — the balance brought forward, each entry with the running balance, the

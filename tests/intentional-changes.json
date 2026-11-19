@@ -1087,6 +1087,11 @@
       "scenario": "S469-restore-drops-what-backup-lacks.spec.ts",
       "decision": "The owner's decision of 2026-11-19 (team's check): a restore or an import replaces the whole data",
       "why": "The legacy app merged the backup into the data, so kinds the backup lacked stayed: a credit note made after the backup point stayed while its stock and refund went back."
+    },
+    {
+      "scenario": "S470-home-health-tax-follow-ledger.spec.ts",
+      "decision": "The owner's decision of 2026-11-19 (team's check, item 3): the home page and the health page show the ledger's receivables, the home tax summary counts expenses' input VAT, and every tax summary counts the card fees of receipts from before the sale flow",
+      "why": "The same figure differed between pages: the home receivables added unbilled jobs and took off expected withholding, the health page ignored part payments of old bills, the home tax summary left out expenses' input VAT, and the tax report left out old receipts' card fee VAT that the ledger and the ภ.พ.30 window count (team's check of 2026-11-18)."
     }
   ]
 }

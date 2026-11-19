@@ -13,6 +13,17 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync,
 import { dirname, join, resolve } from 'node:path';
 
 const arg = name => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : undefined; };
+// The zip to send: Python's zipfile marks the Thai file names as UTF-8 (Info-ZIP leaves them unmarked on a machine whose
+// locale is not UTF-8, and Windows then shows them garbled).
+const PYZIP = `import os, sys, zipfile
+z = zipfile.ZipFile(sys.argv[1], 'w', zipfile.ZIP_DEFLATED)
+for p in sys.argv[2:]:
+    if os.path.isdir(p):
+        for d, _, fs in sorted(os.walk(p)):
+            for f in sorted(fs): z.write(os.path.join(d, f))
+    else: z.write(p)
+z.close()`;
+const zipUp = (zip, cwd, ...paths) => spawnSync('python3', ['-I', '-c', PYZIP, zip, ...paths], { cwd, stdio: 'inherit' });
 const out = resolve(arg('--out') || 'accountant-pack');
 const captured = join(out, '.captured');
 const samplesDir = join(out, 'ตัวอย่างเอกสาร');
@@ -85,7 +96,7 @@ if (sheetFile) {
   copyFileSync(resolve(sheetFile), join(out, name));
   const zip = `${out}.zip`;
   rmSync(zip, { force: true });
-  const z = spawnSync('zip', ['-qr', zip, name, 'ตัวอย่างเอกสาร'], { cwd: out, stdio: 'inherit' });
+  const z = zipUp(zip, out, name, 'ตัวอย่างเอกสาร');
   console.log(z.status === 0 ? `ready: ${zip}` : `the workbook and samples are in ${out} (zip failed)`);
   process.exit(z.status === 0 ? process.exitCode || 0 : 1);
 }
@@ -225,5 +236,5 @@ if (made.status !== 0) throw new Error('zip failed (the questions)');
 
 const zip = `${out}.zip`;
 rmSync(zip, { force: true });
-const z = spawnSync('zip', ['-qr', zip, QUESTIONS, 'ตัวอย่างเอกสาร'], { cwd: out, stdio: 'inherit' });
+const z = zipUp(zip, out, QUESTIONS, 'ตัวอย่างเอกสาร');
 console.log(z.status === 0 ? `ready: ${zip}` : `questions and samples are in ${out} (zip failed)`);
