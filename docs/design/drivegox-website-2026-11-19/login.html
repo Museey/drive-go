@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DriveGo X Login</title>
+<meta name="description" content="เข้าสู่ระบบ DriveGo BaziX, DriveGo ProX และ DriveGo-Franchise พร้อมคู่มือการใช้งาน">
+<meta name="theme-color" content="#0A0A0B">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 48 48%27%3E%3Ccircle cx=%2724%27 cy=%2724%27 r=%2724%27 fill=%27%23F59E0B%27/%3E%3Ccircle cx=%2724%27 cy=%2724%27 r=%2719%27 fill=%27none%27 stroke=%27%231A1000%27 stroke-width=%273%27 stroke-dasharray=%274.6 2.4%27/%3E%3Cpath d=%27M14 34h6l14-20h-6z%27 fill=%27%231A1000%27/%3E%3Cpath d=%27M14 14h6l3 4.4-3 4.5zM34 34h-6l-3-4.400 3-4.500z%27 fill=%27%231A1000%27 opacity=%27.55%27/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<style>
+.stage{position:relative;padding-block:clamp(3rem,7vw,5.5rem) 1rem;overflow:hidden}
+.stage .wrap{position:relative}
+.aura{position:absolute;width:40rem;height:40rem;left:50%;top:-22rem;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle,rgba(245,158,11,.32),transparent 65%);filter:blur(4rem);pointer-events:none}
+.head{text-align:center;max-width:42rem;margin-inline:auto}
+.head h1{font-size:clamp(2rem,4.6vw,3.2rem);font-weight:800;letter-spacing:-.02em;margin-block:1rem .8rem}
+.head h1 em{font-style:normal;background:linear-gradient(100deg,var(--glow),var(--amber) 60%,var(--amber-d));-webkit-background-clip:text;background-clip:text;color:transparent}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(17.5rem,1fr));gap:1.25rem;margin-top:3rem;perspective:80rem}
+.sys{position:relative;display:flex;flex-direction:column;gap:1rem;padding:2rem 1.75rem 1.75rem;border-radius:1.75rem;border:1px solid var(--line2);background:linear-gradient(165deg,rgba(27,27,31,.86),rgba(13,13,15,.92));overflow:hidden;transition:transform .35s cubic-bezier(.2,.8,.2,1),border-color .35s,box-shadow .35s;transform:rotateX(var(--tx,0deg)) rotateY(var(--ty,0deg));transform-style:preserve-3d}
+.sys::before{content:"";position:absolute;inset:0;background:radial-gradient(22rem circle at var(--mx,50%) var(--my,0%),rgba(251,191,36,.2),transparent 60%);opacity:0;transition:opacity .35s;pointer-events:none}
+.sys::after{content:"";position:absolute;inset:0 0 auto 0;height:.22rem;background:linear-gradient(90deg,transparent,var(--glow),transparent)}
+.sys:hover,.sys:focus-within{border-color:rgba(251,191,36,.6);box-shadow:0 2rem 4.5rem -1.75rem rgba(245,158,11,.6),0 0 0 1px rgba(251,191,36,.15)}
+.sys:hover::before,.sys:focus-within::before{opacity:1}
+.wm{position:absolute;right:-2.2rem;top:-2.2rem;width:11rem;height:11rem;color:rgba(251,191,36,.1);animation:spin 40s linear infinite;pointer-events:none}
+.sys:hover .wm{animation-duration:6s;color:rgba(251,191,36,.2)}
+.wm svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.500}
+.top{display:flex;align-items:center;gap:.9rem;position:relative}
+.badge{width:3.4rem;height:3.4rem;border-radius:1rem;display:grid;place-items:center;background:linear-gradient(140deg,var(--glow),var(--amber-d));color:#1A1000;font-size:1.5rem;box-shadow:0 0 2rem -.4rem rgba(245,158,11,.9)}
+.net-ic{width:2.7rem;height:2.7rem;overflow:visible}
+.net-ic .ln{fill:none;stroke:#1A1000;stroke-width:1.700;stroke-linecap:round;stroke-dasharray:2.200 2.800;animation:flow .9s linear infinite}
+.net-ic .nd{fill:#1A1000;transform-box:fill-box;transform-origin:center}
+.net-ic .n1,.net-ic .n2,.net-ic .n3{animation:nodep 2.7s ease-in-out infinite}
+.net-ic .n2{animation-delay:.9s}.net-ic .n3{animation-delay:1.8s}
+.net-ic .rg{fill:none;stroke:#1A1000;stroke-width:1;transform-box:fill-box;transform-origin:center;animation:ring 2.7s ease-out infinite}
+@keyframes flow{to{stroke-dashoffset:-5}}
+@keyframes nodep{0%,60%,100%{transform:scale(1)}25%{transform:scale(1.35)}}
+@keyframes ring{from{transform:scale(.8);opacity:.7}to{transform:scale(1.9);opacity:0}}
+.tier{font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--glow)}
+.sys h2{font-size:1.65rem;letter-spacing:-.01em;line-height:1.2}.sys h2 b{color:var(--glow)}
+.sys p{font-size:.95rem;line-height:1.65;position:relative}
+.sys ul{list-style:none;display:grid;gap:.55rem;border-top:1px solid var(--line);padding-top:1rem;position:relative;flex:1;align-content:start}
+.sys li{display:flex;gap:.6rem;color:var(--ink);font-size:.9rem;line-height:1.5}.sys li svg{color:var(--glow);margin-top:.15rem}
+.sys .btn{position:relative;margin-top:.4rem}
+.man{margin-top:1.25rem;border:1px solid rgba(251,191,36,.35);border-radius:1.75rem;padding:clamp(1.4rem,3vw,2.2rem);background:radial-gradient(40rem 16rem at 0 0,rgba(245,158,11,.16),transparent 60%),var(--panel);display:grid;gap:1.5rem;align-items:center;position:relative}
+.man .mi{width:3.6rem;height:3.6rem;border-radius:1.1rem;background:rgba(251,191,36,.14);color:var(--glow);display:grid;place-items:center;font-size:1.6rem;flex:none}
+.man .tx{display:flex;gap:1.1rem;align-items:flex-start}
+.man h2{font-size:1.4rem}.man p{font-size:.95rem;margin-top:.25rem;max-width:34rem}
+.dls{display:grid;gap:.6rem}
+.dl{display:flex;align-items:center;gap:.8rem;padding:.8rem 1rem;border-radius:.9rem;border:1px solid var(--line2);background:rgba(10,10,11,.5);color:var(--ink);font-weight:600;font-size:.92rem;text-align:left;transition:.25s;width:100%}
+.dl:hover{border-color:rgba(251,191,36,.6);background:rgba(251,191,36,.08);transform:translateX(.2rem)}
+.dl svg{color:var(--glow)}.dl small{margin-left:auto;color:var(--faint);font-weight:500;font-size:.78rem}
+@media(min-width:56rem){.man{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)}}
+.msg{margin-top:1.25rem;min-height:1.6rem;text-align:center;color:var(--glow);font-size:.92rem}
+.help{text-align:center;margin-top:1.5rem;font-size:.92rem}.help a{color:var(--glow);font-weight:700}
+</style>
+</head>
+<body data-page="login">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.500l4.500 4.500L19 7"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5v8l9 5 9-5zM3 8l9 5 9-5M12 13v8"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18a4.500 4.500 0 0 1-.6-9A6 6 0 0 1 18 8.500a4.500 4.500 0 0 1-.5 9.500z"/></symbol>
+  <symbol id="i-branch" viewBox="0 0 24 24"><path d="M9 13.200l3-2.700 3 2.700V17H9zM10.500 4.700L12 3.400l1.500 1.300v2h-3zM2.500 19.500L4 18.200l1.500 1.300v2h-3zM18.500 19.500L20 18.200l1.500 1.300v2h-3zM12 6.700v3.800M9 16l-3.600 2.700M15 16l3.600 2.700"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11M9 8h6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></symbol>
+  <symbol id="i-wheel" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22"/><circle cx="24" cy="24" r="15"/><circle cx="24" cy="24" r="4"/><path d="M24 9v11M24 28v11M9 24h11M28 24h11M13.400 13.400l7.800 7.800M26.800 26.800l7.800 7.800M34.600 13.400l-7.800 7.800M21.200 26.800l-7.800 7.800"/></symbol>
+</defs></svg>
+
+<header class="nav" id="hdr"></header>
+<main>
+  <section class="stage">
+    <div class="garage"><svg id="garage" viewBox="0 0 1440 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div>
+    <div class="aura"></div>
+    <div class="wrap">
+      <div class="head fade">
+        <span class="eyebrow" id="eb"></span>
+        <h1 id="h1"></h1>
+        <p id="sub"></p>
+      </div>
+      <div class="cards" id="cards"></div>
+      <div class="man fade" style="--d:.4s" id="man"></div>
+      <p class="msg" id="msg" role="status"></p>
+      <p class="help" id="help"></p>
+    </div>
+  </section>
+</main>
+<footer id="ftr"></footer>
+
+<script src="site.js"></script>
+<script>
+/* Put the real addresses here. An empty value shows a notice instead of leaving the page. */
+const LINKS={
+  bazix:'',       // DriveGo BaziX sign-in page
+  prox:'',        // DriveGo ProX sign-in page
+  franchise:'',   // DriveGo-Franchise sign-in page
+  manualBazix:'', // user manual files (PDF)
+  manualProx:'',
+  manualFranchise:''
+};
+const T={
+th:{eb:'สำหรับสมาชิก',h:'เข้าสู่ระบบ <em>DriveGo</em>',sub:'เลือกระบบที่อู่ของคุณสมัครใช้งาน แล้วเข้าสู่หน้าลงชื่อเข้าใช้ของระบบนั้น',go:'เข้าสู่ระบบ',
+ sys:[{k:'bazix',n:'BaziX',full:'DriveGo',tier:'Professional System',d:'ระบบบริหารอู่สำหรับคุมทั้งอู่ ตั้งแต่เอกสาร สต๊อก จนถึงต้นทุนงาน',l:['ใบสั่งซ่อม ใบเสนอราคา และใบเสร็จ','คลังอะไหล่และตัดสต๊อกอัตโนมัติ','ต้นทุนและกำไรรายบิล']},
+      {k:'prox',n:'ProX',full:'DriveGo',tier:'Top Performance System',d:'ระบบครบวงจรพร้อม Ecosystem เชื่อมลูกค้า ซัพพลายเออร์ และแอปผู้ใช้รถ',l:['ทุกความสามารถของ BaziX','แดชบอร์ดวิเคราะห์เชิงลึก','คิวจองและประวัติรถจาก DriveGo BOOK']},
+      {k:'franchise',n:'Franchise',full:'DriveGo-',tier:'หลายสาขาและแฟรนไชส์',d:'ศูนย์กลางควบคุมทุกสาขา มาตรฐานเอกสารและขั้นตอนเดียวกันทั้งเครือ',l:['เห็นตัวเลขทั้งเครือจากหน้าจอเดียว','เปรียบเทียบผลงานระหว่างสาขา','โอนย้ายอะไหล่ระหว่างสาขา']}],
+ mh:'คู่มือการใช้งานระบบ',mp:'ดาวน์โหลดคู่มือของระบบที่คุณใช้ เพื่ออ่านขั้นตอนการทำงานทีละหน้าจอ ตั้งแต่เปิดงานจนถึงปิดบิล',ml:'คู่มือ',pdf:'PDF',
+ none:'ยังไม่ได้ตั้งค่าลิงก์สำหรับรายการนี้ กรุณาติดต่อฝ่ายสนับสนุน 082-108-7000',td:'เปิด Test Drive คู่มือภาพออนไลน์ทุกหน้าจอ',help:'เข้าสู่ระบบไม่ได้หรือยังไม่ได้เป็นสมาชิก โทร'},
+en:{eb:'Members',h:'Log in to <em>DriveGo</em>',sub:'Choose the system your garage subscribes to, then continue to that system’s sign-in page.',go:'Log in',
+ sys:[{k:'bazix',n:'BaziX',full:'DriveGo',tier:'Professional System',d:'Garage management that keeps the whole shop under control, from documents and stock to job cost.',l:['Job orders, quotations and receipts','Parts warehouse with automatic stock deduction','Cost and profit per bill']},
+      {k:'prox',n:'ProX',full:'DriveGo',tier:'Top Performance System',d:'The complete system with the Ecosystem that links customers, suppliers and the driver app.',l:['Everything in BaziX','In-depth analytics dashboard','Bookings and car history from DriveGo BOOK']},
+      {k:'franchise',n:'Franchise',full:'DriveGo-',tier:'Multi-branch and franchise',d:'A control centre for every branch, with one document and process standard across the group.',l:['Group figures on a single screen','Compare performance across branches','Transfer parts between branches']}],
+ mh:'User manuals',mp:'Download the manual for the system you use and follow the workflow screen by screen, from opening a job to closing the bill.',ml:'Manual',pdf:'PDF',
+ none:'No link has been set for this item yet. Please contact support on 082-108-7000.',td:'Open Test Drive, the online picture guide to every screen',help:'Cannot log in, or not a member yet? Call'},
+zh:{eb:'会员专区',h:'登录 <em>DriveGo</em>',sub:'请选择您门店订阅的系统，然后进入该系统的登录页面。',go:'登录',
+ sys:[{k:'bazix',n:'BaziX',full:'DriveGo',tier:'Professional System',d:'掌控全店的修车厂管理系统，从单据、库存到工单成本。',l:['工单、报价单和收据','配件仓库与自动扣库存','每单成本与利润']},
+      {k:'prox',n:'ProX',full:'DriveGo',tier:'Top Performance System',d:'功能完整的系统，并通过生态网络连接客户、供应商和车主应用。',l:['包含 BaziX 的全部功能','深度分析仪表盘','来自 DriveGo BOOK 的预约与车辆履历']},
+      {k:'franchise',n:'Franchise',full:'DriveGo-',tier:'多门店与加盟',d:'所有门店的控制中心，全集团统一单据与流程标准。',l:['一个界面查看全集团数字','门店业绩对比','门店间配件调拨']}],
+ mh:'系统使用手册',mp:'下载您所用系统的手册，按界面逐步了解从开单到结账的流程。',ml:'手册',pdf:'PDF',
+ none:'此项目尚未设置链接，请致电客户支持 082-108-7000。',td:'打开 Test Drive，在线图解每个界面',help:'无法登录或尚未成为会员？请致电'}
+};
+const IC={bazix:'box',prox:'cloud',franchise:'branch'};
+/* animated branch network: head office in the middle, three branches, data flowing along the links */
+const hs=(x,y,r)=>`M${x-r} ${y}l${r}-${(r*.9).toFixed(2)} ${r} ${(r*.9).toFixed(2)}v${r}h-${2*r}z`;
+const NET=`<svg class="net-ic" viewBox="0 0 48 48" aria-hidden="true"><path class="ln" d="M24 17V11"/><path class="ln" d="M18.500 28L10.500 35"/><path class="ln" d="M29.500 28L37.500 35"/><circle class="rg" cx="24" cy="24" r="9"/><path class="nd n0" d="${hs(24,22.5,6)}"/><path class="nd n1" d="${hs(24,6.5,3.6)}"/><path class="nd n2" d="${hs(7.5,38,3.6)}"/><path class="nd n3" d="${hs(40.500,38,3.6)}"/></svg>`;
+const ic=n=>`<svg class="ic"><use href="#i-${n}"/></svg>`;
+const $=s=>document.querySelector(s);
+function render(){
+  const t=T[DG.lang];
+  $('#eb').textContent=t.eb; $('#h1').innerHTML=t.h; $('#sub').textContent=t.sub; $('#msg').textContent='';
+  $('#cards').innerHTML=t.sys.map((s,i)=>`<article class="sys fade" style="--d:${.1+i*.1}s">
+    <span class="wm"><svg viewBox="0 0 48 48"><use href="#i-wheel"/></svg></span>
+    <div class="top"><span class="badge">${s.k==='franchise'?NET:ic(IC[s.k])}</span><span class="tier">${s.tier}</span></div>
+    <h2>${s.full}${s.full.endsWith('-')?'':' '}<b>${s.n}</b></h2><p>${s.d}</p>
+    <ul>${s.l.map(x=>`<li>${ic('check')}<span>${x}</span></li>`).join('')}</ul>
+    <a class="btn btn-a" href="${LINKS[s.k]||'#'}" data-k="${s.k}">${t.go} ${s.n} ${ic('arrow')}</a></article>`).join('');
+  $('#man').innerHTML=`<div class="tx"><span class="mi">${ic('book')}</span><div><h2>${t.mh}</h2><p>${t.mp}</p></div></div>
+    <div class="dls">${t.sys.map(s=>{const k='manual'+s.k[0].toUpperCase()+s.k.slice(1);return `<a class="dl" href="${LINKS[k]||'#'}" data-k="${k}">${ic('down')}<span>${t.ml} ${s.full}${s.full.endsWith('-')?'':' '}${s.n}</span><small>${t.pdf}</small></a>`}).join('')}</div>`;
+  $('#help').innerHTML=`<a href="testdrive.html">${t.td}</a><br>${t.help} <a href="tel:+66821087000">082-108-7000</a> · <a href="mailto:sales@drivegox.com">sales@drivegox.com</a>`;
+}
+document.addEventListener('click',e=>{const a=e.target.closest('[data-k]');if(!a)return;
+  if(!LINKS[a.dataset.k]){e.preventDefault();const m=$('#msg');m.textContent=T[DG.lang].none;m.scrollIntoView({block:'nearest',behavior:'smooth'})}});
+/* card tilt and light following the pointer */
+const calm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+$('#cards').addEventListener('pointermove',e=>{const c=e.target.closest('.sys');if(!c)return;const r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;
+  c.style.setProperty('--mx',x*100+'%');c.style.setProperty('--my',y*100+'%');if(!calm){c.style.setProperty('--ty',((x-.5)*7).toFixed(2)+'deg');c.style.setProperty('--tx',((.5-y)*6).toFixed(2)+'deg')}});
+$('#cards').addEventListener('pointerout',e=>{const c=e.target.closest('.sys');if(c&&!c.contains(e.relatedTarget)){c.style.setProperty('--tx','0deg');c.style.setProperty('--ty','0deg')}});
+DG.onLang(render); DG.start(); DG.garage($('#garage'));
+</script>
+</body>
+</html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DriveGo X Articles</title>
+<meta name="description" content="บทความน่ารู้สำหรับเจ้าของอู่ซ่อมรถ กฎหมาย ภาษี เอกสาร และพฤติกรรมลูกค้า">
+<meta name="theme-color" content="#0A0A0B">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 48 48%27%3E%3Ccircle cx=%2724%27 cy=%2724%27 r=%2724%27 fill=%27%23F59E0B%27/%3E%3Ccircle cx=%2724%27 cy=%2724%27 r=%2719%27 fill=%27none%27 stroke=%27%231A1000%27 stroke-width=%273%27 stroke-dasharray=%274.6 2.4%27/%3E%3Cpath d=%27M14 34h6l14-20h-6z%27 fill=%27%231A1000%27/%3E%3Cpath d=%27M14 14h6l3 4.4-3 4.5zM34 34h-6l-3-4.400 3-4.500z%27 fill=%27%231A1000%27 opacity=%27.55%27/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<style>
+.top{padding-block:clamp(2.5rem,6vw,4.5rem) 0;position:relative}
+.top h1{font-size:clamp(2rem,4.4vw,3rem);font-weight:800;letter-spacing:-.02em;margin-block:.9rem .7rem;max-width:20em}
+.top p{max-width:40rem;font-size:1.05rem}
+.filter{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.75rem}
+.filter button{padding:.45rem 1rem;border-radius:62rem;border:1px solid var(--line2);font-size:.85rem;font-weight:600;color:var(--mut);transition:.2s}
+.filter button[aria-pressed="true"]{background:var(--amber);border-color:var(--amber);color:#1A1000}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(18rem,1fr));gap:1.1rem;margin-top:1.75rem}
+.card{display:flex;flex-direction:column;gap:.7rem;text-align:left;padding:1.5rem 1.4rem;border-radius:1.25rem;border:1px solid var(--line);background:var(--panel);position:relative;overflow:hidden;transition:transform .3s,border-color .3s,box-shadow .3s}
+.card::before{content:"";position:absolute;inset:0;background:radial-gradient(18rem circle at var(--mx,50%) var(--my,0%),rgba(251,191,36,.14),transparent 60%);opacity:0;transition:opacity .3s}
+.card:hover{transform:translateY(-.3rem);border-color:rgba(251,191,36,.5);box-shadow:0 1.25rem 3rem -1.5rem rgba(245,158,11,.5)}.card:hover::before{opacity:1}
+.card .no{font-size:.75rem;font-weight:700;color:var(--faint);font-variant-numeric:tabular-nums;display:flex;justify-content:space-between;position:relative}
+.tag{color:var(--glow);letter-spacing:.1em;text-transform:uppercase}
+.card h2{font-size:1.15rem;line-height:1.45;position:relative}
+.card p{font-size:.92rem;line-height:1.65;flex:1;position:relative}
+.card .more{color:var(--glow);font-weight:700;font-size:.88rem;display:flex;align-items:center;gap:.4rem;position:relative}
+.reader{display:none;grid-template-columns:minmax(0,1fr);gap:2.5rem;padding-top:clamp(2rem,5vw,3.5rem)}
+.reading .reader{display:grid}.reading .list{display:none}
+@media(min-width:64rem){.reader{grid-template-columns:minmax(0,1fr) 19rem}}
+.back{display:inline-flex;align-items:center;gap:.5rem;color:var(--glow);font-weight:700;font-size:.9rem;margin-bottom:1.25rem}
+.back svg{transform:rotate(180deg)}
+article.body h1{font-size:clamp(1.7rem,3.6vw,2.4rem);font-weight:800;margin-block:.6rem 1rem}
+.lede{font-size:1.12rem;color:var(--ink);line-height:1.75;max-width:44rem}
+.only{margin-top:1rem;font-size:.85rem;color:var(--glow)}
+.body .c{max-width:44rem;margin-top:1.5rem}
+.body .c h3{font-size:1.25rem;margin-block:2rem .7rem}
+.body .c p{margin-bottom:1rem}
+.body .c ul,.body .c ol{margin:0 0 1.2rem 1.3rem;display:grid;gap:.45rem}
+.body .c li::marker{color:var(--glow);font-weight:700}
+.body .c b{color:var(--ink)}
+.body .c .box{border:1px solid rgba(251,191,36,.35);background:rgba(251,191,36,.07);border-radius:1rem;padding:1rem 1.2rem;color:var(--ink);margin-block:1.25rem}
+.body .tw{overflow-x:auto;border:1px solid var(--line);border-radius:1rem;margin-block:1.25rem}
+.body table{border-collapse:collapse;width:100%;min-width:34rem;font-size:.9rem}
+.body th,.body td{padding:.7rem .9rem;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+.body th{background:var(--panel2);color:var(--ink)}.body td:first-child{color:var(--ink);font-weight:600}
+.body tr:last-child td{border-bottom:0}
+.src{font-size:.82rem;color:var(--faint);margin-top:1.5rem;max-width:44rem}
+aside .pn{border:1px solid var(--line);border-radius:1.25rem;background:var(--panel);padding:1.3rem;position:sticky;top:5.5rem}
+aside h4{font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin-bottom:.8rem}
+aside a.o{display:block;padding:.55rem 0;border-bottom:1px solid var(--line);font-size:.9rem;line-height:1.5;color:var(--ink)}
+aside a.o:hover{color:var(--glow)}
+aside .btn{width:100%;margin-top:1.1rem}
+.disc{margin-top:3rem;font-size:.82rem;color:var(--faint);border-top:1px solid var(--line);padding-top:1.1rem;max-width:52rem}
+</style>
+</head>
+<body data-page="articles">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+</defs></svg>
+<header class="nav" id="hdr"></header>
+<main id="main">
+  <div class="wrap list">
+    <section class="top fade">
+      <span class="eyebrow" id="eb"></span>
+      <h1 id="h1"></h1>
+      <p id="sub"></p>
+      <div class="filter" id="filter" role="group"></div>
+    </section>
+    <div class="grid" id="grid"></div>
+    <p class="disc" id="disc"></p>
+  </div>
+  <div class="wrap reader">
+    <article class="body" id="body"></article>
+    <aside><div class="pn" id="side"></div></aside>
+  </div>
+</main>
+<footer id="ftr"></footer>
+
+<script src="site.js"></script>
+<script>
+const UI={
+ th:{eb:'บทความน่ารู้',h:'เรื่องที่เจ้าของอู่ควรรู้',sub:'สรุปจากงานสัมมนา DriveGo ทั้งด้านกฎหมาย ภาษี เอกสาร และพฤติกรรมลูกค้า สำหรับผู้ประกอบการอู่ซ่อมรถ',all:'ทั้งหมด',read:'อ่านบทความ',back:'บทความทั้งหมด',other:'บทความอื่น',demo:'นัดดู Demo ระบบ',only:'',
+  disc:'เนื้อหาเป็นข้อมูลสรุปเพื่อการอบรมและวางแผนธุรกิจ ไม่ใช่คำแนะนำทางกฎหมายหรือภาษี อัตราและเงื่อนไขอาจเปลี่ยนแปลง ควรตรวจสอบกับหน่วยงานที่เกี่ยวข้องหรือผู้ทำบัญชีของกิจการก่อนนำไปใช้',
+  cats:{law:'กฎหมาย',tax:'ภาษี',hr:'บุคลากร',mkt:'ลูกค้า'}},
+ en:{eb:'Articles',h:'What every garage owner should know',sub:'Notes from the DriveGo seminar on law, tax, documents and customer behaviour, written for car repair businesses in Thailand.',all:'All',read:'Read article',back:'All articles',other:'More articles',demo:'Book a demo',only:'The full article is available in Thai.',
+  disc:'This content is a summary for training and business planning. It is not legal or tax advice. Rates and conditions change, so check with the relevant authority or your accountant before acting on it.',
+  cats:{law:'Law',tax:'Tax',hr:'People',mkt:'Customers'}},
+ zh:{eb:'知识文章',h:'修车厂老板应该了解的事',sub:'整理自 DriveGo 研讨会，内容涵盖法律、税务、单据和客户行为，面向泰国汽修经营者。',all:'全部',read:'阅读文章',back:'全部文章',other:'其他文章',demo:'预约系统演示',only:'文章全文目前仅提供泰文版。',
+  disc:'本内容为培训与经营规划用的摘要，不构成法律或税务建议。税率与条件可能变动，使用前请向相关机构或贵司会计确认。',
+  cats:{law:'法律',tax:'税务',hr:'人事',mkt:'客户'}}
+};
+const A=[
+{id:'receipt',cat:'law',
+ t:{th:'ใบเสร็จของอู่ซ่อมรถ ต้องมีอะไรบ้าง',en:'What a garage receipt must contain',zh:'修车厂收据必须包含哪些内容'},
+ s:{th:'ธุรกิจซ่อมรถเป็นธุรกิจที่ควบคุมรายการในหลักฐานการรับเงิน ใบเสร็จต้องมีข้อมูลครบ 10 รายการ',en:'Car repair is a business with controlled receipt contents. A receipt must carry ten items.',zh:'汽修属于收款凭证内容受管制的行业，收据须包含 10 项内容。'},
+ b:`<p>ธุรกิจการให้บริการซ่อมรถยนต์ถูกกำหนดให้เป็น <b>ธุรกิจที่ควบคุมรายการในหลักฐานการรับเงิน</b> เพื่อป้องกันการคิดราคาเกินจริงและการซ่อมที่ไม่โปร่งใส การออกหลักฐานการรับเงินจึงเป็นหน้าที่ตามกฎหมาย ไม่ใช่การขอความร่วมมือ</p>
+ <h3>10 รายการที่ต้องมีในใบเสร็จ</h3>
+ <ol><li>ชื่อและที่อยู่ของผู้ประกอบธุรกิจอู่ซ่อมรถ</li><li>วันที่ส่งมอบรถให้ซ่อม และวันที่รับมอบรถเมื่อซ่อมเสร็จ</li><li>วันที่อู่ได้รับเงินค่าบริการซ่อม</li><li>ยี่ห้อ รุ่น หมายเลขเครื่องยนต์ หมายเลขตัวถัง และทะเบียนรถ</li><li>เลขไมล์ ทั้งวันรับรถและวันซ่อมเสร็จ</li><li>รายการที่ซ่อม</li><li>ค่าบริการซ่อมรถยนต์</li><li>กรณีเปลี่ยนอะไหล่ ต้องระบุรายการ ยี่ห้อ สภาพ และราคาอะไหล่</li><li>ระยะเวลาหรือระยะทางการรับประกันงานซ่อมและอะไหล่ที่เปลี่ยน</li><li>ลายมือชื่อของผู้มีอำนาจออกหลักฐานการรับเงิน</li></ol>
+ <h3>มาตรา 35 และมาตรา 57 ที่อู่ต้องรู้</h3>
+ <p>ตาม พ.ร.บ.คุ้มครองผู้บริโภค พ.ศ. 2522 ผู้ประกอบธุรกิจต้องออกหลักฐานการรับเงินให้ผู้บริโภคทันทีที่ได้รับชำระเงิน และต้องระบุว่าอะไหล่ที่เปลี่ยนเป็นของใหม่ แท้ เทียม หรือใช้แล้ว พร้อมเงื่อนไขการรับประกัน</p>
+ <p>การไม่ส่งมอบหลักฐานการรับเงิน หรือออกเอกสารที่มีรายการไม่ครบถ้วน มีโทษทางอาญาทั้งจำคุกและปรับตามมาตรา 57 ผู้ประกอบธุรกิจอาจถูกดำเนินคดีจากรายการที่ไม่ครบ แม้จะออกใบเสร็จให้แล้วก็ตาม</p>
+ <h3>บิลเขียนมือมักขาดอะไร</h3>
+ <ul><li>ไม่มีชื่อและที่อยู่ของอู่</li><li>ไม่มีข้อมูลรถ ยี่ห้อ รุ่น เลขเครื่อง เลขตัวถัง และทะเบียน</li><li>ไม่มีเลขไมล์วันรับรถและวันซ่อมเสร็จ</li><li>ไม่ระบุวันที่รับรถและวันที่ส่งมอบรถ</li><li>เขียนรวมว่า "ค่าซ่อมรถ" ไม่แยกค่าแรงกับค่าอะไหล่</li><li>ไม่ระบุยี่ห้อและสภาพของอะไหล่ที่เปลี่ยน</li><li>ไม่ระบุการรับประกันงานซ่อมและอะไหล่</li></ul>
+ <div class="box">นอกจากความเสี่ยงทางกฎหมาย เอกสารที่ไม่ครบยังทำให้อู่เสียเปรียบเวลามีข้อโต้แย้ง เพราะไม่มีหลักฐานว่าทำอะไรไปบ้าง ระบบ DriveGo ออกใบเสร็จที่มีข้อมูลรถ เลขไมล์ รายการซ่อม และการรับประกันจากใบสั่งซ่อมใบเดียวกัน</div>`,
+ src:'ที่มา: ประกาศคณะกรรมการว่าด้วยสัญญา เรื่อง ให้ธุรกิจการให้บริการซ่อมรถยนต์เป็นธุรกิจที่ควบคุมรายการในหลักฐานการรับเงิน พ.ศ. 2546 และ พ.ร.บ.คุ้มครองผู้บริโภค พ.ศ. 2522'},
+{id:'license',cat:'law',
+ t:{th:'อภ.2 ใบอนุญาตที่อู่ซ่อมรถต้องมี',en:'The health-hazard business licence every garage needs',zh:'修车厂必须持有的“危害健康经营许可证”'},
+ s:{th:'ใบอนุญาตประกอบกิจการที่เป็นอันตรายต่อสุขภาพ ออกโดยท้องถิ่น มีอายุ 1 ปี และต้องแสดงไว้ที่ร้าน',en:'Issued by the local authority, valid for one year, and must be displayed on the premises.',zh:'由地方政府签发，有效期 1 年，并须在店内公开展示。'},
+ b:`<p><b>แบบ อภ.2</b> คือใบอนุญาตประกอบกิจการที่เป็นอันตรายต่อสุขภาพ ออกโดยเจ้าพนักงานท้องถิ่น เช่น เทศบาล อบต. หรือสำนักงานเขต ตามพระราชบัญญัติการสาธารณสุข พ.ศ. 2535 เพื่อรับรองว่าสถานประกอบการผ่านการตรวจสุขลักษณะและมีมาตรการควบคุมมลพิษ</p>
+ <h3>ตรวจอะไรบ้าง</h3>
+ <p>ครอบคลุมเรื่องเสียง กลิ่น น้ำเสีย และการจัดการของเสียจากการซ่อม อู่ซ่อมรถอยู่ในข่ายต้องขอ เช่นเดียวกับร้านคาร์แคร์ ร้านซักอบรีด และโรงงานขนาดเล็ก</p>
+ <h3>รายละเอียดสำคัญ</h3>
+ <ul><li><b>อายุใบอนุญาต</b> 1 ปีนับแต่วันที่ออก ต้องยื่นต่ออายุก่อนหมดอายุ ควรเตรียมเอกสารล่วงหน้าราว 90 วัน และตรวจสอบกำหนดกับหน่วยงานท้องถิ่น</li><li><b>หน้าที่ของผู้รับใบอนุญาต</b> ต้องแสดงใบอนุญาตไว้ในที่เปิดเผย มองเห็นได้ง่าย ตลอดเวลาที่ประกอบกิจการ และพร้อมให้เจ้าพนักงานตรวจสอบ</li><li><b>ควรตั้งการแจ้งเตือน</b> วันหมดอายุไว้ในระบบของอู่</li></ul>
+ <div class="box">การไม่มีใบอนุญาตหรือปล่อยให้ใบอนุญาตขาดอายุ อาจถูกสั่งหยุดประกอบกิจการ และมีโทษตามพระราชบัญญัติการสาธารณสุข</div>`,
+ src:'ที่มา: พระราชบัญญัติการสาธารณสุข พ.ศ. 2535 และข้อกำหนดของเจ้าพนักงานท้องถิ่นแต่ละพื้นที่'},
+{id:'registration',cat:'law',
+ t:{th:'จดทะเบียนพาณิชย์ ใครต้องจด ค่าธรรมเนียมเท่าไร',en:'Commercial registration: who must register and what it costs',zh:'商业登记：谁需要登记，费用多少'},
+ s:{th:'ขั้นตอนแรกที่ทำให้อู่เป็นร้านค้าที่ตรวจสอบได้ ค่าธรรมเนียมจดตั้งใหม่ 50 บาท',en:'The first step to becoming a verifiable business. A new registration costs 50 baht.',zh:'让门店成为可查证商户的第一步，新登记费用为 50 泰铢。'},
+ b:`<p>ตามประกาศของกรมพัฒนาธุรกิจการค้า ผู้มีหน้าที่จดทะเบียนพาณิชย์แบ่งเป็น 5 กลุ่ม</p>
+ <ol><li>บุคคลธรรมดา เจ้าของกิจการคนเดียว</li><li>ห้างหุ้นส่วนสามัญ</li><li>ห้างหุ้นส่วนสามัญนิติบุคคล หรือห้างหุ้นส่วนจำกัด</li><li>บริษัทจำกัด หรือบริษัทมหาชนจำกัด</li><li>นิติบุคคลต่างประเทศที่ตั้งสำนักงานสาขาในประเทศไทย</li></ol>
+ <h3>ค่าธรรมเนียม</h3>
+ <div class="tw"><table><thead><tr><th>รายการ</th><th>ค่าธรรมเนียม</th></tr></thead><tbody><tr><td>จดทะเบียนตั้งใหม่</td><td>50 บาท</td></tr><tr><td>เปลี่ยนแปลงรายการ</td><td>20 บาท</td></tr><tr><td>ยกเลิกกิจการ</td><td>20 บาท</td></tr><tr><td>คัดสำเนาเอกสาร</td><td>30 บาทต่อฉบับ</td></tr></tbody></table></div>
+ <h3>บทลงโทษ</h3>
+ <ul><li><b>ไม่จดทะเบียน หรือให้ข้อมูลเท็จ</b> ปรับไม่เกิน 2,000 บาท และปรับรายวันอีกไม่เกินวันละ 100 บาทจนกว่าจะจดทะเบียน</li><li><b>ไม่แสดงใบทะเบียนพาณิชย์ที่ร้าน</b> ปรับไม่เกิน 200 บาท และปรับรายวันอีกไม่เกินวันละ 20 บาท</li><li><b>ทุจริตต่อประชาชน</b> ถูกถอนใบทะเบียนพาณิชย์ และห้ามดำเนินกิจการต่อ</li></ul>
+ <div class="box">การจดทะเบียนพาณิชย์เป็นเงื่อนไขพื้นฐานของการรับงานจากลูกค้าองค์กร ร้านค้าออนไลน์ที่รับชำระเงินผ่านแพลตฟอร์มต้องจดทะเบียนพาณิชย์อิเล็กทรอนิกส์เพิ่มเติม</div>`,
+ src:'ที่มา: กรมพัฒนาธุรกิจการค้า'},
+{id:'vat',cat:'tax',
+ t:{th:'VAT สำหรับอู่ซ่อมรถ จดเมื่อไร ยื่นอะไร คุ้มหรือไม่',en:'VAT for garages: when to register, what to file, is it worth it',zh:'修车厂的增值税：何时登记、如何申报、是否划算'},
+ s:{th:'รายรับเกิน 1.8 ล้านบาทต่อปีต้องจด VAT ภายใน 30 วัน พร้อมเปรียบเทียบบุคคลธรรมดากับนิติบุคคล',en:'Revenue above 1.8 million baht a year means registering within 30 days. Includes an individual versus company comparison.',zh:'年营业额超过 180 万泰铢须在 30 天内登记，并附个人与法人对比。'},
+ b:`<p>ภาษีมูลค่าเพิ่ม (VAT) คือภาษีที่เก็บเพิ่มจากการขายสินค้าหรือบริการในอัตรา 7% ผู้ประกอบการเก็บจากลูกค้าแล้วนำส่งกรมสรรพากร</p>
+ <h3>ใครต้องจดทะเบียน</h3>
+ <ul><li>ผู้มีรายรับจากการขายสินค้าหรือบริการ <b>เกิน 1,800,000 บาทต่อปี</b> ต้องจดภายใน 30 วันนับแต่วันที่รายได้ถึงเกณฑ์</li><li>นับรายได้ก่อนหักค่าใช้จ่าย ในรอบปีภาษี 1 มกราคม ถึง 31 ธันวาคม</li><li>ยื่นจดผ่านเว็บไซต์กรมสรรพากร หรือที่สำนักงานสรรพากรพื้นที่สาขา</li></ul>
+ <h3>จดแล้วต้องยื่นอะไร</h3>
+ <ul><li><b>รายเดือน</b> ออกใบกำกับภาษีทุกครั้งที่ขาย และยื่น ภ.พ.30 ภายในวันที่ 15 ของเดือนถัดไป ยื่นออนไลน์ขยายเวลาได้อีก 8 วัน</li><li><b>รายปี</b> ยื่นภาษีเงินได้บุคคลธรรมดา ภ.ง.ด.90 หรือ 91</li></ul>
+ <h3>ข้อดีและข้อเสีย</h3>
+ <div class="tw"><table><thead><tr><th>ข้อดี</th><th>ข้อเสีย</th></tr></thead><tbody><tr><td>รับงานธุรกิจขนาดใหญ่ที่ต้องการใบกำกับภาษีได้</td><td>ราคาขายสูงขึ้นเพราะรวม VAT 7%</td></tr><tr><td>ยื่นประมูลงานภาครัฐได้ง่ายกว่า</td><td>มีภาระยื่นภาษีทุกเดือน</td></tr><tr><td>ขอคืนเครดิตภาษีซื้อได้</td><td>มีโอกาสถูกเรียกตรวจสอบ</td></tr><tr><td>เอกสารเป็นระเบียบ ธุรกิจน่าเชื่อถือขึ้น</td><td>ออกจากระบบ VAT ยาก</td></tr></tbody></table></div>
+ <h3>บุคคลธรรมดา เทียบกับ นิติบุคคล</h3>
+ <div class="tw"><table><thead><tr><th>หัวข้อ</th><th>บุคคลธรรมดา</th><th>นิติบุคคล</th></tr></thead><tbody>
+ <tr><td>ฐานภาษีเงินได้</td><td>เงินได้สุทธิ อัตราก้าวหน้า 0 ถึง 35%</td><td>กำไรสุทธิ อัตรา SME 0%, 15%, 20% ตามช่วงกำไร</td></tr>
+ <tr><td>การหักค่าใช้จ่าย</td><td>หักเหมาหรือหักตามจริง</td><td>หักตามจริงเฉพาะรายการที่มีเอกสารครบ</td></tr>
+ <tr><td>แบบภาษีเงินได้</td><td>ภ.ง.ด.94 และ ภ.ง.ด.90</td><td>ภ.ง.ด.51 และ ภ.ง.ด.50</td></tr>
+ <tr><td>การทำบัญชี</td><td>ไม่บังคับบัญชีชุดเต็ม แต่ต้องมีรายงานภาษีซื้อและภาษีขาย</td><td>ต้องทำบัญชีและมีผู้สอบบัญชีรับรองงบทุกปี</td></tr>
+ <tr><td>ความรับผิดในหนี้สิน</td><td>ไม่จำกัด รวมถึงทรัพย์สินส่วนตัว</td><td>จำกัดตามทุนจดทะเบียน</td></tr></tbody></table></div>
+ <div class="box">สำหรับอู่ที่รับงานรถองค์กรและงานประกัน การจด VAT มักหลีกเลี่ยงไม่ได้ คำถามจึงไม่ใช่ "จดดีไหม" แต่คือ "พร้อมด้านเอกสารแล้วหรือยัง"</div>`,
+ src:'ที่มา: กรมสรรพากร'},
+{id:'withholding',cat:'tax',
+ t:{th:'ภาษีหัก ณ ที่จ่าย อู่เกี่ยวข้องอย่างไร',en:'Withholding tax and how it affects a garage',zh:'预扣税与修车厂的关系'},
+ s:{th:'เมื่อรับงานจากบริษัทจะถูกหัก 3% ต้องเก็บหนังสือรับรองทุกใบไว้ใช้เป็นเครดิตภาษี',en:'Corporate customers withhold 3%. Keep every certificate to use as a tax credit.',zh:'承接企业业务时会被预扣 3%，须保存每一张凭证用于抵税。'},
+ b:`<p>ภาษีหัก ณ ที่จ่าย คือภาษีที่ผู้จ่ายเงินหักไว้ส่วนหนึ่งแล้วนำส่งกรมสรรพากรแทนผู้รับเงิน ผู้รับจะได้หนังสือรับรองการหักภาษีไว้ใช้เครดิตตอนยื่นภาษีประจำปี</p>
+ <h3>กรณีที่อู่ "ถูกหัก"</h3>
+ <p>เมื่อรับงานซ่อมจากบริษัทหรือหน่วยงานราชการ ผู้ว่าจ้างที่เป็นนิติบุคคลจะหักภาษีจากค่าบริการซ่อมในอัตรา 3% อู่ต้องเก็บหนังสือรับรองทุกใบ เพราะใช้ลดภาษีที่ต้องชำระตอนสิ้นปี</p>
+ <h3>กรณีที่อู่ "เป็นผู้หัก"</h3>
+ <p>หากอู่จดทะเบียนเป็นนิติบุคคล จะมีหน้าที่หักภาษีเมื่อจ่ายเงินให้ผู้อื่น</p>
+ <div class="tw"><table><thead><tr><th>ประเภทเงินที่จ่าย</th><th>อัตรา</th></tr></thead><tbody><tr><td>ค่าบริการ ค่าจ้างทำของ</td><td>3%</td></tr><tr><td>ค่าเช่าอสังหาริมทรัพย์</td><td>5%</td></tr><tr><td>ค่าโฆษณา</td><td>2%</td></tr></tbody></table></div>
+ <ul><li><b>ภ.ง.ด.3</b> ใช้เมื่อจ่ายเงินให้บุคคลธรรมดา</li><li><b>ภ.ง.ด.53</b> ใช้เมื่อจ่ายเงินให้นิติบุคคล</li><li>นำส่งภายในวันที่ 7 ของเดือนถัดไป และขยายเวลาได้หากยื่นออนไลน์</li></ul>`,
+ src:'ที่มา: กรมสรรพากร'},
+{id:'social-security',cat:'hr',
+ t:{th:'ประกันสังคม หน้าที่นายจ้างเมื่อมีช่างประจำ',en:'Social security: an employer’s duties once you hire technicians',zh:'社会保险：雇用技师后的雇主义务'},
+ s:{th:'มีลูกจ้างตั้งแต่ 1 คนต้องขึ้นทะเบียนภายใน 30 วัน และนำส่งเงินสมทบภายในวันที่ 15',en:'With one employee or more, register within 30 days and remit contributions by the 15th.',zh:'雇用 1 名以上员工须在 30 天内登记，并于每月 15 日前缴纳保费。'},
+ b:`<h3>เมื่อไรต้องขึ้นทะเบียน</h3>
+ <ul><li>เมื่อมีลูกจ้างตั้งแต่ 1 คนขึ้นไป</li><li>ขึ้นทะเบียนนายจ้างและลูกจ้างภายใน 30 วันนับแต่วันที่รับเข้าทำงาน</li><li>ลูกจ้างที่เข้าใหม่ภายหลัง ต้องแจ้งขึ้นทะเบียนภายใน 30 วันเช่นกัน</li></ul>
+ <h3>อัตราเงินสมทบ</h3>
+ <ul><li>นายจ้างและลูกจ้างจ่ายฝ่ายละ 5% ของค่าจ้าง</li><li>ตั้งแต่ 1 มกราคม 2569 ถึงสิ้นปี 2571 เพดานค่าจ้างที่ใช้คำนวณคือ 17,500 บาท เงินสมทบสูงสุดฝ่ายละ 875 บาทต่อเดือน (เดิม 15,000 บาท และ 750 บาท)</li></ul>
+ <h3>การนำส่ง</h3>
+ <ul><li>ยื่นแบบ สปส.1-10 และนำส่งภายในวันที่ 15 ของเดือนถัดไป</li><li>ยื่นผ่านระบบ e-Service ของสำนักงานประกันสังคมได้</li></ul>
+ <div class="box">สำหรับอู่ที่มีช่างประจำ นี่คือหน้าที่พื้นฐานที่ต้องทำตั้งแต่วันแรกที่จ้างงาน การไม่ขึ้นทะเบียนหรือนำส่งล่าช้ามีเงินเพิ่มและโทษตามกฎหมาย ตรวจสอบอัตราปัจจุบันได้ที่สายด่วน 1506</div>`,
+ src:'ที่มา: สำนักงานประกันสังคม'},
+{id:'labels',cat:'law',
+ t:{th:'อะไหล่รถยนต์เป็นสินค้าควบคุมฉลาก',en:'Car parts are label-controlled goods',zh:'汽车配件属于标签管制商品'},
+ s:{th:'อู่ที่ขายอะไหล่พร้อมงานซ่อมต้องตรวจฉลากสินค้าให้ถูกต้องตามประกาศ พ.ศ. 2565',en:'Garages that sell parts with repairs must check product labels under the 2022 notification.',zh:'随维修销售配件的修车厂，须按 2022 年公告核对商品标签。'},
+ b:`<p>ประกาศคณะกรรมการว่าด้วยฉลาก เรื่อง กำหนดประเภทของสินค้าให้เป็นสินค้าที่ควบคุมฉลาก พ.ศ. 2565 กำหนดสินค้ากลุ่มยานยนต์ที่ถูกควบคุมฉลากไว้ดังนี้</p>
+ <ol><li>แบตเตอรี่</li><li>ฟิล์มกรองแสง</li><li>สีสเปรย์พ่นรถ</li><li>รถจักรยาน อะไหล่ และอุปกรณ์</li><li>อะไหล่และอุปกรณ์รถยนต์ รถจักรยานยนต์</li></ol>
+ <h3>บทลงโทษ</h3>
+ <ul><li><b>ผู้จำหน่าย</b> จำหน่ายสินค้าควบคุมฉลากโดยไม่มีฉลากหรือฉลากไม่ถูกต้อง จำคุกไม่เกิน 6 เดือน หรือปรับไม่เกิน 100,000 บาท หรือทั้งจำทั้งปรับ</li><li><b>ผู้ผลิตหรือผู้นำเข้า</b> จำคุกไม่เกิน 1 ปี หรือปรับไม่เกิน 200,000 บาท หรือทั้งจำทั้งปรับ</li></ul>
+ <div class="box">เรื่องนี้เกี่ยวข้องโดยตรงกับอู่ที่จำหน่ายอะไหล่ให้ลูกค้าพร้อมงานซ่อม เพราะอะไหล่รถยนต์อยู่ในรายการสินค้าควบคุมฉลาก</div>`,
+ src:'ที่มา: ราชกิจจานุเบกษา 24 มีนาคม 2565'},
+{id:'customers',cat:'mkt',
+ t:{th:'ลูกค้าใช้อะไรตัดสินใจเลือกอู่',en:'How customers choose a garage',zh:'客户凭什么选择修车厂'},
+ s:{th:'ลูกค้าสองกลุ่ม เข้าซ่อมตามแผนกับเข้าซ่อมเมื่อเกิดปัญหา และปัจจัย 7 ด้านที่ให้น้ำหนัก',en:'Two kinds of visit, planned and unplanned, and the seven factors customers weigh.',zh:'两类客户：计划内保养与突发维修，以及客户看重的 7 个因素。'},
+ b:`<h3>ลูกค้าสองกลุ่ม</h3>
+ <ul><li><b>เข้าซ่อมตามแผน</b> เช่น เช็กระยะ เปลี่ยนถ่ายของเหลว เตรียมรถก่อนเดินทางไกล ลูกค้ากลุ่มนี้มีเวลาเลือกและเปรียบเทียบ จึงมักไปที่อู่ที่เตือนเขาก่อนและมีข้อมูลรถของเขาอยู่แล้ว</li><li><b>เข้าซ่อมเมื่อเกิดปัญหา</b> เช่น ไฟเตือนขึ้น สตาร์ตไม่ติด แอร์ไม่เย็น อุบัติเหตุ ลูกค้ากลุ่มนี้ตัดสินใจเร็วภายใต้ความกังวล จึงให้น้ำหนักกับความน่าเชื่อถือ ความชัดเจนของราคา และการตอบคำถามได้ทันที</li></ul>
+ <h3>ปัจจัย 7 ด้าน เรียงตามน้ำหนักที่ลูกค้าให้</h3>
+ <ol><li><b>บุคคล</b> ช่างและพนักงานอธิบายอาการ ขั้นตอน และราคาได้ชัดเจน</li><li><b>ผลิตภัณฑ์และบริการ</b> คุณภาพงานซ่อม อะไหล่ที่ใช้ และเงื่อนไขรับประกัน</li><li><b>กระบวนการ</b> รับรถ แจ้งราคา ติดตามงาน และส่งมอบอย่างเป็นระบบ</li><li><b>ช่องทางและสถานที่</b> เดินทางสะดวก ติดต่อง่าย ตอบกลับเร็ว</li><li><b>ราคา</b> สมเหตุสมผล แจ้งล่วงหน้า ไม่มีค่าใช้จ่ายงอกภายหลัง</li><li><b>ลักษณะทางกายภาพ</b> ความเป็นระเบียบของอู่ และความเป็นมืออาชีพของเอกสาร</li><li><b>การส่งเสริมการตลาด</b> โปรโมชันและการสื่อสารกับลูกค้าเก่า</li></ol>
+ <h3>จากปัจจัยของลูกค้า สู่สิ่งที่ระบบต้องทำได้</h3>
+ <div class="tw"><table><thead><tr><th>ปัจจัย</th><th>สิ่งที่ลูกค้าต้องเห็นหน้างาน</th><th>ความสามารถใน DriveGo</th></tr></thead><tbody>
+ <tr><td>บุคคล</td><td>พนักงานตอบได้ทันทีว่ารถอยู่ขั้นตอนไหน</td><td>ทะเบียนใบสั่งซ่อมและสถานะงานแบบเรียลไทม์</td></tr>
+ <tr><td>ผลิตภัณฑ์</td><td>เห็นว่าใช้อะไหล่อะไร รับประกันแค่ไหน</td><td>รายการอะไหล่และเงื่อนไขรับประกันในเอกสารทุกฉบับ</td></tr>
+ <tr><td>กระบวนการ</td><td>มีเอกสารทุกช่วง ตั้งแต่เสนอราคาจนส่งมอบ</td><td>ชุดเอกสารที่เชื่อมข้อมูลกัน ไม่ต้องคีย์ซ้ำ</td></tr>
+ <tr><td>ราคา</td><td>รู้ราคาก่อนลงมือ</td><td>ใบเสนอราคาที่แปลงเป็นใบสั่งซ่อมเมื่ออนุมัติ</td></tr>
+ <tr><td>การกลับมาซ้ำ</td><td>มีคนเตือนเมื่อถึงรอบเซอร์วิส</td><td>ประวัติรถรายคันและการแจ้งเตือนรอบเซอร์วิส</td></tr></tbody></table></div>`,
+ src:'ที่มา: เอกสารสัมมนา DriveGo อ้างอิงงานวิจัยส่วนประสมทางการตลาด 7P\'s ของผู้ใช้บริการอู่ซ่อมรถยนต์ (จ.สงขลา) และงานวิจัยในพื้นที่ จ.ปทุมธานี กลุ่มตัวอย่าง 400 คน'},
+{id:'checklist',cat:'law',
+ t:{th:'เช็กลิสต์ 8 ข้อ ความพร้อมด้านกฎหมายของอู่',en:'An 8-point legal readiness checklist for garages',zh:'修车厂法律合规 8 项清单'},
+ s:{th:'รวมหน้าที่ตามกฎหมายของเจ้าของอู่ไว้ในหน้าเดียว พร้อมหน่วยงานที่เกี่ยวข้อง',en:'A garage owner’s legal duties on one page, with the authority responsible for each.',zh:'把修车厂老板的法定义务汇总在一页，并列出对应主管机构。'},
+ b:`<div class="tw"><table><thead><tr><th>สิ่งที่ต้องทำ</th><th>หน่วยงาน</th></tr></thead><tbody>
+ <tr><td>จดทะเบียนพาณิชย์ และแสดงใบทะเบียนไว้ที่ร้าน</td><td>กรมพัฒนาธุรกิจการค้า</td></tr>
+ <tr><td>มีใบอนุญาต อภ.2 ที่ยังไม่หมดอายุ และแสดงไว้ในที่เปิดเผย</td><td>เทศบาล อบต. หรือสำนักงานเขต</td></tr>
+ <tr><td>ออกหลักฐานการรับเงินที่มีรายการครบทุกครั้ง</td><td>สคบ.</td></tr>
+ <tr><td>ตรวจสอบฉลากอะไหล่และสินค้ายานยนต์ที่จำหน่าย</td><td>คณะกรรมการว่าด้วยฉลาก</td></tr>
+ <tr><td>ประเมินรายรับว่าถึงเกณฑ์ 1.8 ล้านบาทต่อปีหรือยัง</td><td>กรมสรรพากร</td></tr>
+ <tr><td>ยื่น ภ.พ.30 ทุกเดือน และ ภ.ง.ด. ประจำปีให้ตรงกำหนด</td><td>กรมสรรพากร</td></tr>
+ <tr><td>เก็บหนังสือรับรองการหักภาษี ณ ที่จ่ายให้ครบทุกใบ</td><td>กรมสรรพากร</td></tr>
+ <tr><td>ขึ้นทะเบียนประกันสังคม และนำส่งเงินสมทบภายในวันที่ 15</td><td>สำนักงานประกันสังคม</td></tr></tbody></table></div>
+ <div class="box">ทั้ง 8 ข้อมีจุดร่วมเดียวกัน คือต้องมีเอกสารที่ถูกต้องและค้นย้อนหลังได้ ซึ่งเป็นสิ่งที่ระบบบริหารอู่ช่วยได้โดยตรง</div>`,
+ src:'ที่มา: เอกสารสัมมนา DriveGo'}
+];
+
+const $=s=>document.querySelector(s);
+let cat='all';
+const L=o=>DG.pick(o);
+function list(){
+  const u=UI[DG.lang];
+  $('#eb').textContent=u.eb; $('#h1').textContent=u.h; $('#sub').textContent=u.sub; $('#disc').textContent=u.disc;
+  $('#filter').innerHTML=[['all',u.all],...Object.entries(u.cats)].map(c=>`<button type="button" data-c="${c[0]}" aria-pressed="${c[0]===cat}">${c[1]}</button>`).join('');
+  $('#grid').innerHTML=A.filter(a=>cat==='all'||a.cat===cat).map((a,i)=>`<a class="card fade" style="--d:${i*.05}s" href="#${a.id}"><span class="no"><span class="tag">${u.cats[a.cat]}</span><span>${String(A.indexOf(a)+1).padStart(2,'0')}</span></span><h2>${L(a.t)}</h2><p>${L(a.s)}</p><span class="more">${u.read}<svg class="ic"><use href="#i-arrow"/></svg></span></a>`).join('');
+}
+function read(a){
+  const u=UI[DG.lang];
+  $('#body').innerHTML=`<a class="back" href="#"><svg class="ic"><use href="#i-arrow"/></svg>${u.back}</a><div class="eyebrow">${u.cats[a.cat]}</div><h1>${L(a.t)}</h1><p class="lede">${L(a.s)}</p>${u.only?`<p class="only">${u.only}</p>`:''}<div class="c" lang="th">${a.b}</div><p class="src" lang="th">${a.src}</p><p class="disc">${u.disc}</p>`;
+  $('#side').innerHTML=`<h4>${u.other}</h4>${A.filter(x=>x!==a).slice(0,6).map(x=>`<a class="o" href="#${x.id}">${L(x.t)}</a>`).join('')}<a class="btn btn-a" href="index.html#contact">${u.demo}</a>`;
+}
+function route(){
+  const a=A.find(x=>x.id===location.hash.slice(1));
+  $('#main').classList.toggle('reading',!!a);
+  if(a){read(a);scrollTo(0,0)} else list();
+}
+$('#filter').addEventListener('click',e=>{const b=e.target.closest('button');if(b){cat=b.dataset.c;list()}});
+$('#grid').addEventListener('pointermove',e=>{const c=e.target.closest('.card');if(!c)return;const r=c.getBoundingClientRect();c.style.setProperty('--mx',(e.clientX-r.left)/r.width*100+'%');c.style.setProperty('--my',(e.clientY-r.top)/r.height*100+'%')});
+addEventListener('hashchange',route);
+DG.onLang(route); DG.start();
+</script>
+</body>
+</html>

@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DriveGo X</title>
+<meta name="description" content="DriveGo ระบบบริหารอู่ซ่อมรถยนต์และศูนย์บริการแบบครบวงจรบน Cloud ครอบคลุมงานหน้าลาน สต๊อกอะไหล่ บัญชี เอกสาร และลูกค้าสัมพันธ์">
+<meta name="theme-color" content="#0A0A0B">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 48 48%27%3E%3Ccircle cx=%2724%27 cy=%2724%27 r=%2724%27 fill=%27%23F59E0B%27/%3E%3Ccircle cx=%2724%27 cy=%2724%27 r=%2719%27 fill=%27none%27 stroke=%27%231A1000%27 stroke-width=%273%27 stroke-dasharray=%274.6 2.4%27/%3E%3Cpath d=%27M14 34h6l14-20h-6z%27 fill=%27%231A1000%27/%3E%3Cpath d=%27M14 14h6l3 4.4-3 4.5zM34 34h-6l-3-4.400 3-4.500z%27 fill=%27%231A1000%27 opacity=%27.55%27/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: obsidian stage, one amber light source. Product screens are the imagery; copy sits left, screens lean in from the right. */
+:root{
+  --bg:#0A0A0B; --panel:#141417; --panel2:#1B1B1F;
+  --line:rgba(248,250,252,.08); --line2:rgba(248,250,252,.14);
+  --amber:#F59E0B; --amber-d:#D97706; --glow:#FBBF24;
+  --ink:#F8FAFC; --mut:#94A3B8; --faint:#64748B;
+  --ok:#34D399; --bad:#F87171; --info:#60A5FA;
+  --f:'Plus Jakarta Sans','IBM Plex Sans Thai','Noto Sans SC',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --r:1rem; --wrap:76rem;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:5rem}
+body{background:var(--bg);color:var(--mut);font-family:var(--f);font-size:1rem;line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+h1,h2,h3,h4{color:var(--ink);line-height:1.25;text-wrap:balance;font-weight:700}
+:lang(th) h1,:lang(th) h2{line-height:1.4}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+:focus-visible{outline:.125rem solid var(--glow);outline-offset:.2rem;border-radius:.4rem}
+svg.ic{width:1.25em;height:1.25em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.wrap{max-width:var(--wrap);margin-inline:auto;padding-inline:1.25rem}
+section{padding-block:clamp(4rem,9vw,7.5rem);position:relative}
+.eyebrow{display:inline-flex;align-items:center;gap:.6rem;font-size:.78rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--glow)}
+.eyebrow::before{content:"";width:1.75rem;height:1px;background:linear-gradient(90deg,transparent,var(--glow))}
+.sec-h{font-size:clamp(1.75rem,3.6vw,2.75rem);margin-block:.9rem .9rem;max-width:22em}
+.sec-p{max-width:38rem;font-size:1.05rem}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.55rem;padding:.8rem 1.4rem;border-radius:62rem;font-weight:700;font-size:.95rem;transition:transform .25s,box-shadow .25s,background .25s,border-color .25s;white-space:nowrap}
+.btn-a{background:linear-gradient(180deg,var(--glow),var(--amber) 55%,var(--amber-d));color:#1A1000;box-shadow:0 0 0 1px rgba(251,191,36,.5),0 .5rem 2rem -.4rem rgba(245,158,11,.65),inset 0 1px 0 rgba(255,255,255,.45)}
+.btn-a:hover{transform:translateY(-.125rem);box-shadow:0 0 0 1px rgba(251,191,36,.8),0 .9rem 2.6rem -.3rem rgba(251,191,36,.8),inset 0 1px 0 rgba(255,255,255,.5)}
+.btn-g{border:1px solid var(--line2);color:var(--ink);background:rgba(248,250,252,.03)}
+.btn-g:hover{border-color:rgba(251,191,36,.55);background:rgba(251,191,36,.07)}
+.btn svg{transition:transform .25s}.btn:hover svg{transform:translateX(.2rem)}
+
+/* ---------- nav ---------- */
+.nav{position:fixed;inset:0 0 auto 0;z-index:50;transition:background .3s,border-color .3s;border-bottom:1px solid transparent}
+.nav.stuck{background:rgba(10,10,11,.72);backdrop-filter:blur(1rem) saturate(1.4);-webkit-backdrop-filter:blur(1rem) saturate(1.4);border-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:1rem;height:4.25rem}
+.logo{display:flex;align-items:center;gap:.6rem;font-weight:800;color:var(--ink);font-size:1.1rem;letter-spacing:-.01em}
+.logo-m{width:2.25rem;height:2.25rem;border-radius:50%;flex:none;background:linear-gradient(140deg,var(--glow),var(--amber-d));display:grid;place-items:center;color:#1A1000;font-size:.95rem;box-shadow:0 0 1.2rem -.2rem rgba(245,158,11,.8)}
+.lx{width:100%;height:100%;fill:#1A1000;animation:spin 7s linear infinite}.lx .c{opacity:.5}
+.lx .tr{fill:none;stroke:#1A1000;stroke-width:3.200;stroke-dasharray:4.600 2.400}.lx .rm{fill:none;stroke:#1A1000;stroke-width:1.400;opacity:.5}
+.logo:hover .lx{animation-duration:1.2s}
+@keyframes spin{to{transform:rotate(360deg)}}
+.lgx{color:var(--glow);font-weight:800}
+.nav-l{display:none;gap:1.6rem;margin-left:1.5rem;font-size:.9rem;font-weight:500}
+.nav-l a{position:relative;padding-block:.4rem;transition:color .2s}
+.nav-l a::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--glow);transform:scaleX(0);transform-origin:left;transition:transform .3s}
+.nav-l a:hover{color:var(--ink)}.nav-l a:hover::after{transform:scaleX(1)}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:.75rem}
+.lang{display:flex;border:1px solid var(--line2);border-radius:62rem;padding:.2rem;background:rgba(20,20,23,.7)}
+.lang button{padding:.3rem .65rem;border-radius:62rem;font-size:.74rem;font-weight:700;letter-spacing:.06em;color:var(--mut);transition:.2s}
+.lang button[aria-pressed="true"]{background:var(--amber);color:#1A1000}
+.nav .btn{padding:.6rem 1.1rem;font-size:.85rem}
+.nav .btn span.lg{display:none}
+@media(max-width:34rem){.nav .btn.cta{display:none}}
+@media(min-width:68rem){.nav-l{display:flex}}
+@media(max-width:30rem){.nav .wrap{gap:.5rem}.nav-r{gap:.4rem}.lang button{padding:.3rem .5rem}.nav .btn{padding:.55rem .8rem}}
+@media(min-width:40rem){.nav .btn span.lg{display:inline}.nav .btn span.sm{display:none}}
+
+/* ---------- hero ---------- */
+.hero{padding-top:8rem;padding-bottom:clamp(3rem,6vw,5rem);overflow:hidden}
+.aura{position:absolute;pointer-events:none;border-radius:50%;filter:blur(5rem);opacity:.5;will-change:transform}
+.aura.a1{width:38rem;height:38rem;right:-10rem;top:-8rem;background:radial-gradient(circle,rgba(245,158,11,.5),transparent 65%)}
+.aura.a2{width:26rem;height:26rem;left:-12rem;top:18rem;background:radial-gradient(circle,rgba(217,119,6,.28),transparent 65%)}
+.grid-bg{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:4rem 4rem;-webkit-mask-image:radial-gradient(ellipse 70% 60% at 60% 30%,#000,transparent);mask-image:radial-gradient(ellipse 70% 60% at 60% 30%,#000,transparent);opacity:.6}
+.hero .wrap{display:grid;gap:3rem;align-items:center;position:relative}
+.hero .wrap>*{min-width:0}
+.hero h1{font-size:clamp(2.1rem,4.6vw,3.5rem);font-weight:800;letter-spacing:-.02em;margin-block:1.1rem 1.2rem}
+.hero h1 em{display:block;font-style:normal;background:linear-gradient(100deg,var(--glow),var(--amber) 60%,var(--amber-d));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{max-width:37rem;padding:1.15rem 1.3rem 1.2rem;border-left:.22rem solid var(--glow);border-radius:0 1.1rem 1.1rem 0;background:linear-gradient(95deg,rgba(251,191,36,.16),rgba(251,191,36,.04) 60%,transparent);position:relative;overflow:hidden;box-shadow:-.6rem 0 2rem -1rem rgba(245,158,11,.7)}
+.lead::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.1) 50%,transparent 65%);transform:translateX(-100%);animation:sweep 5s ease-in-out infinite;pointer-events:none}
+@keyframes sweep{0%,55%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.lead .l1{font-size:clamp(1.15rem,1.75vw,1.4rem);font-weight:700;color:var(--ink);line-height:1.55;text-wrap:balance}
+.lead .l1 b{font-weight:800;font-size:1.12em;background:linear-gradient(100deg,var(--glow),var(--amber));-webkit-background-clip:text;background-clip:text;color:transparent;margin-right:.15em}
+.lead .l2{margin-top:.5rem;font-size:1.03rem;color:#CBD5E1;line-height:1.65}
+.lead .l2 em{font-style:normal;font-weight:700;color:var(--glow);background:linear-gradient(transparent 62%,rgba(251,191,36,.25) 62%)}
+.kw{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.95rem}
+.kw span{display:inline-flex;align-items:center;gap:.45rem;padding:.4rem .85rem;border-radius:62rem;border:1px solid rgba(251,191,36,.55);background:rgba(10,10,11,.55);color:var(--glow);font-weight:700;font-size:.92rem;animation:kw 3.6s ease-in-out infinite;animation-delay:var(--k,0s)}
+@keyframes kw{0%,70%,100%{box-shadow:0 0 0 0 rgba(251,191,36,0)}35%{box-shadow:0 0 1.4rem -.2rem rgba(251,191,36,.85);border-color:var(--glow)}}
+.hero-cta{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:1.8rem}
+.pil{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:.75rem;margin-top:2.4rem;max-width:38rem}
+.pil div{display:flex;gap:.75rem;padding:.85rem 1rem;border:1px solid var(--line);border-radius:var(--r);background:rgba(20,20,23,.6);transition:border-color .3s,transform .3s}
+.pil div:hover{border-color:rgba(251,191,36,.5);transform:translateY(-.15rem)}
+.pil svg{color:var(--glow);margin-top:.2rem}
+.pil b{display:block;color:var(--ink);font-size:.95rem;line-height:1.45}
+.pil span{display:block;font-size:.8rem;line-height:1.55;margin-top:.15rem}
+.stage{perspective:90rem;position:relative}
+.tilt{transform-style:preserve-3d;transform:rotateX(var(--rx,10deg)) rotateY(var(--ry,-14deg));transition:transform .25s ease-out;position:relative}
+.tilt .ui{box-shadow:0 2.5rem 6rem -1.5rem rgba(0,0,0,.9),0 0 0 1px rgba(251,191,36,.14),0 0 5rem -1rem rgba(245,158,11,.3)}
+.fl{position:absolute;z-index:2;background:rgba(20,20,23,.78);backdrop-filter:blur(.9rem);-webkit-backdrop-filter:blur(.9rem);border:1px solid var(--line2);border-radius:.9rem;padding:.75rem .9rem;display:flex;gap:.7rem;align-items:center;font-size:.76rem;line-height:1.45;box-shadow:0 1.2rem 2.5rem -.8rem rgba(0,0,0,.8);transform:translate3d(var(--fx,0),var(--fy,0),4rem);transition:transform .3s ease-out;max-width:17rem}
+.fl b{color:var(--ink);display:block;font-size:.8rem}
+.fl .fi{width:2.2rem;height:2.2rem;border-radius:.65rem;display:grid;place-items:center;flex:none}
+.fl.f1{left:-1rem;bottom:-1.4rem}.fl.f1 .fi{background:rgba(251,191,36,.15);color:var(--glow)}
+.fl.f2{right:-.5rem;top:-1.5rem}.fl.f2 .fi{background:rgba(248,113,113,.14);color:var(--bad)}
+.fl{animation:bob 6s ease-in-out infinite}.fl.f2{animation-delay:-3s}
+@keyframes bob{50%{margin-top:-.6rem}}
+.note{font-size:.72rem;color:var(--faint);margin-top:2.2rem;text-align:right}
+@media(min-width:64rem){.hero .wrap{grid-template-columns:5fr 6fr}.stage{margin-right:-6rem}}
+@media(max-width:40rem){#heroUI .ui-side{display:none}#heroUI .ui-main{grid-template-columns:minmax(0,1fr)}#heroUI .two{grid-template-columns:minmax(0,1fr)}.note{text-align:left}.fl.f2{display:none}.fl.f1{left:.5rem;bottom:-4rem}.stage{padding-bottom:3rem}.tilt{--ry:-6deg!important}}
+
+/* ---------- product UI mock (em-scaled from the container's rem size) ---------- */
+.ui{font-size:.62rem;line-height:1.5;background:#0D0D0F;border:1px solid var(--line2);border-radius:1.4em;overflow:hidden;color:var(--mut);font-variant-numeric:tabular-nums}
+.ui-top{display:flex;align-items:center;gap:.6em;padding:.9em 1.2em;border-bottom:1px solid var(--line);background:var(--panel)}
+.ui-top i{width:.75em;height:.75em;border-radius:50%;background:#2B2B31}
+.ui-top i:first-child{background:var(--amber)}
+.ui-top b{margin-left:.8em;font-weight:600;color:var(--ink);font-size:1.05em}
+.ui-top span{margin-left:auto;font-size:.9em;color:var(--faint)}
+.ui-main{display:grid;grid-template-columns:12.5em minmax(0,1fr)}
+.ui-side{border-right:1px solid var(--line);padding:1em .7em;display:flex;flex-direction:column;gap:.2em;background:rgba(20,20,23,.6)}
+.ui-side u{text-decoration:none;display:block;padding:.6em .8em;border-radius:.6em;border-left:.2em solid transparent;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ui-side u.on{background:rgba(251,191,36,.1);color:var(--glow);border-left-color:var(--glow);font-weight:600}
+.ui-body{padding:1.3em;display:grid;gap:1.1em;min-width:0;align-content:start}
+.ui.nos .ui-main{grid-template-columns:minmax(0,1fr)}.ui.nos .ui-side{display:none}
+.kp{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.9em}
+.kp div{background:var(--panel);border:1px solid var(--line);border-radius:.9em;padding:.9em 1em}
+.kp b{display:block;font-size:1.55em;font-weight:700;color:var(--ink);line-height:1.2}
+.kp .g b{color:var(--ok)}.kp .r b{color:var(--bad)}.kp .a b{color:var(--glow)}
+.kp span{font-size:.92em}
+.two{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:1.1em}
+.pn{background:var(--panel);border:1px solid var(--line);border-radius:.9em;padding:1em 1.1em;min-width:0}
+.pn h5{font-size:1em;color:var(--ink);font-weight:600;margin-bottom:.8em;display:flex;justify-content:space-between;gap:1em}
+.pn h5 small{color:var(--faint);font-weight:400}
+.bars{display:flex;align-items:flex-end;gap:.5em;height:9.5em;border-bottom:1px solid var(--line);background:repeating-linear-gradient(0deg,transparent 0 2.3em,var(--line) 2.3em calc(2.3em + 1px))}
+.bars div{flex:1;display:flex;gap:.15em;align-items:flex-end;height:100%}
+.bars i{flex:1;border-radius:.25em .25em 0 0;transform-origin:bottom;animation:grow .9s cubic-bezier(.2,.8,.2,1) both}
+.bars i.a{background:linear-gradient(180deg,var(--glow),var(--amber-d))}.bars i.b{background:rgba(148,163,184,.3)}
+.bars div:last-child i.a{box-shadow:0 0 1.2em rgba(251,191,36,.7)}
+@keyframes grow{from{transform:scaleY(0)}}
+.bl{display:flex;gap:.5em;margin-top:.4em;font-size:.82em;color:var(--faint)}.bl span{flex:1;text-align:center;white-space:nowrap;overflow:hidden}
+.row{display:flex;align-items:center;justify-content:space-between;gap:1em;padding:.6em 0;border-bottom:1px solid var(--line)}
+.row:last-child{border:0}
+.row>div{min-width:0}.row b{color:var(--ink);font-weight:600}.row small{display:block;font-size:.9em;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .v{flex:none;text-align:right;color:var(--ink);font-weight:600}
+.tg{display:inline-block;font-size:.86em;font-weight:600;border-radius:.5em;padding:.15em .6em;white-space:nowrap}
+.t-w{background:rgba(251,191,36,.14);color:var(--glow)}.t-b{background:rgba(96,165,250,.14);color:var(--info)}
+.t-o{background:rgba(248,113,113,.14);color:var(--bad)}.t-g{background:rgba(52,211,153,.14);color:var(--ok)}
+.kb{display:grid;grid-template-columns:repeat(auto-fit,minmax(11em,1fr));gap:.8em}
+.kb>div{background:rgba(20,20,23,.7);border:1px solid var(--line);border-radius:.9em;padding:.7em;display:grid;gap:.6em;align-content:start}
+.kb h6{font-size:.92em;font-weight:600;color:var(--mut);display:flex;justify-content:space-between}
+.jc{background:var(--panel2);border:1px solid var(--line);border-left:.25em solid var(--glow);border-radius:.7em;padding:.7em .8em;position:relative}
+.jc.b{border-left-color:var(--info)}.jc.o{border-left-color:var(--bad)}.jc.g{border-left-color:var(--ok)}
+.jc b{color:var(--ink);display:block;font-weight:600}.jc small{display:block;font-size:.9em}.jc .pt{color:var(--amber);font-size:.86em;margin-top:.3em}
+.sb{height:.4em;border-radius:.4em;background:var(--panel2);overflow:hidden;width:6em;margin-top:.35em;margin-left:auto}
+.sb i{display:block;height:100%;border-radius:.4em;animation:growx .9s both;transform-origin:left}
+@keyframes growx{from{transform:scaleX(0)}}
+.flow{display:flex;align-items:center;gap:.5em;flex-wrap:wrap}
+.flow span{border:1px solid var(--line2);border-radius:.6em;padding:.4em .8em;color:var(--ink);background:var(--panel2);font-weight:600}
+.flow span.on{border-color:rgba(251,191,36,.6);color:var(--glow);box-shadow:0 0 1em -.2em rgba(251,191,36,.6)}
+.flow em{font-style:normal;color:var(--faint)}
+.ap{background:var(--panel2);border:1px solid var(--line);border-radius:.9em;padding:.9em 1em;transition:border-color .3s,background .3s}
+.ap.done{border-color:rgba(52,211,153,.45);background:rgba(52,211,153,.06)}
+.ap .hd{display:flex;justify-content:space-between;gap:1em;align-items:center}.ap b{color:var(--ink)}
+.ap .bt{display:grid;grid-template-columns:1fr 1.4fr;gap:.6em;margin-top:.7em}
+.ap .bt button{border-radius:.6em;padding:.55em;font-size:1em;font-weight:700;border:1px solid var(--line2);color:var(--mut)}
+.ap .bt button.y{background:var(--amber);color:#1A1000;border-color:var(--amber)}
+.ap.done .bt{display:none}.ap .ok{display:none;color:var(--ok);font-weight:600;margin-top:.5em}.ap.done .ok{display:block}
+.tl{position:relative;padding-left:1.6em;display:grid;gap:.9em}
+.tl::before{content:"";position:absolute;left:.35em;top:.5em;bottom:.5em;width:1px;background:var(--line2)}
+.tl div{position:relative}.tl div::before{content:"";position:absolute;left:-1.6em;top:.4em;width:.75em;height:.75em;border-radius:50%;background:var(--bg);border:.15em solid var(--glow)}
+.tl b{color:var(--ink);display:block}.tl small{font-size:.9em;color:var(--faint)}
+.stars{color:var(--glow);letter-spacing:.15em}
+.hb{display:grid;gap:.8em}
+.hb div{display:grid;grid-template-columns:8em 1fr auto;gap:.8em;align-items:center}
+.hb span.t{height:1.1em;border-radius:.4em;background:var(--panel2);overflow:hidden}
+.hb span.t i{display:block;height:100%;background:linear-gradient(90deg,var(--amber-d),var(--glow));border-radius:.4em;transform-origin:left;animation:growx 1s both}
+.hb b{color:var(--ink)}
+.net{width:100%;height:auto;display:block}
+.net line{stroke:rgba(251,191,36,.45);stroke-width:1;stroke-dasharray:4 5;animation:dash 1.6s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-18}}
+.net circle.n{fill:#1B1B1F;stroke:rgba(248,250,252,.18)}
+.net circle.h{fill:#221703;stroke:#FBBF24}
+.net text{fill:#F8FAFC;font-family:var(--f);text-anchor:middle}
+.net text.s{fill:#94A3B8}
+.pill{display:inline-flex;align-items:center;gap:.6em;border:1px solid rgba(251,191,36,.4);background:linear-gradient(135deg,#2B2109,#171204);border-radius:.9em;padding:.4em .9em;color:var(--glow);font-weight:700}
+.coin{width:1.7em;height:1.7em;border-radius:50%;background:radial-gradient(circle at 32% 26%,#FFF3C4,#EFBE4A 48%,#A9761B);display:grid;place-items:center;color:#7A4E0C;font-size:.75em;font-weight:800}
+
+/* ---------- ecosystem ---------- */
+#eco{overflow:hidden}#eco .wrap{position:relative}
+.garage{position:absolute;inset:0;pointer-events:none;-webkit-mask-image:linear-gradient(180deg,transparent,#000 14%,#000 82%,transparent);mask-image:linear-gradient(180deg,transparent,#000 14%,#000 82%,transparent)}
+#garage{width:100%;height:100%;display:block;fill:none;stroke:rgba(248,250,252,.24);stroke-width:1.500;stroke-linecap:round;stroke-linejoin:round}
+#garage .dr{stroke-dasharray:1;stroke-dashoffset:1}
+.garage.in .dr{animation:draw 2.4s cubic-bezier(.4,0,.2,1) forwards}
+#garage .thin{stroke:rgba(248,250,252,.12)}
+#garage .lamp{stroke:rgba(251,191,36,.55);animation:lamp 4s ease-in-out infinite}
+#garage .up,#garage .roll,#garage .door,#garage .wh{transform-box:fill-box;transform-origin:center}
+#garage .up{animation:lift 9s ease-in-out infinite alternate}
+#garage .roll{animation:roll 11s ease-in-out infinite alternate}
+#garage .roll .wh{animation:whl 11s ease-in-out infinite alternate}
+#garage .door{animation:door 12s ease-in-out infinite alternate}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes lamp{50%{opacity:.25}}
+@keyframes lift{from{transform:translateY(0)}to{transform:translateY(-80%)}}
+@keyframes roll{from{transform:translateX(26%)}to{transform:translateX(-11%)}}
+@keyframes whl{from{transform:rotate(0)}to{transform:rotate(-440deg)}}
+@keyframes door{0%,35%{transform:translateY(0)}100%{transform:translateY(-100%)}}
+.eco-g{display:grid;gap:1.25rem;margin-top:2.75rem}
+.tabs{display:flex;gap:.6rem;overflow-x:auto;padding-bottom:.4rem;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;display:flex;align-items:center;gap:.8rem;text-align:left;padding:.8rem 1rem;border-radius:var(--r);border:1px solid var(--line);background:rgba(20,20,23,.66);transition:border-color .3s,background .3s,transform .3s;position:relative;overflow:hidden;min-width:13rem}
+.tab::before{content:"";position:absolute;inset:0;background:radial-gradient(14rem circle at var(--mx,50%) var(--my,50%),rgba(251,191,36,.14),transparent 60%);opacity:0;transition:opacity .3s}
+.tab:hover::before{opacity:1}
+.tab .n{font-size:.7rem;color:var(--faint);font-weight:700;font-variant-numeric:tabular-nums}
+.tab .ti{width:2.4rem;height:2.4rem;border-radius:.7rem;background:var(--panel2);display:grid;place-items:center;color:var(--mut);transition:.3s;flex:none}
+.tab b{display:block;color:var(--ink);font-size:.9rem;line-height:1.35}
+.tab small{font-size:.76rem;line-height:1.4;display:block}
+.tab[aria-selected="true"]{border-color:rgba(251,191,36,.55);background:linear-gradient(120deg,rgba(251,191,36,.1),var(--panel) 60%)}
+.tab[aria-selected="true"] .ti{background:var(--amber);color:#1A1000;box-shadow:0 0 1.4rem -.2rem rgba(245,158,11,.9)}
+.eco-p{border:1px solid var(--line2);border-radius:1.5rem;background:linear-gradient(160deg,rgba(27,27,31,.55),rgba(14,14,16,.62));padding:clamp(1.25rem,3vw,2.25rem);display:grid;gap:2rem;align-items:center;position:relative;overflow:hidden}
+.eco-p::after{content:"";position:absolute;width:22rem;height:22rem;right:-8rem;top:-10rem;background:radial-gradient(circle,rgba(245,158,11,.22),transparent 65%);pointer-events:none}
+.eco-t h3{font-size:1.6rem;margin-block:.4rem .2rem}
+.eco-t .sub{color:var(--glow);font-weight:600;font-size:.95rem}
+.eco-t p{margin-top:.9rem}
+.eco-t ul{list-style:none;margin-top:1.2rem;display:grid;gap:.7rem}
+.eco-t li{display:flex;gap:.7rem;color:var(--ink);font-size:.95rem;line-height:1.55}
+.eco-t li svg{color:var(--glow);margin-top:.2rem}
+.eco-m{position:relative;z-index:1;min-width:0}
+.eco-m .ui{box-shadow:0 1.5rem 3.5rem -1.2rem rgba(0,0,0,.9)}
+.swap{animation:swap .5s cubic-bezier(.2,.8,.2,1) both}
+@keyframes swap{from{opacity:0;transform:translateY(.8rem) scale(.985)}}
+@media(min-width:64rem){
+  .eco-g{grid-template-columns:19rem minmax(0,1fr);gap:1.5rem}
+  .tabs{flex-direction:column;overflow:visible;padding:0}
+  .tab{min-width:0}
+  .eco-p{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr)}
+}
+
+
+/* ---------- problems / packages / start ---------- */
+.pain{display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:1.1rem;margin-top:2.5rem}
+.pain article{display:flex;flex-direction:column;border:1px solid rgba(248,113,113,.28);border-radius:1.4rem;background:linear-gradient(170deg,rgba(248,113,113,.1),var(--panel) 42%);padding:1.5rem 1.35rem 0;position:relative;overflow:hidden;transition:transform .35s cubic-bezier(.2,.8,.2,1),border-color .35s,box-shadow .35s}
+.pain article::before{content:"";position:absolute;inset:0 0 auto 0;height:.22rem;background:linear-gradient(90deg,var(--bad),transparent 80%)}
+.pain article:hover{transform:translateY(-.45rem);border-color:rgba(251,191,36,.6);box-shadow:0 1.75rem 3.5rem -1.75rem rgba(245,158,11,.6)}
+.pain .pt{display:flex;justify-content:space-between;align-items:flex-start}
+.pain .pi{width:3.2rem;height:3.2rem;border-radius:1rem;display:grid;place-items:center;font-size:1.45rem;color:var(--bad);background:rgba(248,113,113,.13);box-shadow:0 0 1.8rem -.5rem rgba(248,113,113,.8);animation:alarm 2.8s ease-in-out infinite;animation-delay:var(--d,0s)}
+@keyframes alarm{0%,100%{box-shadow:0 0 1.2rem -.6rem rgba(248,113,113,.6)}50%{box-shadow:0 0 2.2rem -.3rem rgba(248,113,113,1)}}
+.pain .no{font-size:3.6rem;font-weight:800;line-height:.9;color:transparent;-webkit-text-stroke:1px rgba(248,113,113,.4);font-variant-numeric:tabular-nums}
+.pain h3{font-size:1.22rem;margin-block:1.1rem .45rem}
+.pain p{font-size:.94rem;line-height:1.65}
+.pain .q{margin-top:.8rem;padding-left:.8rem;border-left:.15rem solid rgba(248,113,113,.6);color:#FCA5A5;font-weight:600;font-size:.92rem;line-height:1.55;flex:1}
+.pain .fix{margin:1.2rem -1.35rem 0;padding:.95rem 1.35rem 1.1rem;background:linear-gradient(90deg,rgba(251,191,36,.18),rgba(251,191,36,.05));border-top:1px solid rgba(251,191,36,.35);display:flex;gap:.7rem;align-items:flex-start;color:var(--ink);font-weight:600;font-size:.93rem;line-height:1.5}
+.pain .fix svg{color:#1A1000;background:var(--amber);border-radius:50%;padding:.2em;width:1.45em;height:1.45em;stroke-width:2.6;margin-top:.1rem}
+.pain .fix small{display:block;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--glow);font-weight:700}
+.quote{margin-top:2.25rem;padding-left:1.1rem;border-left:.2rem solid var(--amber);color:var(--ink);font-size:1.1rem;max-width:44rem;line-height:1.6}
+.ba{display:grid;gap:1.25rem;margin-top:3rem;align-items:center}
+.ba>div.b,.ba>div.a{border-radius:1.5rem;padding:clamp(1.4rem,3vw,2.1rem);position:relative;overflow:hidden}
+.ba .b{background:rgba(20,20,23,.55);border:1px dashed rgba(248,250,252,.16)}
+.ba .a{background:linear-gradient(150deg,rgba(251,191,36,.22),rgba(217,119,6,.08) 45%,var(--panel));border:1px solid rgba(251,191,36,.65);box-shadow:0 0 0 1px rgba(251,191,36,.15),0 2rem 5rem -2rem rgba(245,158,11,.75);animation:halo 4s ease-in-out infinite}
+@keyframes halo{50%{box-shadow:0 0 0 1px rgba(251,191,36,.35),0 2rem 6rem -1.5rem rgba(251,191,36,.95)}}
+.ba .a::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.09) 50%,transparent 60%);transform:translateX(-100%);animation:sweep 5s ease-in-out infinite;pointer-events:none}
+.ba h4{font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+.ba .a h4{color:#1A1000;background:var(--amber);display:inline-block;padding:.25rem .8rem;border-radius:62rem;font-weight:800}
+.ba h3{font-size:1.2rem;margin-block:.6rem 1.1rem;color:var(--mut)}
+.ba .a h3{font-size:clamp(1.45rem,2.6vw,1.95rem);color:var(--ink);line-height:1.35}
+.ba ul{list-style:none;display:grid;gap:.75rem}
+.ba li{display:flex;gap:.75rem;font-size:.95rem;line-height:1.55;align-items:flex-start}
+.ba .b li{color:var(--faint);text-decoration:line-through;text-decoration-color:rgba(248,113,113,.5)}
+.ba .b li svg{color:var(--bad);margin-top:.2rem;opacity:.8}
+.ba .a li{color:var(--ink);font-size:1.05rem;font-weight:600}
+.ba .a li svg{color:#1A1000;background:var(--glow);border-radius:50%;padding:.22em;width:1.5em;height:1.5em;stroke-width:2.6;box-shadow:0 0 1rem -.1rem rgba(251,191,36,.9);margin-top:.05rem}
+.ba .vs{width:3.4rem;height:3.4rem;border-radius:50%;margin:-.5rem auto;display:grid;place-items:center;font-size:1.4rem;color:#1A1000;background:linear-gradient(140deg,var(--glow),var(--amber-d));box-shadow:0 0 2.2rem rgba(245,158,11,.85);z-index:1;transform:rotate(90deg)}
+.ba .vs svg{animation:nudge 1.3s ease-in-out infinite}
+@keyframes nudge{50%{transform:translateX(.25rem)}}
+@media(min-width:56rem){.ba{grid-template-columns:minmax(0,.85fr) auto minmax(0,1.2fr)}.ba .vs{margin:0 -1.9rem;transform:none}}
+.pk{display:grid;grid-template-columns:repeat(auto-fit,minmax(17rem,1fr));gap:1.1rem;margin-top:2.5rem}
+.pk article{border:1px solid var(--line2);border-radius:1.5rem;padding:1.75rem 1.5rem;background:linear-gradient(170deg,var(--panel2),var(--panel));position:relative;overflow:hidden;display:flex;flex-direction:column;gap:.9rem;transition:transform .35s,border-color .35s,box-shadow .35s}
+.pk article::before{content:"";position:absolute;inset:0 0 auto 0;height:.2rem;background:linear-gradient(90deg,transparent,var(--amber),transparent);opacity:.5}
+.pk article:hover{transform:translateY(-.4rem);border-color:rgba(251,191,36,.55);box-shadow:0 1.5rem 3.5rem -1.5rem rgba(245,158,11,.5)}
+.pk .tg2{align-self:flex-start;display:inline-flex;align-items:center;font-size:.72rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;line-height:1;color:var(--glow);border:1px solid rgba(251,191,36,.45);border-radius:62rem;padding:.5rem .95rem;background:rgba(10,10,11,.45);white-space:nowrap}
+.pk .tg2 b{font-weight:800}
+.pk .tg2 i{font-style:normal;font-weight:500;color:var(--ink);opacity:.8;margin-left:.7em;padding-left:.7em;border-left:1px solid rgba(251,191,36,.5)}
+.pk h3{font-size:1.7rem;letter-spacing:-.01em}.pk h3 b{color:var(--glow)}
+.pk .for{font-size:.9rem;line-height:1.6;min-height:3rem}
+.price{display:flex;flex-wrap:wrap;align-items:baseline;gap:.1rem .5rem}
+.price b{font-size:2.3rem;font-weight:800;color:var(--ink);line-height:1.1;font-variant-numeric:tabular-nums}
+.price span{font-size:.95rem;color:var(--mut)}
+.price small{flex-basis:100%;font-size:.8rem;color:var(--mut);line-height:1.5}
+.price.soon{flex-direction:column;gap:.1rem}.price.soon span{font-size:.8rem}.price.soon b{font-size:1.45rem;color:var(--glow)}
+.cmp .fee td{color:var(--glow);font-weight:700;font-variant-numeric:tabular-nums}.cmp .fee td:first-child{color:var(--ink)}
+.pk ul{list-style:none;display:grid;gap:.6rem;border-top:1px solid var(--line);padding-top:1rem}
+.pk li{display:flex;gap:.6rem;color:var(--ink);font-size:.92rem;line-height:1.5}.pk li svg{color:var(--glow);margin-top:.15rem}
+.pk article.hi{border-color:rgba(251,191,36,.45);background:linear-gradient(170deg,rgba(251,191,36,.13),var(--panel) 45%)}
+.cmp{margin-top:2rem;border:1px solid var(--line);border-radius:1.25rem;overflow-x:auto;background:var(--panel)}
+.cmp table{width:100%;border-collapse:collapse;min-width:30rem;font-size:.92rem}
+.cmp th,.cmp td{padding:.8rem 1.1rem;text-align:left;border-bottom:1px solid var(--line)}
+.cmp tr:last-child td{border-bottom:0}
+.cmp th{color:var(--ink);font-size:.85rem;background:var(--panel2)}.cmp th:not(:first-child),.cmp td:not(:first-child){text-align:center;width:7.5rem}
+.cmp td:first-child{color:var(--ink)}.cmp .y{color:var(--glow)}.cmp .n{color:var(--faint)}
+.cmp caption{caption-side:bottom;padding:.9rem 1.1rem;font-size:.85rem;text-align:left;color:var(--mut)}
+.st-g{display:grid;gap:2.5rem;margin-top:3.5rem}
+@media(min-width:60rem){.st-g{grid-template-columns:1fr 1fr}}
+.mini-h{font-size:1.35rem;margin-bottom:1.25rem}
+.steps{list-style:none;display:grid;gap:1.1rem;position:relative;counter-reset:s}
+.steps::before{content:"";position:absolute;left:1.05rem;top:1rem;bottom:1rem;width:1px;background:linear-gradient(var(--amber),transparent)}
+.steps li{display:flex;gap:1rem;position:relative;counter-increment:s}
+.steps li::before{content:counter(s);width:2.1rem;height:2.1rem;border-radius:50%;background:var(--bg);border:1px solid var(--amber);color:var(--glow);display:grid;place-items:center;font-weight:800;font-size:.85rem;flex:none}
+.steps b{color:var(--ink);display:block}.steps span{font-size:.92rem;line-height:1.6;display:block}
+.st-n{margin-top:1.25rem;font-size:.9rem;color:var(--ink)}
+
+/* ---------- showcase ---------- */
+#show{background:linear-gradient(180deg,transparent,rgba(20,20,23,.7) 20%,rgba(20,20,23,.7) 80%,transparent)}
+.roles{display:inline-flex;flex-wrap:wrap;gap:.4rem;border:1px solid var(--line2);border-radius:1.2rem;padding:.35rem;background:var(--panel);margin-top:2rem}
+.roles button{padding:.6rem 1.1rem;border-radius:.9rem;font-weight:600;font-size:.9rem;color:var(--mut);transition:.25s;text-align:left;line-height:1.3}
+.roles button small{display:block;font-weight:400;font-size:.74rem;opacity:.8}
+.roles button[aria-selected="true"]{background:var(--amber);color:#1A1000}
+.show-g{display:grid;gap:1.5rem;margin-top:1.75rem;align-items:start}
+.show-s .ui{font-size:clamp(.5rem,1.05vw,.74rem);box-shadow:0 2rem 5rem -1.5rem #000,0 0 0 1px rgba(251,191,36,.12)}
+.hst{position:relative}
+.hst.lit{outline:.125rem solid rgba(251,191,36,.7);outline-offset:.2em;border-radius:.9em}
+.hs{position:absolute;right:-.7rem;top:-.7rem;z-index:3;width:1.7rem;height:1.7rem;border-radius:50%;background:var(--amber);color:#1A1000;font-weight:800;font-size:.78rem;display:grid;place-items:center;box-shadow:0 0 0 .25rem rgba(251,191,36,.25)}
+.hs::after{content:"";position:absolute;inset:0;border-radius:50%;border:.125rem solid var(--glow);animation:ping 1.8s ease-out infinite}
+@keyframes ping{from{transform:scale(1);opacity:.9}to{transform:scale(2.3);opacity:0}}
+.hand{position:absolute;left:.35rem;top:1.25rem;width:1.9rem;height:1.9rem;fill:var(--ink);stroke:#0A0A0B;stroke-width:1.300;stroke-linejoin:round;filter:drop-shadow(0 .2rem .4rem rgba(0,0,0,.7));animation:tap 1s ease-in-out infinite;pointer-events:none}
+.hst.lit>.hs .hand{display:none}
+@keyframes tap{0%,100%{opacity:1;transform:translateY(0)}50%{opacity:.25;transform:translateY(.35rem)}}
+.hs-l{display:grid;gap:.75rem}
+.hs-i{display:flex;gap:.9rem;text-align:left;width:100%;padding:1rem 1.1rem;border-radius:var(--r);border:1px solid var(--line);background:var(--panel);transition:.3s}
+.hs-i .k{width:1.7rem;height:1.7rem;border-radius:50%;border:1px solid var(--line2);display:grid;place-items:center;font-size:.78rem;font-weight:800;color:var(--mut);flex:none;transition:.3s}
+.hs-i b{display:block;color:var(--ink);font-size:.98rem}
+.hs-i span.d{display:block;font-size:.88rem;line-height:1.6;margin-top:.2rem}
+.hs-i.on{border-color:rgba(251,191,36,.55);background:rgba(251,191,36,.07)}
+.hs-i.on .k{background:var(--amber);color:#1A1000;border-color:var(--amber)}
+@media(min-width:64rem){.show-g{grid-template-columns:minmax(0,1fr) 21rem}}
+
+/* ---------- devices ---------- */
+.dev-g{display:grid;gap:3rem;margin-top:3rem;align-items:center}
+.devs{position:relative;padding-bottom:3rem;padding-top:clamp(4rem,10vw,8.5rem)}
+.d-tab .kb{grid-template-columns:repeat(4,minmax(0,1fr))}
+.d-desk .ui{font-size:clamp(.34rem,.82vw,.56rem);border-radius:.8rem .8rem 0 0;border-bottom:0}
+.d-desk::after{content:"";display:block;height:.9rem;margin-inline:-4%;border-radius:0 0 1rem 1rem;background:linear-gradient(180deg,#2A2A30,#141417);border:1px solid var(--line2)}
+.d-desk{width:80%;margin-left:6%}
+.d-tab,.d-ph{position:absolute;background:#050506;border:1px solid var(--line2);box-shadow:0 1.5rem 3rem -.8rem #000,0 0 3rem -1rem rgba(245,158,11,.35)}
+.d-tab{right:0;bottom:1rem;width:44%;padding:.5rem;border-radius:1.1rem}
+.d-tab .ui{font-size:clamp(.26rem,.6vw,.42rem);border-radius:.7rem}
+.d-ph{left:-2%;bottom:0;width:18%;min-width:6rem;padding:.35rem;border-radius:1.2rem}
+.d-ph .ui{font-size:clamp(.3rem,.62vw,.44rem);border-radius:.9rem}
+.d-ph .kp{grid-template-columns:1fr 1fr}
+.dl{display:flex;gap:1.2rem;flex-wrap:wrap;font-size:.8rem;margin-top:1rem}
+.dl span{display:flex;align-items:center;gap:.45rem}.dl span::before{content:"";width:.45rem;height:.45rem;border-radius:50%;background:var(--glow);box-shadow:0 0 .6rem var(--glow)}
+.rel{display:grid;gap:1rem}
+.rel article{display:flex;gap:1rem;padding:1.15rem 1.25rem;border:1px solid var(--line);border-radius:var(--r);background:var(--panel);position:relative;overflow:hidden;transition:border-color .3s,transform .3s}
+.rel article::before{content:"";position:absolute;inset:0;background:radial-gradient(16rem circle at var(--mx,50%) var(--my,50%),rgba(251,191,36,.12),transparent 60%);opacity:0;transition:opacity .3s}
+.rel article:hover{border-color:rgba(251,191,36,.4);transform:translateX(.25rem)}.rel article:hover::before{opacity:1}
+.rel .ri{width:2.6rem;height:2.6rem;border-radius:.8rem;background:rgba(251,191,36,.12);color:var(--glow);display:grid;place-items:center;flex:none}
+.rel h4{font-size:1rem}.rel p{font-size:.9rem;line-height:1.6;margin-top:.15rem}
+@media(min-width:64rem){.dev-g{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}}
+
+/* ---------- privacy ---------- */
+#privacy{padding-block:0 clamp(2rem,5vw,4rem)}
+.pv{display:grid;gap:1.5rem;border:1px solid var(--line2);border-radius:1.75rem;padding:clamp(1.5rem,4vw,2.75rem);background:linear-gradient(150deg,rgba(27,27,31,.9),var(--panel));position:relative;overflow:hidden}
+.pv::before{content:"";position:absolute;inset:0 auto 0 0;width:.25rem;background:linear-gradient(var(--glow),var(--amber-d))}
+.pvi{width:4.5rem;height:4.5rem;border-radius:1.4rem;display:grid;place-items:center;font-size:2.1rem;color:var(--glow);background:rgba(251,191,36,.12);box-shadow:0 0 2.5rem -.6rem rgba(245,158,11,.8)}
+.pv .sec-h{font-size:clamp(1.5rem,3vw,2.1rem)}
+.pv p{max-width:46rem}.pv p a{color:var(--glow);font-weight:600}
+.pvr{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.1rem}
+.pvr span{display:inline-flex;align-items:center;gap:.4rem;padding:.35rem .8rem;border-radius:62rem;border:1px solid rgba(251,191,36,.4);color:var(--ink);font-size:.85rem;font-weight:600}
+.pvr svg{color:var(--glow)}
+@media(min-width:48rem){.pv{grid-template-columns:auto minmax(0,1fr);gap:2rem}}
+.fpv{grid-column:1/-1;font-size:.8rem;line-height:1.6;color:var(--mut);text-align:center}.fpv a{color:var(--glow);font-weight:600}
+
+/* ---------- cta ---------- */
+.cta-b{border:1px solid rgba(251,191,36,.3);border-radius:1.75rem;padding:clamp(1.5rem,4vw,3.25rem);background:radial-gradient(60rem 26rem at 100% 0,rgba(245,158,11,.2),transparent 60%),var(--panel);display:grid;gap:2.5rem;position:relative;overflow:hidden}
+.cta-b ul{list-style:none;display:grid;gap:.8rem;margin-top:1.6rem}
+.cta-b li{display:flex;gap:.7rem;color:var(--ink)}.cta-b li svg{color:var(--glow);margin-top:.25rem}
+form{display:grid;gap:.9rem;grid-template-columns:1fr 1fr;background:rgba(10,10,11,.6);border:1px solid var(--line2);border-radius:1.25rem;padding:1.4rem}
+.fd{display:grid;gap:.35rem}.fd.w{grid-column:1/-1}
+.fd label{font-size:.8rem;font-weight:600;color:var(--mut)}
+.fd input,.fd select,.fd textarea{background:var(--panel2);border:1px solid var(--line2);border-radius:.7rem;padding:.75rem .9rem;color:var(--ink);font-size:1rem;width:100%;transition:border-color .2s,box-shadow .2s}
+.fd textarea{resize:vertical;min-height:5rem}
+.fd input:focus,.fd select:focus,.fd textarea:focus{outline:none;border-color:var(--glow);box-shadow:0 0 0 .2rem rgba(251,191,36,.18)}
+form .btn{grid-column:1/-1;padding:.95rem}
+.err{grid-column:1/-1;color:var(--bad);font-size:.85rem;min-height:1.2rem}
+.fdone{display:none;background:rgba(10,10,11,.6);border:1px solid rgba(52,211,153,.4);border-radius:1.25rem;padding:1.4rem}
+.fdone h3{font-size:1.2rem;display:flex;gap:.6rem;align-items:center}.fdone h3 svg{color:var(--ok)}
+.fdone pre{white-space:pre-wrap;font-family:var(--f);font-size:.9rem;line-height:1.7;background:var(--panel2);border:1px solid var(--line);border-radius:.8rem;padding:1rem;margin-block:1rem;color:var(--ink)}
+.fdone .bt{display:flex;gap:.6rem;flex-wrap:wrap}
+.sent .fdone{display:block}.sent form{display:none}
+@media(min-width:64rem){.cta-b{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center}}
+@media(max-width:30rem){form{grid-template-columns:1fr}}
+
+footer{border-top:1px solid var(--line);padding-block:3rem 2rem;font-size:.9rem}
+.ft{display:grid;gap:2rem;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr))}
+.ft h5{color:var(--ink);font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem}
+.ft a:hover{color:var(--glow)}
+.ft .tel{font-size:1.4rem;font-weight:800;color:var(--glow);font-variant-numeric:tabular-nums}
+.cp{margin-top:2.5rem;padding-top:1.25rem;border-top:1px solid var(--line);font-size:.78rem;color:var(--faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+
+/* scroll reveal */
+.js .rv{opacity:0;transform:translateY(1.75rem);transition:opacity .8s cubic-bezier(.2,.8,.2,1),transform .8s cubic-bezier(.2,.8,.2,1);transition-delay:var(--d,0s)}
+.js .rv.r{transform:translateX(2.5rem)}
+@media(max-width:48rem){.js .rv.r{transform:translateY(1.75rem)}}
+.js .rv.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}.js .rv{opacity:1;transform:none}#garage .dr{stroke-dasharray:none;stroke-dashoffset:0}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-crm" viewBox="0 0 24 24"><path d="M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 10a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M21 19v-1a4 4 0 0 0-3-3.9M15.5 3.2a3.5 3.5 0 0 1 0 6.6"/></symbol>
+  <symbol id="i-bay" viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5v8l9 5 9-5zM3 8l9 5 9-5M12 13v8"/></symbol>
+  <symbol id="i-fin" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2M20 20v-3"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 14l2 2 4-4"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.500-8-9V6zM9 12l2 2 4-4"/></symbol>
+  <symbol id="i-branch" viewBox="0 0 24 24"><path d="M9 13.200l3-2.700 3 2.700V17H9zM10.500 4.700L12 3.400l1.500 1.300v2h-3zM2.500 19.500L4 18.200l1.500 1.300v2h-3zM18.500 19.500L20 18.200l1.500 1.300v2h-3zM12 6.700v3.800M9 16l-3.600 2.700M15 16l3.600 2.700"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18a4.500 4.500 0 0 1-.6-9A6 6 0 0 1 18 8.500a4.500 4.500 0 0 1-.5 9.500z"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.500l4.500 4.500L19 7"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><path d="M6 11h12v9H6zM8.500 11V8a3.500 3.500 0 0 1 7 0v3"/></symbol>
+  <symbol id="i-role" viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0"/></symbol>
+  <symbol id="i-db" viewBox="0 0 24 24"><path d="M4 6c0-1.700 3.600-3 8-3s8 1.300 8 3-3.600 3-8 3-8-1.300-8-3zM4 6v6c0 1.700 3.600 3 8 3s8-1.300 8-3V6M4 12v6c0 1.700 3.600 3 8 3s8-1.300 8-3v-6"/></symbol>
+  <symbol id="i-sync" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5l2 2M20 5v4h-4M20 12a8 8 0 0 1-14 5l-2-2M4 19v-4h4"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 21h4"/></symbol>
+</defs></svg>
+
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="DriveGo X"><span class="logo-m"><svg class="lx" viewBox="0 0 48 48" aria-hidden="true"><circle class="tr" cx="24" cy="24" r="20.500"/><circle class="rm" cx="24" cy="24" r="15"/><g transform="translate(24 24) scale(1.150) translate(-12 -12)"><path d="M4 20h5L20 4h-5z"/><path class="c" d="M4 4h5l2.450 3.560-2.500 3.640zM20 20h-5l-2.450-3.560 2.500-3.640z"/></g></svg></span><span>DriveGo <span class="lgx">X</span></span></a>
+    <nav class="nav-l" aria-label="Main">
+      <a href="#eco" data-i18n="nav.eco"></a><a href="#plans" data-i18n="nav.plans"></a><a href="testdrive.html">Test Drive</a><a href="articles.html" data-i18n="nav.art"></a><a href="#contact" data-i18n="nav.contact"></a>
+    </nav>
+    <div class="nav-r">
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" data-lang="th" aria-pressed="true">TH</button><button type="button" data-lang="en" aria-pressed="false">EN</button><button type="button" data-lang="zh" aria-pressed="false">CN</button>
+      </div>
+      <a class="btn btn-g login" href="login.html" data-i18n="nav.login"></a>
+      <a class="btn btn-a cta" href="#contact"><span class="lg" data-i18n="nav.cta"></span><span class="sm">Demo</span></a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero" id="hero">
+  <div class="grid-bg"></div><div class="aura a1" data-par=".12"></div><div class="aura a2" data-par=".2"></div>
+  <div class="wrap">
+    <div>
+      <span class="eyebrow rv" data-i18n="hero.eyebrow"></span>
+      <h1 class="rv" style="--d:.08s" data-i18n-html="hero.h"></h1>
+      <div class="lead rv" style="--d:.16s" id="lead"></div>
+      <div class="hero-cta rv" style="--d:.24s">
+        <a class="btn btn-a" href="#contact"><span data-i18n="hero.cta1"></span><svg class="ic"><use href="#i-arrow"/></svg></a>
+        <a class="btn btn-g" href="#eco" data-i18n="hero.cta2"></a>
+      </div>
+      <div class="pil rv" style="--d:.32s" id="pil"></div>
+    </div>
+    <div class="stage rv r" style="--d:.2s" id="stage">
+      <div class="tilt" id="tilt">
+        <div id="heroUI"></div>
+        <div class="fl f2" data-depth="1.4"><span class="fi"><svg class="ic"><use href="#i-bell"/></svg></span><div><b data-i18n="hero.fl2a"></b><span data-i18n="hero.fl2b"></span></div></div>
+        <div class="fl f1" data-depth="-1"><span class="fi"><span class="coin">DG</span></span><div><b data-i18n="hero.fl1a"></b><span data-i18n="hero.fl1b"></span></div></div>
+      </div>
+      <p class="note" data-i18n="hero.note"></p>
+    </div>
+  </div>
+</section>
+
+<section id="why">
+  <div class="wrap">
+    <span class="eyebrow rv" data-i18n="why.eyebrow"></span>
+    <h2 class="sec-h rv" data-i18n="why.h"></h2>
+    <div class="pain" id="pain"></div>
+    <p class="quote rv" data-i18n="why.foot"></p>
+    <div class="ba rv" id="ba"></div>
+  </div>
+</section>
+
+<section id="eco">
+  <div class="garage" data-par=".04"><svg id="garage" viewBox="0 0 1440 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div>
+  <div class="wrap">
+    <span class="eyebrow rv" data-i18n="eco.eyebrow"></span>
+    <h2 class="sec-h rv" data-i18n="eco.h"></h2>
+    <p class="sec-p rv" data-i18n="eco.p"></p>
+    <div class="eco-g">
+      <div class="tabs rv" role="tablist" id="tabs" aria-label="Modules"></div>
+      <div class="eco-p rv" style="--d:.1s" role="tabpanel" id="ecoP">
+        <div class="eco-t" id="ecoT"></div>
+        <div class="eco-m" id="ecoM"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="plans">
+  <div class="wrap">
+    <span class="eyebrow rv" data-i18n="plans.eyebrow"></span>
+    <h2 class="sec-h rv" data-i18n="plans.h"></h2>
+    <p class="sec-p rv" data-i18n="plans.p"></p>
+    <div class="pk" id="pk"></div>
+    <div class="cmp rv" id="cmp"></div>
+    <div class="st-g">
+      <div class="rv"><h3 class="mini-h" data-i18n="start.h"></h3><ol class="steps" id="steps"></ol><p class="st-n" data-i18n="start.note"></p></div>
+      <div class="rv r"><h3 class="mini-h" data-i18n="start.why"></h3><div class="rel" id="whyus"></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="show">
+  <div class="wrap">
+    <h2 class="sec-h rv" data-i18n="show.h"></h2>
+    <div class="roles rv" role="tablist" id="roles" aria-label="Roles"></div>
+    <div class="show-g rv" style="--d:.1s">
+      <div class="show-s" id="showS"></div>
+      <div class="hs-l" id="hsL"></div>
+    </div>
+    <p class="rv" style="margin-top:2rem"><a class="btn btn-a" href="testdrive.html"><span data-i18n="show.td"></span><svg class="ic"><use href="#i-arrow"/></svg></a></p>
+  </div>
+</section>
+
+<section id="cloud">
+  <div class="wrap">
+    <span class="eyebrow rv" data-i18n="dev.eyebrow"></span>
+    <h2 class="sec-h rv" data-i18n="dev.h"></h2>
+    <p class="sec-p rv" data-i18n="dev.p"></p>
+    <div class="dev-g">
+      <div class="rv">
+        <div class="devs">
+          <div class="d-desk" id="dDesk"></div>
+          <div class="d-tab" id="dTab" data-par="-.05"></div>
+          <div class="d-ph" id="dPh" data-par="-.09"></div>
+        </div>
+        <div class="dl"><span data-i18n="dev.d1"></span><span data-i18n="dev.d2"></span><span data-i18n="dev.d3"></span></div>
+      </div>
+      <div class="rel rv r" id="rel"></div>
+    </div>
+  </div>
+</section>
+
+<section id="privacy">
+  <div class="wrap">
+    <div class="pv rv">
+      <span class="pvi"><svg class="ic"><use href="#i-shield"/></svg></span>
+      <div>
+        <span class="eyebrow" data-i18n="priv.eyebrow"></span>
+        <h2 class="sec-h" data-i18n="priv.h"></h2>
+        <p data-i18n="priv.p1"></p>
+        <p data-i18n-html="priv.p2" style="margin-top:.8rem"></p>
+        <div class="pvr" id="pvr"></div>
+        <a class="btn btn-g" href="privacy.html" style="margin-top:1.4rem"><span data-i18n="priv.link"></span><svg class="ic"><use href="#i-arrow"/></svg></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="wrap">
+    <div class="cta-b rv" id="ctaB">
+      <div>
+        <span class="eyebrow" data-i18n="cta.eyebrow"></span>
+        <h2 class="sec-h" data-i18n="cta.h"></h2>
+        <p data-i18n="cta.p"></p>
+        <ul>
+          <li><svg class="ic"><use href="#i-check"/></svg><span data-i18n="cta.l1"></span></li>
+          <li><svg class="ic"><use href="#i-check"/></svg><span data-i18n="cta.l2"></span></li>
+          <li><svg class="ic"><use href="#i-check"/></svg><span data-i18n="cta.l3"></span></li>
+        </ul>
+      </div>
+      <div>
+        <form id="demoForm" novalidate>
+          <div class="fd"><label for="fName" data-i18n="form.name"></label><input id="fName" autocomplete="name" required></div>
+          <div class="fd"><label for="fTel" data-i18n="form.tel"></label><input id="fTel" type="tel" inputmode="tel" autocomplete="tel" required></div>
+          <div class="fd w"><label for="fShop" data-i18n="form.shop"></label><input id="fShop" autocomplete="organization" required></div>
+          <div class="fd"><label for="fBr" data-i18n="form.br"></label><select id="fBr"></select></div>
+          <div class="fd"><label for="fMod" data-i18n="form.mod"></label><select id="fMod"></select></div>
+          <div class="fd w"><label for="fMsg" data-i18n="form.msg"></label><textarea id="fMsg" rows="3"></textarea></div>
+          <p class="err" id="fErr" role="alert"></p>
+          <button class="btn btn-a" type="submit"><span data-i18n="form.send"></span><svg class="ic"><use href="#i-arrow"/></svg></button>
+          <p class="fpv"><span data-i18n="priv.form"></span> <a href="privacy.html" data-i18n="priv.h"></a></p>
+        </form>
+        <div class="fdone" id="done">
+          <h3><svg class="ic"><use href="#i-check"/></svg><span data-i18n="form.okh"></span></h3>
+          <pre id="sum"></pre>
+          <p data-i18n="form.okp"></p>
+          <div class="bt" style="margin-top:1rem">
+            <button class="btn btn-a" type="button" id="copyB" data-i18n="form.copy"></button>
+            <button class="btn btn-g" type="button" id="editB" data-i18n="form.edit"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="ft">
+      <div>
+        <a class="logo" href="#top"><span class="logo-m"><svg class="lx" viewBox="0 0 48 48" aria-hidden="true"><circle class="tr" cx="24" cy="24" r="20.500"/><circle class="rm" cx="24" cy="24" r="15"/><g transform="translate(24 24) scale(1.150) translate(-12 -12)"><path d="M4 20h5L20 4h-5z"/><path class="c" d="M4 4h5l2.450 3.560-2.500 3.640zM20 20h-5l-2.450-3.560 2.500-3.640z"/></g></svg></span><span>DriveGo <span class="lgx">X</span></span></a>
+        <p style="margin-top:.9rem;max-width:20rem" data-i18n="foot.tag"></p>
+      </div>
+      <div><h5 data-i18n="foot.prod"></h5><p>DriveGo BaziX<br>DriveGo ProX<br>DriveGo BOOK</p></div>
+      <div><h5 data-i18n="foot.menu"></h5><p><a href="#eco" data-i18n="nav.eco"></a><br><a href="#plans" data-i18n="nav.plans"></a><br><a href="#cloud" data-i18n="nav.cloud"></a><br><a href="testdrive.html">Test Drive</a><br><a href="articles.html" data-i18n="nav.art"></a><br><a href="login.html" data-i18n="nav.login"></a><br><a href="privacy.html" data-i18n="priv.h"></a></p></div>
+      <div><h5 data-i18n="foot.support"></h5><a class="tel" href="tel:+66821087000">082-108-7000</a><p style="margin-top:.35rem"><a href="mailto:sales@drivegox.com">sales@drivegox.com</a></p><p style="margin-top:.5rem;font-size:.85rem;line-height:1.6"><b style="color:var(--ink)" data-i18n="foot.co"></b><br><span data-i18n="foot.addr"></span></p></div>
+    </div>
+    <div class="cp"><span>© 2026 Drivebiz Mecalyze Solution Co., Ltd. <span data-i18n="foot.rights"></span></span><span>DriveGo BaziX® · DriveGo ProX®</span></div>
+  </div>
+</footer>
+
+<script>
+/* ============ Dictionary: TH / EN / ZH ============ */
+const I={
+th:{
+ nav:{eco:'ระบบนิเวศ',plans:'แพ็กเกจ',art:'บทความน่ารู้',login:'เข้าระบบ',show:'หน้าจอจริง',cloud:'Cloud และอุปกรณ์',contact:'ติดต่อ',cta:'ทดลองใช้งานฟรี'},
+ hero:{eyebrow:'ระบบบริหารอู่และศูนย์บริการรถยนต์บน Cloud',h:'ข้อมูลเพื่อการจัดการที่ดี <em>นำสู่ความสำเร็จ</em>',
+  p:{l1:'ระบบบริหารอู่ซ่อมรถยนต์และศูนย์บริการ แบบครบวงจรบน Cloud',l2:'สำหรับผู้บริหารที่ต้องการ<em>ข้อมูลเพื่อการบริหารและตัดสินใจ</em>',k:['ตัวเลขการเงิน','สต๊อก','ควบคุมได้ทุกขั้นตอน']},
+  pil:[['ครอบคลุมทุกการจัดการ','หน้าลาน สต๊อก บัญชี และลูกค้า ครบใน 8 โมดูล'],['บริหารได้ละเอียด','กำไรขาดทุนรายคัน รายวัน และรายสาขา'],['ปลอดภัยด้วยระบบอนุมัติสิทธิ์','กำหนดสิทธิ์ตามตำแหน่ง อนุมัติก่อนทุกรายการสำคัญ'],['สร้างระบบนิเวศน์ที่ดี','เชื่อมลูกค้า ซัพพลายเออร์ ประกันภัย และสาขา']],
+  cta1:'นัดดู Demo ระบบ',cta2:'ดู 8 โมดูล',f1:'โมดูลในระบบเดียว',f2:'ภาษา ไทย อังกฤษ จีน',f3:'อุปกรณ์ PC Tablet Mobile',
+  fl1a:'ออก Coin ให้ลูกค้าแล้ว',fl1b:'+12 Coin จากใบเสร็จ RC-6908-001',fl2a:'ถึงจุดสั่งซื้อ',fl2b:'กรองแอร์ (EV) เหลือ 8 ชิ้น เปิด PO-001 ให้แล้ว',note:'ตัวเลขและชื่อในหน้าจอเป็นข้อมูลตัวอย่าง'},
+ eco:{eyebrow:'All-in-One Ecosystem',h:'8 โมดูล เชื่อมกันเป็นระบบเดียว',p:'เลือกโมดูลเพื่อดูหน้าจอการทำงาน ข้อมูลไหลต่อกันตั้งแต่ใบเสนอราคาจนถึงงบการเงิน'},
+ mods:[
+  {t:'Marketing & CRM',s:'การตลาดและลูกค้าสัมพันธ์',d:'ฐานลูกค้าผูกกับทะเบียนรถ ระบบคำนวณวันเช็กระยะ ต่อภาษี และต่อประกันจากเลขไมล์ที่ใช้จริง แล้วแจ้งเตือนให้อัตโนมัติ',b:['สมาชิกและ DriveGo Coins สะสมจากใบเสร็จที่ชำระแล้ว','แจ้งเตือนเช็กระยะล่วงหน้าตามระยะทางเฉลี่ยต่อวัน','โปรโมชันและคูปองดึงลูกค้าเก่ากลับมาใช้บริการ']},
+  {t:'Workshop & Bay Management',s:'การบริหารหน้าลาน',d:'กระดานคิวซ่อมอัปเดตทันทีเมื่อสถานะเปลี่ยน เห็นว่ารถคันไหนอยู่ขั้นตอนใด และช่างคนไหนรับผิดชอบ',b:['คิวจากแอปจอง หน้าร้าน และใบเสนอราคา รวมในกระดานเดียว','มอบหมายงานให้ช่าง เห็นภาระงานรายคน','ปิดงานแล้วออกใบเสร็จและตัดสต๊อกต่อทันที']},
+  {t:'Inventory & Parts Stock',s:'การบริหารสต๊อกอะไหล่',d:'ทะเบียนอะไหล่พร้อมระดับ Min และ Max ตัดสต๊อกเมื่ออนุมัติซ่อม และเปิดใบขอซื้อให้เองเมื่อถึงจุดสั่งซื้อ',b:['ตัดสต๊อกอัตโนมัติจากใบสั่งซ่อมและบิลขาย','แจ้งเตือนจุดสั่งซื้อ สต๊อกเกิน และ Dead stock','รหัสสินค้าและบาร์โค้ดสำหรับรับเข้า เบิก และตรวจนับ']},
+  {t:'Accounting & Finance',s:'บัญชีและการเงิน',d:'เอกสารขายต่อเนื่องจากใบเสนอราคา ใบแจ้งหนี้ ใบเสร็จ ถึงใบกำกับภาษี ลงบัญชีและสรุปภาษีให้ทุกงวด',b:['ลูกหนี้ เจ้าหนี้ และสถานะเงินสดในหน้าเดียว','รายงานภาษีขาย ภาษีซื้อ และภาษีหัก ณ ที่จ่าย','กำไรขาดทุนรายคัน รายวัน และงบการเงินรายปี']},
+  {t:'E-Document Approval',s:'ระบบอนุมัติเอกสาร',d:'ใบสั่งซื้อ ใบเบิกอะไหล่ และส่วนลด ส่งขออนุมัติถึงผู้มีสิทธิ์ กดอนุมัติจากมือถือได้โดยไม่ต้องรอเข้าอู่',b:['กระดิ่งแจ้งเอกสารรออนุมัติตามสิทธิ์ผู้ใช้','เห็นยอดเงิน ผู้ขอ และเหตุผลก่อนตัดสินใจ','บันทึกผู้อนุมัติและเวลาไว้ตรวจย้อนหลัง']},
+  {t:'After-Sales Service',s:'บริการหลังการขาย',d:'ประวัติซ่อมรายคันเก็บต่อเนื่องทุกครั้งที่เข้าบริการ พร้อมระยะรับประกันงานซ่อมและแบบประเมินหลังรับรถ',b:['Service History ค้นได้ด้วยทะเบียนรถ','นัดตรวจเช็กตามระยะรับประกันงานซ่อม','คะแนนและรีวิวจากลูกค้าหลังปิดงาน']},
+  {t:'Multi-Branch & Franchise',s:'รองรับแฟรนไชส์และสาขา',d:'ผู้บริหารเห็นทุกสาขาจากศูนย์กลาง เปรียบเทียบยอดขาย และโอนอะไหล่ระหว่างสาขาเมื่อสาขาใดขาดของ',b:['แดชบอร์ดรวมและแยกรายสาขา','โอนย้ายอะไหล่ระหว่างสาขาพร้อมเอกสาร','ราคาและสิทธิ์ผู้ใช้ชุดเดียวกันทั้งเครือ']},
+  {t:'Business Network & Cloud',s:'เครือข่ายธุรกิจบน Cloud',d:'เชื่อมอู่กับซัพพลายเออร์อะไหล่ บริษัทประกัน และแอปผู้ใช้รถ ทำงานผ่านเบราว์เซอร์ได้ทุกอุปกรณ์',b:['สั่งอะไหล่จากคลังกลางในราคาตรงจากซัพพลาย','รับงานจอง ขอราคา และงานฉุกเฉินจากแอปผู้ใช้รถ','PC, Tablet และ Mobile ใช้ข้อมูลชุดเดียวกัน']}],
+ show:{eyebrow:'Interactive Showcase',h:'เจาะลึกหน้าจอ ตามบทบาทของคนในอู่',p:'กดจุดสีอำพันบนหน้าจอ หรือกดรายการด้านข้าง เพื่อดูคำอธิบายแต่ละส่วน',td:'Test Drive ดูภาพหน้าจอจริงทั้ง 58 หน้าจอ'},
+ roles:[
+  {t:'เจ้าของอู่',d:'ภาพรวมธุรกิจ',hs:[{t:'ตัวเลขธุรกิจ 4 ช่อง',d:'รายได้ รายจ่าย กำไรสุทธิ และลูกหนี้ค้างชำระ สลับดูรายเดือน ไตรมาส หรือ 12 เดือน'},{t:'รายได้เทียบรายจ่าย',d:'กราฟรายเดือนคำนวณจากใบเสร็จและรายจ่ายที่บันทึกในระบบ ไม่ต้องรวมตัวเลขเอง'},{t:'อายุลูกหนี้',d:'แยกยอดค้างตามจำนวนวัน เห็นทันทีว่าบิลใดควรตามเก็บก่อน'}]},
+  {t:'หัวหน้าช่างหน้าลาน',d:'กระดานคิวซ่อม',hs:[{t:'สถานะงานรายคัน',d:'แถบสีบอกขั้นตอน ตั้งแต่รอรับงาน กำลังซ่อม รอชำระ จนถึงชำระแล้ว'},{t:'อะไหล่ที่จะตัดสต๊อก',d:'ระบบแสดงอะไหล่ที่ผูกกับงานไว้ล่วงหน้า ปิดงานแล้วตัดสต๊อกให้เอง'},{t:'มอบหมายช่าง',d:'เลือกช่างตามความถนัด ชื่อช่างขึ้นบนการ์ดงานและนับเป็นปริมาณงานสะสม'}]},
+  {t:'ฝ่ายบัญชี',d:'บิลและภาษี',hs:[{t:'ทะเบียนใบเสร็จ',d:'ค้นด้วยเลขเอกสาร ทะเบียนรถ หรือรายการ และกดรับชำระได้จากแถวเดียวกัน'},{t:'สถานะและอายุหนี้',d:'ป้ายสีแยกชำระแล้วกับรอชำระ พร้อมจำนวนวันที่ค้าง'},{t:'สรุปภาษีประจำงวด',d:'ระบบประมาณการภาษีขายจากใบเสร็จที่รับชำระแล้ว พร้อมกำหนดยื่น ภ.พ.30'}]}],
+ dev:{eyebrow:'Multi-Device & Cloud',h:'หน้าร้าน หน้าลาน และผู้บริหาร เห็นข้อมูลชุดเดียวกัน',p:'ทำงานผ่านเบราว์เซอร์ ไม่ต้องติดตั้งโปรแกรม ข้อมูลอัปเดตถึงกันทุกเครื่อง',d1:'Desktop ที่เคาน์เตอร์',d2:'Tablet หน้าลาน',d3:'Smartphone ของผู้บริหาร'},
+ rel:[{t:'เข้ารหัสการเชื่อมต่อ',d:'ข้อมูลรับส่งผ่าน HTTPS ตลอดเส้นทาง แนวทางเดียวกับบริการธนาคารออนไลน์'},{t:'สิทธิ์ตามตำแหน่ง',d:'กำหนดได้ว่าใครเห็นราคา ใครอนุมัติ ใครแก้เอกสาร พร้อมรายงานตรวจสอบการใช้งาน'},{t:'ข้อมูลอยู่บน Cloud',d:'ข้อมูลไม่ผูกกับเครื่องใดเครื่องหนึ่ง เครื่องเสียหรือหายก็ทำงานต่อจากเครื่องอื่นได้'},{t:'อัปเดตถึงกันทุกเครื่อง',d:'ช่างปิดงานที่หน้าลาน เคาน์เตอร์เห็นบิล และผู้บริหารเห็นยอดต่อเนื่องกัน'}],
+ cta:{eyebrow:'เริ่มต้นใช้งาน',h:'นัดดู Demo กับทีม DriveGo',p:'บอกขนาดอู่และงานที่อยากแก้ ทีมงานจะเตรียมตัวอย่างที่ตรงกับอู่ของคุณ',l1:'ดูระบบทำงานจริงตั้งแต่รับรถจนถึงออกใบกำกับภาษี',l2:'ถามตอบเรื่องโมดูลที่เหมาะกับอู่ของคุณ',l3:'โทร 082-108-7000 หรืออีเมล sales@drivegox.com'},
+ form:{name:'ชื่อผู้ติดต่อ',shop:'ชื่ออู่หรือศูนย์บริการ',tel:'เบอร์โทร',br:'จำนวนสาขา',brs:['1 สาขา','2 ถึง 5 สาขา','6 สาขาขึ้นไป'],mod:'โมดูลที่สนใจ',all:'ทั้งระบบ',msg:'สิ่งที่อยากให้ระบบช่วย (ไม่บังคับ)',send:'ขอนัด Demo',err:'กรอกชื่อ ชื่ออู่ และเบอร์โทรให้ครบก่อนส่ง',okh:'สรุปคำขอพร้อมแล้ว',okp:'คัดลอกข้อความนี้ส่งมาที่ sales@drivegox.com หรือโทร 082-108-7000 เพื่อนัดเวลา',copy:'คัดลอกข้อความ',copied:'คัดลอกแล้ว',edit:'แก้ไขข้อมูล',sumh:'ขอนัด Demo DriveGo'},
+ why:{eyebrow:'ปัญหาที่อู่เจอ',h:'ศูนย์บริการของคุณเจอปัญหาเหล่านี้หรือไม่',fixl:'DriveGo ช่วยได้',q:['ปลวกกิน น้ำรั่ว แฟ้มหาย เอกสารกระดาษเสียหายได้ทุกวัน','ซื้อมา 100 ขาย 200 ลดให้ลูกค้า 20 เหลือกำไร 80 จริงหรือเปล่า','นับสต๊อกแต่ละครั้ง ไม่รู้จะเริ่มตรงไหน และจะเสร็จเมื่อไร','ลูกค้าไม่กลับมา แปลว่าเราซ่อมจบ หรือเขาไปอู่อื่นแล้ว'],foot:'ปัญหาเหล่านี้ไม่ได้เกิดจากช่างไม่เก่ง แต่เกิดจากอู่ยังไม่มีระบบกลางที่เก็บข้อมูลไว้ที่เดียว',
+  pain:[['เอกสารยังอยู่บนกระดาษ','ใบสั่งซ่อม ใบเสนอราคา และใบเสร็จเขียนด้วยมือ ค้นย้อนหลังไม่ได้ และตกหล่นบ่อย'],['ไม่รู้ต้นทุนจริงของงาน','ค่าแรง ค่าอะไหล่ และส่วนลดปนกันอยู่ สิ้นเดือนจึงไม่รู้ว่างานไหนได้กำไรจริง'],['สต๊อกอะไหล่คุมไม่อยู่','ของที่มีลูกค้าไม่มาซ่อม ของที่ต้องใช้กลับไม่มี เกิดของค้างสต๊อกจมทุน'],['ลูกค้าไม่กลับมาใช้ซ้ำ','ไม่มีประวัติรถรายคัน ไม่มีการแจ้งเตือนรอบเซอร์วิส ลูกค้าจึงหายไปอย่างเงียบ ๆ']],
+  bt:'ก่อนใช้ DriveGo',bh:'ทำงานด้วยความจำและกระดาษ',b:['ค้นใบสั่งซ่อมเก่าต้องรื้อแฟ้มทีละเล่ม','รู้กำไรตอนสิ้นเดือน และมักไม่ตรงกับที่คิดไว้','สั่งอะไหล่ตามความรู้สึก ของขาดสลับกับของค้าง','ลูกค้าจะกลับมาหรือไม่ ขึ้นอยู่กับว่าลูกค้าจำเราได้ไหม'],
+  at:'หลังใช้ DriveGo',ah:'ทำงานด้วยข้อมูลชุดเดียวกันทั้งอู่',a:['ค้นประวัติงานจากทะเบียนรถได้ในไม่กี่วินาที','เห็นต้นทุนและกำไรรายบิลทันทีที่ปิดงาน','ระบบแจ้งเตือนอะไหล่ใกล้หมดก่อนของขาด','ระบบเตือนรอบเซอร์วิส ทำให้ลูกค้ากลับมาเป็นรอบ']},
+ plans:{eyebrow:'ผลิตภัณฑ์',h:'เลือกระบบให้ตรงกับขนาดของอู่',p:'อัปเกรดข้ามรุ่นได้ทุกเมื่อ ข้อมูลลูกค้า ประวัติรถ และเอกสารเดิมยังอยู่ครบ ไม่ต้องเริ่มใหม่',
+  pk:[{n:'BaziX',tag:['Professional','System'],f:'อู่ขนาดกลาง ช่าง 4 ถึง 10 คน อู่เฉพาะทาง และศูนย์บริการขนาดกลาง',l:['ใบสั่งซ่อม ใบเสนอราคา ใบเสร็จ และใบกำกับภาษี','คลังอะไหล่และตัดสต๊อกอัตโนมัติ','ต้นทุนและกำไรรายบิล','แจ้งเตือนรอบเซอร์วิสถึงลูกค้า','ผลงานช่างรายคนและการคิดค่าแรง','กำหนดสิทธิ์ผู้ใช้หลายระดับ']},
+      {n:'ProX',tag:['Top Performance','System'],f:'อู่ขนาดใหญ่หรือหลายสาขา ศูนย์บริการเครือข่าย และธุรกิจที่วางแผนขยายแฟรนไชส์',l:['ทุกความสามารถของ BaziX','จัดการหลายสาขาในระบบเดียว','มาตรฐานเอกสารและขั้นตอนเดียวกันทุกสาขา','แดชบอร์ดวิเคราะห์เชิงลึก','เปรียบเทียบผลงานระหว่างสาขา','เชื่อมต่อระบบภายนอกผ่าน API']},
+      {n:'BOOK',tag:['Userbook','System'],f:'บริการที่เชื่อมผู้ใช้รถกับอู่ในเครือข่าย DriveGo Ecosystem',l:['ค้นหาอู่ใกล้ตัวและนัดหมายเข้ารับบริการ','ผู้ใช้รถดูประวัติรถของตัวเองได้','ประวัติถูกบันทึกให้เองจากงานซ่อมจริง','เปิดเผยเฉพาะข้อมูลที่ได้รับความยินยอม','อู่เห็นประวัติซ่อมย้อนหลังของรถคันนั้น','ทำ Co-Marketing ร่วมกันทั้งเครือข่าย']}],
+  ch:'ความสามารถ',rows:['เปิดใบสั่งซ่อมและติดตามสถานะงาน','ใบเสนอราคา ใบเสร็จ และเอกสารภาษี','ประวัติรถและข้อมูลลูกค้า','รายงานยอดขาย','แจ้งเตือนรอบเซอร์วิสถึงลูกค้า','คลังอะไหล่และตัดสต๊อกอัตโนมัติ','ต้นทุนและกำไรรายบิล','ผลงานช่างและการคิดค่าแรง','กำหนดสิทธิ์ผู้ใช้หลายระดับ','จัดการหลายสาขาในระบบเดียว','แดชบอร์ดวิเคราะห์เชิงลึก','เชื่อมต่อระบบภายนอก (API)'],yes:'มี',no:'ไม่มี',per:'ต่อปี',vat:'ยังไม่รวมภาษีมูลค่าเพิ่ม',fr:'DriveGo-Franchise ใช้ราคาเดียวกับ ProX',soon:'กำหนดเปิดใช้งาน',when:'ประมาณพฤษภาคม 2570',fee:'ค่าบริการรายปี (ยังไม่รวมภาษีมูลค่าเพิ่ม)'},
+ start:{h:'เริ่มใช้งานใน 4 ขั้น',note:'ไม่ต้องหยุดรับงานเพื่อเปลี่ยนระบบ อู่ยังทำงานตามปกติระหว่างติดตั้งและอบรม',why:'ทำไมต้องเป็น DriveGo',
+  s:[['สำรวจหน้างาน','ทีมงานเข้าดูขั้นตอนการทำงานจริงของอู่ เพื่อตั้งค่าให้ตรงกับวิธีทำงานเดิม'],['ตั้งค่าระบบ','นำเข้าข้อมูลลูกค้า รายการอะไหล่ และราคาค่าแรง พร้อมตั้งรูปแบบเอกสารของอู่'],['อบรมทีมงาน','สอนช่างและพนักงานหน้าร้านใช้งานจริงทีละขั้น จนเปิดงานและปิดบิลได้เอง'],['ใช้งานจริงและดูแลต่อเนื่อง','ติดตามผลช่วงแรก ปรับระบบให้เข้ากับอู่ และมีทีมไทยช่วยเหลือหลังการขาย']],
+  w:[['ออกแบบจากหน้างานอู่ไทย','ทีมงานมาจากสายอะไหล่และงานบริการรถยนต์จริง เข้าใจข้อจำกัดของอู่'],['เริ่มเล็กแล้วค่อยโตได้','เลือกรุ่นตามขนาดอู่วันนี้ และอัปเกรดได้เมื่อพร้อม'],['ใช้งานง่าย ช่างก็ใช้ได้','หน้าจอภาษาไทย ปุ่มน้อย ขั้นตอนสั้น ลดเวลาอบรม'],['มีทีมไทยดูแลต่อเนื่อง','ติดตั้ง อบรม และช่วยเหลือหลังการขายโดยทีมงานคนไทย']]},
+ priv:{eyebrow:'ความเป็นส่วนตัวของข้อมูล',h:'นโยบายความเป็นส่วนตัว',p1:'บริษัทให้ความสำคัญกับการคุ้มครองข้อมูลส่วนบุคคล โดยเก็บรวบรวม ใช้ และเปิดเผยข้อมูลเท่าที่จำเป็นตามวัตถุประสงค์ที่แจ้งไว้ ภายใต้พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562',p2:'เจ้าของข้อมูลมีสิทธิขอเข้าถึง แก้ไข ลบ หรือถอนความยินยอมได้ตามที่กฎหมายกำหนด ติดต่อ <a href="mailto:sales@drivegox.com">sales@drivegox.com</a>',r:['ขอเข้าถึงข้อมูล','ขอแก้ไข','ขอลบ','ถอนความยินยอม'],link:'อ่านนโยบายฉบับเต็ม',form:'ข้อมูลที่กรอกใช้เพื่อติดต่อกลับเรื่องการนัด Demo เท่านั้น ดูรายละเอียดที่'},
+ foot:{tag:'ระบบนิเวศบริการรถยนต์ครบวงจร สำหรับอู่ซ่อมรถและศูนย์บริการ',prod:'ผลิตภัณฑ์',menu:'เมนู',support:'ฝ่ายสนับสนุน',rights:'สงวนลิขสิทธิ์',co:'บริษัท ไดร์ฟบิซ เมคคาไลซ์ โซลูชั่น จำกัด',addr:'เลขที่ 66 ซอยแสมดำ 13 แขวงแสมดำ เขตบางขุนเทียน กรุงเทพมหานคร 10150'},
+ m:{shop:'DrivegoGarage',nav:['แดชบอร์ด','งานซ่อม','ใบเสนอราคา','บิล ใบเสร็จ','สต๊อก','บัญชี','ภาษี','พนักงาน'],
+  dash:'แดชบอร์ดธุรกิจ',per:'ก.ค. 69',inc:'รายได้',exp:'รายจ่าย',net:'กำไรสุทธิ',ar:'ลูกหนี้ค้างชำระ',chart:'รายได้เทียบรายจ่าย',mo:['ก.ย.','ต.ค.','พ.ย.','ธ.ค.','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.'],
+  queue:'คิวงานวันนี้',wait:'รอรับงาน',work:'กำลังซ่อม',pend:'รอชำระ',paid:'ชำระแล้ว',
+  brake:'ตรวจเบรก + ผ้าเบรก',s60:'เช็กระยะ 60,000 กม.',ac:'ล้างแอร์ / เปลี่ยนกรองแอร์',shock:'เปลี่ยนโช้คหลังคู่',tire:'ปะยาง + สลับยาง',
+  parts:'ตัดสต๊อก',pad:'ผ้าเบรกหน้า ×1',kit:'น้ำมันเครื่อง ×1, กรอง ×2',tech:['ช่างเอก','ช่างบอย','ช่างหนึ่ง'],sk:['เครื่องยนต์ Hybrid','ช่วงล่าง เบรก','แอร์ ไฟฟ้า'],assign:'มอบหมายช่าง',free:'ว่าง',busy:'กำลังทำ',
+  aging:'อายุลูกหนี้',ag:['0 ถึง 7 วัน','8 ถึง 30 วัน','เกิน 30 วัน'],bill:'ใบ',days:'วัน',walk:'ลูกค้าทั่วไป',
+  bills:'ทะเบียนใบเสร็จ',vat:'สรุปภาษี ภ.พ.30',sales:'ยอดขายรวม VAT',base:'ฐานภาษี',vat7:'ภาษีขาย 7%',due:'กำหนดยื่น 15 ส.ค. 69',over:'ค้าง',
+  crm:'ศูนย์แจ้งเตือนลูกค้า',ins:'ต่อประกันภัย',tax:'ต่อภาษีรถประจำปี',svc:'เช็กระยะ 60,000 กม.',left:'เหลือ 1,080 กม.',d5:'5 ก.ย. 69',d2:'2 ต.ค. 69',coins:'DriveGo Coins',
+  stock:'สต๊อกของฉัน',min:'ขั้นต่ำ',auto:'เปิดใบขอซื้ออัตโนมัติ',pcs:'ชิ้น',
+  docs:'เอกสารต่อเนื่อง',fl:['ใบเสนอราคา','ใบแจ้งหนี้','ใบเสร็จ','ใบกำกับภาษี'],fin:'สรุปเดือนนี้',
+  appr:'เอกสารรออนุมัติ',po:'ใบสั่งซื้อ',wd:'ใบเบิกอะไหล่',dc:'ส่วนลด 10%',by:'ผู้ขอ',st:'ฝ่ายสต๊อก',cs:'เคาน์เตอร์',yes:'อนุมัติ',no:'ไม่อนุมัติ',ok:'อนุมัติแล้ว',
+  hist:'ประวัติซ่อม 8กด 5219',h1:'17 ส.ค. 69',h2:'12 ก.พ. 69',h3:'20 พ.ย. 68',s50:'เช็กระยะ 50,000 กม.',rot:'สลับยาง + ตั้งศูนย์',war:'รับประกันงานซ่อม 6 เดือน หรือ 10,000 กม.',rate:'คะแนนจากลูกค้า',
+  brc:'ยอดขายรายสาขา',br:['ลาดพร้าว','พระราม 9','รัชดา'],tr:'โอนอะไหล่ระหว่างสาขา',trd:'ผ้าเบรกหน้า ×4 จากลาดพร้าวไปรัชดา',way:'กำลังจัดส่ง',
+  nw:['ซัพพลายเออร์','ประกันภัย','แอปผู้ใช้รถ','สาขา','Tablet หน้าลาน','มือถือผู้บริหาร'],hub:'Cloud',
+  today:'วันนี้',sum:'สรุปวันนี้',jobs:'งานในอู่'}},
+en:{
+ nav:{eco:'Ecosystem',plans:'Packages',art:'Articles',login:'Log in',show:'Screens',cloud:'Cloud & devices',contact:'Contact',cta:'Request a demo'},
+ hero:{eyebrow:'Cloud garage & service-centre management',h:'Accurate information <em>leads to successful management</em>',
+  p:{l1:'The complete cloud system for car repair garages and service centres',l2:'For managers who need <em>data to run the business and make decisions</em>',k:['Financial figures','Stock','Control at every step']},
+  pil:[['Covers every part of the business','Workshop, stock, accounts and customers in 8 modules'],['Manage in fine detail','Profit and loss per car, per day and per branch'],['Secured by permission-based approvals','Rights set by position, sign-off before anything important'],['Builds a healthy ecosystem','Links customers, suppliers, insurers and branches']],
+  cta1:'Book a demo',cta2:'See the 8 modules',f1:'modules in one system',f2:'languages: Thai, English, Chinese',f3:'devices: PC, tablet, mobile',
+  fl1a:'Coins issued to customer',fl1b:'+12 Coins from receipt RC-6908-001',fl2a:'Reorder point reached',fl2b:'Cabin filter (EV) down to 8. PO-001 raised.',note:'Figures and names on screen are sample data'},
+ eco:{eyebrow:'All-in-One Ecosystem',h:'Eight modules working as one system',p:'Pick a module to see its screen. Data flows on from the quotation all the way to the financial statements.'},
+ mods:[
+  {t:'Marketing & CRM',s:'Customer relationships',d:'Customers are tied to their licence plates. The system works out service, road-tax and insurance dates from real mileage and sends the reminders for you.',b:['Membership and DriveGo Coins earned from paid receipts','Service reminders timed by average daily distance','Promotions and coupons that bring past customers back']},
+  {t:'Workshop & Bay Management',s:'The workshop floor',d:'The repair board updates the moment a status changes. See which car is at which stage and which technician owns it.',b:['Bookings, walk-ins and quotations on one board','Assign technicians and see each person’s workload','Closing a job issues the receipt and deducts stock']},
+  {t:'Inventory & Parts Stock',s:'Parts stock control',d:'A parts register with Min and Max levels. Stock is deducted when a repair is approved, and a purchase request opens itself at the reorder point.',b:['Automatic deduction from job orders and sales bills','Alerts for reorder point, overstock and dead stock','Item codes and barcodes for receiving, issuing and counting']},
+  {t:'Accounting & Finance',s:'Books and cash',d:'Sales documents run from quotation to invoice, receipt and tax invoice. Entries are posted and tax is summarised every period.',b:['Receivables, payables and cash position on one page','Output VAT, input VAT and withholding tax reports','Profit and loss per car, per day, and annual statements']},
+  {t:'E-Document Approval',s:'Approvals on the go',d:'Purchase orders, parts requisitions and discounts go to the right approver, who can sign off from a phone without coming in.',b:['A bell for documents waiting on your approval','See amount, requester and reason before deciding','Approver and time are logged for later review']},
+  {t:'After-Sales Service',s:'After the handover',d:'Every visit adds to the car’s service history, together with the repair warranty period and a satisfaction survey after pickup.',b:['Service history searchable by licence plate','Check-up reminders within the warranty period','Ratings and reviews from customers after each job']},
+  {t:'Multi-Branch & Franchise',s:'Branches and franchises',d:'Head office sees every branch, compares sales, and moves parts between branches when one runs short.',b:['Group dashboard with a view per branch','Inter-branch parts transfers with documents','One price list and one permission set across the group']},
+  {t:'Business Network & Cloud',s:'A connected network',d:'Connects the garage with parts suppliers, insurers and the driver app. It runs in the browser on any device.',b:['Order from the central catalogue at supplier-direct prices','Receive bookings, quote requests and roadside jobs from the driver app','PC, tablet and mobile share the same data']}],
+ show:{eyebrow:'Interactive Showcase',h:'A closer look, by role',p:'Tap an amber dot on the screen, or an item in the list, to read what that area does.',td:'Test Drive: see all 58 real screens'},
+ roles:[
+  {t:'Owner',d:'Business overview',hs:[{t:'Four business figures',d:'Income, expenses, net profit and outstanding receivables. Switch between month, quarter and 12 months.'},{t:'Income against expenses',d:'The monthly chart is built from receipts and recorded expenses. Nobody adds numbers up by hand.'},{t:'Receivables ageing',d:'Outstanding bills grouped by days overdue, so you know which to chase first.'}]},
+  {t:'Workshop foreman',d:'Repair queue board',hs:[{t:'Status of every car',d:'A colour stripe shows the stage: waiting, in repair, awaiting payment, paid.'},{t:'Parts to be deducted',d:'Parts linked to the job are shown up front and deducted when the job is closed.'},{t:'Assigning technicians',d:'Pick a technician by skill. The name appears on the job card and counts towards workload.'}]},
+  {t:'Accounting',d:'Bills and tax',hs:[{t:'Receipt register',d:'Search by document number, plate or item, and record payment from the same row.'},{t:'Status and age',d:'Colour tags separate paid from pending, with the number of days overdue.'},{t:'Tax summary for the period',d:'Output VAT is estimated from paid receipts, with the PP30 filing date.'}]}],
+ dev:{eyebrow:'Multi-Device & Cloud',h:'Front desk, workshop floor and management see the same data',p:'It runs in the browser with nothing to install, and every device stays up to date.',d1:'Desktop at the counter',d2:'Tablet on the floor',d3:'Smartphone for management'},
+ rel:[{t:'Encrypted connection',d:'Data travels over HTTPS end to end, the same approach online banking uses.'},{t:'Permissions by position',d:'Decide who sees prices, who approves and who edits documents, with a usage audit report.'},{t:'Your data lives in the cloud',d:'Nothing is tied to one machine. If a computer fails or goes missing, carry on from another.'},{t:'Every device in step',d:'A technician closes a job, the counter sees the bill, and management sees the total.'}],
+ cta:{eyebrow:'Get started',h:'Book a demo with the DriveGo team',p:'Tell us the size of your garage and what you want to fix. We will prepare an example that fits your shop.',l1:'See the full flow from check-in to tax invoice',l2:'Ask which modules suit your garage',l3:'Call 082-108-7000 or e-mail sales@drivegox.com'},
+ form:{name:'Contact name',shop:'Garage or service centre',tel:'Phone',br:'Branches',brs:['1 branch','2 to 5 branches','6 or more'],mod:'Module of interest',all:'The whole system',msg:'What should the system help with? (optional)',send:'Request a demo',err:'Enter your name, garage name and phone number first',okh:'Your request summary is ready',okp:'Copy this message and send it to sales@drivegox.com, or call 082-108-7000 to arrange a time.',copy:'Copy message',copied:'Copied',edit:'Edit details',sumh:'DriveGo demo request'},
+ why:{eyebrow:'The problem',h:'Does your service centre face these problems?',fixl:'With DriveGo',q:['Termites, leaks, lost folders: paper can be ruined any day.','Bought at 100, sold at 200, gave 20 off. Is the profit really 80?','Every stock count: where to start, and when will it end?','No return visit: was the repair that good, or did they go elsewhere?'],foot:'None of this happens because the technicians lack skill. It happens because the garage has no central system that keeps its data in one place.',
+  pain:[['Paperwork is still on paper','Job orders, quotations and receipts are handwritten, hard to look up later, and often incomplete.'],['The real cost of a job is unknown','Labour, parts and discounts are mixed together, so at month end nobody knows which jobs made money.'],['Parts stock is out of control','What is on the shelf is not what customers need, and capital sits in slow stock.'],['Customers do not come back','No per-car history and no service reminders, so customers quietly drift away.']],
+  bt:'Before DriveGo',bh:'Running on memory and paper',b:['Finding an old job order means digging through files','Profit is known at month end, and rarely matches expectations','Parts are ordered by feel, swinging between shortage and surplus','Whether a customer returns depends on whether they remember you'],
+  at:'After DriveGo',ah:'One set of data for the whole garage',a:['Find a car’s history from its plate in seconds','See cost and profit per bill as soon as the job closes','Low-stock alerts arrive before parts run out','Service reminders bring customers back on schedule']},
+ plans:{eyebrow:'Products',h:'Choose the system that fits your garage',p:'Upgrade between editions at any time. Customer data, car history and past documents stay in place.',
+  pk:[{n:'BaziX',tag:['Professional','System'],f:'Mid-size garages with 4 to 10 technicians, specialist shops and mid-size service centres',l:['Job orders, quotations, receipts and tax invoices','Parts warehouse with automatic stock deduction','Cost and profit per bill','Service reminders sent to customers','Technician performance and labour pay','Multi-level user permissions']},
+      {n:'ProX',tag:['Top Performance','System'],f:'Large or multi-branch garages, service networks and businesses planning to franchise',l:['Everything in BaziX','Manage many branches in one system','One document and process standard for every branch','In-depth analytics dashboard','Compare performance across branches','Connect external systems through an API']},
+      {n:'BOOK',tag:['Userbook','System'],f:'The service that connects drivers with garages in the DriveGo Ecosystem',l:['Find a nearby garage and book a visit','Drivers can see their own car history','History is recorded automatically from real repair jobs','Only data the driver consents to is shared','Garages see the car’s past repairs','Co-marketing across the whole network']}],
+  ch:'Capability',rows:['Job orders and job status tracking','Quotations, receipts and tax documents','Car history and customer data','Sales reports','Service reminders to customers','Parts warehouse and automatic stock deduction','Cost and profit per bill','Technician performance and labour pay','Multi-level user permissions','Multi-branch management','In-depth analytics dashboard','External system connection (API)'],yes:'Included',no:'Not included',per:'per year',vat:'Excluding VAT',fr:'DriveGo-Franchise is the same price as ProX',soon:'Planned launch',when:'Around May 2027',fee:'Annual service fee (excluding VAT)'},
+ start:{h:'Up and running in 4 steps',note:'No need to stop taking jobs. The garage keeps working as usual during setup and training.',why:'Why DriveGo',
+  s:[['Site survey','Our team studies how your garage really works, so the setup matches your existing process.'],['System setup','Import customers, parts lists and labour rates, and set up your document formats.'],['Team training','Technicians and front-desk staff practise step by step until they can open jobs and close bills alone.'],['Go live with ongoing care','We follow up in the early weeks, tune the system, and support you after the sale.']],
+  w:[['Designed on the Thai workshop floor','The team comes from parts supply and car service, and knows a garage’s constraints.'],['Start small, grow later','Pick the edition that fits today and upgrade when you are ready.'],['Easy enough for every technician','Few buttons and short steps, so training is quick.'],['A Thai team that stays with you','Installation, training and after-sales support from a local team.']]},
+ priv:{eyebrow:'Data privacy',h:'Privacy policy',p1:'The company takes the protection of personal data seriously. We collect, use and disclose data only as necessary for the purposes we have stated, under Thailand’s Personal Data Protection Act B.E. 2562 (2019).',p2:'Data subjects may request access, correction or deletion, or withdraw consent, as the law provides. Contact <a href="mailto:sales@drivegox.com">sales@drivegox.com</a>',r:['Access','Correction','Deletion','Withdraw consent'],link:'Read the full policy',form:'The details you enter are used only to contact you about a demo. See our'},
+ foot:{tag:'A complete automotive service ecosystem for garages and service centres',prod:'Products',menu:'Menu',support:'Support',rights:'All rights reserved.',co:'Drivebiz Mecalyze Solution Co., Ltd.',addr:'66 Soi Samae Dam 13, Samae Dam, Bang Khun Thian, Bangkok 10150, Thailand'},
+ m:{shop:'DrivegoGarage',nav:['Dashboard','Repair jobs','Quotations','Bills & receipts','Stock','Accounting','Tax','Staff'],
+  dash:'Business dashboard',per:'Jul 2026',inc:'Income',exp:'Expenses',net:'Net profit',ar:'Receivables',chart:'Income against expenses',mo:['Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May','Jun','Jul'],
+  queue:'Today’s queue',wait:'Waiting',work:'In repair',pend:'Awaiting payment',paid:'Paid',
+  brake:'Brake check + pads',s60:'60,000 km service',ac:'A/C clean + cabin filter',shock:'Rear shock pair',tire:'Puncture + rotation',
+  parts:'Deducts',pad:'Front brake pads ×1',kit:'Engine oil ×1, filters ×2',tech:['Ek','Boy','Nueng'],sk:['Engine, hybrid','Suspension, brakes','A/C, electrical'],assign:'Assign technician',free:'Free',busy:'Working',
+  aging:'Receivables ageing',ag:['0 to 7 days','8 to 30 days','Over 30 days'],bill:'bills',days:'days',walk:'Walk-in',
+  bills:'Receipt register',vat:'VAT summary (PP30)',sales:'Sales incl. VAT',base:'Tax base',vat7:'Output VAT 7%',due:'File by 15 Aug 2026',over:'overdue',
+  crm:'Customer reminders',ins:'Insurance renewal',tax:'Annual road tax',svc:'60,000 km service',left:'1,080 km to go',d5:'5 Sep 2026',d2:'2 Oct 2026',coins:'DriveGo Coins',
+  stock:'My stock',min:'min',auto:'Purchase request raised',pcs:'pcs',
+  docs:'Document chain',fl:['Quotation','Invoice','Receipt','Tax invoice'],fin:'This month',
+  appr:'Awaiting approval',po:'Purchase order',wd:'Parts requisition',dc:'10% discount',by:'From',st:'Stock',cs:'Counter',yes:'Approve',no:'Reject',ok:'Approved',
+  hist:'Service history 8กด 5219',h1:'17 Aug 2026',h2:'12 Feb 2026',h3:'20 Nov 2025',s50:'50,000 km service',rot:'Rotation + alignment',war:'Repair warranty: 6 months or 10,000 km',rate:'Customer rating',
+  brc:'Sales by branch',br:['Lat Phrao','Rama 9','Ratchada'],tr:'Inter-branch transfer',trd:'Front brake pads ×4, Lat Phrao to Ratchada',way:'In transit',
+  nw:['Suppliers','Insurers','Driver app','Branches','Floor tablet','Manager phone'],hub:'Cloud',
+  today:'Today',sum:'Today',jobs:'Jobs in shop'}},
+zh:{
+ nav:{eco:'生态系统',plans:'产品方案',art:'知识文章',login:'登录',show:'系统界面',cloud:'云端与设备',contact:'联系我们',cta:'申请免费试用'},
+ hero:{eyebrow:'云端汽修厂与服务中心管理系统',h:'用数据做好管理，<em>迈向成功</em>',
+  p:{l1:'面向汽车修理厂和服务中心的一站式云端管理系统',l2:'为需要<em>用数据进行管理与决策</em>的管理者而设',k:['财务数字','库存','全流程掌控']},
+  pil:[['覆盖全部管理环节','车间、库存、财务与客户，8 大模块齐备'],['管理细致入微','单车、单日、单店盈亏一目了然'],['权限审批，安全可控','按岗位授权，重要事项先审批'],['打造良性生态','连接客户、供应商、保险公司与门店']],
+  cta1:'预约系统演示',cta2:'查看 8 大模块',f1:'个模块，一套系统',f2:'种语言：泰、英、中',f3:'类设备：电脑、平板、手机',
+  fl1a:'已向客户发放金币',fl1b:'收据 RC-6908-001 获得 +12 金币',fl2a:'已到补货点',fl2b:'空调滤芯 (EV) 仅剩 8 件，已生成 PO-001',note:'界面中的数字与名称均为示例数据'},
+ eco:{eyebrow:'All-in-One Ecosystem',h:'8 大模块，连成一套系统',p:'选择模块查看对应界面。数据从报价单一路流转到财务报表。'},
+ mods:[
+  {t:'Marketing & CRM',s:'营销与客户关系',d:'客户与车牌绑定。系统根据实际里程计算保养、年检税和保险到期日，并自动提醒。',b:['会员与 DriveGo 金币，按已付款收据累积','按日均里程提前提醒保养','促销与优惠券，唤回老客户']},
+  {t:'Workshop & Bay Management',s:'车间工位管理',d:'维修看板随状态变化即时更新。哪辆车在哪一步、由哪位技师负责，一目了然。',b:['预约、到店和报价单的工单集中在一个看板','向技师派工，查看每人工作量','结单后自动开具收据并扣减库存']},
+  {t:'Inventory & Parts Stock',s:'配件库存管理',d:'配件台账带最低与最高库存。维修获批即扣库存，到补货点自动生成采购申请。',b:['按工单和销售单自动扣减库存','补货点、超储和呆滞库存提醒','商品编码与条码，用于入库、领用和盘点']},
+  {t:'Accounting & Finance',s:'财务与会计',d:'销售单据从报价单、发票、收据一直到税务发票，自动记账并按期汇总税额。',b:['应收、应付与现金状况同页呈现','销项税、进项税与预扣税报表','单车、单日盈亏与年度财务报表']},
+  {t:'E-Document Approval',s:'电子单据审批',d:'采购单、领料单和折扣申请发给有权限的人，用手机就能审批，不必回到店里。',b:['按权限提醒待审批单据','决定前可见金额、申请人和理由','记录审批人和时间，便于追溯']},
+  {t:'After-Sales Service',s:'售后服务',d:'每次进店都写入单车维修履历，并附带维修质保期和取车后的满意度评价。',b:['按车牌查询维修履历','按质保期安排回访检查','结单后的客户评分与评价']},
+  {t:'Multi-Branch & Franchise',s:'多门店与加盟',d:'总部集中查看所有门店，对比营业额；某店缺货时可在门店间调拨配件。',b:['集团总览与单店视图','门店间配件调拨并附单据','全集团统一价格与用户权限']},
+  {t:'Business Network & Cloud',s:'云端商业网络',d:'连接修车厂与配件供应商、保险公司和车主应用。通过浏览器即可在任何设备上使用。',b:['从中央目录按供应商直供价订货','接收车主应用的预约、询价和道路救援','电脑、平板和手机共用同一份数据']}],
+ show:{eyebrow:'Interactive Showcase',h:'按岗位深入了解界面',p:'点击界面上的琥珀色圆点，或右侧列表，查看各区域说明。',td:'Test Drive：查看全部 58 个真实界面'},
+ roles:[
+  {t:'老板',d:'经营总览',hs:[{t:'四项经营数字',d:'收入、支出、净利润和未收账款，可切换本月、季度或 12 个月。'},{t:'收入对比支出',d:'月度图表由系统内的收据和支出记录生成，无需手工汇总。'},{t:'应收账龄',d:'按逾期天数分组，马上知道先催哪一张。'}]},
+  {t:'车间主管',d:'维修排队看板',hs:[{t:'每辆车的状态',d:'色条表示进度：待接单、维修中、待付款、已付款。'},{t:'将要扣减的配件',d:'工单关联的配件提前显示，结单后自动扣库存。'},{t:'派工',d:'按专长选择技师。姓名显示在工单卡片上，并计入累计工作量。'}]},
+  {t:'财务',d:'票据与税务',hs:[{t:'收据台账',d:'按单号、车牌或项目搜索，并在同一行登记收款。'},{t:'状态与账龄',d:'颜色标签区分已付与待付，并显示逾期天数。'},{t:'本期税务汇总',d:'系统根据已收款收据估算销项税，并提示 PP30 申报期限。'}]}],
+ dev:{eyebrow:'Multi-Device & Cloud',h:'前台、车间和管理层，看到同一份数据',p:'通过浏览器使用，无需安装软件，各设备数据保持同步。',d1:'前台电脑',d2:'车间平板',d3:'管理者手机'},
+ rel:[{t:'加密连接',d:'数据全程通过 HTTPS 传输，与网上银行采用相同的方式。'},{t:'按岗位授权',d:'可设定谁能看价格、谁能审批、谁能改单据，并有使用审计报告。'},{t:'数据保存在云端',d:'数据不依赖某一台设备。电脑损坏或丢失，换一台即可继续工作。'},{t:'各设备同步',d:'技师在车间结单，前台看到账单，管理者看到营业额。'}],
+ cta:{eyebrow:'开始使用',h:'与 DriveGo 团队预约演示',p:'告诉我们门店规模和想解决的问题，团队会准备贴合您门店的示例。',l1:'查看从接车到开具税务发票的完整流程',l2:'咨询适合您门店的模块',l3:'致电 082-108-7000 或发邮件至 sales@drivegox.com'},
+ form:{name:'联系人',shop:'修车厂或服务中心名称',tel:'电话',br:'门店数量',brs:['1 家','2 至 5 家','6 家以上'],mod:'感兴趣的模块',all:'整套系统',msg:'希望系统帮您解决什么？（选填）',send:'申请演示',err:'请先填写姓名、门店名称和电话',okh:'申请摘要已生成',okp:'复制这段信息发送至 sales@drivegox.com，或致电 082-108-7000 预约时间。',copy:'复制信息',copied:'已复制',edit:'修改信息',sumh:'DriveGo 演示申请'},
+ why:{eyebrow:'行业痛点',h:'您的服务中心是否遇到这些问题？',fixl:'DriveGo 的解法',q:['白蚁、漏水、档案遗失，纸质单据随时可能损毁。','进价 100，卖 200，给客户减 20，真的赚了 80 吗？','每次盘点，不知从哪开始，也不知何时结束。','客户没再来，是修得太好，还是去了别家？'],foot:'这些问题并不是因为技师技术不好，而是因为修车厂还没有把数据集中在一处的中央系统。',
+  pain:[['单据仍然是纸质的','工单、报价单和收据靠手写，事后查不到，还经常遗漏。'],['不清楚每单的真实成本','工时费、配件费和折扣混在一起，月底不知道哪些工单真正赚钱。'],['配件库存失控','有的货没人来修，要用的货又没有，资金压在呆滞库存里。'],['客户不再回头','没有单车履历，没有保养提醒，客户悄悄流失。']],
+  bt:'使用 DriveGo 之前',bh:'靠记忆和纸张工作',b:['查找旧工单要一本本翻档案','月底才知道利润，而且常与预想不符','凭感觉订货，缺货与积压交替出现','客户是否回来，取决于他是否记得你'],
+  at:'使用 DriveGo 之后',ah:'全店共用同一份数据',a:['按车牌几秒钟查到维修履历','结单后立即看到每单成本与利润','缺货之前系统先提醒','保养提醒让客户按周期回店']},
+ plans:{eyebrow:'产品',h:'选择适合门店规模的系统',p:'随时可升级版本。客户资料、车辆履历和原有单据全部保留，无需重新开始。',
+  pk:[{n:'BaziX',tag:['Professional','System'],f:'中型修车厂（4 至 10 名技师）、专修店和中型服务中心',l:['工单、报价单、收据和税务发票','配件仓库与自动扣库存','每单成本与利润','向客户发送保养提醒','技师个人业绩与工时计酬','多级用户权限']},
+      {n:'ProX',tag:['Top Performance','System'],f:'大型或多门店修车厂、连锁服务网络，以及计划发展加盟的企业',l:['包含 BaziX 的全部功能','一套系统管理多家门店','所有门店统一单据与流程标准','深度分析仪表盘','门店业绩对比','通过 API 连接外部系统']},
+      {n:'BOOK',tag:['Userbook','System'],f:'连接车主与 DriveGo 生态网络内修车厂的服务',l:['查找附近的修车厂并预约','车主可查看自己车辆的履历','履历由实际维修工单自动记录','仅公开车主同意的数据','修车厂可查看该车过往维修记录','全网络联合营销']}],
+  ch:'功能',rows:['开立工单并跟踪状态','报价单、收据和税务单据','车辆履历与客户资料','销售报表','向客户发送保养提醒','配件仓库与自动扣库存','每单成本与利润','技师业绩与工时计酬','多级用户权限','多门店统一管理','深度分析仪表盘','连接外部系统 (API)'],yes:'包含',no:'不包含',per:'每年',vat:'不含增值税',fr:'DriveGo-Franchise 与 ProX 价格相同',soon:'预计上线时间',when:'2027 年 5 月左右',fee:'年服务费（不含增值税）'},
+ start:{h:'4 步开始使用',note:'更换系统期间无需停业，安装和培训时门店照常接单。',why:'为什么选择 DriveGo',
+  s:[['现场调研','团队到店了解实际工作流程，让设置贴合原有做法。'],['系统设置','导入客户资料、配件清单和工时价格，并设置门店单据格式。'],['团队培训','手把手教技师和前台实际操作，直到能独立开单和结账。'],['正式使用与持续服务','上线初期跟进，按门店调整系统，并提供售后支持。']],
+  w:[['源自泰国修车厂一线','团队来自配件和汽车服务行业，了解门店的实际限制。'],['从小做起，逐步成长','按当前规模选择版本，准备好再升级。'],['简单易用，技师也能上手','按钮少、步骤短，缩短培训时间。'],['本地团队持续服务','安装、培训和售后均由本地团队负责。']]},
+ priv:{eyebrow:'数据隐私',h:'隐私政策',p1:'公司重视个人数据保护，仅在已告知目的所必需的范围内收集、使用和披露数据，并遵守泰国《个人数据保护法》（佛历 2562 年）。',p2:'数据主体可依法申请查阅、更正、删除数据或撤回同意。联系 <a href="mailto:sales@drivegox.com">sales@drivegox.com</a>',r:['查阅数据','更正','删除','撤回同意'],link:'阅读完整政策',form:'您填写的信息仅用于就演示预约与您联系。详见'},
+ foot:{tag:'面向修车厂和服务中心的一站式汽车服务生态系统',prod:'产品',menu:'菜单',support:'客户支持',rights:'版权所有',co:'Drivebiz Mecalyze Solution Co., Ltd.',addr:'66 Soi Samae Dam 13, Samae Dam, Bang Khun Thian, Bangkok 10150, Thailand'},
+ m:{shop:'DrivegoGarage',nav:['仪表盘','维修工单','报价单','账单收据','库存','财务','税务','员工'],
+  dash:'经营仪表盘',per:'2026年7月',inc:'收入',exp:'支出',net:'净利润',ar:'未收账款',chart:'收入对比支出',mo:['9月','10月','11月','12月','1月','2月','3月','4月','5月','6月','7月'],
+  queue:'今日排队',wait:'待接单',work:'维修中',pend:'待付款',paid:'已付款',
+  brake:'刹车检查 + 刹车片',s60:'60,000 公里保养',ac:'空调清洗 / 更换滤芯',shock:'更换后减震器一对',tire:'补胎 + 轮胎换位',
+  parts:'扣库存',pad:'前刹车片 ×1',kit:'机油 ×1，滤芯 ×2',tech:['Ek 师傅','Boy 师傅','Nueng 师傅'],sk:['发动机 混动','底盘 刹车','空调 电路'],assign:'派工',free:'空闲',busy:'工作中',
+  aging:'应收账龄',ag:['0 至 7 天','8 至 30 天','超过 30 天'],bill:'张',days:'天',walk:'散客',
+  bills:'收据台账',vat:'增值税汇总 (PP30)',sales:'含税销售额',base:'计税基数',vat7:'销项税 7%',due:'申报截止 2026-08-15',over:'逾期',
+  crm:'客户提醒中心',ins:'保险续保',tax:'年度车辆税',svc:'60,000 公里保养',left:'还剩 1,080 公里',d5:'2026-09-05',d2:'2026-10-02',coins:'DriveGo 金币',
+  stock:'我的库存',min:'最低',auto:'已自动生成采购申请',pcs:'件',
+  docs:'单据流转',fl:['报价单','发票','收据','税务发票'],fin:'本月汇总',
+  appr:'待审批单据',po:'采购单',wd:'领料单',dc:'折扣 10%',by:'申请人',st:'库存部',cs:'前台',yes:'批准',no:'驳回',ok:'已批准',
+  hist:'维修履历 8กด 5219',h1:'2026-08-17',h2:'2026-02-12',h3:'2025-11-20',s50:'50,000 公里保养',rot:'轮胎换位 + 四轮定位',war:'维修质保：6 个月或 10,000 公里',rate:'客户评分',
+  brc:'各门店营业额',br:['拉抛','拉玛九','拉差达'],tr:'门店间调拨',trd:'前刹车片 ×4，拉抛调往拉差达',way:'运输中',
+  nw:['配件供应商','保险公司','车主应用','门店','车间平板','管理者手机'],hub:'云端',
+  today:'今天',sum:'今日汇总',jobs:'在修车辆'}}
+};
+
+/* ============ helpers ============ */
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+let lang='th', mod=0, role=0, hot=0;
+const dig=(o,k)=>k.split('.').reduce((a,p)=>a==null?a:a[p],o);
+const t=k=>{const v=dig(I[lang],k);return v==null?dig(I.th,k):v};
+const B=n=>'฿'+n.toLocaleString('en-US');
+const ic=n=>`<svg class="ic"><use href="#i-${n}"/></svg>`;
+const MOD_IC=['crm','bay','box','fin','doc','shield','branch','cloud'];
+const INC=[41.2,44.8,39.5,52.6,47.3,43.8,49.6,38.9,51.2,46.7,53.4], EXP=[26.8,27.5,26.2,31.4,28.9,27.1,29.8,30.2,29.4,28.3,30.1];
+
+/* ============ product screens ============ */
+function win(title,body,navI,cls=''){const m=t('m');
+  return `<div class="ui ${cls}"><div class="ui-top"><i></i><i></i><i></i><b>${title}</b><span>${m.shop}</span></div>
+  <div class="ui-main"><div class="ui-side">${m.nav.map((n,i)=>`<u class="${i===navI?'on':''}">${n}</u>`).join('')}</div><div class="ui-body">${body}</div></div></div>`}
+const hs=i=>`<button class="hs" type="button" data-h="${i}" aria-label="${i+1}">${i+1}<svg class="hand" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 14a8 8 0 0 1-8 8h-2c-2.800 0-4.500-.860-5.990-2.340l-3.600-3.600a2 2 0 0 1 2.830-2.820L7 15V4a2 2 0 0 1 4 0v5.500V9a2 2 0 0 1 4 0v1a2 2 0 0 1 4 0v1a2 2 0 0 1 3 0z"/></svg></button>`;
+function kp(h){const m=t('m');return `<div class="kp hst" data-t="0"><div class="g"><b>${B(53400)}</b><span>${m.inc}</span></div><div class="r"><b>${B(30100)}</b><span>${m.exp}</span></div><div class="a"><b>${B(23300)}</b><span>${m.net}</span></div><div><b>${B(3250)}</b><span>${m.ar}</span></div>${h?hs(0):''}</div>`}
+function chart(h){const m=t('m');return `<div class="pn hst" data-t="1"><h5>${m.chart}<small>${m.per}</small></h5><div class="bars">${INC.map((v,i)=>`<div><i class="a" style="height:${v/53.4*100}%;animation-delay:${i*.05}s"></i><i class="b" style="height:${EXP[i]/53.4*100}%;animation-delay:${i*.05+.1}s"></i></div>`).join('')}</div><div class="bl">${m.mo.map(x=>`<span>${x}</span>`).join('')}</div>${h?hs(1):''}</div>`}
+function queue(){const m=t('m');return `<div class="pn"><h5>${m.queue}<small>3</small></h5>
+  <div class="row"><div><b>BK-0003 · 8กด 5219</b><small>${m.brake}</small></div><span class="tg t-w">${m.wait}</span></div>
+  <div class="row"><div><b>BK-0002 · 2ขค 1846</b><small>${m.s60} · ${m.tech[0]}</small></div><span class="tg t-b">${m.work}</span></div>
+  <div class="row"><div><b>BK-0001 · 8กด 5219</b><small>${m.ac}</small></div><span class="tg t-g">${m.paid}</span></div></div>`}
+function aging(h){const m=t('m');return `<div class="pn hst" data-t="2"><h5>${m.aging}</h5>
+  <div class="row"><div><b>${m.ag[0]}</b><small>0 ${m.bill}</small></div><span class="v">${B(0)}</span></div>
+  <div class="row"><div><b>${m.ag[1]}</b><small>1 ${m.bill} · RC-6907-090</small></div><span class="v">${B(2400)}</span></div>
+  <div class="row"><div><b style="color:var(--bad)">${m.ag[2]}</b><small>1 ${m.bill} · RC-6906-051</small></div><span class="v" style="color:var(--bad)">${B(850)}</span></div>${h?hs(2):''}</div>`}
+const sDash=(h,right)=>kp(h)+`<div class="two">${chart(h)}${right==='ar'?aging(h):queue()}</div>`;
+function kanban(h){const m=t('m');return `<div class="kb">
+  <div><h6>${m.wait}<span>1</span></h6><div class="jc hst" data-t="1"><b>BK-0003 · 16:30</b><small>Toyota Corolla Cross · 8กด 5219</small><small>${m.brake}</small><small class="pt">${m.parts}: ${m.pad}</small>${h?hs(1):''}</div></div>
+  <div><h6>${m.work}<span>1</span></h6><div class="jc b hst" data-t="0"><b>BK-0002 · 14:00</b><small>Isuzu D-Max · 2ขค 1846</small><small>${m.s60}</small><small class="pt">${m.parts}: ${m.kit}</small><span class="tg t-b" style="margin-top:.5em">${m.tech[0]}</span>${h?hs(0):''}</div></div>
+  <div><h6>${m.pend}<span>1</span></h6><div class="jc o"><b>RC-6907-090</b><small>${m.walk}</small><small>${m.shock} · ${B(2400)}</small></div></div>
+  <div><h6>${m.paid}<span>1</span></h6><div class="jc g"><b>BK-0001 · 09:00</b><small>Toyota Corolla Cross · 8กด 5219</small><small>${m.ac} · ${B(1200)}</small></div></div></div>`}
+function techs(h){const m=t('m');return `<div class="pn hst" data-t="2"><h5>${m.assign}</h5>${m.tech.map((n,i)=>`<div class="row"><div><b>${n}</b><small>${m.sk[i]}</small></div><span class="tg ${i===0?'t-b':'t-g'}">${i===0?m.busy+' BK-0002':m.free}</span></div>`).join('')}${h?hs(2):''}</div>`}
+function bills(h){const m=t('m');const R=[['RC-6908-002','2ขค 1846',m.s60,4200,1,0],['RC-6908-001','8กด 5219',m.ac,1200,1,0],['RC-6907-090',m.walk,m.shock,2400,0,25],['RC-6906-051',m.walk,m.tire,850,0,41]];
+  return `<div class="pn hst" data-t="0"><h5>${m.bills}<small>${m.per}</small></h5>${R.map((r,i)=>`<div class="row"><div><b>${r[0]} · ${r[1]}</b><small>${r[2]}</small></div><span class="v">${B(r[3])}<br><span class="tg ${r[4]?'t-g':'t-o'} ${i===2&&h?'hst':''}" ${i===2&&h?'data-t="1"':''}>${r[4]?m.paid:m.pend+' · '+m.over+' '+r[5]+' '+m.days}${i===2&&h?hs(1):''}</span></span></div>`).join('')}${h?hs(0):''}</div>`}
+function vat(h){const m=t('m');return `<div class="pn hst" data-t="2"><h5>${m.vat}</h5>
+  <div class="row"><div>${m.sales}</div><span class="v">${B(53400)}</span></div><div class="row"><div>${m.base}</div><span class="v">${B(49907)}</span></div>
+  <div class="row"><div><b>${m.vat7}</b></div><span class="v" style="color:var(--glow)">${B(3493)}</span></div><div class="row"><small>${m.due}</small></div>${h?hs(2):''}</div>`}
+
+/* module previews */
+const MM=[
+ ()=>{const m=t('m');return win(m.crm,`<div class="row"><div><b>Toyota Corolla Cross · 8กด 5219</b><small>1.8 HEV · 58,920 km</small></div><span class="pill"><span class="coin">DG</span>12 ${m.coins}</span></div>
+   <div class="pn"><div class="row"><div><b>${m.ins}</b><small>${m.d5}</small></div><span class="tg t-o">19 ${m.days}</span></div><div class="row"><div><b>${m.svc}</b><small>${m.left}</small></div><span class="tg t-w">~27 ${m.days}</span></div><div class="row"><div><b>${m.tax}</b><small>${m.d2}</small></div><span class="tg t-g">46 ${m.days}</span></div></div>`,0,'nos')},
+ ()=>win(t('m.queue'),kanban(0),1,'nos'),
+ ()=>{const m=t('m');const S=[['Protect Filter PM2.5','PF-CC58',23,10],['Cabin Filter (EV)','CF-EV21',8,10],['Air Filter','AF-2286',18,8],['0W-20 4L','OIL-0W20',26,10],['POE ND-OIL 11','POE-250',8,5]];
+   return win(m.stock,`<div class="pn">${S.map((s,i)=>{const low=s[2]<=s[3];return `<div class="row"><div><b>${s[0]}</b><small>${s[1]} · ${m.min} ${s[3]}${low?' · <span style="color:var(--bad)">'+m.auto+' PO-001</span>':''}</small></div><span class="v" style="color:${low?'var(--bad)':'var(--ok)'}">${s[2]} ${m.pcs}<span class="sb"><i style="width:${Math.min(100,s[2]/(s[3]*2.5)*100)}%;background:${low?'var(--bad)':'var(--ok)'};animation-delay:${i*.07}s"></i></span></span></div>`}).join('')}</div>`,4,'nos')},
+ ()=>{const m=t('m');return win(m.fin,`<div class="pn"><h5>${m.docs}</h5><div class="flow">${m.fl.map((f,i)=>`<span class="${i===2?'on':''}">${f}</span>${i<3?'<em>→</em>':''}`).join('')}</div></div>
+   <div class="pn"><div class="row"><div>${m.inc}</div><span class="v" style="color:var(--ok)">+${B(53400)}</span></div><div class="row"><div>${m.exp}</div><span class="v" style="color:var(--bad)">−${B(30100)}</span></div><div class="row"><div>${m.ar}</div><span class="v">${B(3250)}</span></div><div class="row"><div><b>${m.net}</b></div><span class="v" style="color:var(--glow);font-size:1.3em">${B(23300)}</span></div></div>`,5,'nos')},
+ ()=>{const m=t('m');const A=[[m.po+' PO-001','Cabin Filter (EV) ×12',2640,m.st],[m.wd+' WD-014','POE ND-OIL 11 ×2',1040,m.tech[2]],[m.dc+' QT-002',m.brake,280,m.cs]];
+   return win(m.appr,A.map(a=>`<div class="ap"><div class="hd"><b>${a[0]}</b><b style="color:var(--glow)">${B(a[2])}</b></div><small>${a[1]} · ${m.by}: ${a[3]}</small><div class="bt"><button type="button">${m.no}</button><button type="button" class="y">${m.yes}</button></div><div class="ok">✓ ${m.ok}</div></div>`).join(''),-1,'nos')},
+ ()=>{const m=t('m');return win(m.hist,`<div class="pn"><div class="tl"><div><b>${m.ac}</b><small>${m.h1} · RC-6908-001 · ${B(1200)}</small></div><div><b>${m.s50}</b><small>${m.h2} · RC-6902-114 · ${B(3900)}</small></div><div><b>${m.rot}</b><small>${m.h3} · ${B(900)}</small></div></div></div>
+   <div class="two"><div class="pn"><span class="tg t-g">${m.war}</span></div><div class="pn"><div class="row"><div>${m.rate}</div><span class="v"><span class="stars">★★★★★</span> 4.9</span></div></div></div>`,-1,'nos')},
+ ()=>{const m=t('m');const V=[53400,49600,44800];return win(m.brc,`<div class="pn"><h5>${m.brc}<small>${m.per}</small></h5><div class="hb">${m.br.map((b,i)=>`<div><span>${b}</span><span class="t"><i style="width:${V[i]/534}%;animation-delay:${i*.12}s"></i></span><b>${B(V[i])}</b></div>`).join('')}</div></div>
+   <div class="pn"><div class="row"><div><b>${m.tr} · TR-007</b><small>${m.trd}</small></div><span class="tg t-b">${m.way}</span></div></div>`,0,'nos')},
+ ()=>{const m=t('m');const P=[[70,45],[70,125],[70,205],[330,45],[330,125],[330,205]];
+   return `<div class="ui nos"><div class="ui-body"><svg class="net" viewBox="0 0 400 250" role="img" aria-label="DriveGo ProX network">${P.map(p=>`<line x1="200" y1="125" x2="${p[0]}" y2="${p[1]}"/>`).join('')}
+   <circle class="h" cx="200" cy="125" r="44"/><text x="200" y="121" font-size="13" font-weight="700">DriveGo ProX</text><text class="s" x="200" y="139" font-size="10">${m.hub}</text>
+   ${P.map((p,i)=>`<circle class="n" cx="${p[0]}" cy="${p[1]}" r="30"/><text x="${p[0]}" y="${p[1]+4}" font-size="${lang==='en'?8.5:9.5}">${m.nw[i]}</text>`).join('')}</svg></div></div>`}
+];
+const ROLE=[
+ ()=>win(t('m.dash'),sDash(1,'ar'),0),
+ ()=>win(t('m.queue'),kanban(1)+techs(1),1),
+ ()=>win(t('m.bills'),`<div class="two">${bills(1)}${vat(1)}</div>`,3)
+];
+
+/* ============ render ============ */
+function renderEco(anim){
+  const M=t('mods');
+  $('#tabs').innerHTML=M.map((x,i)=>`<button class="tab" type="button" role="tab" aria-selected="${i===mod}" data-m="${i}"><span class="ti">${ic(MOD_IC[i])}</span><span><span class="n">0${i+1}</span><b>${x.t}</b><small>${x.s}</small></span></button>`).join('');
+  const x=M[mod];
+  $('#ecoT').innerHTML=`<span class="eyebrow">0${mod+1} / 08</span><h3>${x.t}</h3><div class="sub">${x.s}</div><p>${x.d}</p><ul>${x.b.map(b=>`<li>${ic('check')}<span>${b}</span></li>`).join('')}</ul>`;
+  $('#ecoM').innerHTML=MM[mod]();
+  if(anim){['#ecoT','#ecoM'].forEach(s=>{const e=$(s);e.classList.remove('swap');void e.offsetWidth;e.classList.add('swap')})}
+}
+function renderShow(anim){
+  const R=t('roles');
+  $('#roles').innerHTML=R.map((r,i)=>`<button type="button" role="tab" aria-selected="${i===role}" data-r="${i}">${r.t}<small>${r.d}</small></button>`).join('');
+  $('#showS').innerHTML=ROLE[role]();
+  $('#hsL').innerHTML=R[role].hs.map((h,i)=>`<button class="hs-i ${i===hot?'on':''}" type="button" data-h="${i}"><span class="k">${i+1}</span><span><b>${h.t}</b><span class="d">${h.d}</span></span></button>`).join('');
+  lit();
+  if(anim){const e=$('#showS');e.classList.remove('swap');void e.offsetWidth;e.classList.add('swap')}
+}
+function lit(){$$('#showS .hst').forEach(e=>e.classList.toggle('lit',+e.dataset.t===hot));$$('#hsL .hs-i').forEach((e,i)=>e.classList.toggle('on',i===hot))}
+function renderDevices(){
+  const m=t('m');
+  $('#heroUI').innerHTML=win(m.dash,sDash(0,'queue'),0);
+  $('#dDesk').innerHTML=win(m.bills,`<div class="two">${bills(0)}${vat(0)}</div>`,3);
+  $('#dTab').innerHTML=win(m.queue,kanban(0),1,'nos');
+  $('#dPh').innerHTML=`<div class="ui nos"><div class="ui-top"><i></i><b style="margin-left:.3em">${m.sum}</b></div><div class="ui-body"><div class="kp"><div class="g"><b>${B(5400)}</b><span>${m.inc}</span></div><div class="a"><b>3</b><span>${m.jobs}</span></div></div><div class="ap"><div class="hd"><b>PO-001</b><b style="color:var(--glow)">${B(2640)}</b></div><div class="bt"><button type="button">${m.no}</button><button type="button" class="y">${m.yes}</button></div><div class="ok">✓ ${m.ok}</div></div></div></div>`;
+}
+function renderStatic(){
+  $$('[data-i18n]').forEach(e=>e.textContent=t(e.dataset.i18n));
+  $$('[data-i18n-html]').forEach(e=>e.innerHTML=t(e.dataset.i18nHtml));
+  $('#pvr').innerHTML=t('priv.r').map(x=>`<span>${ic('check')}${x}</span>`).join('');
+  const hp=t('hero.p'), KI=['fin','box','shield'];
+  $('#lead').innerHTML=`<p class="l1"><b>DriveGo</b>${hp.l1}</p><p class="l2">${hp.l2}</p><div class="kw">${hp.k.map((k,i)=>`<span style="--k:${i*1.2}s">${ic(KI[i])}${k}</span>`).join('')}</div>`;
+  const PI=['box','fin','shield','cloud'];
+  $('#pil').innerHTML=t('hero.pil').map((p,i)=>`<div>${ic(PI[i])}<p><b>${p[0]}</b><span>${p[1]}</span></p></div>`).join('');
+  const w=t('why'), PNI=['doc','fin','box','crm'];
+  $('#pain').innerHTML=w.pain.map((x,i)=>`<article class="rv in" style="--d:${i*.09}s"><div class="pt"><span class="pi" style="--d:${i*.7}s">${ic(PNI[i])}</span><span class="no">0${i+1}</span></div><h3>${x[0]}</h3><p>${x[1]}</p><p class="q">${w.q[i]}</p><div class="fix">${ic('check')}<span><small>${w.fixl}</small>${w.a[i]}</span></div></article>`).join('');
+  $('#ba').innerHTML=`<div class="b"><h4>${w.bt}</h4><h3>${w.bh}</h3><ul>${w.b.map(x=>`<li>${ic('x')}<span>${x}</span></li>`).join('')}</ul></div><div class="vs">${ic('arrow')}</div><div class="a"><h4>${w.at}</h4><h3>${w.ah}</h3><ul>${w.a.map(x=>`<li>${ic('check')}<span>${x}</span></li>`).join('')}</ul></div>`;
+  const pl=t('plans'), PR=['9,600','12,000',null];
+  $('#pk').innerHTML=pl.pk.map((k,i)=>`<article class="rv in ${i===1?'hi':''}" style="--d:${i*.08}s"><span class="tg2">${Array.isArray(k.tag)?`<b>${k.tag[0]}</b>${k.tag[1]?`<i>${k.tag[1]}</i>`:''}`:k.tag}</span><h3>DriveGo <b>${k.n}</b></h3>${PR[i]?`<div class="price"><b>฿${PR[i]}</b><span>${pl.per}</span><small>${pl.vat}${i===1?' · '+pl.fr:''}</small></div>`:`<div class="price soon"><span>${pl.soon}</span><b>${pl.when}</b></div>`}<p class="for">${k.f}</p><ul>${k.l.map(x=>`<li>${ic('check')}<span>${x}</span></li>`).join('')}</ul></article>`).join('');
+  $('#cmp').innerHTML=`<table><thead><tr><th scope="col">${pl.ch}</th><th scope="col">BaziX</th><th scope="col">ProX</th></tr></thead><tbody><tr class="fee"><td>${pl.fee}</td><td>฿9,600</td><td>฿12,000</td></tr>${pl.rows.map((r,i)=>`<tr><td>${r}</td><td class="${i<9?'y':'n'}" aria-label="${i<9?pl.yes:pl.no}">${i<9?'●':'–'}</td><td class="y" aria-label="${pl.yes}">●</td></tr>`).join('')}</tbody></table>`;
+  const st=t('start');
+  $('#steps').innerHTML=st.s.map(x=>`<li><div><b>${x[0]}</b><span>${x[1]}</span></div></li>`).join('');
+  const WI=['bay','branch','role','sync'];
+  $('#whyus').innerHTML=st.w.map((x,i)=>`<article><span class="ri">${ic(WI[i])}</span><div><h4>${x[0]}</h4><p>${x[1]}</p></div></article>`).join('');
+  const RI=['lock','role','db','sync'];
+  $('#rel').innerHTML=t('rel').map((r,i)=>`<article class="rv in glowc" style="--d:${i*.08}s"><span class="ri">${ic(RI[i])}</span><div><h4>${r.t}</h4><p>${r.d}</p></div></article>`).join('');
+  const f=t('form'), br=$('#fBr'), mo=$('#fMod'), bi=br.selectedIndex, mi=mo.selectedIndex;
+  br.innerHTML=f.brs.map(x=>`<option>${x}</option>`).join('');
+  mo.innerHTML=`<option>${f.all}</option>`+t('mods').map(x=>`<option>${x.t}</option>`).join('');
+  if(bi>0)br.selectedIndex=bi; if(mi>0)mo.selectedIndex=mi;
+  $('#fErr').textContent='';
+}
+function setLang(l){
+  lang=l; document.documentElement.lang=l==='zh'?'zh-Hans':l;
+  $$('.lang button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.lang===l));
+  renderStatic(); renderEco(); renderShow(); renderDevices();
+  if($('#ctaB').classList.contains('sent'))buildSum();
+  try{localStorage.setItem('dg-lang',l)}catch(e){}
+}
+
+/* ============ interactions ============ */
+$('.lang').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setLang(b.dataset.lang)});
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b)return;mod=+b.dataset.m;renderEco(true);const n=$(`#tabs [data-m="${mod}"]`);n.focus({preventScroll:true})});
+$('#tabs').addEventListener('pointermove',e=>{const b=e.target.closest('.tab');if(!b)return;const r=b.getBoundingClientRect();b.style.setProperty('--mx',(e.clientX-r.left)/r.width*100+'%');b.style.setProperty('--my',(e.clientY-r.top)/r.height*100+'%')});
+$('#rel').addEventListener('pointermove',e=>{const b=e.target.closest('article');if(!b)return;const r=b.getBoundingClientRect();b.style.setProperty('--mx',(e.clientX-r.left)/r.width*100+'%');b.style.setProperty('--my',(e.clientY-r.top)/r.height*100+'%')});
+$('#roles').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;role=+b.dataset.r;hot=0;renderShow(true)});
+$('#showS').addEventListener('click',e=>{const b=e.target.closest('.hs');if(!b)return;hot=+b.dataset.h;lit()});
+$('#hsL').addEventListener('click',e=>{const b=e.target.closest('.hs-i');if(!b)return;hot=+b.dataset.h;lit()});
+document.addEventListener('click',e=>{const b=e.target.closest('.ap .bt button.y');if(b)b.closest('.ap').classList.add('done')});
+
+/* form: composes a message the visitor can copy. Wire the submit handler to your CRM, LINE or e-mail endpoint in production. */
+function buildSum(){const f=t('form');const v=id=>$('#'+id).value.trim();
+  $('#sum').textContent=[f.sumh,`${f.name}: ${v('fName')}`,`${f.shop}: ${v('fShop')}`,`${f.tel}: ${v('fTel')}`,`${f.br}: ${$('#fBr').value}`,`${f.mod}: ${$('#fMod').value}`,v('fMsg')?`${f.msg.replace(/\s*[（(].*$/,'')}: ${v('fMsg')}`:''].filter(Boolean).join('\n')}
+$('#demoForm').addEventListener('submit',e=>{e.preventDefault();
+  if(!$('#fName').value.trim()||!$('#fShop').value.trim()||$('#fTel').value.replace(/\D/g,'').length<9){$('#fErr').textContent=t('form.err');return}
+  buildSum();$('#ctaB').classList.add('sent')});
+$('#editB').addEventListener('click',()=>$('#ctaB').classList.remove('sent'));
+$('#copyB').addEventListener('click',async e=>{const b=e.currentTarget;try{await navigator.clipboard.writeText($('#sum').textContent);b.textContent=t('form.copied')}catch(x){const r=document.createRange();r.selectNodeContents($('#sum'));const s=getSelection();s.removeAllRanges();s.addRange(r)}
+  setTimeout(()=>b.textContent=t('form.copy'),1800)});
+
+/* motion: sticky nav, scroll-linked tilt, pointer parallax, reveal, count-up */
+const calm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const tilt=$('#tilt'), stage=$('#stage'); let mX=0,mY=0,tick=false;
+function frame(){tick=false;const y=scrollY;
+  $('#nav').classList.toggle('stuck',y>12);
+  if(calm)return;
+  const p=Math.min(1,y/(innerHeight*.7));
+  tilt.style.setProperty('--rx',(10-8*p+mY*-4).toFixed(2)+'deg');
+  tilt.style.setProperty('--ry',(-14+10*p+mX*6).toFixed(2)+'deg');
+  $$('.fl').forEach(f=>{const d=+f.dataset.depth;f.style.setProperty('--fx',(mX*d*.9).toFixed(2)+'rem');f.style.setProperty('--fy',(mY*d*.9-p*d*1.2).toFixed(2)+'rem')});
+  $$('[data-par]').forEach(el=>{const r=el.parentElement.getBoundingClientRect();const off=(r.top+r.height/2-innerHeight/2)/16*+el.dataset.par;el.style.transform=`translate3d(0,${off.toFixed(2)}rem,0)`});
+}
+const req=()=>{if(!tick){tick=true;requestAnimationFrame(frame)}};
+addEventListener('scroll',req,{passive:true});
+$('#hero').addEventListener('pointermove',e=>{mX=e.clientX/innerWidth-.5;mY=e.clientY/innerHeight-.5;req()});
+$('#hero').addEventListener('pointerleave',()=>{mX=mY=0;req()});
+
+document.documentElement.classList.add('js');
+function countUp(el){const n=+el.dataset.count;if(calm){el.textContent=n;return}let s=null;const step=ts=>{s=s||ts;const k=Math.min(1,(ts-s)/900);el.textContent=Math.round(n*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(step)};el.textContent=0;requestAnimationFrame(step)}
+if('IntersectionObserver' in window){
+  const io=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){en.target.classList.add('in');$$('[data-count]',en.target).forEach(countUp);io.unobserve(en.target)}}),{threshold:.12,rootMargin:'0% 0% -6% 0%'});
+  $$('.rv').forEach(e=>io.observe(e));
+}else $$('.rv').forEach(e=>e.classList.add('in'));
+
+
+/* garage line-art background (original drawing, SVG user units) */
+(function(){
+  const car=`<path d="M8 62V46q2-8 22-12l32-4 22-20q4-4 12-4h54q10 0 16 6l20 20 20 6q8 2 8 12v12h-24a18 18 0 0 0-36 0H70a18 18 0 0 0-36 0z"/><path d="M70 30l18-18h30v18zM124 12h26l22 18h-48z"/>`;
+  const wheels=`<g class="wh"><circle cx="52" cy="62" r="13"/><path d="M52 49v26M39 62h26"/></g><g class="wh"><circle cx="172" cy="62" r="13"/><path d="M172 49v26M159 62h26"/></g>`;
+  const L=t=>[260-260*t,200-140*t], R=t=>[1180+260*t,200-140*t];
+  let h='';
+  h+=`<path d="M260 200H1180V470H260zM260 200L0 60M1180 200L1440 60M260 470L0 720M1180 470L1440 720"/>`;
+  [.22,.5,.85].forEach(t=>{const a=L(t),b=R(t);h+=`<path d="M${a[0]} ${a[1]}H${b[0]}"/><path class="thin" d="M${a[0]} ${a[1]+26}H${b[0]}"/>`;
+    let z=`M${a[0]} ${a[1]+26}`;const n=14,w=(b[0]-a[0])/n;for(let i=1;i<=n;i++)z+=`L${(a[0]+w*i).toFixed(0)} ${a[1]+(i%2?0:26)}`;h+=`<path class="thin" d="${z}"/>`});
+  [[470,150,610],[830,150,970],[380,96,560],[880,96,1060]].forEach(l=>h+=`<path class="lamp" d="M${l[0]} ${l[1]}H${l[2]}"/>`);
+  [400,560,720,880,1040].forEach(x=>h+=`<path class="thin" d="M${x} 470L${(720+(x-720)*4.667).toFixed(0)} 800"/>`);
+  [506,560,650].forEach(y=>{const k=(y-470)/250;h+=`<path class="thin" d="M${(260-260*k).toFixed(0)} ${y}H${(1180+260*k).toFixed(0)}"/>`});
+  h+=`<path d="M330 290H520V470M330 290V470"/><g class="door"><path class="thin" d="M330 320H520M330 350H520M330 380H520M330 410H520M330 440H520"/></g>`;
+  h+=`<path d="M620 270H820V470M620 270V470M620 320H820M620 370H820M620 420H820M687 270V470M753 270V470"/>`;
+  h+=`<path d="M920 290H1110V470M920 290V470"/><path class="thin" d="M920 320H1110M920 350H1110M920 380H1110M920 410H1110M920 440H1110"/>`;
+  h+=`<path d="M398 286h16v276h-16zM626 286h16v276h-16zM390 562h32M618 562h32M414 286H626"/>`;
+  h+=`<g class="up"><path d="M414 538H626M414 532v12M626 532v12"/><g transform="translate(410 458)">${car}${wheels}</g></g>`;
+  h+=`<path class="thin" d="M968 340h9v132h-9zM1090 340h9v132h-9zM977 340H1090M977 452H1090"/>`;
+  h+=`<g class="roll"><g transform="translate(880 520) scale(1.300)">${car}${wheels}</g></g>`;
+  h+=`<path d="M1250 590h70v70h-70zM1250 612h70M1250 634h70M1262 660v14M1308 660v14"/>`;
+  h+=`<ellipse cx="150" cy="676" rx="44" ry="13"/><ellipse cx="150" cy="652" rx="44" ry="13"/><ellipse cx="150" cy="628" rx="44" ry="13"/><path d="M106 628v48M194 628v48"/>`;
+  const g=document.getElementById('garage'); g.innerHTML=h;
+  g.querySelectorAll('path,ellipse,circle').forEach((e,i)=>{if(e.closest('.wh')||e.classList.contains('lamp'))return;e.setAttribute('pathLength','1');e.classList.add('dr');e.style.animationDelay=(i*.045).toFixed(2)+'s'});
+  const box=g.parentElement;
+  if('IntersectionObserver' in window){const o=new IntersectionObserver(es=>{if(es[0].isIntersecting){box.classList.add('in');o.disconnect()}},{threshold:.15});o.observe(box)}else box.classList.add('in');
+})();
+
+let saved=null;try{saved=localStorage.getItem('dg-lang')}catch(e){}
+setLang(I[saved]?saved:'th'); frame();
+</script>
+</body>
+</html>

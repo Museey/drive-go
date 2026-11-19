@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DriveGo X Test Drive</title>
+<meta name="description" content="Test Drive ดูภาพหน้าจอจริงของ DriveGo ProX, BaziX, BOOK และ Admin ทุกขั้นตอน">
+<meta name="theme-color" content="#0A0A0B">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 48 48%27%3E%3Ccircle cx=%2724%27 cy=%2724%27 r=%2724%27 fill=%27%23F59E0B%27/%3E%3Ccircle cx=%2724%27 cy=%2724%27 r=%2719%27 fill=%27none%27 stroke=%27%231A1000%27 stroke-width=%273%27 stroke-dasharray=%274.6 2.4%27/%3E%3Cpath d=%27M14 34h6l14-20h-6z%27 fill=%27%231A1000%27/%3E%3Cpath d=%27M14 14h6l3 4.4-3 4.5zM34 34h-6l-3-4.400 3-4.500z%27 fill=%27%231A1000%27 opacity=%27.55%27/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<style>
+.top{padding-block:clamp(2rem,5vw,3.5rem) 0}
+.top h1{font-size:clamp(1.9rem,4.2vw,2.9rem);font-weight:800;letter-spacing:-.02em;margin-block:.8rem .6rem}
+.top h1 em{font-style:normal;background:linear-gradient(100deg,var(--glow),var(--amber) 60%,var(--amber-d));-webkit-background-clip:text;background-clip:text;color:transparent}
+.top p{max-width:42rem;font-size:1.03rem}
+.sys{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;border:1px solid var(--line2);border-radius:1.2rem;padding:.35rem;background:var(--panel);width:fit-content;max-width:100%}
+.sys button{padding:.6rem 1.1rem;border-radius:.9rem;font-weight:700;font-size:.92rem;color:var(--mut);text-align:left;line-height:1.3;transition:.25s}
+.sys button small{display:block;font-weight:500;font-size:.74rem;opacity:.85}
+.sys button[aria-selected="true"]{background:var(--amber);color:#1A1000}
+.lay{display:grid;gap:1.5rem;margin-top:1.75rem;align-items:start}
+@media(min-width:64rem){.lay{grid-template-columns:17.5rem minmax(0,1fr)}}
+.side{border:1px solid var(--line);border-radius:1.25rem;background:var(--panel);padding:.8rem;max-height:16rem;overflow-y:auto}
+@media(min-width:64rem){.side{position:sticky;top:5.25rem;max-height:calc(100vh - 6.5rem)}}
+.side h4{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--glow);padding:.8rem .6rem .35rem}
+.side a{display:flex;gap:.6rem;align-items:baseline;padding:.45rem .6rem;border-radius:.6rem;font-size:.86rem;line-height:1.45;color:var(--mut);border-left:.15rem solid transparent}
+.side a:hover{color:var(--ink);background:var(--panel2)}
+.side a i{font-style:normal;font-size:.7rem;color:var(--faint);font-variant-numeric:tabular-nums;flex:none;width:1.4rem}
+.side a[aria-current]{color:var(--glow);background:rgba(251,191,36,.09);border-left-color:var(--glow);font-weight:600}
+.prog{height:.2rem;background:var(--panel2);border-radius:.2rem;overflow:hidden;margin-bottom:1.1rem}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--amber-d),var(--glow));transition:width .4s}
+.cnt{font-size:.78rem;font-weight:700;letter-spacing:.12em;color:var(--glow);font-variant-numeric:tabular-nums;text-transform:uppercase}
+.step h2{font-size:clamp(1.4rem,2.8vw,1.9rem);margin-block:.35rem .5rem}
+.step>p{max-width:46rem}
+.shot{margin-top:1.25rem;border:1px solid var(--line2);border-radius:1rem;overflow:hidden;background:#0D0D0F;position:relative;box-shadow:0 1.75rem 4rem -1.75rem #000,0 0 0 1px rgba(251,191,36,.1);cursor:zoom-in;display:block;width:100%;padding:0}
+.shot img{display:block;width:100%;height:auto}
+.shot.ph{max-width:23rem;margin-inline:auto;border-radius:2rem;border:.45rem solid #050506;outline:1px solid var(--line2)}
+.pin{position:absolute;width:1.6rem;height:1.6rem;margin:-.8rem 0 0 -1.9rem;border-radius:50%;background:var(--amber);color:#1A1000;font-weight:800;font-size:.76rem;display:grid;place-items:center;box-shadow:0 0 0 .22rem rgba(251,191,36,.3),0 .3rem .8rem rgba(0,0,0,.5);pointer-events:none}
+.pin::after{content:"";position:absolute;inset:0;border-radius:50%;border:.125rem solid var(--glow);animation:ping 1.8s ease-out infinite}
+.shot.ph .pin{margin-left:-.5rem}
+@keyframes ping{from{transform:scale(1);opacity:.9}to{transform:scale(2.2);opacity:0}}
+.keys{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:.6rem;margin-top:1rem}
+.keys li{display:flex;gap:.7rem;align-items:center;padding:.65rem .9rem;border:1px solid var(--line);border-radius:.8rem;background:var(--panel);color:var(--ink);font-size:.9rem;line-height:1.45}
+.keys b{width:1.5rem;height:1.5rem;border-radius:50%;background:var(--amber);color:#1A1000;display:grid;place-items:center;font-size:.74rem;flex:none}
+.navb{display:flex;justify-content:space-between;gap:.75rem;margin-top:1.5rem;flex-wrap:wrap}
+.navb .btn[disabled]{opacity:.35;pointer-events:none}
+.navb .prev svg{transform:rotate(180deg)}
+.hint{font-size:.8rem;color:var(--faint);margin-top:.9rem}
+.lb{position:fixed;inset:0;z-index:80;background:rgba(5,5,6,.92);display:none;overflow:auto;padding:1rem;cursor:zoom-out}
+.lb.on{display:block}.lb img{display:block;margin:auto;max-width:none;width:min(100%,110rem);border-radius:.6rem}
+.lb.ph img{width:min(100%,32rem)}
+.lb button{position:fixed;top:1rem;right:1rem;width:2.6rem;height:2.6rem;border-radius:50%;background:var(--amber);color:#1A1000;font-size:1.2rem;font-weight:800}
+.end{margin-top:2.5rem;border:1px solid rgba(251,191,36,.35);border-radius:1.25rem;padding:1.5rem;background:radial-gradient(30rem 12rem at 0 0,rgba(245,158,11,.15),transparent 60%),var(--panel);display:flex;gap:1rem;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.end b{color:var(--ink);font-size:1.1rem;display:block}
+</style>
+</head>
+<body data-page="testdrive">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol></defs></svg>
+<header class="nav" id="hdr"></header>
+<main>
+  <div class="wrap">
+    <section class="top fade">
+      <span class="eyebrow">Test Drive</span>
+      <h1 id="h1"></h1>
+      <p id="sub"></p>
+      <div class="sys" role="tablist" id="sys"></div>
+    </section>
+    <div class="lay">
+      <nav class="side" id="side" aria-label="Steps"></nav>
+      <section class="step" id="step" aria-live="polite"></section>
+    </div>
+    <div class="end" id="end"></div>
+  </div>
+</main>
+<div class="lb" id="lb" role="dialog" aria-modal="true"><button type="button" aria-label="Close">×</button><img alt="" id="lbi" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="></div>
+<footer id="ftr"></footer>
+<script src="site.js"></script>
+<script>
+const CAP={
+/* ProX / BaziX */
+'x-setting':['ตั้งค่าองค์กร','เริ่มจากกรอกชื่ออู่ ที่อยู่ เลขผู้เสียภาษี บัญชีธนาคาร และสถานะ VAT ข้อมูลชุดนี้ขึ้นหัวเอกสารทุกฉบับอัตโนมัติ','Organisation settings','Start by entering the garage name, address, tax ID, bank accounts and VAT status. This data fills the header of every document.','机构设置','先填写门店名称、地址、税号、银行账户和增值税状态，这些资料会自动出现在每张单据的抬头。'],
+'x-home':['หน้าแรก Mr.DriveGo','แดชบอร์ดรวมสิ่งที่ต้องทำวันนี้ เอกสารรออนุมัติ ลูกหนี้เกินกำหนด นัดหมายลูกค้า งานค้างส่งมอบ และสัดส่วนยี่ห้อรถที่เข้าซ่อม','Home: Mr.DriveGo','A dashboard of what needs attention today: approvals, overdue receivables, appointments, cars awaiting handover and the mix of brands serviced.','首页 Mr.DriveGo','汇总今天要处理的事项：待审批单据、逾期应收、客户预约、待交车工单，以及进厂车辆品牌占比。'],
+'x-crm':['ลูกค้าสัมพันธ์','บันทึกนัดหมายและติดตามลูกค้า ระบบแจ้งล่วงหน้า 7 วัน ทั้งนัดเข้าซ่อมและลูกค้าเป้าหมายที่ควรเชิญกลับมา','Customer follow-up','Record appointments and follow-ups. The system flags them seven days ahead, for booked visits and for customers worth inviting back.','客户关系','记录预约与回访，系统提前 7 天提醒，包括已预约进厂和值得邀请回店的客户。'],
+'x-cust-list':['รายชื่อลูกค้าและรถ','ฐานลูกค้าพร้อมรถในความดูแล ค้นด้วยชื่อ เบอร์โทร หรือทะเบียนรถ และเปิดแฟ้มประวัติได้จากแถวเดียว','Customers and cars','The customer base with every car in your care. Search by name, phone or plate and open the history file from the row.','客户与车辆名单','客户资料及其名下车辆，可按姓名、电话或车牌搜索，并在同一行打开履历档案。'],
+'x-cust-grade':['สรุปลูกค้าตามเกรดดาว','จัดเกรดลูกค้าจากยอดใช้บริการสะสม เห็นว่ากลุ่มใดสร้างรายได้และกำไรมากที่สุด','Customers by star grade','Customers are graded by accumulated spend, showing which group brings the most revenue and profit.','客户星级汇总','按累计消费给客户评级，看清哪一类客户带来最多收入和利润。'],
+'x-prox-book':['คิวจองจากแอป DriveGo BOOK','ใบจองจากผู้ใช้รถเข้าคิวของอู่อัตโนมัติ กดรับงานเพื่อเปิดใบเสนอราคาได้ทันที','Bookings from DriveGo BOOK','Bookings made by drivers land in the garage queue. Accept one to open a quotation straight away.','来自 DriveGo BOOK 的预约','车主的预约自动进入门店排队，点击接单即可直接开立报价单。'],
+'x-prox-inq':['อาการเสียจากลูกค้า สู่ใบเสนอราคา','ลูกค้าพิมพ์อาการเสียมาจากแอป ระบบกรอกข้อมูลรถให้ อู่เติมราคาแล้วส่งใบเสนอราคากลับ','From symptom to quotation','The customer describes the fault in the app, the system fills in the car details, and the garage adds a price and replies.','从故障描述到报价单','客户在应用中描述故障，系统自动带入车辆资料，门店填写价格后回传报价单。'],
+'x-prox-sos':['งานฉุกเฉิน SOS ใกล้อู่','คำขอความช่วยเหลือฉุกเฉินจากผู้ใช้รถในพื้นที่ รับงานแล้วลูกค้าเห็นสถานะทันที','Roadside SOS near you','Emergency requests from drivers nearby. Once accepted, the customer sees the status immediately.','附近的 SOS 救援','附近车主的紧急求助，接单后客户立即看到状态。'],
+'x-quote':['ใบเสนอราคา / ใบอนุมัติซ่อม','แยกค่าอะไหล่และค่าแรงเป็นรายบรรทัด ส่งขออนุมัติ และเมื่ออนุมัติซ่อมระบบตัดสต๊อกให้','Quotation and repair approval','Parts and labour are itemised, the document goes for approval, and stock is deducted when the repair is approved.','报价单 / 维修批准单','配件与工时逐行列明，提交审批；维修获批后系统自动扣库存。'],
+'x-receipt-doc':['ใบแจ้งหนี้ / ใบเสร็จรับเงิน','ดึงรายการจากใบเสนอราคาที่อนุมัติแล้ว เลขที่เอกสารเรียงอัตโนมัติ และบันทึกรับชำระได้ในหน้าเดียว','Invoices and receipts','Lines are pulled from the approved quotation, numbering is automatic, and payment is recorded on the same page.','发票 / 收据','从已批准的报价单带入明细，单号自动编排，并在同一页登记收款。'],
+'x-receipt-billing':['ใบวางบิล','รวมใบแจ้งหนี้หลายใบของลูกค้าเครดิตเป็นใบวางบิลเดียว พร้อมติดตามวันครบกำหนด','Billing notes','Combine several invoices for a credit customer into one billing note and track the due date.','对账单','把赊账客户的多张发票合并为一张对账单，并跟踪到期日。'],
+'x-receipt-tax':['ใบกำกับภาษี','ออกใบกำกับภาษีจากใบเสร็จ คำนวณ VAT 7% และจำนวนเงินตัวอักษรให้อัตโนมัติ','Tax invoices','Issue a tax invoice from a receipt, with 7% VAT and the amount in words calculated for you.','税务发票','由收据开具税务发票，自动计算 7% 增值税和金额大写。'],
+'x-vendor':['ข้อมูลผู้ขาย','ทะเบียนซัพพลายเออร์ เงื่อนไขเครดิต และข้อมูลบัญชีสำหรับจ่ายเงิน','Vendors','The supplier register, with credit terms and payment account details.','供应商资料','供应商台账，含账期条件和付款账户信息。'],
+'x-buy-gr':['ใบรับสินค้า / ซื้อสินค้า','บันทึกซื้ออะไหล่เข้าคลัง สต๊อกเพิ่มทันที และตั้งเจ้าหนี้ตามวันครบกำหนด','Goods received','Record parts purchases. Stock goes up immediately and a payable is set against the due date.','收货单 / 采购','登记配件采购入库，库存即时增加，并按到期日挂应付账款。'],
+'x-buy-util':['ค่าน้ำ ค่าไฟ และสาธารณูปโภค','บันทึกค่าสาธารณูปโภครายเดือน ลงบัญชีค่าใช้จ่ายให้อัตโนมัติ','Utilities','Record monthly utility bills, posted to expenses automatically.','水电等公用事业费','登记每月水电等费用，自动记入费用科目。'],
+'x-buy-asset':['ซื้อสินทรัพย์ถาวร','บันทึกเครื่องมือและอุปกรณ์ที่ซื้อ ระบบขึ้นทะเบียนสินทรัพย์และคิดค่าเสื่อมราคาต่อ','Fixed asset purchases','Record tools and equipment. They are added to the asset register and depreciated from there.','购置固定资产','登记购入的工具与设备，系统自动列入资产台账并计提折旧。'],
+'x-buy-pay':['จ่ายเงินเดือนพนักงาน','ทำจ่ายเงินเดือนรายเดือน หักประกันสังคม และเก็บประวัติการจ่ายย้อนหลัง','Payroll','Run monthly payroll with social security deductions, and keep the payment history.','发放员工工资','按月发薪并扣缴社保，保留历史发放记录。'],
+'x-buy-office':['อุปกรณ์และวัสดุสำนักงาน','บันทึกรายจ่ายวัสดุสิ้นเปลืองของสำนักงาน แยกหมวดชัดเจน','Office supplies','Record spending on office consumables in its own category.','办公用品','登记办公耗材支出，分类清晰。'],
+'x-buy-other':['รายจ่ายอื่น ๆ','รายจ่ายที่ไม่เข้าหมวดหลัก บันทึกพร้อมหลักฐานและวิธีชำระ','Other expenses','Anything outside the main categories, recorded with its evidence and payment method.','其他支出','不属于主要类别的支出，连同凭证和付款方式一并登记。'],
+'x-stock-stock':['ทะเบียนอะไหล่และระดับสต๊อก','มูลค่าคงคลังแยกตามหมวด พร้อมสัญญาณเตือน Min, Max และของไม่เคลื่อนไหว','Parts register and stock levels','Inventory value by category, with Min, Max and dead-stock warnings.','配件台账与库存水平','按类别显示库存金额，并提示最低、最高库存和呆滞品。'],
+'x-stock-issue':['เบิกใช้ภายใน','ใบเบิกของสำหรับใช้ในอู่ ต้องผ่านการอนุมัติ และตัดสต๊อกเมื่ออนุมัติ','Internal requisitions','Requisitions for in-house use need approval, and stock is deducted once approved.','内部领用','店内领料单需经审批，批准后扣减库存。'],
+'x-stock-count':['ตรวจนับสินค้า','เปิดใบตรวจนับ เทียบยอดนับจริงกับยอดในระบบ และปรับผลต่างพร้อมบันทึกเหตุผล','Stock counts','Open a count sheet, compare the physical count with the system, and adjust differences with a reason.','库存盘点','开立盘点单，对比实盘与系统数量，并记录差异原因后调整。'],
+'x-stock-claim':['เคลมสินค้า','ติดตามอะไหล่ที่ส่งเคลมกับผู้ขาย ตั้งแต่รอส่ง ส่งแล้ว จนรับคืนหรือเปลี่ยน','Parts claims','Track parts claimed with the vendor, from waiting to sent to returned or replaced.','配件索赔','跟踪向供应商索赔的配件：待寄出、已寄出、已退回或更换。'],
+'x-stock-px':['คลังกลาง DriveGo ProX','เลือกสินค้าจากแคตตาล็อกกลางเข้าสต๊อกอู่ในราคาตรงจากซัพพลาย และเสนอสินค้าใหม่ได้','ProX central catalogue','Add items from the central catalogue at supplier-direct prices, and propose new items.','ProX 中央目录','从中央目录按供应商直供价选品入库，也可提交新品申请。'],
+'x-acct-ar':['ลูกหนี้ ค้างรับ','ทะเบียนใบเสร็จและใบแจ้งหนี้ที่ยังไม่ได้รับชำระ พร้อมจำนวนวันที่เกินกำหนด','Receivables','Unpaid receipts and invoices, with the number of days overdue.','应收账款','尚未收款的收据和发票台账，并显示逾期天数。'],
+'x-acct-ap':['เจ้าหนี้ ค้างจ่าย','ทะเบียนใบรับสินค้าที่ยังไม่ได้จ่าย เรียงตามวันครบกำหนด และบันทึกจ่ายชำระ','Payables','Unpaid goods-received notes by due date, with payment recording.','应付账款','未付款的收货单按到期日排列，并可登记付款。'],
+'x-acct-exp':['ทะเบียนค่าใช้จ่ายกิจการ','รวมรายจ่ายทุกหมวดของกิจการในปีบัญชีที่เลือก','Business expenses','Every expense category for the chosen fiscal year in one register.','经营费用台账','汇总所选会计年度内各类别的全部支出。'],
+'x-acct-asset':['ทะเบียนสินทรัพย์และค่าเสื่อมราคา','รายการสินทรัพย์ถาวร อายุการใช้งาน และตารางค่าเสื่อมราคาประจำปี','Asset register and depreciation','Fixed assets, useful lives and the annual depreciation schedule.','资产台账与折旧','固定资产清单、使用年限和年度折旧表。'],
+'x-acct-cap':['เงินลงทุน เงินกู้ และเงินสด','บันทึกเงินลงทุน เงินกู้ และการถอนเงินของเจ้าของ เพื่อให้สถานะเงินสดตรงจริง','Capital, loans and cash','Record capital, loans and owner withdrawals so the cash position stays accurate.','投资、借款与现金','登记投资款、借款和业主提款，使现金状况与实际一致。'],
+'x-acct-tax':['รายงานภาษี','สรุปภาษีที่ต้องนำส่งประจำงวด พร้อมรายงานภาษีขายและภาษีซื้อ','Tax reports','Tax due for the period, with output and input VAT reports.','税务报表','汇总本期应缴税额，并附销项税和进项税报表。'],
+'x-acct-coa':['ผังบัญชี','ผังบัญชีตามโครงมาตรฐานกรมพัฒนาธุรกิจการค้า ผูกกับข้อมูลในระบบแล้ว','Chart of accounts','A chart of accounts on the Department of Business Development standard, already mapped to system data.','会计科目表','按泰国商业发展厅标准结构设置的科目表，并已与系统数据对应。'],
+'x-acct-fs':['งบการเงิน','งบกำไรขาดทุน งบแสดงฐานะการเงิน และงบกระแสเงินสดอย่างย่อ ออกจากข้อมูลในระบบ','Financial statements','Income statement, balance sheet and a short cash-flow statement produced from system data.','财务报表','由系统数据生成利润表、资产负债表和简明现金流量表。'],
+'x-acct-health':['สุขภาพการเงิน','ขั้นตอนสุดท้ายของวงจร ดูรายได้ กำไร สถานะเงินสด และอัตราส่วนทางการเงินพร้อมข้อสังเกต','Financial health','The end of the cycle: revenue, profit, cash position and financial ratios with observations.','财务健康度','整个流程的终点：查看收入、利润、现金状况以及财务比率与提示。'],
+'x-hr-rec':['บันทึกการทำงานและการลา','ลงเวลาทำงาน วันลา และวันขาดของพนักงานแต่ละคน','Work and leave records','Log working days, leave and absences for each employee.','出勤与请假记录','登记每位员工的出勤、请假和缺勤。'],
+'x-hr-sum':['สรุปการทำงานรายเดือน','สรุปวันทำงาน วันลา และวันขาดรายบุคคลของเดือนที่เลือก','Monthly work summary','Working days, leave and absences per person for the chosen month.','月度出勤汇总','所选月份每人的出勤、请假和缺勤汇总。'],
+'x-hr-load':['ปริมาณงานซ่อมสะสมของช่าง','จำนวนงานและมูลค่างานที่ช่างแต่ละคนรับผิดชอบ ใช้ประกอบการคิดค่าแรงและมอบหมายงาน','Technician workload','Jobs and job value per technician, to support labour pay and job assignment.','技师累计工作量','每位技师负责的工单数量和金额，用于计酬和派工。'],
+'x-hr-warn':['ใบเตือนพนักงาน','ออกใบเตือนพร้อมเหตุผล และเก็บประวัติไว้ตรวจย้อนหลัง','Warning letters','Issue a warning with its reason and keep the history for later review.','员工警告单','开具带理由的警告单，并保留记录以便追溯。'],
+'x-prox-coins':['DriveGo Coins','ระบบออกเหรียญให้ลูกค้าจากใบเสร็จที่ชำระแล้ว ดูยอดคงเหลือรายทะเบียนได้','DriveGo Coins','Coins are issued to customers from paid receipts, with the balance shown per licence plate.','DriveGo 金币','系统按已付款收据向客户发放金币，可按车牌查看余额。'],
+'x-prox-shop':['หน้าร้านของอู่บนแอป BOOK','แก้ไขคำบรรยาย เวลาเปิด ช่องทางติดต่อ และรูปร้านที่ผู้ใช้รถเห็นในแอป','Your storefront in BOOK','Edit the description, opening hours, contact channels and photos drivers see in the app.','门店在 BOOK 上的主页','编辑车主在应用中看到的门店介绍、营业时间、联系方式和照片。'],
+'x-techroom-prox':['ห้องข้อมูลเทคนิค ProX Data','สเปคน้ำยาแอร์ น้ำมันคอมเพรสเซอร์ และข้อมูลรายรุ่นรถ อัปเดตจากส่วนกลาง','Tech room: ProX Data','Refrigerant, compressor oil and per-model specifications, updated from head office.','技术资料库 ProX Data','各车型的冷媒、压缩机油等规格数据，由总部统一更新。'],
+'x-techroom-pub':['คลังความรู้ Publish Data','บทความ ไฟล์ และคลิปที่อู่แบ่งปันให้เครือข่าย','Knowledge base: Publish Data','Articles, files and clips the garage shares with the network.','知识库 Publish Data','门店分享给网络的文章、文件和视频。'],
+'x-techroom-prv':['คลังความรู้ Private Data','ความรู้ภายในของอู่ เก็บไว้ใช้เฉพาะทีมงานตัวเอง','Knowledge base: Private Data','The garage’s internal know-how, kept for its own team.','知识库 Private Data','门店内部知识，仅供本店团队使用。'],
+/* BOOK */
+'b-home':['หน้าหลักของผู้ใช้รถ','สมุดรถดิจิทัล แสดงเลขไมล์ ระยะที่เหลือก่อนเช็กระยะ การแจ้งเตือนที่ใกล้ที่สุด และปุ่มช่วยเหลือฉุกเฉิน 24 ชั่วโมง','Driver home','A digital car logbook: mileage, distance to the next service, the nearest reminder and 24-hour emergency buttons.','车主首页','数字车辆手册：里程、距下次保养的距离、最近的提醒和 24 小时紧急求助按钮。'],
+'b-find':['ค้นหาอู่และจองคิว','เลือกอู่สมาชิกใกล้ตัว เลือกบริการ เลือกวันและเวลาจากปฏิทิน แล้วยืนยันการจอง','Find a garage and book','Pick a nearby member garage, a service, and a date and time from the calendar, then confirm.','查找修车厂并预约','选择附近的会员修车厂、服务项目，以及日历上的日期和时间，然后确认预约。'],
+'b-grg':['หน้ารายละเอียดอู่','รูปร้าน คะแนน รีวิว ช่องทางติดต่อ แผนที่นำทาง และช่องกรอกอาการเสียเพื่อขอราคาประเมิน','Garage profile','Photos, rating, reviews, contact channels, map directions and a form to describe a fault and request an estimate.','修车厂详情页','门店照片、评分、评价、联系方式、地图导航，以及填写故障以获取估价的表单。'],
+'b-hist':['สมุดบริการ','ประวัติซ่อมบำรุงบันทึกอัตโนมัติจากอู่ในระบบ พร้อมข้อมูลรถและสมุดพกประจำรถที่เจ้าของแก้ไขได้','Service book','Maintenance history recorded automatically by garages in the system, plus car details the owner can edit.','保养手册','系统内修车厂自动记录的维修保养履历，以及车主可自行编辑的车辆资料。'],
+'b-plan':['ตารางเช็กและการแจ้งเตือน','ระบบคำนวณวันต่อภาษี ต่อประกัน และรอบเช็กระยะจากระยะทางเฉลี่ยต่อวัน','Service plan and reminders','Road tax, insurance and service dates worked out from average daily distance.','保养计划与提醒','系统根据日均里程推算车辆税、保险和保养的到期时间。'],
+'b-perk':['สิทธิพิเศษ DriveGo Coins','ยอด Coin สะสม รายการสิทธิ์ที่แลกได้ คูปอง และประวัติ Coin ที่อ้างอิงเลขใบเสร็จ','DriveGo Coins rewards','Coin balance, rewards to redeem, coupons and a coin history tied to receipt numbers.','DriveGo 金币权益','金币余额、可兑换权益、优惠券，以及关联收据编号的金币明细。'],
+'b-rev':['รีวิวงานซ่อม','อ่านรีวิวที่ผ่านการตรวจสอบ และเขียนรีวิวอู่ที่ใช้บริการ','Repair reviews','Read verified reviews and write one for a garage you used.','维修评价','阅读经审核的评价，并为使用过的修车厂撰写评价。'],
+'b-set':['ตั้งค่าแอป','เลือกธีมสี เปิดปิดเสียงแจ้งเตือน และจัดการรถหลายคันในบัญชีเดียว','App settings','Choose a colour theme, toggle notification sound and manage several cars in one account.','应用设置','选择主题颜色、开关提醒声音，并在一个账户中管理多辆车。'],
+'b-login':['ทางเข้าสำหรับอู่และผู้ดูแล','หน้าลงชื่อเข้าใช้ของอู่สมาชิกและผู้บริหารระบบ แยกจากส่วนผู้ใช้รถ','Garage and admin sign-in','The sign-in page for member garages and system administrators, separate from the driver side.','修车厂与管理员入口','会员修车厂和系统管理员的登录页面，与车主端分开。'],
+/* Admin */
+'a-dash':['ภาพรวมระบบทั้งหมด','ผู้บริหารระบบเห็นจำนวนสมาชิก ใบจอง มูลค่างานซ่อม Coin และเหตุการณ์จากทุกฝั่งแบบต่อเนื่อง','Whole-system overview','Administrators see members, bookings, repair value, coins and a running feed of events from every side.','系统总览','管理员可查看会员数、预约数、维修金额、金币，以及各端的实时事件流。'],
+'a-grg':['จัดการข้อมูลอู่สมาชิก','แก้ไขรายละเอียดและรูปภาพของอู่ใดก็ได้ในเครือข่ายแทนอู่','Manage member garages','Edit the details and photos of any garage in the network on its behalf.','管理会员修车厂','可代任何一家网络内的修车厂编辑资料和照片。'],
+'a-point':['บริหาร Coin และพันธมิตร','ตั้งอัตราสะสม Coin และผูกพันธมิตรเข้าระบบสิทธิพิเศษ','Coins and partners','Set the coin earning rate and add partners to the rewards programme.','金币与合作伙伴管理','设置金币累积比例，并把合作伙伴接入权益体系。'],
+'a-rev':['ตรวจรีวิว','อนุมัติหรือไม่อนุมัติรีวิวจากผู้ใช้รถก่อนขึ้นแสดงในแอป','Review moderation','Approve or reject driver reviews before they appear in the app.','评价审核','在车主评价显示于应用之前进行批准或驳回。'],
+'a-inv':['คลังสินค้าแกนกลาง','อนุมัติสินค้าที่อู่เสนอ และป้อนสินค้าใหม่เข้าแคตตาล็อกกลางให้ทุกอู่ใช้','Central catalogue','Approve items garages propose and add new items to the catalogue for every garage.','中央商品库','审批门店提交的商品，并向中央目录添加新品供所有门店使用。'],
+'a-tech':['ขึ้นข้อมูลห้องเทคนิค','ป้อนสเปครุ่นรถใหม่ ขึ้นแสดงในห้องเทคนิคของทุกอู่ทันที','Publish technical data','Enter specifications for a new model and they appear in every garage’s tech room at once.','发布技术资料','录入新车型规格后，立即显示在所有门店的技术资料库中。'],
+'a-promo':['ส่งโปรโมชันซัพพลายเออร์','สร้างข้อเสนอจากซัพพลายเออร์และส่งถึงอู่สมาชิก ProX','Supplier promotions','Create a supplier offer and send it to ProX member garages.','推送供应商促销','创建供应商优惠并发送给 ProX 会员修车厂。']
+};
+
+const AUTO={"x-home":{"w":1440,"h":940,"c":[{"t":"บริหารลูกค้า · ลูกค้าสัมพันธ์","x":22.3,"y":17.5},{"t":"นัดหมายลูกค้า 7 วันข้างหน้า","x":18,"y":42.6},{"t":"ยี่ห้อรถที่เข้าซ่อม","x":59.4,"y":42.8}]},"x-crm":{"w":1440,"h":940,"c":[{"t":"ลูกค้าสัมพันธ์ · นัดหมายและติดตามลูกค้า","x":18,"y":16.7},{"t":"ยี่ห้อรถที่เข้าซ่อม","x":18,"y":85.2},{"t":"หมวดอะไหล่ที่ขายออก","x":59.4,"y":85.2}]},"x-cust-list":{"w":1440,"h":940,"c":[{"t":"รายชื่อลูกค้าและรถในความดูแล","x":18,"y":26.2}]},"x-cust-grade":{"w":1440,"h":940,"c":[{"t":"สรุปลูกค้าตามเกรดดาว","x":18,"y":23.8},{"t":"รายชื่อลูกค้าตามเกรด","x":18,"y":69.8}]},"x-quote":{"w":1440,"h":940,"c":[{"t":"ใบเสนอราคา / ใบอนุมัติซ่อม","x":18,"y":15.8}]},"x-receipt-doc":{"w":1440,"h":940,"c":[{"t":"4.1 ใบแจ้งหนี้ / ใบเสร็จรับเงิน","x":18,"y":15.8}]},"x-receipt-billing":{"w":1440,"h":940,"c":[{"t":"4.2 ใบวางบิล","x":18,"y":15.8}]},"x-receipt-tax":{"w":1440,"h":940,"c":[{"t":"4.3 ใบกำกับภาษี","x":18,"y":15.8}]},"x-vendor":{"w":1440,"h":940,"c":[{"t":"ข้อมูลผู้ขาย","x":18,"y":15.8}]},"x-buy-gr":{"w":1440,"h":940,"c":[{"t":"ทะเบียนใบรับสินค้า / ซื้อสินค้า","x":18,"y":18.7}]},"x-buy-util":{"w":1440,"h":940,"c":[{"t":"ค่าน้ำ ค่าไฟ ค่าโทรศัพท์ และสาธารณูปโภค","x":18,"y":32.8}]},"x-buy-asset":{"w":1440,"h":940,"c":[{"t":"ซื้อสินทรัพย์ถาวร","x":18,"y":19.7}]},"x-buy-pay":{"w":1440,"h":940,"c":[{"t":"จ่ายเงินเดือนพนักงาน","x":18,"y":19.7},{"t":"ประวัติการจ่ายเงินเดือน","x":18,"y":95.8}]},"x-buy-office":{"w":1440,"h":940,"c":[{"t":"อุปกรณ์และวัสดุสำนักงาน","x":18,"y":32.8}]},"x-buy-other":{"w":1440,"h":940,"c":[{"t":"รายจ่ายอื่น ๆ","x":18,"y":19.6}]},"x-stock-stock":{"w":1440,"h":940,"c":[{"t":"สรุปจำนวนและมูลค่าสินค้าคงคลังตามหมวด","x":18,"y":39}]},"x-stock-claim":{"w":1440,"h":940,"c":[{"t":"ทะเบียนใบเคลมสินค้า","x":18,"y":18.7}]},"x-stock-issue":{"w":1440,"h":940,"c":[{"t":"ทะเบียนใบเบิกใช้ภายใน","x":18,"y":18.7}]},"x-stock-count":{"w":1440,"h":940,"c":[{"t":"ทะเบียนใบตรวจนับสินค้า","x":18,"y":18.7}]},"x-stock-px":{"w":1440,"h":940,"c":[{"t":"คลังสินค้ากลาง DriveGo ProX — ราคาตรงจากซัพพลาย ไม่มีหัวคิว","x":18,"y":19.6},{"t":"คำขอเพิ่มสินค้าใหม่ของอู่","x":18,"y":84.6}]},"x-acct-health":{"w":1440,"h":940,"c":[{"t":"สรุปรายจ่าย เรียงจากมากไปน้อย","x":18,"y":42},{"t":"ยอดขายรายเดือนเปรียบเทียบย้อนหลัง 12 เดือน","x":59.4,"y":42},{"t":"สถานะเงินสดของกิจการ","x":18,"y":84.6}]},"x-acct-ar":{"w":1440,"h":940,"c":[{"t":"ทะเบียนลูกหนี้ — ใบเสร็จ / ใบแจ้งหนี้ที่ยังไม่ได้รับชำระ","x":18,"y":33.7}]},"x-acct-ap":{"w":1440,"h":940,"c":[{"t":"ทะเบียนเจ้าหนี้ — ใบรับสินค้า / ใบซื้อที่ยังไม่ได้จ่าย","x":18,"y":33.7}]},"x-acct-exp":{"w":1440,"h":940,"c":[{"t":"ทะเบียนค่าใช้จ่ายกิจการ","x":18,"y":20.6}]},"x-acct-asset":{"w":1440,"h":940,"c":[{"t":"ทะเบียนสินทรัพย์ถาวรและค่าเสื่อมราคา","x":18,"y":20.6}]},"x-acct-cap":{"w":1440,"h":940,"c":[{"t":"บันทึกเงินลงทุน เงินกู้ และการถอนเงิน","x":18,"y":33.7}]},"x-acct-tax":{"w":1440,"h":940,"c":[{"t":"สรุปภาษีที่ต้องนำส่ง — งวดเดือน พ.ย. 2569","x":18,"y":21.5},{"t":"รายงานภาษีขาย","x":18,"y":83},{"t":"รายงานภาษีซื้อ","x":59.4,"y":83}]},"x-acct-coa":{"w":1440,"h":940,"c":[{"t":"ผังบัญชี (Chart of Accounts) — ตามโครงมาตรฐานกรมพัฒนาธุรกิจก","x":18,"y":20.6}]},"x-acct-fs":{"w":1440,"h":940,"c":[{"t":"งบกำไรขาดทุน (สำหรับปีบัญชี 2569)","x":18,"y":25.6},{"t":"งบแสดงฐานะการเงิน ณ วันสิ้นปีบัญชี 2569","x":59.4,"y":25.6},{"t":"งบกระแสเงินสด (อย่างย่อ)","x":18,"y":84.9}]},"x-hr-sum":{"w":1440,"h":940,"c":[{"t":"สรุปการทำงานรายบุคคล — พ.ย. 2569","x":18,"y":33.5}]},"x-hr-rec":{"w":1440,"h":940,"c":[{"t":"บันทึกการทำงานและการลา","x":18,"y":20.3}]},"x-hr-load":{"w":1440,"h":940,"c":[{"t":"ปริมาณงานซ่อมสะสมของช่าง","x":18,"y":20.4}]},"x-hr-warn":{"w":1440,"h":940,"c":[{"t":"ใบเตือนพนักงาน","x":18,"y":20.4},{"t":"ประวัติใบเตือน","x":18,"y":62.3}]},"x-prox-book":{"w":1440,"h":940,"c":[{"t":"เชื่อมเซิร์ฟเวอร์เครือ DriveGo (drivegobiz)","x":18,"y":15.8},{"t":"คิวจองจากแอป DriveGo BOOK","x":18,"y":31},{"t":"ชุดทดสอบระบบ — จำลองเหตุการณ์จาก DriveGo BOOK ได้ทุกฟังก์","x":18,"y":58.4}]},"x-prox-inq":{"w":1440,"h":940,"c":[{"t":"อาการเสียจากลูกค้า → ใบเสนอราคาอัตโนมัติ","x":18,"y":16.2}]},"x-prox-sos":{"w":1440,"h":940,"c":[{"t":"งานฉุกเฉิน SOS ใกล้อู่","x":18,"y":16.2}]},"x-prox-coins":{"w":1440,"h":940,"c":[{"t":"DriveGo Coins — ออกเหรียญจากใบเสร็จที่ชำระแล้ว","x":18,"y":15.7},{"t":"ยอด Coins คงเหลือรายทะเบียน","x":59.2,"y":15.7}]},"x-prox-shop":{"w":1440,"h":940,"c":[{"t":"หน้าร้านของอู่บนแอป DriveGo BOOK","x":18,"y":15.7}]},"x-techroom-prox":{"w":1440,"h":940,"c":[{"t":"สเปคเทคนิค — ข้อมูลที่ช่างต้องใช้ อัปเดตจากส่วนกลาง DriveGo","x":18,"y":20.9}]},"x-techroom-pub":{"w":1440,"h":940,"c":[{"t":"คลังความรู้ของอู่ — บทความ · ไฟล์ · คลิปวิดีโอ","x":18,"y":21.7}]},"x-techroom-prv":{"w":1440,"h":940,"c":[{"t":"คลังความรู้ของอู่ — บทความ · ไฟล์ · คลิปวิดีโอ","x":18,"y":21.7}]},"x-setting":{"w":1440,"h":940,"c":[{"t":"ตั้งค่าองค์กร · ข้อมูลผู้ใช้งานที่แสดงบนหัวเอกสาร","x":18,"y":16.6}]},"b-home":{"w":645,"h":1476,"c":[{"t":"ช่วยเหลือฉุกเฉิน 24 ชม.","x":7.2,"y":58.1}]},"b-find":{"w":645,"h":2550,"c":[{"t":"อู่สมาชิกใกล้คุณ","x":7.2,"y":11.3},{"t":"เลือกบริการ","x":7.2,"y":43.6},{"t":"เลือกวันและเวลานัด","x":7.2,"y":61.4}]},"b-grg":{"w":645,"h":2550,"c":[{"t":"ให้คะแนนอู่นี้ (1–5 ดาว)","x":7.2,"y":49.6},{"t":"รีวิวอู่นี้","x":7.2,"y":61.6},{"t":"กรอกอาการเสียโดยละเอียด — ขอราคาประเมิน","x":7.2,"y":74.1}]},"b-hist":{"w":645,"h":2023,"c":[{"t":"ประวัติซ่อมบำรุงทั้งหมด","x":7.2,"y":14.3},{"t":"ข้อมูลรถของฉัน (กรอก/แก้ไขได้)","x":7.2,"y":32.9},{"t":"สมุดพกประจำรถ ข้อมูลจำเป็นที่ควรมีติดรถเสมอ","x":7.2,"y":58.2}]},"b-plan":{"w":645,"h":1350,"c":[{"t":"ศูนย์แจ้งเตือนของรถคุณ","x":7.2,"y":19.1},{"t":"บันไดเช็คระยะ","x":7.2,"y":53.5}]},"b-perk":{"w":645,"h":1557,"c":[{"t":"DG แลก Coin รับสิทธิพิเศษ","x":7.2,"y":26.7},{"t":"คูปองของฉัน","x":7.2,"y":60.3},{"t":"ประวัติ Coin — ตรวจสอบย้อนกลับได้","x":7.2,"y":73.3}]},"b-rev":{"w":645,"h":1468,"c":[{"t":"รีวิวงานซ่อม แนะนำอู่ DriveGo","x":3.7,"y":14.7},{"t":"รีวิวล่าสุด","x":7.2,"y":24.7},{"t":"เขียนรีวิวอู่ที่คุณใช้บริการ","x":7.2,"y":55.9}]},"b-set":{"w":645,"h":1752,"c":[{"t":"ธีมการแสดงผล — เลือกได้ 13 โทนสี","x":7.2,"y":14.7},{"t":"เสียงแจ้งเตือน","x":7.2,"y":49.8},{"t":"รถของฉัน","x":7.2,"y":64.2}]},"b-login":{"w":645,"h":1350,"c":[{"t":"เข้าสู่ระบบสำหรับอู่ / ผู้ดูแล","x":3.7,"y":16}]},"a-dash":{"w":1440,"h":940,"c":[{"t":"เหตุการณ์ในระบบ (ทุกฝั่ง)","x":20.1,"y":32.7},{"t":"จัดการข้อมูลอู่สมาชิก ›","x":60.1,"y":32.7},{"t":"ใบขอซื้อจากอู่ (ซัพพลายไม่บวกหัวคิว)","x":20.1,"y":69.1}]},"a-grg":{"w":1440,"h":940,"c":[{"t":"จัดการข้อมูลอู่ Admin แก้ไขได้ทั้งหมด","x":19,"y":17.1},{"t":"รายละเอียดร้าน","x":60.1,"y":29.5},{"t":"รูปภาพร้าน (สูงสุด 10 รูป)","x":20.1,"y":86.1}]},"a-point":{"w":1440,"h":940,"c":[{"t":"อัตราสะสม Coin","x":20.1,"y":22.1},{"t":"รายการสิทธิ์แลก Coin (พันธมิตร + อู่ร่วมรายการ)","x":60.1,"y":22.1},{"t":"ผูกพันธมิตรใหม่","x":20.1,"y":56.7}]},"a-rev":{"w":1440,"h":940,"c":[{"t":"รอตรวจสอบ","x":20.1,"y":22.1},{"t":"ขึ้นแสดงแล้ว","x":60.1,"y":22.1}]},"a-inv":{"w":1440,"h":940,"c":[{"t":"รายการที่อู่เสนอ — รออนุมัติ","x":20.1,"y":22.1},{"t":"ป้อนสินค้าใหม่เข้าแกนกลาง (โดยทีม DriveGo)","x":60.1,"y":22.1}]},"a-tech":{"w":1440,"h":940,"c":[{"t":"เพิ่มรุ่นรถใหม่","x":20.1,"y":22.1}]},"a-promo":{"w":1440,"h":940,"c":[{"t":"สร้างโปรโมชั่น","x":20.1,"y":22.1},{"t":"โปรโมชั่นที่ส่งแล้ว","x":60.1,"y":22.1}]}};
+const UI={
+ th:{h:'ลองขับระบบ <em>ทุกหน้าจอ</em> ก่อนตัดสินใจ',sub:'ภาพหน้าจอจริงจากระบบตัวอย่าง เรียงตามลำดับงานตั้งแต่ขั้นแรกจนถึงขั้นสุดท้าย เลือกระบบ แล้วกดถัดไปทีละขั้น หรือข้ามไปขั้นที่อยากดูจากรายการ',step:'ขั้นที่',of:'จาก',prev:'ก่อนหน้า',next:'ถัดไป',zoom:'กดที่ภาพเพื่อขยาย ใช้ปุ่มลูกศรซ้ายขวาบนคีย์บอร์ดเพื่อเลื่อนขั้น ข้อมูลในภาพเป็นข้อมูลตัวอย่าง',endh:'อยากเห็นระบบทำงานกับข้อมูลอู่ของคุณ',endp:'นัดทีมงานสาธิตสดได้ทุกวันทำการ',demo:'นัดดู Demo',
+  sys:[['prox','DriveGo ProX / BaziX','สำหรับอู่และศูนย์บริการ'],['book','DriveGo BOOK','สำหรับผู้ใช้รถ'],['admin','DriveGo Admin','หลังบ้านผู้บริหารเครือข่าย']],
+  g:{setup:'เริ่มต้นตั้งค่า',over:'ภาพรวม',cust:'ลูกค้า',sale:'รับงานและออกเอกสารขาย',buy:'จัดซื้อและรายจ่าย',stock:'สต๊อกอะไหล่',acct:'บัญชีและการเงิน',hr:'งานบุคคล',eco:'Ecosystem และคลังความรู้',book:'การใช้งานของผู้ใช้รถ',admin:'งานของผู้บริหารระบบ'}},
+ en:{h:'Test drive <em>every screen</em> before you decide',sub:'Real screens from the demo system, in working order from the first step to the last. Choose a system, then go step by step or jump to any step from the list.',step:'Step',of:'of',prev:'Previous',next:'Next',zoom:'Click the image to enlarge. Use the left and right arrow keys to move between steps. The screens show sample data and the interface is in Thai.',endh:'Want to see it running on your garage’s data?',endp:'Book a live demonstration with the team.',demo:'Book a demo',
+  sys:[['prox','DriveGo ProX / BaziX','For garages and service centres'],['book','DriveGo BOOK','For drivers'],['admin','DriveGo Admin','Network back office']],
+  g:{setup:'Getting set up',over:'Overview',cust:'Customers',sale:'Taking jobs and sales documents',buy:'Purchasing and expenses',stock:'Parts stock',acct:'Accounting and finance',hr:'People',eco:'Ecosystem and knowledge',book:'What drivers do',admin:'What administrators do'}},
+ zh:{h:'决定之前，先<em>逐屏试驾</em>整套系统',sub:'来自示例系统的真实界面，按工作顺序从第一步排到最后一步。选择系统后逐步浏览，或从列表直接跳到想看的步骤。',step:'第',of:'/',prev:'上一步',next:'下一步',zoom:'点击图片可放大，使用键盘左右方向键切换步骤。界面中为示例数据，系统界面为泰文。',endh:'想看系统如何处理您门店的数据？',endp:'欢迎预约团队现场演示。',demo:'预约演示',
+  sys:[['prox','DriveGo ProX / BaziX','面向修车厂和服务中心'],['book','DriveGo BOOK','面向车主'],['admin','DriveGo Admin','网络管理后台']],
+  g:{setup:'初始设置',over:'总览',cust:'客户',sale:'接单与销售单据',buy:'采购与支出',stock:'配件库存',acct:'财务与会计',hr:'人事',eco:'生态网络与知识库',book:'车主端操作',admin:'管理员操作'}}
+};
+const FLOW={
+ prox:[['setup',['x-setting']],['over',['x-home']],['cust',['x-crm','x-cust-list','x-cust-grade']],
+  ['sale',['x-prox-book','x-prox-inq','x-prox-sos','x-quote','x-receipt-doc','x-receipt-billing','x-receipt-tax']],
+  ['buy',['x-vendor','x-buy-gr','x-buy-util','x-buy-asset','x-buy-pay','x-buy-office','x-buy-other']],
+  ['stock',['x-stock-stock','x-stock-issue','x-stock-count','x-stock-claim','x-stock-px']],
+  ['hr',['x-hr-rec','x-hr-sum','x-hr-load','x-hr-warn']],
+  ['eco',['x-prox-coins','x-prox-shop','x-techroom-prox','x-techroom-pub','x-techroom-prv']],
+  ['acct',['x-acct-ar','x-acct-ap','x-acct-exp','x-acct-asset','x-acct-cap','x-acct-tax','x-acct-coa','x-acct-fs','x-acct-health']]],
+ book:[['book',['b-home','b-find','b-grg','b-hist','b-plan','b-perk','b-rev','b-set','b-login']]],
+ admin:[['admin',['a-dash','a-grg','a-point','a-rev','a-inv','a-tech','a-promo']]]
+};
+const ORDER={}; for(const s in FLOW) ORDER[s]=FLOW[s].flatMap(g=>g[1]);
+const $=s=>document.querySelector(s);
+let sys='prox', cur='x-setting';
+const cap=id=>{const c=CAP[id],o={th:0,en:2,zh:4}[DG.lang];return {t:c[o],d:c[o+1]}};
+function render(){
+  const u=UI[DG.lang], list=ORDER[sys], i=list.indexOf(cur), a=AUTO[cur], c=cap(cur), ph=sys==='book';
+  $('#h1').innerHTML=u.h; $('#sub').textContent=u.sub;
+  $('#sys').innerHTML=u.sys.map(s=>`<button type="button" role="tab" data-s="${s[0]}" aria-selected="${s[0]===sys}">${s[1]}<small>${s[2]} · ${ORDER[s[0]].length}</small></button>`).join('');
+  let n=0;
+  $('#side').innerHTML=FLOW[sys].map(g=>`<h4>${u.g[g[0]]}</h4>`+g[1].map(id=>`<a href="#${id}" ${id===cur?'aria-current="step"':''}><i>${String(++n).padStart(2,'0')}</i><span>${cap(id).t}</span></a>`).join('')).join('');
+  $('#step').innerHTML=`<div class="prog"><i style="width:${(i+1)/list.length*100}%"></i></div>
+   <div class="cnt">${u.step} ${i+1} ${u.of} ${list.length}</div><h2>${c.t}</h2><p>${c.d}</p>
+   <button type="button" class="shot ${ph?'ph':''}" id="shot" aria-label="${c.t}"><img src="tour/${cur}.webp" width="${a.w}" height="${a.h}" alt="${c.t}">${a.c.map((k,j)=>`<span class="pin" style="left:${Math.max(4,k.x)}%;top:${k.y}%">${j+1}</span>`).join('')}</button>
+   ${a.c.length?`<ol class="keys" lang="th">${a.c.map((k,j)=>`<li><b>${j+1}</b><span>${k.t}</span></li>`).join('')}</ol>`:''}
+   <div class="navb"><a class="btn btn-g prev" href="#${list[i-1]||cur}" ${i?'':'disabled'}><svg class="ic"><use href="#i-arrow"/></svg>${u.prev}</a><a class="btn btn-a" href="#${list[i+1]||cur}" ${i<list.length-1?'':'disabled'}>${u.next}<svg class="ic"><use href="#i-arrow"/></svg></a></div>
+   <p class="hint">${u.zoom}</p>`;
+  $('#end').innerHTML=`<div><b>${u.endh}</b>${u.endp}</div><a class="btn btn-a" href="index.html#contact">${u.demo}<svg class="ic"><use href="#i-arrow"/></svg></a>`;
+  const nx=list[i+1]; if(nx){const im=new Image();im.src='tour/'+nx+'.webp'}
+  const on=$('#side a[aria-current]'); if(on){const sd=$('#side');sd.scrollTop=on.offsetTop-sd.clientHeight/2}
+}
+function route(scroll){
+  const id=location.hash.slice(1);
+  if(AUTO[id]){cur=id;sys=Object.keys(ORDER).find(s=>ORDER[s].includes(id))}
+  render(); if(scroll)$('.lay').scrollIntoView({behavior:'smooth',block:'start'});
+}
+$('#sys').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;sys=b.dataset.s;cur=ORDER[sys][0];history.replaceState(null,'','#'+cur);render()});
+addEventListener('hashchange',()=>route(true));
+addEventListener('keydown',e=>{if($('#lb').classList.contains('on')){if(e.key==='Escape')$('#lb').classList.remove('on');return}
+  const l=ORDER[sys],i=l.indexOf(cur);if(e.key==='ArrowRight'&&l[i+1])location.hash=l[i+1];if(e.key==='ArrowLeft'&&l[i-1])location.hash=l[i-1]});
+document.addEventListener('click',e=>{if(e.target.closest('#shot')){$('#lbi').src='tour/'+cur+'.webp';$('#lb').className='lb on'+(sys==='book'?' ph':'');return}
+  if(e.target.closest('#lb'))$('#lb').classList.remove('on')});
+DG.onLang(()=>route(false)); DG.start();
+</script>
+</body>
+</html>
