@@ -56,10 +56,14 @@
  function venPlan(rows){
   const C=window.PKG_CUST_IMPORT||{},nk=C.nameKey||low,fix=C.telFix||(s=>s),prov=C.provOf||(s=>s);
   const tax13=s=>{const d=String(s||'').replace(/\D/g,'');return d.length===13?d:'';};
-  const have=(DB.vendors||[]).map(v=>({t:tax13(v.tax),k:nk(v.name)})),seen=[],add=[],skip={},miss=k=>{skip[k]=(skip[k]||0)+1;};
+  /* DriveGo new system (owner 2026-11-20, 80-validate.js): names compared with their legal form (บริษัท … จำกัด and
+     หจก. … of the same name were taken for one vendor and the second skipped), and a phone that is not one skips the row */
+  const V=window.PKG_VALID,vk=V?V.venKey:(t=>({form:'',k:nk(t)})),sameK=V?V.sameVen:((a,b)=>a.k===b.k);
+  const have=(DB.vendors||[]).map(v=>({t:tax13(v.tax),n:vk(v.name)})),seen=[],add=[],skip={},miss=k=>{skip[k]=(skip[k]||0)+1;};
   rows.forEach(r=>{const g=i=>String(r[i]==null?'':r[i]).trim(),name=g(0);if(!name)return miss('ไม่มีชื่อผู้ขาย');
-   const id={t:tax13(g(2)),k:nk(name)},same=x=>(id.t&&x.t===id.t)||x.k===id.k;
-   if(have.some(same))return miss('มีในระบบแล้ว');if(seen.some(same))return miss('ซ้ำกันในไฟล์');seen.push(id);
+   const id={t:tax13(g(2)),n:vk(name)},same=x=>(id.t&&x.t===id.t)||sameK(x.n,id.n);
+   if(have.some(same))return miss('มีในระบบแล้ว');if(seen.some(same))return miss('ซ้ำกันในไฟล์');
+   if(V&&(!V.tel(fix(g(4)))||!V.tel(fix(g(5)))))return miss('เบอร์โทรไม่ถูกต้อง');seen.push(id);
    const typ=g(1),cr=g(8),b=bankOf(g(9)),cash=/เงินสด/.test(cr),days=cash?0:cr?n(cr.replace(/[^\d.]/g,'')):30;   /* blank credit = the form's 30 days */
    add.push({id:uid(),type:/บุคคลธรรมดา/.test(typ)?'person':'company',name,tax:g(2),days,contact:g(3),tel:fix(g(4)),tel2:fix(g(5)),cash,
     bankName:b.name,bankNo:g(10),bankAcc:g(11),bank:[b.name||b.lost,g(10)].filter(Boolean).join(' '),note:b.lost?'ธนาคาร (จากไฟล์): '+b.lost:'',

@@ -2392,27 +2392,33 @@ async function impCustApply(rows){
 }
 async function impStockApply(rows){
   const nn=v=>n(String(v==null?'':v).replace(/,/g,''));
-  const add=[]; let skip=0;
+  const add=[]; let skip=0; const bad={num:0,neg:0};
   rows.forEach(r=>{ const g=i=>String(r[i]==null?'':r[i]).trim();
     const code=g(0),oem=g(1),name=g(2),cat=g(3),unit=g(4);
     if(!code||!name){ skip++; return; }
     if(DB.stock.some(x=>String(x.code||'').toLowerCase()===code.toLowerCase())){ skip++; return; }
     if(add.some(x=>x.code.toLowerCase()===code.toLowerCase())){ skip++; return; }   /* ซ้ำกันเองในไฟล์ */
+    /* DriveGo new system (owner 2026-11-20, 80-validate.js): a number cell that is not a number ("abc" became 0, "12abc"
+       12) or a price / Min / Max below 0 skips the row; quantity and cost below 0 wait for the accountant (T07) */
+    const V=window.PKG_VALID;
+    if(V&&[5,6,7,8,9,10,11].some(i=>V.num(r[i])===null)){ bad.num++; return; }
+    if(V&&[7,8,9,10,11].some(i=>V.num(r[i])<0)){ bad.neg++; return; }
     const rec={id:uid(),code:code,oem:oem,name:name,cat:cat||'อื่น ๆ',unit:unit||'ชิ้น',
       qty:nn(r[5]),cost:nn(r[6]),pa:nn(r[7]),pb:nn(r[8]),pc:nn(r[9]),min:nn(r[10]),max:nn(r[11]),
       lastMove:iso(),loc:'',zone:'',shelf:'',warr:''};
     stampRec(rec,null); add.push(rec); });
-  if(!add.length) return toast('ไม่มีรายการใหม่ให้เพิ่ม — ข้าม '+skip+' แถว (ข้อมูลไม่ครบหรือรหัสซ้ำ)');
+  const badTxt=(bad.num?'\nข้าม '+bad.num+' แถว (ตัวเลขไม่ถูกต้อง)':'')+(bad.neg?'\nข้าม '+bad.neg+' แถว (ตัวเลขติดลบ)':'');
+  if(!add.length) return toast('ไม่มีรายการใหม่ให้เพิ่ม — ข้าม '+skip+' แถว (ข้อมูลไม่ครบหรือรหัสซ้ำ)'+badTxt.replace(/\n/g,' · '));
   if(!await askP({title:'นำเข้าสินค้าจาก CSV',
-    text:'พบสินค้าใหม่ '+add.length+' รายการ'+(skip?'\nข้าม '+skip+' แถว (รหัส/ชื่อว่าง หรือรหัสซ้ำ)':'')
+    text:'พบสินค้าใหม่ '+add.length+' รายการ'+(skip?'\nข้าม '+skip+' แถว (รหัส/ชื่อว่าง หรือรหัสซ้ำ)':'')+badTxt
       +'\nยอดคงเหลือที่นำเข้าถือเป็นยอดยกมา\n\nยืนยันนำเข้า?',
     yes:'นำเข้า',no:'ยกเลิก'})) return;
   add.forEach(x=>{ DB.stock.push(x);
     if(n(x.qty)>0) logMove(x.id,'in',n(x.qty),iso(),'ยอดยกมาจากการนำเข้าไฟล์ CSV','CSV'); });
-  logAudit('stock',{id:'',no:'CSV'},'save','นำเข้าสินค้าจากไฟล์ '+add.length+' รายการ · ข้าม '+skip+' แถว');
+  logAudit('stock',{id:'',no:'CSV'},'save','นำเข้าสินค้าจากไฟล์ '+add.length+' รายการ · ข้าม '+(skip+bad.num+bad.neg)+' แถว');
   save(); renderStock();
   saveFx('นำเข้าสินค้าแล้ว',add.length+' รายการ');
-  toast('นำเข้าสินค้า '+add.length+' รายการ'+(skip?' · ข้าม '+skip+' แถว':''));
+  toast('นำเข้าสินค้า '+add.length+' รายการ'+(skip+bad.num+bad.neg?' · ข้าม '+(skip+bad.num+bad.neg)+' แถว':''));
 }
 function saveCust(){
   if(!can('doc.custEdit')) return toast('บัญชีนี้ไม่มีสิทธิเพิ่ม/แก้ไขข้อมูลลูกค้า');

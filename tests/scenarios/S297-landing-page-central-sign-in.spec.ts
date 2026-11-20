@@ -9,7 +9,7 @@ import { test, expect } from '../support/test';
 // Owner 2026-11-17 (sales): the page has one card per package (BaziX, ProX, Franchise) and the form opens in the card
 // picked; right sign-in on another package's card is refused with the card to use (S459: ProX and Franchise shops).
 // The landing page is the team's design (same day): Thai and English, what the system does not do yet tagged "เร็ว ๆ นี้",
-// a demo request summed up for the visitor to send on LINE (nothing stored); since 2026-11-20 a sign-up for a trial (S471).
+// a demo request summed up for the visitor to send on LINE (nothing stored); since 2026-11-20 a sign-up for a trial (S474).
 const signIn = async (page: Page, code: string, user: string, pass: string) => {
   await page.getByLabel('รหัสร้าน').fill(code);
   await page.getByLabel('ชื่อผู้ใช้ / อีเมล / เบอร์โทร').fill(user);
@@ -78,7 +78,7 @@ test('S297 ระบบใหม่: หน้าแรกของเว็บ�
   await expect(table.getByRole('columnheader')).toHaveText(['ความสามารถ', 'BaziX', 'ProX']);
   expect(await page.locator('#cmp').evaluate(box => box.scrollWidth - box.clientWidth)).toBe(0);
   await page.setViewportSize(desk);
-  // The demo request became a sign-up for a trial (owner 2026-11-20; the whole flow: S471).
+  // The demo request became a sign-up for a trial (owner 2026-11-20; the whole flow: S474).
   await expect(page.locator('#contact').getByRole('heading', { name: 'ลงทะเบียนเพื่อทดลองใช้ DriveGo X' })).toBeVisible();
   await page.getByRole('link', { name: 'เข้าระบบ', exact: true }).first().click();
   await expect(page).toHaveURL(`${origin}/login`);

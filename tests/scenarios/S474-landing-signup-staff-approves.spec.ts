@@ -8,7 +8,7 @@ import { addTestStaff, appCode } from '../support/new-shop.mjs';
 // waits on the staff web page (/ops "คำขอลงทะเบียน"); staff open the shop from it with the fields of "เปิดร้านใหม่"
 // already filled in. With e-mail set up the sign-in details go by e-mail (tests/db/signup.test.mjs); without it, as
 // here, the page shows the temporary password for staff to tell on the phone. The owner then signs in with it.
-test('S471 ระบบใหม่: อู่กรอกฟอร์มลงทะเบียนทดลองใช้ที่หน้าแรก คำขอขึ้นที่หน้าเว็บทีมงาน ทีมงานอนุมัติแล้วร้านเปิด เจ้าของร้านเข้าระบบได้', async ({ page }) => {
+test('S474 ระบบใหม่: อู่กรอกฟอร์มลงทะเบียนทดลองใช้ที่หน้าแรก คำขอขึ้นที่หน้าเว็บทีมงาน ทีมงานอนุมัติแล้วร้านเปิด เจ้าของร้านเข้าระบบได้', async ({ page }) => {
   test.slow();
   const tag = Date.now().toString(36).slice(-5);
   const name = `อู่ทดลอง ${tag}`, code = `trial-${tag}`;
