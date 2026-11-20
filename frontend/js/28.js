@@ -55,7 +55,7 @@
   if(!r.nm||r.nm!==c.nm)return false;
   return!r.tels.length||!c.tels.length||r.tels.some(t=>c.tels.includes(t));
  }
- const WHY={noname:'ไม่มีชื่อลูกค้า',many:'ชื่อตรงกับลูกค้าในระบบหลายราย (ใส่เบอร์หรือเลขผู้เสียภาษีเพื่อระบุ)',dup:'รถคันนี้มีอยู่แล้ว',nocar:'ลูกค้ามีอยู่แล้ว ไม่มีรถใหม่'};
+ const WHY={tel:'เบอร์โทรไม่ถูกต้อง',mile:'เลขไมล์ไม่ใช่ตัวเลข',year:'ปีจดทะเบียนไม่ใช่ พ.ศ. 4 หลัก',noname:'ไม่มีชื่อลูกค้า',many:'ชื่อตรงกับลูกค้าในระบบหลายราย (ใส่เบอร์หรือเลขผู้เสียภาษีเพื่อระบุ)',dup:'รถคันนี้มีอยู่แล้ว',nocar:'ลูกค้ามีอยู่แล้ว ไม่มีรถใหม่'};
  /* Work out what the file would do, without touching the data (also used by the tests). */
  function plan(rows){
   const ids=new Map(DB.cust.map(c=>[c,ident(c.name,c.company,c.tax,c.tel,c.tel2)]));
@@ -68,6 +68,11 @@
   rows.forEach(raw=>{
    const g=i=>String(raw[i]==null?'':raw[i]).trim();
    const r={name:g(0),company:g(1),tel:telFix(g(2)),tel2:telFix(g(3)),tax:g(4),addr:g(5),prov:g(6),plate:g(7),pprov:g(8),brand:g(9),model:g(10),color:g(11),year:g(12),vin:g(13),engine:g(14),mile:g(15)};
+   /* DriveGo new system (owner 2026-11-20, 80-validate.js): a phone, mileage or year that is not one skips the row
+      (the original kept them, or took the first number it found: "-500" became 500); a ค.ศ. year becomes พ.ศ. */
+   const V=window.PKG_VALID;
+   if(V){if(!V.tel(r.tel)||!V.tel(r.tel2))return miss('tel');if(V.mile(r.mile)===null)return miss('mile');
+    const y=V.year(r.year);if(y===null)return miss('year');r.year=y;}
    const id=ident(r.name,r.company,r.tax,r.tel,r.tel2),car=carOf(r);
    if(!id.nm&&!id.co&&!id.tax)return miss('noname');
    let grp=null,started=false;
@@ -101,11 +106,14 @@
   if(!can('doc.custEdit'))return toast('บัญชีนี้ไม่มีสิทธิเพิ่ม/แก้ไขข้อมูลลูกค้า');
   const p=plan(rows),{fresh,old}=p;
   if(!fresh.length&&!p.carsOld)return toast('ไม่มีรายการใหม่ให้เพิ่ม'+(p.skipped?' — ข้าม '+p.skipped+' แถว ('+p.why+')':''));
+  /* new customers whose name is already a customer's (a different phone or tax ID kept them apart): said, still added */
+  const like=fresh.filter(g=>g.id.nm&&DB.cust.some(c=>{const x=ident(c.name,c.company,c.tax,c.tel,c.tel2);return x.nm===g.id.nm||(g.id.co&&x.co===g.id.co);}));
   const nm=g=>esc(custName(g.cust||g.rec)),few=(a,f)=>a.slice(0,4).map(f).join(', ')+(a.length>4?' และอีก '+(a.length-4)+' ราย':'');
   const line=(b,s,cls)=>`<div class="pkg-imp-l${cls?' '+cls:''}"><b>${b}</b>${s?`<div class="hint">${s}</div>`:''}</div>`;
   const msg=(fresh.length?line('ลูกค้าใหม่ '+fresh.length+' ราย · รถ '+p.carsNew+' คัน',few(fresh,g=>nm(g)+(g.cars.length>1?' ('+g.cars.length+' คัน)':''))):'')
    +(p.carsOld?line('เพิ่มรถให้ลูกค้าเดิม '+old.length+' ราย · '+p.carsOld+' คัน',few(old,g=>nm(g)+' +'+g.cars.length+' คัน')):'')
    +(p.skipped?line('ข้าม '+p.skipped+' แถว',esc(p.why),'skip'):'')
+   +(like.length?line('ชื่อตรงกับลูกค้าในระบบ '+like.length+' ราย — เพิ่มเป็นรายใหม่',few(like,nm),'skip'):'')
    +(p.elsewhere?line('ทะเบียน / เลขตัวถังตรงกับรถของลูกค้ารายอื่น '+p.elsewhere+' คัน','ยังเพิ่มตามไฟล์ — ตรวจภายหลังได้ในเมนู 02','warn'):'')
    +'<div class="pkg-imp-q">ข้อมูลของลูกค้าเดิมจะไม่ถูกแก้ไข · ยืนยันนำเข้า?</div>';
   if(!await askP({title:'นำเข้าลูกค้า / รถจาก CSV',msg,yes:'นำเข้า',no:'ยกเลิก'}))return;
