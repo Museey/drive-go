@@ -77,12 +77,12 @@ export function signInMail(o: { lang: string; to: string; owner: string; name: s
     text: [`Dear ${o.owner},`, '', `The DriveGo team has opened your trial shop. It can be used until ${d} ${EN_MONTHS[m - 1]} ${y}.`, '',
       `Log in at ${SITE()}/login on the ${CARD[o.pkg]} card:`, `Shop code: ${o.code}`, `User name: ${o.user}`, `Temporary password: ${o.password}`, '',
       'At your first log-in you will set a password of your own.', 'The user manual can be downloaded from the log-in page.',
-      'Questions: call 082-108-7000 or LINE https://lin.ee/tV7nV8x', '', 'DriveGo X team'].join('\n') };
+      'Questions: call 082-108-7000 or LINE https://lin.ee/VtmOwnO', '', 'DriveGo X team'].join('\n') };
   return { to: o.to, subject: `${o.name} พร้อมทดลองใช้ DriveGo X แล้ว`,
     text: [`เรียน คุณ${o.owner}`, '', `ทีมงาน DriveGo เปิดร้านทดลองใช้ให้แล้ว ใช้ได้ถึง ${d} ${MONTHS[m - 1]} ${y + 543}`, '',
       `เข้าสู่ระบบที่ ${SITE()}/login ที่การ์ด ${CARD[o.pkg]}`, `รหัสร้าน: ${o.code}`, `ชื่อผู้ใช้: ${o.user}`, `รหัสผ่านชั่วคราว: ${o.password}`, '',
       'เข้าครั้งแรกระบบจะให้ตั้งรหัสผ่านของคุณเองก่อนเริ่มใช้งาน', 'คู่มือการใช้งานดาวน์โหลดได้ที่หน้าเข้าสู่ระบบ',
-      'สอบถาม โทร 082-108-7000 หรือ LINE https://lin.ee/tV7nV8x', '', 'ทีมงาน DriveGo X'].join('\n') };
+      'สอบถาม โทร 082-108-7000 หรือ LINE https://lin.ee/VtmOwnO', '', 'ทีมงาน DriveGo X'].join('\n') };
 }
 
 // Opens the shop from the request with what staff checked on the page (the same fields as "เปิดร้านใหม่"), then sends

@@ -33,7 +33,7 @@ test('S297 ระบบใหม่: หน้าแรกของเว็บ�
   await expect(page).toHaveTitle('DriveGo X · ระบบบริหารอู่และศูนย์บริการรถยนต์บน Cloud');
   const h1 = page.getByRole('heading', { level: 1 });
   await expect(h1).toHaveText('ข้อมูลเพื่อการจัดการที่ดี นำสู่ความสำเร็จ');
-  await expect(page.getByRole('link', { name: 'LINE Official' })).toHaveAttribute('href', 'https://lin.ee/tV7nV8x');
+  await expect(page.getByRole('link', { name: 'LINE Official' })).toHaveAttribute('href', 'https://lin.ee/VtmOwnO');
   // What the system does not do yet carries its tag (here the API row of the comparison table).
   await expect(page.getByRole('row', { name: /เชื่อมต่อระบบภายนอก \(API\) เร็ว ๆ นี้/ })).toBeAttached();
   // English, and back to Thai.
@@ -62,7 +62,7 @@ test('S297 ระบบใหม่: หน้าแรกของเว็บ�
   await expect(footer.getByText('เลขที่ 66 ซอยแสมดำ 13 แขวงแสมดำ เขตบางขุนเทียน กรุงเทพมหานคร 10150', { exact: true })).toBeVisible();
   // Every link goes somewhere that exists: a part of this page, sign-in, the design's pages, LINE, the phone or the e-mail.
   for (const href of await page.locator('body a[href]').evaluateAll(as => as.map(a => a.getAttribute('href') ?? ''))) {
-    expect(href).toMatch(/^(#[a-z]+|\/(login|testdrive|articles|privacy)|https:\/\/lin\.ee\/tV7nV8x|tel:\+66821087000|mailto:sales@drivegox\.com)$/);
+    expect(href).toMatch(/^(#[a-z]+|\/(login|testdrive|articles|privacy)|https:\/\/lin\.ee\/VtmOwnO|tel:\+66821087000|mailto:sales@drivegox\.com)$/);
     if (href.startsWith('#')) await expect(page.locator(href)).toHaveCount(1);
   }
   // On a phone (owner 2026-11-18): the section links, sign-in and the demo button are behind the menu button, a link
@@ -95,7 +95,7 @@ test('S297 ระบบใหม่: หน้าแรกของเว็บ�
   expect(csp).toEqual([]);
   await expect(page.locator('#help').getByRole('link', { name: 'เปิด Test Drive คู่มือภาพออนไลน์ทุกหน้าจอ' })).toHaveAttribute('href', '/testdrive');
   for (const href of await page.locator('body a[href]').evaluateAll(as => as.map(a => a.getAttribute('href') ?? '')))
-    expect(href).toMatch(/^(\/|\/#[a-z]+|\/(login|testdrive|articles|privacy)|https:\/\/lin\.ee\/tV7nV8x|tel:\+66821087000|mailto:sales@drivegox\.com|\/site\/manual\/drivego-(bazix|prox|franchise)-manual\.pdf)$/);
+    expect(href).toMatch(/^(\/|\/#[a-z]+|\/(login|testdrive|articles|privacy)|https:\/\/lin\.ee\/VtmOwnO|tel:\+66821087000|mailto:sales@drivegox\.com|\/site\/manual\/drivego-(bazix|prox|franchise)-manual\.pdf)$/);
   // The user manuals of the three packages (owner 2026-11-19): each link downloads its PDF.
   const manuals = page.locator('#man').getByRole('link');
   await expect(manuals).toHaveText(['คู่มือ DriveGo BaziXPDF', 'คู่มือ DriveGo ProXPDF', 'คู่มือ DriveGo-FranchisePDF']);
