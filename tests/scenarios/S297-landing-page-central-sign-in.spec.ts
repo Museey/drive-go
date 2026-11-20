@@ -9,7 +9,7 @@ import { test, expect } from '../support/test';
 // Owner 2026-11-17 (sales): the page has one card per package (BaziX, ProX, Franchise) and the form opens in the card
 // picked; right sign-in on another package's card is refused with the card to use (S459: ProX and Franchise shops).
 // The landing page is the team's design (same day): Thai and English, what the system does not do yet tagged "เร็ว ๆ นี้",
-// a demo request summed up for the visitor to send on LINE (nothing stored).
+// a demo request summed up for the visitor to send on LINE (nothing stored); since 2026-11-20 a sign-up for a trial (S471).
 const signIn = async (page: Page, code: string, user: string, pass: string) => {
   await page.getByLabel('รหัสร้าน').fill(code);
   await page.getByLabel('ชื่อผู้ใช้ / อีเมล / เบอร์โทร').fill(user);
@@ -78,25 +78,8 @@ test('S297 ระบบใหม่: หน้าแรกของเว็บ�
   await expect(table.getByRole('columnheader')).toHaveText(['ความสามารถ', 'BaziX', 'ProX']);
   expect(await page.locator('#cmp').evaluate(box => box.scrollWidth - box.clientWidth)).toBe(0);
   await page.setViewportSize(desk);
-  // A demo request: missing details are asked for; then a summary to copy, to send by e-mail (written into the mail app)
-  // or on LINE Official (owner 2026-11-18).
-  await page.getByRole('button', { name: 'ขอนัด Demo' }).click();
-  await expect(page.locator('#fErr')).toHaveText('กรอกชื่อ ชื่ออู่ และเบอร์โทรให้ครบก่อนส่ง');
-  await page.getByLabel('ชื่อผู้ติดต่อ').fill('สมชาย ใจดี');
-  await page.getByLabel('เบอร์โทร').fill('081-234-5678');
-  await page.getByLabel('ชื่ออู่หรือศูนย์บริการ').fill('สมชายการช่าง');
-  await page.getByRole('button', { name: 'ขอนัด Demo' }).click();
-  await expect(page.getByText('สรุปคำขอพร้อมแล้ว')).toBeVisible();
-  await expect(page.locator('#sum')).toHaveText(['ขอนัด Demo DriveGo', 'ชื่อผู้ติดต่อ: สมชาย ใจดี', 'ชื่ออู่หรือศูนย์บริการ: สมชายการช่าง',
-    'เบอร์โทร: 081-234-5678', 'จำนวนสาขา: 1 สาขา', 'โมดูลที่สนใจ: ทั้งระบบ'].join('\n'));
-  await expect(page.getByText('คัดลอกข้อความนี้ส่งมาที่ sales@drivegox.com หรือโทร 082-108-7000 เพื่อนัดเวลา')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'คัดลอกข้อความ', exact: true })).toBeVisible();
-  const mail = await page.getByRole('link', { name: 'ส่งทางอีเมล' }).getAttribute('href');
-  expect(mail).toMatch(/^mailto:sales@drivegox\.com\?subject=/);
-  const q = new URL(mail!).searchParams;
-  expect([q.get('subject'), q.get('body')]).toEqual(['ขอนัด Demo DriveGo', ['ขอนัด Demo DriveGo', 'ชื่อผู้ติดต่อ: สมชาย ใจดี',
-    'ชื่ออู่หรือศูนย์บริการ: สมชายการช่าง', 'เบอร์โทร: 081-234-5678', 'จำนวนสาขา: 1 สาขา', 'โมดูลที่สนใจ: ทั้งระบบ'].join('\n')]);
-  await expect(page.getByRole('link', { name: 'คัดลอกแล้วส่งทาง LINE' })).toHaveAttribute('href', 'https://lin.ee/tV7nV8x');
+  // The demo request became a sign-up for a trial (owner 2026-11-20; the whole flow: S471).
+  await expect(page.locator('#contact').getByRole('heading', { name: 'ลงทะเบียนเพื่อทดลองใช้ DriveGo X' })).toBeVisible();
   await page.getByRole('link', { name: 'เข้าระบบ', exact: true }).first().click();
   await expect(page).toHaveURL(`${origin}/login`);
   // The sign-in page follows the team's design (owner 2026-11-19): its heading, cards and the garage drawing behind them.

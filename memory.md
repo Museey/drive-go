@@ -72,6 +72,10 @@
 
 ## สิ่งที่รอเจ้าของโปรเจกต์
 
+- **ลงทะเบียนทดลองใช้จากหน้าเว็บ (2026-11-20, session หน้าเว็บ)**: ทำแล้ว (signups 0009, lib/signup.ts mail.ts, api/signup, api/ops/signups,
+  staff.js "คำขอลงทะเบียน", ฟอร์มใน index.html + landing-from-design.py, S471, tests/db/signup.test.mjs) · ข้อความอนุมัติแล้ว 2026-11-20 · รอเจ้าของ:
+  ตั้ง Resend + RESEND_API_KEY (DIGITALOCEAN-SETUP ส่วนที่ 6)
+
 - **หน้าเข้าระบบตามแบบของทีม (2026-11-19, session หน้าเว็บ)**: /login ใช้หน้าของแบบแล้ว (login.html login.js + login.css จาก
   tools/subpages-from-design.py + login-form.css), หน้าแรก/หน้าย่อยเทียบแล้วตรงแบบ · เจ้าของตอบ: EN อนุมัติ, ปิด Cloudflare
   Email Obfuscation เอง, **คู่มือ 3 เล่มอนุมัติและขึ้นหน้าเข้าระบบแล้ว 2026-11-19** (server/site/manual/*.pdf, app/site/manual/[file], S297) ·

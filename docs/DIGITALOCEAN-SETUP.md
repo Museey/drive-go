@@ -133,6 +133,29 @@ server ทดสอบนี้ใช้ข้อมูลทดลองเท�
 - ชื่อหลัก `drivegox.com` ยังเป็นหน้าของ GoDaddy ถ้าอยากให้พาไปที่ระบบ ตั้ง **Forwarding** ของโดเมนที่ GoDaddy ไป `https://app.drivegox.com` (ไม่บังคับ)
 - ถ้าใบรับรองไม่ออก: ถ้าโดเมนมีรายการ CAA ต้องมีทั้ง `letsencrypt.org` และ `pki.goog`
 
+## ส่วนที่ 6: ส่งอีเมลชื่อผู้ใช้และรหัสผ่านให้ร้านที่ลงทะเบียน (ราว 30 นาที + รอ DNS)
+
+ฟอร์ม "ลงทะเบียนเพื่อทดลองใช้ DriveGo X" ที่หน้าแรก (เจ้าของโปรเจกต์ 2026-11-20): ทีมงานกดอนุมัติที่ `/ops` → "คำขอลงทะเบียน" แล้วระบบส่งอีเมล
+ชื่อผู้ใช้และรหัสผ่านชั่วคราวให้เจ้าของร้าน ผ่านบริการ **Resend** (resend.com ส่งผ่าน HTTPS เพราะ DigitalOcean ปิดการส่งอีเมลแบบ SMTP;
+แพ็กเกจฟรีส่งได้ 3,000 ฉบับ/เดือน 100 ฉบับ/วัน) **ก่อนตั้งค่า** ปุ่มอนุมัติยังใช้ได้ หน้า `/ops` แสดงรหัสผ่านให้ทีมงานโทรแจ้งแทน
+
+1. **สมัคร Resend**: https://resend.com → Sign up (ใช้อีเมลของบริษัท) → เปิด 2FA ที่ Settings
+2. **เพิ่มโดเมน**: **Domains** → **Add Domain** → `drivegox.com` · Region: **Tokyo (ap-northeast-1)** (ใกล้ที่สุด) → Add
+   Resend แสดงรายการ DNS 3–4 รายการ (MX และ TXT ของ `send`, TXT ของ `resend._domainkey`)
+3. **ใส่ DNS** ที่ที่ดูแล DNS ของ `drivegox.com` (ถ้าย้ายไป Cloudflare แล้ว: Cloudflare → DNS → Records → Add record ตามที่ Resend บอกทุกช่อง
+   ตั้งเป็น **DNS only** (เมฆสีเทา) / ถ้ายังอยู่ GoDaddy: DNS → Add New Record) แล้วกลับไปกด **Verify DNS Records** ที่ Resend รอจนขึ้น Verified
+   (ไม่กี่นาทีถึงหลายชั่วโมง) รายการเหล่านี้ไม่กระทบเว็บ `app.drivegox.com` และไม่กระทบอีเมลรับเข้า
+4. **สร้าง API key**: **API Keys** → **Create API Key** → Name `drivego-app` · Permission **Sending access** · Domain `drivegox.com` → Add
+   → คัดลอก key (ขึ้นต้น `re_` แสดงครั้งเดียว **ห้ามส่งในแชต**)
+5. **ใส่ให้แอป**: แอป **drivego-test** → **Settings** → ส่วนประกอบ **web** → **Environment Variables** → Edit → Add
+   Key: **`RESEND_API_KEY`** · Value: key ที่คัดลอก · ติ๊ก **Encrypt** → Save (แอป deploy ใหม่เอง)
+6. **ลอง**: กรอกฟอร์มลงทะเบียนที่หน้าแรกด้วยอีเมลของคุณเอง → `/ops` → คำขอลงทะเบียน → ตั้งรหัสร้าน → อนุมัติและเปิดร้าน
+   → หน้าควรขึ้นว่า "ส่งชื่อผู้ใช้และรหัสผ่านชั่วคราวไปที่ … แล้ว" และอีเมลมาถึงจาก `noreply@drivegox.com` (ดูในจดหมายขยะด้วย)
+   ถ้าส่งไม่ได้ หน้าแสดงสาเหตุและรหัสผ่านให้โทรแจ้ง
+
+**ข้อควรรู้**: ผู้ส่งเปลี่ยนได้ด้วย Environment Variable `MAIL_FROM` (ค่าตั้งต้น `DriveGo X <noreply@drivegox.com>` ต้องเป็นโดเมนที่ Verified ที่ Resend)
+ถ้าวางไฟล์ `.do/app.yaml` ทับ App Spec ต้องใส่ `RESEND_API_KEY` ใหม่ (เหมือน `STAFF_DATABASE_URL`)
+
 ## เสร็จส่วนที่ 1–2 แล้วบอก Claude
 
 ส่งข้อความประมาณนี้ (ไม่มีรหัสใด ๆ):

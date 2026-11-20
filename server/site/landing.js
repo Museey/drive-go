@@ -1,8 +1,8 @@
 // DriveGo's landing page (/, server/site/index.html): the team's design of 2026-11-17, updated 2026-11-18 (dark, amber;
 // built by tools/landing-from-design.py), the owner's choices of 2026-11-17: Thai and English (no Chinese), what the
 // system does not do yet tagged "เร็ว ๆ นี้" (a text ending in §); of 2026-11-18: the design's own pages (Test Drive,
-// articles, privacy policy at /testdrive, /articles, /privacy), and the demo request summed up for the visitor to copy,
-// send by e-mail or on LINE (nothing is stored).
+// articles, privacy policy at /testdrive, /articles, /privacy); of 2026-11-20: the demo request became a sign-up for a
+// trial, sent to the server (/api/signup) for staff to approve (server/lib/signup.ts).
 // The page's Content-Security-Policy allows no inline styles: the mock screens' sizes go in data-css and are set
 // through CSSOM (applyCss). Everything here is the page's own text; nothing typed by a visitor is put in as HTML.
 (() => {
@@ -10,11 +10,11 @@
 const I={
 th:{
  soon:'เร็ว ๆ นี้',
- nav:{eco:'ระบบนิเวศ',plans:'แพ็กเกจ',art:'บทความน่ารู้',login:'เข้าระบบ',show:'หน้าจอจริง',cloud:'Cloud และอุปกรณ์',contact:'ติดต่อ',cta:'ทดลองใช้งานฟรี'},
+ nav:{eco:'ระบบนิเวศ',plans:'แพ็กเกจ',art:'บทความน่ารู้',login:'เข้าระบบ',show:'หน้าจอจริง',cloud:'Cloud และอุปกรณ์',contact:'ติดต่อ',cta:'ทดลองใช้งานฟรี',sm:'ทดลองใช้'},
  hero:{eyebrow:'ระบบบริหารอู่และศูนย์บริการรถยนต์บน Cloud',h:'ข้อมูลเพื่อการจัดการที่ดี <em>นำสู่ความสำเร็จ</em>',
   p:{l1:'ระบบบริหารอู่ซ่อมรถยนต์และศูนย์บริการ แบบครบวงจรบน Cloud',l2:'สำหรับผู้บริหารที่ต้องการ<em>ข้อมูลเพื่อการบริหารและตัดสินใจ</em>',k:['ตัวเลขการเงิน','สต๊อก','ควบคุมได้ทุกขั้นตอน']},
   pil:[['ครอบคลุมทุกการจัดการ','หน้าลาน สต๊อก บัญชี และลูกค้า ครบใน 8 โมดูล'],['บริหารได้ละเอียด','กำไรขาดทุนรายคัน รายวัน และรายสาขา§'],['ปลอดภัยด้วยระบบอนุมัติสิทธิ์','กำหนดสิทธิ์ตามตำแหน่ง อนุมัติก่อนทุกรายการสำคัญ'],['สร้างระบบนิเวศน์ที่ดี','เชื่อมลูกค้า ซัพพลายเออร์ ประกันภัย และสาขา§']],
-  cta1:'นัดดู Demo ระบบ',cta2:'ดู 8 โมดูล',f1:'โมดูลในระบบเดียว',f3:'อุปกรณ์ PC Tablet Mobile',
+  cta1:'ลงทะเบียนทดลองใช้',cta2:'ดู 8 โมดูล',f1:'โมดูลในระบบเดียว',f3:'อุปกรณ์ PC Tablet Mobile',
   fl1a:'ออก Coin ให้ลูกค้าแล้ว§',fl1b:'+12 Coin จากใบเสร็จ RC-6908-001',fl2a:'ถึงจุดสั่งซื้อ',fl2b:'กรองแอร์ (EV) เหลือ 8 ชิ้น เปิด PO-001 ให้แล้ว§',note:'ตัวเลขและชื่อในหน้าจอเป็นข้อมูลตัวอย่าง'},
  eco:{eyebrow:'All-in-One Ecosystem',h:'8 โมดูล เชื่อมกันเป็นระบบเดียว',p:'เลือกโมดูลเพื่อดูหน้าจอการทำงาน ข้อมูลไหลต่อกันตั้งแต่ใบเสนอราคาจนถึงงบการเงิน'},
  mods:[
@@ -33,8 +33,8 @@ th:{
   {t:'ฝ่ายบัญชี',d:'บิลและภาษี',hs:[{t:'ทะเบียนใบเสร็จ',d:'ค้นด้วยเลขเอกสาร ทะเบียนรถ หรือรายการ และกดรับชำระได้จากแถวเดียวกัน'},{t:'สถานะและอายุหนี้',d:'ป้ายสีแยกชำระแล้วกับรอชำระ พร้อมจำนวนวันที่ค้าง'},{t:'สรุปภาษีประจำงวด',d:'ระบบประมาณการภาษีขายจากใบเสร็จที่รับชำระแล้ว พร้อมกำหนดยื่น ภ.พ.30'}]}],
  dev:{eyebrow:'Multi-Device & Cloud',h:'หน้าร้าน หน้าลาน และผู้บริหาร เห็นข้อมูลชุดเดียวกัน',p:'ทำงานผ่านเบราว์เซอร์ ไม่ต้องติดตั้งโปรแกรม ข้อมูลอัปเดตถึงกันทุกเครื่อง',d1:'Desktop ที่เคาน์เตอร์',d2:'Tablet หน้าลาน',d3:'Smartphone ของผู้บริหาร'},
  rel:[{t:'เข้ารหัสการเชื่อมต่อ',d:'ข้อมูลรับส่งผ่าน HTTPS ตลอดเส้นทาง แนวทางเดียวกับบริการธนาคารออนไลน์'},{t:'สิทธิ์ตามตำแหน่ง',d:'กำหนดได้ว่าใครเห็นราคา ใครอนุมัติ ใครแก้เอกสาร พร้อมรายงานตรวจสอบการใช้งาน'},{t:'ข้อมูลอยู่บน Cloud',d:'ข้อมูลไม่ผูกกับเครื่องใดเครื่องหนึ่ง เครื่องเสียหรือหายก็ทำงานต่อจากเครื่องอื่นได้'},{t:'อัปเดตถึงกันทุกเครื่อง',d:'ช่างปิดงานที่หน้าลาน เคาน์เตอร์เห็นบิล และผู้บริหารเห็นยอดต่อเนื่องกัน'}],
- cta:{eyebrow:'เริ่มต้นใช้งาน',h:'นัดดู Demo กับทีม DriveGo',p:'บอกขนาดอู่และงานที่อยากแก้ ทีมงานจะเตรียมตัวอย่างที่ตรงกับอู่ของคุณ',l1:'ดูระบบทำงานจริงตั้งแต่รับรถจนถึงออกใบกำกับภาษี',l2:'ถามตอบเรื่องโมดูลที่เหมาะกับอู่ของคุณ',l3:'โทร 082-108-7000 หรืออีเมล sales@drivegox.com'},
- form:{name:'ชื่อผู้ติดต่อ',shop:'ชื่ออู่หรือศูนย์บริการ',tel:'เบอร์โทร',br:'จำนวนสาขา',brs:['1 สาขา','2 ถึง 5 สาขา','6 สาขาขึ้นไป'],mod:'โมดูลที่สนใจ',all:'ทั้งระบบ',msg:'สิ่งที่อยากให้ระบบช่วย (ไม่บังคับ)',send:'ขอนัด Demo',err:'กรอกชื่อ ชื่ออู่ และเบอร์โทรให้ครบก่อนส่ง',okh:'สรุปคำขอพร้อมแล้ว',okp:'คัดลอกข้อความนี้ส่งมาที่ sales@drivegox.com หรือโทร 082-108-7000 เพื่อนัดเวลา',copy:'คัดลอกข้อความ',mail:'ส่งทางอีเมล',line:'คัดลอกแล้วส่งทาง LINE',copied:'คัดลอกแล้ว',edit:'แก้ไขข้อมูล',sumh:'ขอนัด Demo DriveGo'},
+ cta:{eyebrow:'เริ่มต้นใช้งาน',h:'ลงทะเบียนเพื่อทดลองใช้ DriveGo X',p:'กรอกข้อมูลอู่ของคุณ ทีมงานจะตรวจแล้วเปิดร้านทดลองใช้ฟรี 60 วัน และส่งชื่อผู้ใช้กับรหัสผ่านไปทางอีเมล',l1:'ใช้ระบบจริงตั้งแต่รับรถจนถึงออกใบกำกับภาษี',l2:'ถามตอบเรื่องโมดูลที่เหมาะกับอู่ของคุณ',l3:'โทร 082-108-7000 หรืออีเมล sales@drivegox.com'},
+ form:{shop:'ชื่ออู่หรือศูนย์บริการ',owner:'ชื่อ-นามสกุลเจ้าของ',tel:'เบอร์โทร',email:'อีเมล (สำหรับรับชื่อผู้ใช้และรหัสผ่าน)',pkg:'แพ็กเกจ',pkgs:[['biz','DriveGo BaziX'],['prox','DriveGo ProX'],['franchise','DriveGo-Franchise (หลายสาขา)']],tax:'เลขประจำตัวผู้เสียภาษี (ไม่บังคับ)',zip:'รหัสไปรษณีย์ (ไม่บังคับ)',addr:'ที่อยู่ (ไม่บังคับ)',msg:'สิ่งที่อยากให้ระบบช่วย (ไม่บังคับ)',consent:'ยินยอมให้บริษัท ไดร์ฟบิซ เมคคาไลซ์ โซลูชั่น จำกัด เก็บและใช้ข้อมูลนี้เพื่อเปิดร้านทดลองใช้และติดต่อกลับ ตามนโยบายความเป็นส่วนตัว',send:'ลงทะเบียน',err:'กรอกชื่ออู่ ชื่อเจ้าของ เบอร์โทร และอีเมลให้ครบ แล้วติ๊กยินยอมก่อนส่ง',many:'ส่งหลายครั้งเกินไป กรุณารอสักครู่แล้วลองใหม่',fail:'ส่งไม่สำเร็จ กรุณาลองใหม่ หรือติดต่อทีมงานทาง LINE',okh:'ได้รับคำขอลงทะเบียนแล้ว',okp:'ทีมงานจะตรวจข้อมูลแล้วส่งชื่อผู้ใช้และรหัสผ่านไปที่อีเมลของคุณ มีคำถามติดต่อทีมงานทาง LINE Official'},
  why:{eyebrow:'ปัญหาที่อู่เจอ',h:'ศูนย์บริการของคุณเจอปัญหาเหล่านี้หรือไม่',fixl:'DriveGo ช่วยได้',q:['ปลวกกิน น้ำรั่ว แฟ้มหาย เอกสารกระดาษเสียหายได้ทุกวัน','ซื้อมา 100 ขาย 200 ลดให้ลูกค้า 20 เหลือกำไร 80 จริงหรือเปล่า','นับสต๊อกแต่ละครั้ง ไม่รู้จะเริ่มตรงไหน และจะเสร็จเมื่อไร','ลูกค้าไม่กลับมา แปลว่าเราซ่อมจบ หรือเขาไปอู่อื่นแล้ว'],foot:'ปัญหาเหล่านี้ไม่ได้เกิดจากช่างไม่เก่ง แต่เกิดจากอู่ยังไม่มีระบบกลางที่เก็บข้อมูลไว้ที่เดียว',
   pain:[['เอกสารยังอยู่บนกระดาษ','ใบสั่งซ่อม ใบเสนอราคา และใบเสร็จเขียนด้วยมือ ค้นย้อนหลังไม่ได้ และตกหล่นบ่อย'],['ไม่รู้ต้นทุนจริงของงาน','ค่าแรง ค่าอะไหล่ และส่วนลดปนกันอยู่ สิ้นเดือนจึงไม่รู้ว่างานไหนได้กำไรจริง'],['สต๊อกอะไหล่คุมไม่อยู่','ของที่มีลูกค้าไม่มาซ่อม ของที่ต้องใช้กลับไม่มี เกิดของค้างสต๊อกจมทุน'],['ลูกค้าไม่กลับมาใช้ซ้ำ','ไม่มีประวัติรถรายคัน ไม่มีการแจ้งเตือนรอบเซอร์วิส ลูกค้าจึงหายไปอย่างเงียบ ๆ']],
   bt:'ก่อนใช้ DriveGo',bh:'ทำงานด้วยความจำและกระดาษ',b:['ค้นใบสั่งซ่อมเก่าต้องรื้อแฟ้มทีละเล่ม','รู้กำไรตอนสิ้นเดือน และมักไม่ตรงกับที่คิดไว้','สั่งอะไหล่ตามความรู้สึก ของขาดสลับกับของค้าง','ลูกค้าจะกลับมาหรือไม่ ขึ้นอยู่กับว่าลูกค้าจำเราได้ไหม'],
@@ -47,7 +47,7 @@ th:{
  start:{h:'เริ่มใช้งานใน 4 ขั้น',note:'ไม่ต้องหยุดรับงานเพื่อเปลี่ยนระบบ อู่ยังทำงานตามปกติระหว่างติดตั้งและอบรม',why:'ทำไมต้องเป็น DriveGo',
   s:[['สำรวจหน้างาน','ทีมงานเข้าดูขั้นตอนการทำงานจริงของอู่ เพื่อตั้งค่าให้ตรงกับวิธีทำงานเดิม'],['ตั้งค่าระบบ','นำเข้าข้อมูลลูกค้า รายการอะไหล่ และราคาค่าแรง พร้อมตั้งรูปแบบเอกสารของอู่'],['อบรมทีมงาน','สอนช่างและพนักงานหน้าร้านใช้งานจริงทีละขั้น จนเปิดงานและปิดบิลได้เอง'],['ใช้งานจริงและดูแลต่อเนื่อง','ติดตามผลช่วงแรก ปรับระบบให้เข้ากับอู่ และมีทีมไทยช่วยเหลือหลังการขาย']],
   w:[['ออกแบบจากหน้างานอู่ไทย','ทีมงานมาจากสายอะไหล่และงานบริการรถยนต์จริง เข้าใจข้อจำกัดของอู่'],['เริ่มเล็กแล้วค่อยโตได้','เลือกรุ่นตามขนาดอู่วันนี้ และอัปเกรดได้เมื่อพร้อม'],['ใช้งานง่าย ช่างก็ใช้ได้','หน้าจอภาษาไทย ปุ่มน้อย ขั้นตอนสั้น ลดเวลาอบรม'],['มีทีมไทยดูแลต่อเนื่อง','ติดตั้ง อบรม และช่วยเหลือหลังการขายโดยทีมงานคนไทย']]},
- priv:{eyebrow:'ความเป็นส่วนตัวของข้อมูล',h:'นโยบายความเป็นส่วนตัว',p1:'บริษัทให้ความสำคัญกับการคุ้มครองข้อมูลส่วนบุคคล โดยเก็บรวบรวม ใช้ และเปิดเผยข้อมูลเท่าที่จำเป็นตามวัตถุประสงค์ที่แจ้งไว้ ภายใต้พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562',p2:'เจ้าของข้อมูลมีสิทธิขอเข้าถึง แก้ไข ลบ หรือถอนความยินยอมได้ตามที่กฎหมายกำหนด ติดต่อ <a href="mailto:sales@drivegox.com">sales@drivegox.com</a>',r:['ขอเข้าถึงข้อมูล','ขอแก้ไข','ขอลบ','ถอนความยินยอม'],link:'อ่านนโยบายฉบับเต็ม',form:'ข้อมูลที่กรอกใช้เพื่อติดต่อกลับเรื่องการนัด Demo เท่านั้น ดูรายละเอียดที่'},
+ priv:{eyebrow:'ความเป็นส่วนตัวของข้อมูล',h:'นโยบายความเป็นส่วนตัว',p1:'บริษัทให้ความสำคัญกับการคุ้มครองข้อมูลส่วนบุคคล โดยเก็บรวบรวม ใช้ และเปิดเผยข้อมูลเท่าที่จำเป็นตามวัตถุประสงค์ที่แจ้งไว้ ภายใต้พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562',p2:'เจ้าของข้อมูลมีสิทธิขอเข้าถึง แก้ไข ลบ หรือถอนความยินยอมได้ตามที่กฎหมายกำหนด ติดต่อ <a href="mailto:sales@drivegox.com">sales@drivegox.com</a>',r:['ขอเข้าถึงข้อมูล','ขอแก้ไข','ขอลบ','ถอนความยินยอม'],link:'อ่านนโยบายฉบับเต็ม',form:'ข้อมูลที่กรอกใช้เพื่อเปิดร้านทดลองใช้และติดต่อกลับเท่านั้น ดูรายละเอียดที่'},
  foot:{tag:'ระบบนิเวศบริการรถยนต์ครบวงจร สำหรับอู่ซ่อมรถและศูนย์บริการ',prod:'ผลิตภัณฑ์',menu:'เมนู',support:'ฝ่ายสนับสนุน',rights:'สงวนลิขสิทธิ์',co:'บริษัท ไดร์ฟบิซ เมคคาไลซ์ โซลูชั่น จำกัด',addr:'เลขที่ 66 ซอยแสมดำ 13 แขวงแสมดำ เขตบางขุนเทียน กรุงเทพมหานคร 10150'},
  m:{shop:'DrivegoGarage',nav:['แดชบอร์ด','งานซ่อม','ใบเสนอราคา','บิล ใบเสร็จ','สต๊อก','บัญชี','ภาษี','พนักงาน'],
   dash:'แดชบอร์ดธุรกิจ',per:'ก.ค. 69',inc:'รายได้',exp:'รายจ่าย',net:'กำไรสุทธิ',ar:'ลูกหนี้ค้างชำระ',chart:'รายได้เทียบรายจ่าย',mo:['ก.ย.','ต.ค.','พ.ย.','ธ.ค.','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.'],
@@ -66,11 +66,11 @@ th:{
   today:'วันนี้',sum:'สรุปวันนี้',jobs:'งานในอู่'}},
 en:{
  soon:'Coming soon',
- nav:{eco:'Ecosystem',plans:'Packages',art:'Articles',login:'Log in',show:'Screens',cloud:'Cloud & devices',contact:'Contact',cta:'Request a demo'},
+ nav:{eco:'Ecosystem',plans:'Packages',art:'Articles',login:'Log in',show:'Screens',cloud:'Cloud & devices',contact:'Contact',cta:'Free trial',sm:'Trial'},
  hero:{eyebrow:'Cloud garage & service-centre management',h:'Accurate information <em>leads to successful management</em>',
   p:{l1:'The complete cloud system for car repair garages and service centres',l2:'For managers who need <em>data to run the business and make decisions</em>',k:['Financial figures','Stock','Control at every step']},
   pil:[['Covers every part of the business','Workshop, stock, accounts and customers in 8 modules'],['Manage in fine detail','Profit and loss per car, per day and per branch§'],['Secured by permission-based approvals','Rights set by position, sign-off before anything important'],['Builds a healthy ecosystem','Links customers, suppliers, insurers and branches§']],
-  cta1:'Book a demo',cta2:'See the 8 modules',f1:'modules in one system',f3:'devices: PC, tablet, mobile',
+  cta1:'Register for a trial',cta2:'See the 8 modules',f1:'modules in one system',f3:'devices: PC, tablet, mobile',
   fl1a:'Coins issued to customer§',fl1b:'+12 Coins from receipt RC-6908-001',fl2a:'Reorder point reached',fl2b:'Cabin filter (EV) down to 8. PO-001 raised.§',note:'Figures and names on screen are sample data'},
  eco:{eyebrow:'All-in-One Ecosystem',h:'Eight modules working as one system',p:'Pick a module to see its screen. Data flows on from the quotation all the way to the financial statements.'},
  mods:[
@@ -89,8 +89,8 @@ en:{
   {t:'Accounting',d:'Bills and tax',hs:[{t:'Receipt register',d:'Search by document number, plate or item, and record payment from the same row.'},{t:'Status and age',d:'Colour tags separate paid from pending, with the number of days overdue.'},{t:'Tax summary for the period',d:'Output VAT is estimated from paid receipts, with the PP30 filing date.'}]}],
  dev:{eyebrow:'Multi-Device & Cloud',h:'Front desk, workshop floor and management see the same data',p:'It runs in the browser with nothing to install, and every device stays up to date.',d1:'Desktop at the counter',d2:'Tablet on the floor',d3:'Smartphone for management'},
  rel:[{t:'Encrypted connection',d:'Data travels over HTTPS end to end, the same approach online banking uses.'},{t:'Permissions by position',d:'Decide who sees prices, who approves and who edits documents, with a usage audit report.'},{t:'Your data lives in the cloud',d:'Nothing is tied to one machine. If a computer fails or goes missing, carry on from another.'},{t:'Every device in step',d:'A technician closes a job, the counter sees the bill, and management sees the total.'}],
- cta:{eyebrow:'Get started',h:'Book a demo with the DriveGo team',p:'Tell us the size of your garage and what you want to fix. We will prepare an example that fits your shop.',l1:'See the full flow from check-in to tax invoice',l2:'Ask which modules suit your garage',l3:'Call 082-108-7000 or e-mail sales@drivegox.com'},
- form:{name:'Contact name',shop:'Garage or service centre',tel:'Phone',br:'Branches',brs:['1 branch','2 to 5 branches','6 or more'],mod:'Module of interest',all:'The whole system',msg:'What should the system help with? (optional)',send:'Request a demo',err:'Enter your name, garage name and phone number first',okh:'Your request summary is ready',okp:'Copy this message and send it to sales@drivegox.com, or call 082-108-7000 to arrange a time.',copy:'Copy message',mail:'Send by e-mail',line:'Copy and send on LINE',copied:'Copied',edit:'Edit details',sumh:'DriveGo demo request'},
+ cta:{eyebrow:'Get started',h:'Register to try DriveGo X',p:'Tell us about your garage. The team checks it, opens a free 60-day trial shop and sends your user name and password by e-mail.',l1:'Use the real system from check-in to tax invoice',l2:'Ask which modules suit your garage',l3:'Call 082-108-7000 or e-mail sales@drivegox.com'},
+ form:{shop:'Garage or service centre',owner:'Owner’s full name',tel:'Phone',email:'E-mail (for your user name and password)',pkg:'Package',pkgs:[['biz','DriveGo BaziX'],['prox','DriveGo ProX'],['franchise','DriveGo-Franchise (several branches)']],tax:'Tax ID (optional)',zip:'Postcode (optional)',addr:'Address (optional)',msg:'What should the system help with? (optional)',consent:'I agree that Drivebiz Mecalyze Solution Co., Ltd. keeps and uses these details to open my trial shop and contact me, under the privacy policy',send:'Register',err:'Fill in the garage, owner, phone and e-mail, and tick the consent first',many:'Too many tries. Please wait a moment and try again',fail:'Could not send. Please try again, or contact the team on LINE',okh:'We have your registration',okp:'The team will check it and send your user name and password to your e-mail. Questions: contact the team on LINE Official.'},
  why:{eyebrow:'The problem',h:'Does your service centre face these problems?',fixl:'With DriveGo',q:['Termites, leaks, lost folders: paper can be ruined any day.','Bought at 100, sold at 200, gave 20 off. Is the profit really 80?','Every stock count: where to start, and when will it end?','No return visit: was the repair that good, or did they go elsewhere?'],foot:'None of this happens because the technicians lack skill. It happens because the garage has no central system that keeps its data in one place.',
   pain:[['Paperwork is still on paper','Job orders, quotations and receipts are handwritten, hard to look up later, and often incomplete.'],['The real cost of a job is unknown','Labour, parts and discounts are mixed together, so at month end nobody knows which jobs made money.'],['Parts stock is out of control','What is on the shelf is not what customers need, and capital sits in slow stock.'],['Customers do not come back','No per-car history and no service reminders, so customers quietly drift away.']],
   bt:'Before DriveGo',bh:'Running on memory and paper',b:['Finding an old job order means digging through files','Profit is known at month end, and rarely matches expectations','Parts are ordered by feel, swinging between shortage and surplus','Whether a customer returns depends on whether they remember you'],
@@ -103,7 +103,7 @@ en:{
  start:{h:'Up and running in 4 steps',note:'No need to stop taking jobs. The garage keeps working as usual during setup and training.',why:'Why DriveGo',
   s:[['Site survey','Our team studies how your garage really works, so the setup matches your existing process.'],['System setup','Import customers, parts lists and labour rates, and set up your document formats.'],['Team training','Technicians and front-desk staff practise step by step until they can open jobs and close bills alone.'],['Go live with ongoing care','We follow up in the early weeks, tune the system, and support you after the sale.']],
   w:[['Designed on the Thai workshop floor','The team comes from parts supply and car service, and knows a garage’s constraints.'],['Start small, grow later','Pick the edition that fits today and upgrade when you are ready.'],['Easy enough for every technician','Few buttons and short steps, so training is quick.'],['A Thai team that stays with you','Installation, training and after-sales support from a local team.']]},
- priv:{eyebrow:'Data privacy',h:'Privacy policy',p1:'The company takes the protection of personal data seriously. We collect, use and disclose data only as necessary for the purposes we have stated, under Thailand’s Personal Data Protection Act B.E. 2562 (2019).',p2:'Data subjects may request access, correction or deletion, or withdraw consent, as the law provides. Contact <a href="mailto:sales@drivegox.com">sales@drivegox.com</a>',r:['Access','Correction','Deletion','Withdraw consent'],link:'Read the full policy',form:'The details you enter are used only to contact you about a demo. See our'},
+ priv:{eyebrow:'Data privacy',h:'Privacy policy',p1:'The company takes the protection of personal data seriously. We collect, use and disclose data only as necessary for the purposes we have stated, under Thailand’s Personal Data Protection Act B.E. 2562 (2019).',p2:'Data subjects may request access, correction or deletion, or withdraw consent, as the law provides. Contact <a href="mailto:sales@drivegox.com">sales@drivegox.com</a>',r:['Access','Correction','Deletion','Withdraw consent'],link:'Read the full policy',form:'The details you enter are used only to open your trial shop and contact you. See our'},
  foot:{tag:'A complete automotive service ecosystem for garages and service centres',prod:'Products',menu:'Menu',support:'Support',rights:'All rights reserved.',co:'Drivebiz Mecalyze Solution Co., Ltd.',addr:'66 Soi Samae Dam 13, Samae Dam, Bang Khun Thian, Bangkok 10150, Thailand'},
  m:{shop:'DrivegoGarage',nav:['Dashboard','Repair jobs','Quotations','Bills & receipts','Stock','Accounting','Tax','Staff'],
   dash:'Business dashboard',per:'Jul 2026',inc:'Income',exp:'Expenses',net:'Net profit',ar:'Receivables',chart:'Income against expenses',mo:['Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May','Jun','Jul'],
@@ -235,17 +235,15 @@ function renderStatic(){
   $('#whyus').innerHTML=st.w.map((x,i)=>`<article><span class="ri">${ic(WI[i])}</span><div><h4>${x[0]}</h4><p>${x[1]}</p></div></article>`).join('');
   const RI=['lock','role','db','sync'];
   $('#rel').innerHTML=t('rel').map((r,i)=>`<article class="rv in glowc" data-css="--d:${i*.08}s"><span class="ri">${ic(RI[i])}</span><div><h4>${r.t}</h4><p>${r.d}</p></div></article>`).join('');
-  const f=t('form'), br=$('#fBr'), mo=$('#fMod'), bi=br.selectedIndex, mi=mo.selectedIndex;
-  br.innerHTML=f.brs.map(x=>`<option>${x}</option>`).join('');
-  mo.innerHTML=`<option>${f.all}</option>`+t('mods').map(x=>`<option>${x.t.replace(/§$/,'')}</option>`).join('');
-  if(bi>0)br.selectedIndex=bi; if(mi>0)mo.selectedIndex=mi;
+  const f=t('form'), pk=$('#fPkg'), pi=pk.selectedIndex;
+  pk.innerHTML=f.pkgs.map(([v,x])=>`<option value="${v}">${x}</option>`).join('');
+  if(pi>0)pk.selectedIndex=pi;
   $('#fErr').textContent='';
 }
 function setLang(l){
   lang=l; document.documentElement.lang=l;
   $$('.lang button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.lang===l));
   renderStatic(); renderEco(); renderShow(); renderDevices(); applyCss();
-  if($('#ctaB').classList.contains('sent'))buildSum();
   try{localStorage.setItem('dg-lang',l)}catch(e){}
 }
 
@@ -259,15 +257,15 @@ $('#showS').addEventListener('click',e=>{const b=e.target.closest('.hs');if(!b)r
 $('#hsL').addEventListener('click',e=>{const b=e.target.closest('.hs-i');if(!b)return;hot=+b.dataset.h;lit()});
 document.addEventListener('click',e=>{const b=e.target.closest('.ap .bt button.y');if(b)b.closest('.ap').classList.add('done')});
 
-/* form: composes a message the visitor copies, or sends by e-mail or on LINE (#mailB, #lineB): nothing is stored */
-function buildSum(){const f=t('form');const v=id=>$('#'+id).value.trim();
-  $('#sum').textContent=[f.sumh,`${f.name}: ${v('fName')}`,`${f.shop}: ${v('fShop')}`,`${f.tel}: ${v('fTel')}`,`${f.br}: ${$('#fBr').value}`,`${f.mod}: ${$('#fMod').value}`,v('fMsg')?`${f.msg.replace(/\s*[（(].*$/,'')}: ${v('fMsg')}`:''].filter(Boolean).join('\n');mailTo()}
-$('#demoForm').addEventListener('submit',e=>{e.preventDefault();
-  if(!$('#fName').value.trim()||!$('#fShop').value.trim()||$('#fTel').value.replace(/\D/g,'').length<9){$('#fErr').textContent=t('form.err');return}
-  buildSum();$('#ctaB').classList.add('sent')});
-$('#editB').addEventListener('click',()=>$('#ctaB').classList.remove('sent'));
-$('#copyB').addEventListener('click',async e=>{const b=e.currentTarget;try{await navigator.clipboard.writeText($('#sum').textContent);put(b,t('form.copied'))}catch(x){const r=document.createRange();r.selectNodeContents($('#sum'));const s=getSelection();s.removeAllRanges();s.addRange(r)}
-  setTimeout(()=>put(b,t('form.copy')),1800)});
+/* form: a sign-up for a trial (DriveGo's, owner 2026-11-20): sent to the server (/api/signup), where staff approve it on the
+   staff page and the sign-in details go to the e-mail given. #fTrap is a field people do not see (robots fill it in). */
+$('#demoForm').addEventListener('submit',async e=>{e.preventDefault();const v=id=>$('#'+id).value.trim(),err=$('#fErr'),btn=e.currentTarget.querySelector('button[type=submit]');
+  if(!v('fShop')||!v('fOwner')||v('fTel').replace(/\D/g,'').length<9||!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v('fEmail'))||!$('#fOk').checked){put(err,t('form.err'));return}
+  put(err,'');btn.disabled=true;
+  try{const r=await fetch('/api/signup',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({pkg:$('#fPkg').value,name:v('fShop'),owner:v('fOwner'),tel:v('fTel'),
+      email:v('fEmail'),taxId:v('fTax'),addr:v('fAddr'),zip:v('fZip'),note:v('fMsg'),consent:true,lang,trap:$('#fTrap').value})});
+    if(r.ok){$('#ctaB').classList.add('sent');return}
+    put(err,t(r.status===429?'form.many':'form.fail'))}catch(x){put(err,t('form.fail'))}finally{btn.disabled=false}});
 
 /* motion: sticky nav, scroll-linked tilt, pointer parallax, reveal, count-up */
 const calm=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -338,9 +336,4 @@ setLang(I[saved]?saved:'th'); frame();
   $('#menuP .lang').addEventListener('click',e=>{const x=e.target.closest('button');if(x)setLang(x.dataset.lang)});
 })();
 
-/* ============ demo request by e-mail or on LINE (DriveGo's addition, owner 2026-11-18) ============ */
-/* The e-mail button opens the visitor's own mail app with the summary written in; the LINE button copies the summary
-   and opens LINE Official. */
-function mailTo(){const s=$('#sum').textContent;$('#mailB').href='mailto:sales@drivegox.com?subject='+encodeURIComponent(s.split('\n')[0])+'&body='+encodeURIComponent(s)}
-$('#lineB').addEventListener('click',()=>{try{navigator.clipboard.writeText($('#sum').textContent).catch(()=>{})}catch(x){}});
 })();

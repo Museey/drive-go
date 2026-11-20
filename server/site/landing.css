@@ -439,3 +439,7 @@ span.coming.coming{display:inline-block;width:auto;margin:0 0 0 .35em;padding:0 
 /* Parts that slide in from the right (.rv.r) stuck out 20px before they were shown, so phones and tablets laid the
    page out wider than the screen. */
 main{overflow-x:clip}
+/* The sign-up form (owner 2026-11-20): the consent to tick, and a field people do not see (robots fill it in). */
+.fd.trap{position:absolute;left:-200vw;width:1px;height:1px;overflow:hidden}
+.fok{grid-column:1/-1;display:flex;gap:.6rem;align-items:flex-start;font-size:.85rem;line-height:1.6;color:var(--mut);cursor:pointer}
+.fok input{flex:none;width:1.1rem;height:1.1rem;margin-top:.2rem;accent-color:var(--amber)}

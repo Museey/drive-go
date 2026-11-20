@@ -46,7 +46,7 @@
         <button type="button" data-lang="th" aria-pressed="true">TH</button><button type="button" data-lang="en" aria-pressed="false">EN</button>
       </div>
       <a class="btn btn-g login" href="/login" data-i18n="nav.login"></a>
-      <a class="btn btn-a cta" href="#contact"><span class="lg" data-i18n="nav.cta"></span><span class="sm">Demo</span></a>
+      <a class="btn btn-a cta" href="#contact"><span class="lg" data-i18n="nav.cta"></span><span class="sm" data-i18n="nav.sm"></span></a>
       <button class="menu-b" type="button" id="menuB" aria-expanded="false" aria-controls="menuP" data-i18n-aria="foot.menu"><svg class="ic ic-m"><use href="#i-menu"/></svg><svg class="ic ic-x"><use href="#i-x"/></svg></button>
     </div>
   </div>
@@ -187,26 +187,28 @@
         </ul>
       </div>
       <div>
+        <!-- The sign-up for a trial (owner 2026-11-20): sent to /api/signup, approved by staff on the staff page -->
         <form id="demoForm" novalidate>
-          <div class="fd"><label for="fName" data-i18n="form.name"></label><input id="fName" autocomplete="name" required></div>
-          <div class="fd"><label for="fTel" data-i18n="form.tel"></label><input id="fTel" type="tel" inputmode="tel" autocomplete="tel" required></div>
-          <div class="fd w"><label for="fShop" data-i18n="form.shop"></label><input id="fShop" autocomplete="organization" required></div>
-          <div class="fd"><label for="fBr" data-i18n="form.br"></label><select id="fBr"></select></div>
-          <div class="fd"><label for="fMod" data-i18n="form.mod"></label><select id="fMod"></select></div>
-          <div class="fd w"><label for="fMsg" data-i18n="form.msg"></label><textarea id="fMsg" rows="3"></textarea></div>
+          <div class="fd w"><label for="fShop" data-i18n="form.shop"></label><input id="fShop" autocomplete="organization" maxlength="200" required></div>
+          <div class="fd"><label for="fOwner" data-i18n="form.owner"></label><input id="fOwner" autocomplete="name" maxlength="200" required></div>
+          <div class="fd"><label for="fTel" data-i18n="form.tel"></label><input id="fTel" type="tel" inputmode="tel" autocomplete="tel" maxlength="40" required></div>
+          <div class="fd"><label for="fEmail" data-i18n="form.email"></label><input id="fEmail" type="email" autocomplete="email" maxlength="200" required></div>
+          <div class="fd"><label for="fPkg" data-i18n="form.pkg"></label><select id="fPkg"></select></div>
+          <div class="fd"><label for="fTax" data-i18n="form.tax"></label><input id="fTax" inputmode="numeric" maxlength="20"></div>
+          <div class="fd"><label for="fZip" data-i18n="form.zip"></label><input id="fZip" inputmode="numeric" autocomplete="postal-code" maxlength="10"></div>
+          <div class="fd w"><label for="fAddr" data-i18n="form.addr"></label><input id="fAddr" autocomplete="street-address" maxlength="500"></div>
+          <div class="fd w"><label for="fMsg" data-i18n="form.msg"></label><textarea id="fMsg" rows="3" maxlength="2000"></textarea></div>
+          <div class="fd trap" aria-hidden="true"><label for="fTrap">Website</label><input id="fTrap" tabindex="-1" autocomplete="off"></div>
+          <label class="fok w" for="fOk"><input id="fOk" type="checkbox" required><span data-i18n="form.consent"></span></label>
           <p class="err" id="fErr" role="alert"></p>
           <button class="btn btn-a" type="submit"><span data-i18n="form.send"></span><svg class="ic"><use href="#i-arrow"/></svg></button>
           <p class="fpv"><span data-i18n="priv.form"></span> <a href="/privacy" data-i18n="priv.h"></a></p>
         </form>
-        <div class="fdone" id="done">
+        <div class="fdone" id="done" role="status">
           <h3><svg class="ic"><use href="#i-check"/></svg><span data-i18n="form.okh"></span></h3>
-          <pre id="sum"></pre>
           <p data-i18n="form.okp"></p>
           <div class="bt mt1">
-            <button class="btn btn-a" type="button" id="copyB" data-i18n="form.copy"></button>
-            <a class="btn btn-g" id="mailB" href="mailto:sales@drivegox.com" data-i18n="form.mail"></a>
-            <a class="btn btn-g" id="lineB" href="https://lin.ee/tV7nV8x" target="_blank" rel="noopener" data-i18n="form.line"></a>
-            <button class="btn btn-g" type="button" id="editB" data-i18n="form.edit"></button>
+            <a class="btn btn-g" href="https://lin.ee/tV7nV8x" target="_blank" rel="noopener">LINE Official</a>
           </div>
         </div>
       </div>

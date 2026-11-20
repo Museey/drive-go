@@ -84,3 +84,8 @@ a.back { display: inline-block; margin-bottom: .75rem; color: var(--accent); tex
   dl.info { grid-template-columns: 1fr; gap: 0; }
   dl.info dd { margin-bottom: .45rem; }
 }
+/* A sign-up's details (the sign-ups from the website) */
+dl.facts { display: grid; grid-template-columns: max-content 1fr; gap: .35rem 1.25rem; margin: 0; }
+dl.facts dt { color: var(--muted, #667); }
+dl.facts dd { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 40rem) { dl.facts { grid-template-columns: 1fr; } dl.facts dd { margin-bottom: .4rem; } }

@@ -68,8 +68,24 @@ def mark(text, items):
 th = mark(th, SOON_TH); en = mark(en, SOON_EN)
 # Text changes agreed with the owner: Thai and English only (2026-11-17). The demo request as the design has it, plus
 # a button that writes the e-mail and one that sends it on LINE (2026-11-18; the LINE text approved on 2026-11-17).
-th = rep(th, "copy:'คัดลอกข้อความ',", "copy:'คัดลอกข้อความ',mail:'ส่งทางอีเมล',line:'คัดลอกแล้วส่งทาง LINE',")
-en = rep(en, "copy:'Copy message',", "copy:'Copy message',mail:'Send by e-mail',line:'Copy and send on LINE',")
+# The demo request became a sign-up for a trial (owner 2026-11-20 "แทนฟอร์มนัด Demo และแก้ wording เป็น ลงทะเบียนเพื่อทดลองใช้
+# drivegoX"): the form is sent to the server (/api/signup), staff approve it on the staff page and the sign-in details go
+# by e-mail (server/lib/signup.ts). Its texts replace the design's; the consent is the server's CONSENT word for word.
+def line(text, key, new):
+    out, n = re.subn(r"\n " + key + r":\{[^\n]*\},\n", lambda m: "\n " + new + ",\n", text)
+    assert n == 1, key
+    return out
+th = line(th, 'cta', "cta:{eyebrow:'เริ่มต้นใช้งาน',h:'ลงทะเบียนเพื่อทดลองใช้ DriveGo X',p:'กรอกข้อมูลอู่ของคุณ ทีมงานจะตรวจแล้วเปิดร้านทดลองใช้ฟรี 60 วัน และส่งชื่อผู้ใช้กับรหัสผ่านไปทางอีเมล',l1:'ใช้ระบบจริงตั้งแต่รับรถจนถึงออกใบกำกับภาษี',l2:'ถามตอบเรื่องโมดูลที่เหมาะกับอู่ของคุณ',l3:'โทร 082-108-7000 หรืออีเมล sales@drivegox.com'}")
+en = line(en, 'cta', "cta:{eyebrow:'Get started',h:'Register to try DriveGo X',p:'Tell us about your garage. The team checks it, opens a free 60-day trial shop and sends your user name and password by e-mail.',l1:'Use the real system from check-in to tax invoice',l2:'Ask which modules suit your garage',l3:'Call 082-108-7000 or e-mail sales@drivegox.com'}")
+th = line(th, 'form', "form:{shop:'ชื่ออู่หรือศูนย์บริการ',owner:'ชื่อ-นามสกุลเจ้าของ',tel:'เบอร์โทร',email:'อีเมล (สำหรับรับชื่อผู้ใช้และรหัสผ่าน)',pkg:'แพ็กเกจ',pkgs:[['biz','DriveGo BaziX'],['prox','DriveGo ProX'],['franchise','DriveGo-Franchise (หลายสาขา)']],tax:'เลขประจำตัวผู้เสียภาษี (ไม่บังคับ)',zip:'รหัสไปรษณีย์ (ไม่บังคับ)',addr:'ที่อยู่ (ไม่บังคับ)',msg:'สิ่งที่อยากให้ระบบช่วย (ไม่บังคับ)',consent:'ยินยอมให้บริษัท ไดร์ฟบิซ เมคคาไลซ์ โซลูชั่น จำกัด เก็บและใช้ข้อมูลนี้เพื่อเปิดร้านทดลองใช้และติดต่อกลับ ตามนโยบายความเป็นส่วนตัว',send:'ลงทะเบียน',err:'กรอกชื่ออู่ ชื่อเจ้าของ เบอร์โทร และอีเมลให้ครบ แล้วติ๊กยินยอมก่อนส่ง',many:'ส่งหลายครั้งเกินไป กรุณารอสักครู่แล้วลองใหม่',fail:'ส่งไม่สำเร็จ กรุณาลองใหม่ หรือติดต่อทีมงานทาง LINE',okh:'ได้รับคำขอลงทะเบียนแล้ว',okp:'ทีมงานจะตรวจข้อมูลแล้วส่งชื่อผู้ใช้และรหัสผ่านไปที่อีเมลของคุณ มีคำถามติดต่อทีมงานทาง LINE Official'}")
+en = line(en, 'form', "form:{shop:'Garage or service centre',owner:'Owner’s full name',tel:'Phone',email:'E-mail (for your user name and password)',pkg:'Package',pkgs:[['biz','DriveGo BaziX'],['prox','DriveGo ProX'],['franchise','DriveGo-Franchise (several branches)']],tax:'Tax ID (optional)',zip:'Postcode (optional)',addr:'Address (optional)',msg:'What should the system help with? (optional)',consent:'I agree that Drivebiz Mecalyze Solution Co., Ltd. keeps and uses these details to open my trial shop and contact me, under the privacy policy',send:'Register',err:'Fill in the garage, owner, phone and e-mail, and tick the consent first',many:'Too many tries. Please wait a moment and try again',fail:'Could not send. Please try again, or contact the team on LINE',okh:'We have your registration',okp:'The team will check it and send your user name and password to your e-mail. Questions: contact the team on LINE Official.'}")
+th = rep(th, "cta1:'นัดดู Demo ระบบ'", "cta1:'ลงทะเบียนทดลองใช้'")
+en = rep(en, "cta1:'Book a demo'", "cta1:'Register for a trial'")
+en = rep(en, "cta:'Request a demo'}", "cta:'Free trial'}")
+th = rep(th, "contact:'ติดต่อ',cta:'ทดลองใช้งานฟรี'}", "contact:'ติดต่อ',cta:'ทดลองใช้งานฟรี',sm:'ทดลองใช้'}")
+en = rep(en, "cta:'Free trial'}", "cta:'Free trial',sm:'Trial'}")
+th = rep(th, "form:'ข้อมูลที่กรอกใช้เพื่อติดต่อกลับเรื่องการนัด Demo เท่านั้น ดูรายละเอียดที่'", "form:'ข้อมูลที่กรอกใช้เพื่อเปิดร้านทดลองใช้และติดต่อกลับเท่านั้น ดูรายละเอียดที่'")
+en = rep(en, "form:'The details you enter are used only to contact you about a demo. See our'", "form:'The details you enter are used only to open your trial shop and contact you. See our'")
 th = rep(th, "f2:'ภาษา ไทย อังกฤษ จีน',", "")
 en = rep(en, "f2:'languages: Thai, English, Chinese',", "")
 th = rep(th, "\nth:{\n", "\nth:{\n soon:'เร็ว ๆ นี้',\n")
@@ -77,8 +93,8 @@ en = rep(en, "\nen:{\n", "\nen:{\n soon:'Coming soon',\n")
 head = """// DriveGo's landing page (/, server/site/index.html): the team's design of 2026-11-17, updated 2026-11-18 (dark, amber;
 // built by tools/landing-from-design.py), the owner's choices of 2026-11-17: Thai and English (no Chinese), what the
 // system does not do yet tagged "เร็ว ๆ นี้" (a text ending in §); of 2026-11-18: the design's own pages (Test Drive,
-// articles, privacy policy at /testdrive, /articles, /privacy), and the demo request summed up for the visitor to copy,
-// send by e-mail or on LINE (nothing is stored).
+// articles, privacy policy at /testdrive, /articles, /privacy); of 2026-11-20: the demo request became a sign-up for a
+// trial, sent to the server (/api/signup) for staff to approve (server/lib/signup.ts).
 // The page's Content-Security-Policy allows no inline styles: the mock screens' sizes go in data-css and are set
 // through CSSOM (applyCss). Everything here is the page's own text; nothing typed by a visitor is put in as HTML.
 (() => {
@@ -103,18 +119,31 @@ code = rep(code, "<small>${w.fixl}</small>${w.a[i]}</span>", "<small>${w.fixl}</
 code = rep(code, "${w.a.map(x=>`<li>${ic('check')}<span>${x}</span></li>`).join('')}", "${w.a.map(x=>`<li>${ic('check')}<span>${sn(x)}</span></li>`).join('')}")
 code = rep(code, "${k.l.map(x=>`<li>${ic('check')}<span>${x}</span></li>`).join('')}", "${k.l.map(x=>`<li>${ic('check')}<span>${sn(x)}</span></li>`).join('')}")
 code = rep(code, "<tr><td>${r}</td>", "<tr><td>${sn(r)}</td>")
-code = rep(code, "mo.innerHTML=`<option>${f.all}</option>`+t('mods').map(x=>`<option>${x.t}</option>`).join('');",
-                 "mo.innerHTML=`<option>${f.all}</option>`+t('mods').map(x=>`<option>${x.t.replace(/§$/,'')}</option>`).join('');")
+code = rep(code, """  const f=t('form'), br=$('#fBr'), mo=$('#fMod'), bi=br.selectedIndex, mi=mo.selectedIndex;
+  br.innerHTML=f.brs.map(x=>`<option>${x}</option>`).join('');
+  mo.innerHTML=`<option>${f.all}</option>`+t('mods').map(x=>`<option>${x.t}</option>`).join('');
+  if(bi>0)br.selectedIndex=bi; if(mi>0)mo.selectedIndex=mi;""", """  const f=t('form'), pk=$('#fPkg'), pi=pk.selectedIndex;
+  pk.innerHTML=f.pkgs.map(([v,x])=>`<option value="${v}">${x}</option>`).join('');
+  if(pi>0)pk.selectedIndex=pi;""")
+code = rep(code, "  if($('#ctaB').classList.contains('sent'))buildSum();\n", "")
 code = rep(code, "lang=l; document.documentElement.lang=l==='zh'?'zh-Hans':l;", "lang=l; document.documentElement.lang=l;")
 code = rep(code, "renderStatic(); renderEco(); renderShow(); renderDevices();", "renderStatic(); renderEco(); renderShow(); renderDevices(); applyCss();")
 code = rep(code, "$('#ecoM').innerHTML=MM[mod]();", "$('#ecoM').innerHTML=MM[mod](); applyCss($('#ecoP'));")
 code = rep(code, "$('#showS').innerHTML=ROLE[role]();", "$('#showS').innerHTML=ROLE[role](); applyCss($('#showS'));")
-code = rep(code, "/* form: composes a message the visitor can copy. Wire the submit handler to your CRM, LINE or e-mail endpoint in production. */",
-                 "/* form: composes a message the visitor copies, or sends by e-mail or on LINE (#mailB, #lineB): nothing is stored */")
-code = rep(code, ".filter(Boolean).join('\\n')}", ".filter(Boolean).join('\\n');mailTo()}")
-code = rep(code, "$('#copyB').addEventListener('click',async e=>{const b=e.currentTarget;try{await navigator.clipboard.writeText($('#sum').textContent);b.textContent=t('form.copied')}catch(x){",
-                 "$('#copyB').addEventListener('click',async e=>{const b=e.currentTarget;try{await navigator.clipboard.writeText($('#sum').textContent);put(b,t('form.copied'))}catch(x){")
-code = rep(code, "setTimeout(()=>b.textContent=t('form.copy'),1800)});", "setTimeout(()=>put(b,t('form.copy')),1800)});")
+FORM_START = "/* form: composes a message the visitor can copy. Wire the submit handler to your CRM, LINE or e-mail endpoint in production. */"
+FORM_END = "  setTimeout(()=>b.textContent=t('form.copy'),1800)});\n"
+a, b = code.index(FORM_START), code.index(FORM_END) + len(FORM_END)
+assert code.count(FORM_START) == 1 and code.count(FORM_END) == 1
+code = code[:a] + """/* form: a sign-up for a trial (DriveGo's, owner 2026-11-20): sent to the server (/api/signup), where staff approve it on the
+   staff page and the sign-in details go to the e-mail given. #fTrap is a field people do not see (robots fill it in). */
+$('#demoForm').addEventListener('submit',async e=>{e.preventDefault();const v=id=>$('#'+id).value.trim(),err=$('#fErr'),btn=e.currentTarget.querySelector('button[type=submit]');
+  if(!v('fShop')||!v('fOwner')||v('fTel').replace(/\\D/g,'').length<9||!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/.test(v('fEmail'))||!$('#fOk').checked){put(err,t('form.err'));return}
+  put(err,'');btn.disabled=true;
+  try{const r=await fetch('/api/signup',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({pkg:$('#fPkg').value,name:v('fShop'),owner:v('fOwner'),tel:v('fTel'),
+      email:v('fEmail'),taxId:v('fTax'),addr:v('fAddr'),zip:v('fZip'),note:v('fMsg'),consent:true,lang,trap:$('#fTrap').value})});
+    if(r.ok){$('#ctaB').classList.add('sent');return}
+    put(err,t(r.status===429?'form.many':'form.fail'))}catch(x){put(err,t('form.fail'))}finally{btn.disabled=false}});
+""" + code[b:]
 # Labels read by screen readers (data-i18n-aria), and the menu of phones and tablets (index.html #menuB, #menuP).
 HTML_LINE = "  $$('[data-i18n-html]').forEach(e=>e.innerHTML=t(e.dataset.i18nHtml));\n"
 code = rep(code, HTML_LINE, HTML_LINE + "  $$('[data-i18n-aria]').forEach(e=>e.setAttribute('aria-label',t(e.dataset.i18nAria)));\n")
@@ -133,11 +162,6 @@ MENU = """
   $('#menuP .lang').addEventListener('click',e=>{const x=e.target.closest('button');if(x)setLang(x.dataset.lang)});
 })();
 
-/* ============ demo request by e-mail or on LINE (DriveGo's addition, owner 2026-11-18) ============ */
-/* The e-mail button opens the visitor's own mail app with the summary written in; the LINE button copies the summary
-   and opens LINE Official. */
-function mailTo(){const s=$('#sum').textContent;$('#mailB').href='mailto:sales@drivegox.com?subject='+encodeURIComponent(s.split('\\n')[0])+'&body='+encodeURIComponent(s)}
-$('#lineB').addEventListener('click',()=>{try{navigator.clipboard.writeText($('#sum').textContent).catch(()=>{})}catch(x){}});
 """
 code = code.rstrip() + "\n" + MENU + "})();\n"
 open(out, 'w', encoding='utf-8').write(dict + code)

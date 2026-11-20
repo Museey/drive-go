@@ -1,5 +1,5 @@
 // The staff web page (docs/STAFF-TOOLS.md "หน้าเว็บของทีมงาน"): signing in (password, then the authenticator app's
-// code), every shop with its licence, one shop's actions and log, opening a shop. Everything shown is put in as text
+// code), every shop with its licence, one shop's actions and log, opening a shop, the sign-ups from the website. Everything shown is put in as text
 // (textContent), never as HTML: names and notes come from shops and staff.
 'use strict';
 (() => {
@@ -186,10 +186,10 @@
   }
 
   // ---------- signed in ----------
-  const PAGES = [['#/', 'ร้านทั้งหมด'], ['#/new', 'เปิดร้านใหม่'], ['#/me', 'บัญชีของฉัน']];
+  const PAGES = [['#/', 'ร้านทั้งหมด'], ['#/signups', 'คำขอลงทะเบียน'], ['#/new', 'เปิดร้านใหม่'], ['#/me', 'บัญชีของฉัน']];
   function signedInTop() {
     $top.hidden = false;
-    const here = location.hash.startsWith('#/shop/') ? '#/' : (location.hash || '#/');
+    const here = location.hash.startsWith('#/shop/') ? '#/' : location.hash.startsWith('#/signup/') ? '#/signups' : (location.hash || '#/');
     $nav.replaceChildren(...PAGES.map(([href, text]) => el('a', { href, text, 'aria-current': href === here ? 'page' : null })));
     $who.replaceChildren(el('span', { text: `${me.name} (${me.login})` }),
       el('button', { type: 'button', text: 'ออกจากระบบ', onclick: async () => {
@@ -207,6 +207,8 @@
     try {
       if (h.startsWith('#/shop/')) return await shopScreen(decodeURIComponent(h.slice(7)));
       if (h === '#/new') return newShopScreen();
+      if (h === '#/signups') return await signupsScreen();
+      if (h.startsWith('#/signup/')) return await signupScreen(Number(h.slice(9)));
       if (h === '#/me') return myAccountScreen();
       return await listScreen();
     } catch (e) {
@@ -376,27 +378,34 @@
           : el('tr', {}, el('td', { colspan: 4, class: 'muted', text: 'ยังไม่มี' }))))));
   }
 
+  // The fields of a new shop (lib/staff-shops.ts openShop): empty, or from a sign-up (p).
+  function shopFields(p = {}) {
+    return [
+      el('div', { class: 'grid2' },
+        field('รหัสร้าน', input('code', { required: true, autocapitalize: 'none', spellcheck: 'false', pattern: '[a-z0-9][a-z0-9\\-]{2,31}', placeholder: 'เช่น daeng-garage' }),
+          'ที่อยู่ของร้าน ตัวพิมพ์เล็ก ตัวเลข และขีด เปลี่ยนทีหลังไม่ได้'),
+        field('แพ็กเกจ', select('pkg', [['biz', 'Biz'], ['prox', 'ProX'], ['franchise', 'Franchise (เครือ)']], p.pkg || 'biz')),
+        field('ประเภท', select('kind', [['trial', 'ทดลองใช้ 60 วัน'], ['pilot', 'อู่นำร่อง 1 ปี']], 'trial')),
+        field('เริ่มนับจากวันที่', input('from', { type: 'date' }), 'ไม่ใส่ = วันนี้')),
+      el('div', { class: 'grid2' },
+        field('ชื่อร้าน / ชื่อเครือ', input('name', { required: true, value: p.name })),
+        field('ชื่อ-นามสกุลเจ้าของ', input('owner', { required: true, value: p.owner })),
+        field('ชื่อผู้ใช้ของเจ้าของ', input('user', { autocapitalize: 'none', spellcheck: 'false' }), 'ไม่ใส่ = รหัสร้านที่ตัดขีดออก (Franchise: hq)'),
+        field('เลขประจำตัวผู้เสียภาษี', input('taxId', { inputmode: 'numeric', value: p.taxId })),
+        field('โทรศัพท์', input('tel', { type: 'tel', value: p.tel })),
+        field('อีเมล', input('email', { type: 'email', value: p.email }))),
+      field('ที่อยู่', input('addr', { value: p.addr })),
+      el('div', { class: 'grid2' }, field('รหัสไปรษณีย์', input('zip', { inputmode: 'numeric', value: p.zip })),
+        field('ช่องทางติดต่อ', input('contact', { placeholder: 'เช่น คุณแดง 081-234-5678', value: p.owner ? `${p.owner} ${p.tel}` : undefined }), 'เรื่องต่ออายุและการลบข้อมูล')),
+    ];
+  }
+
   function newShopScreen() {
     const out = el('div');
     const form = el('form', { class: 'card' },
       el('h1', { text: 'เปิดร้านใหม่' }),
       el('p', { class: 'help', text: 'ร้านใหม่เป็นร้านว่าง (ไม่มีข้อมูลตัวอย่าง) มีบัญชีเจ้าของร้าน ข้อมูลจดทะเบียนจะไปอยู่ในเมนู 10 ตั้งค่าองค์กรตอนเจ้าของเข้าครั้งแรก' }),
-      el('div', { class: 'grid2' },
-        field('รหัสร้าน', input('code', { required: true, autocapitalize: 'none', spellcheck: 'false', pattern: '[a-z0-9][a-z0-9\\-]{2,31}', placeholder: 'เช่น daeng-garage' }),
-          'ที่อยู่ของร้าน ตัวพิมพ์เล็ก ตัวเลข และขีด เปลี่ยนทีหลังไม่ได้'),
-        field('แพ็กเกจ', select('pkg', [['biz', 'Biz'], ['prox', 'ProX'], ['franchise', 'Franchise (เครือ)']], 'biz')),
-        field('ประเภท', select('kind', [['trial', 'ทดลองใช้ 60 วัน'], ['pilot', 'อู่นำร่อง 1 ปี']], 'trial')),
-        field('เริ่มนับจากวันที่', input('from', { type: 'date' }), 'ไม่ใส่ = วันนี้')),
-      el('div', { class: 'grid2' },
-        field('ชื่อร้าน / ชื่อเครือ', input('name', { required: true })),
-        field('ชื่อ-นามสกุลเจ้าของ', input('owner', { required: true })),
-        field('ชื่อผู้ใช้ของเจ้าของ', input('user', { autocapitalize: 'none', spellcheck: 'false' }), 'ไม่ใส่ = รหัสร้านที่ตัดขีดออก (Franchise: hq)'),
-        field('เลขประจำตัวผู้เสียภาษี', input('taxId', { inputmode: 'numeric' })),
-        field('โทรศัพท์', input('tel', { type: 'tel' })),
-        field('อีเมล', input('email', { type: 'email' }))),
-      field('ที่อยู่', input('addr')),
-      el('div', { class: 'grid2' }, field('รหัสไปรษณีย์', input('zip', { inputmode: 'numeric' })),
-        field('ช่องทางติดต่อ', input('contact', { placeholder: 'เช่น คุณแดง 081-234-5678' }), 'เรื่องต่ออายุและการลบข้อมูล')),
+      shopFields(),
       el('button', { type: 'submit', class: 'primary', text: 'เปิดร้าน' }));
     show(out, submitting(form, async v => {
       const r = await api('shops', v);
@@ -406,6 +415,72 @@
           el('a', { href: `#/shop/${encodeURIComponent(r.code)}`, text: 'ดูร้านนี้ →' })));
       window.scrollTo(0, 0);
     }));
+  }
+
+  // ---------- sign-ups from the website (lib/signup.ts; the owner's request of 2026-11-20) ----------
+  const SIGNUP_STATE = { new: ['ใหม่', 'warn'], approved: ['อนุมัติแล้ว', 'ok'], rejected: ['ปฏิเสธ', ''] };
+  const NO_MAIL = 'ยังไม่ได้ตั้งค่าการส่งอีเมล: อนุมัติแล้วหน้านี้แสดงรหัสผ่านชั่วคราวให้โทรแจ้งเจ้าของร้าน';
+
+  async function signupsScreen() {
+    const { signups, mail } = await api('signups');
+    const fresh = signups.filter(x => x.status === 'new').length;
+    show(el('h1', { text: 'คำขอลงทะเบียน' }),
+      el('p', { class: 'muted', text: `คำขอจากฟอร์มลงทะเบียนทดลองใช้บนหน้าเว็บ · ใหม่ ${fresh} รายการ` }),
+      mail ? null : msg('warn', NO_MAIL),
+      el('div', { class: 'table-wrap' }, el('table', {},
+        el('thead', {}, el('tr', {}, ['วันที่', 'ชื่ออู่', 'เจ้าของ', 'โทรศัพท์', 'อีเมล', 'แพ็กเกจ', 'สถานะ'].map(t => el('th', { text: t })))),
+        el('tbody', {}, signups.length ? signups.map(x => {
+          const [label, kind] = SIGNUP_STATE[x.status] || [x.status, ''];
+          const open = () => { location.hash = `#/signup/${x.id}`; };
+          return el('tr', { class: 'link', tabindex: 0, onclick: open, onkeydown: e => { if (e.key === 'Enter') open(); } },
+            el('td', { text: when(x.at) }), el('td', { text: x.name }), el('td', { text: x.owner }), el('td', { text: x.tel }),
+            el('td', { text: x.email }), el('td', { text: PKG[x.pkg] || x.pkg }),
+            el('td', {}, el('span', { class: `tag ${kind}`, text: x.status === 'approved' && x.shopCode ? `${label} · ${x.shopCode}` : label })));
+        }) : el('tr', {}, el('td', { colspan: 7, class: 'muted', text: 'ยังไม่มีคำขอ' }))))));
+  }
+
+  async function signupScreen(id) {
+    const { signups, mail } = await api('signups');
+    const x = signups.find(r => Number(r.id) === id);
+    if (!x) { show(msg('bad', 'ไม่พบคำขอนี้'), el('a', { href: '#/signups', text: '← คำขอลงทะเบียน' })); return; }
+    const [label, kind] = SIGNUP_STATE[x.status] || [x.status, ''];
+    const rows = [['วันที่ส่ง', when(x.at)], ['แพ็กเกจที่เลือก', PKG[x.pkg] || x.pkg], ['ชื่ออู่', x.name], ['เจ้าของ', x.owner], ['โทรศัพท์', x.tel],
+      ['อีเมล', x.email], ['เลขประจำตัวผู้เสียภาษี', x.taxId || '–'], ['ที่อยู่', [x.addr, x.zip].filter(Boolean).join(' ') || '–'],
+      ['สิ่งที่อยากให้ระบบช่วย', x.note || '–'], ['ความยินยอม', x.consent]];
+    if (x.status !== 'new') rows.push(['ตัดสินโดย', `${x.decidedBy || '–'} ${x.decidedAt ? when(x.decidedAt) : ''}`]);
+    if (x.shopCode) rows.push(['ร้านที่เปิด', x.shopCode]);
+    if (x.status === 'approved') rows.push(['อีเมลเข้าระบบ', x.mailedAt ? `ส่งแล้ว ${when(x.mailedAt)}` : `ไม่ได้ส่ง (${x.mailError || '–'})`]);
+    if (x.decisionNote) rows.push(['หมายเหตุ', x.decisionNote]);
+    const head = [el('p', {}, el('a', { href: '#/signups', text: '← คำขอลงทะเบียน' })),
+      el('h1', {}, x.name, ' ', el('span', { class: `tag ${kind}`, text: label })),
+      el('div', { class: 'card' }, el('dl', { class: 'facts' }, rows.map(([k, v]) => [el('dt', { text: k }), el('dd', { text: v })])))];
+    if (x.status !== 'new') { show(...head, x.shopCode ? el('a', { href: `#/shop/${encodeURIComponent(x.shopCode)}`, text: 'ดูร้านนี้ →' }) : null); return; }
+    const out = el('div');
+    const approve = el('form', { class: 'card' },
+      el('h2', { text: 'อนุมัติและเปิดร้าน' }),
+      el('p', { class: 'help', text: mail ? `ตรวจข้อมูลแล้วตั้งรหัสร้าน ระบบเปิดร้านแล้วส่งชื่อผู้ใช้และรหัสผ่านชั่วคราวไปที่อีเมลด้านล่าง` : NO_MAIL }),
+      shopFields(x),
+      el('button', { type: 'submit', class: 'primary', text: 'อนุมัติและเปิดร้าน' }));
+    const reject = el('form', { class: 'card' },
+      el('h2', { text: 'ปฏิเสธคำขอ' }),
+      field('หมายเหตุ', input('note', { placeholder: 'เช่น ข้อมูลไม่ครบ ติดต่อไม่ได้' })),
+      el('button', { type: 'submit', text: 'ปฏิเสธคำขอ' }));
+    show(...head, out, approve, reject);
+    submitting(approve, async v => {
+      const r = await api(`signups/${id}`, { ...v, action: 'approve' });
+      approve.remove(); reject.remove();
+      out.replaceChildren(r.mailed
+        ? msg('ok', `เปิดร้าน ${r.code} แล้ว ใช้ได้ถึง ${th(r.end)} · ส่งชื่อผู้ใช้และรหัสผ่านชั่วคราวไปที่ ${r.email} แล้ว`)
+        : msg('warn', `เปิดร้าน ${r.code} แล้ว ใช้ได้ถึง ${th(r.end)} · ${r.mailError === 'not-configured' ? 'ยังไม่ได้ตั้งค่าการส่งอีเมล' : `ส่งอีเมลไม่ได้ (${r.mailError})`} โทรแจ้งเจ้าของร้าน`),
+      r.mailed ? el('a', { href: `#/shop/${encodeURIComponent(r.code)}`, text: 'ดูร้านนี้ →' })
+        : passwordCard([['ที่อยู่ร้าน', `/${r.code}/`], ['ชื่อผู้ใช้', r.user], ['รหัสผ่านชั่วคราว', r.password]],
+          el('a', { href: `#/shop/${encodeURIComponent(r.code)}`, text: 'ดูร้านนี้ →' })));
+      window.scrollTo(0, 0);
+    });
+    submitting(reject, async v => {
+      await api(`signups/${id}`, { ...v, action: 'reject' });
+      await signupScreen(id);
+    });
   }
 
   function myAccountScreen() {
