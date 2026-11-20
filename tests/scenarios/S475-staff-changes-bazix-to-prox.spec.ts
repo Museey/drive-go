@@ -6,7 +6,7 @@ import { addTestStaff, appCode } from '../support/new-shop.mjs';
 // and its licence's dates, back to BaziX only with one branch; server/lib/shop-open.ts changePackage, tools/shop-admin.mjs
 // package). A BaziX shop cannot add a second branch (S460: "ติดต่อทีมงานเพื่อเปลี่ยนเป็น DriveGo ProX"); staff press
 // "เปลี่ยนเป็น ProX" on the staff page; the shop's open screen signs in again and is ProX, with the same data, and adds
-// the branch. Back to Biz is then refused: the shop has two branches.
+// the branch. Back to BaziX is then refused: the shop has two branches.
 const ONE = 'DriveGo BaziX ใช้ได้ 1 สาขา — ถ้าต้องการหลายสาขา ติดต่อทีมงานเพื่อเปลี่ยนเป็น DriveGo ProX';
 
 test('S475 ระบบใหม่: ทีมงานเปลี่ยนร้าน BaziX เป็น ProX ที่หน้าเว็บทีมงาน ร้านเข้าระบบใหม่ ข้อมูลและวันใช้งานเท่าเดิม เพิ่มสาขาได้ แล้วเปลี่ยนกลับเป็น BaziX ไม่ได้เพราะมีสองสาขา', async ({ app, page }) => {
@@ -36,7 +36,7 @@ test('S475 ระบบใหม่: ทีมงานเปลี่ยนร�
   await ops.getByRole('searchbox', { name: 'ค้นหา' }).fill(code);
   await ops.getByRole('row').filter({ hasText: code }).click();
   const info = ops.locator('dl.info');
-  await expect(info).toContainText('แพ็กเกจBiz');
+  await expect(info).toContainText('แพ็กเกจBaziX');
   const dates = (await info.textContent())!.match(/วันเริ่ม.*วันลบข้อมูล/)![0];
   await ops.getByRole('button', { name: 'เปลี่ยนเป็น ProX' }).click();
   const panel = ops.locator('.panel');
@@ -46,7 +46,7 @@ test('S475 ระบบใหม่: ทีมงานเปลี่ยนร�
   await expect(ops.getByText('เปลี่ยนเป็น ProX แล้ว', { exact: true })).toBeVisible();
   await expect(info).toContainText('แพ็กเกจProX');
   expect((await info.textContent())!.match(/วันเริ่ม.*วันลบข้อมูล/)![0]).toBe(dates);
-  await expect(ops.getByRole('row').filter({ hasText: 'เปลี่ยนแพ็กเกจ' })).toContainText('Biz → ProX · หมายเหตุ: ร้านขอเพิ่มสาขา จ่ายส่วนต่างแล้ว');
+  await expect(ops.getByRole('row').filter({ hasText: 'เปลี่ยนแพ็กเกจ' })).toContainText('BaziX → ProX · หมายเหตุ: ร้านขอเพิ่มสาขา จ่ายส่วนต่างแล้ว');
 
   // The shop's screen: signed out; signed in again it opens as ProX with the same data, and the branch is added.
   await page.bringToFront();
@@ -62,11 +62,11 @@ test('S475 ระบบใหม่: ทีมงานเปลี่ยนร�
   await app.settle();
   expect(((await app.serverDB()) as { branches: { code: string }[] }).branches.map(b => b.code)).toEqual(['MA', 'BN']);
 
-  // Back to Biz: refused, the shop has two branches.
+  // Back to BaziX: refused, the shop has two branches.
   await ops.bringToFront();
-  await ops.getByRole('button', { name: 'เปลี่ยนเป็น Biz' }).click();
-  await expect(panel).toContainText('เปลี่ยนเป็น Biz ได้เฉพาะร้านที่มีสาขาเดียว');
-  await panel.getByRole('button', { name: 'เปลี่ยนเป็น Biz' }).click();
+  await ops.getByRole('button', { name: 'เปลี่ยนเป็น BaziX' }).click();
+  await expect(panel).toContainText('เปลี่ยนเป็น BaziX ได้เฉพาะร้านที่มีสาขาเดียว');
+  await panel.getByRole('button', { name: 'เปลี่ยนเป็น BaziX' }).click();
   await expect(ops.getByRole('alert')).toHaveText('ร้านนี้มี 2 สาขา BaziX มีได้สาขาเดียว จึงเปลี่ยนเป็น BaziX ไม่ได้');
   await expect(info).toContainText('แพ็กเกจProX');
 });

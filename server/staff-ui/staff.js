@@ -219,7 +219,7 @@
     }
   }
 
-  const PKG = { biz: 'Biz', prox: 'ProX', franchise: 'Franchise' };
+  const PKG = { biz: 'BaziX', prox: 'ProX', franchise: 'Franchise' };   /* BaziX: the owner, 2026-11-20 */
   const KIND = { trial: 'ทดลองใช้', pilot: 'อู่นำร่อง', paid: 'จ่ายแล้ว' };
   // What a shop needs from staff, or where it stands, as one tag.
   function state(s, today) {
@@ -319,9 +319,9 @@
         field('หมายเหตุ', input('note', { placeholder: 'เช่น เลขที่ใบเสร็จ หรือช่องทางที่จ่าย' })),
       ], async v => { await api(`shops/${encodeURIComponent(code)}`, { action: 'renew', ...v }); await done('ต่ออายุแล้ว')(); }],
       /* BaziX ↔ ProX (owner 2026-11-20): the data and the licence's dates stay; back to BaziX only with one branch */
-      ...(s.package === 'biz' || s.package === 'prox' ? { package: [`เปลี่ยนเป็น ${s.package === 'biz' ? 'ProX' : 'Biz'}`, () => [
+      ...(s.package === 'biz' || s.package === 'prox' ? { package: [`เปลี่ยนเป็น ${s.package === 'biz' ? 'ProX' : 'BaziX'}`, () => [
         el('p', { class: 'help', text: 'ข้อมูลของร้านอยู่ครบ วันเริ่มและวันสุดท้ายเท่าเดิม (ส่วนต่างราคาตกลงกับร้านนอกระบบ) ทุกเครื่องที่เปิดร้านอยู่ต้องเข้าระบบใหม่' }),
-        s.package === 'prox' ? msg('warn', 'เปลี่ยนเป็น Biz ได้เฉพาะร้านที่มีสาขาเดียว') : null,
+        s.package === 'prox' ? msg('warn', 'เปลี่ยนเป็น BaziX ได้เฉพาะร้านที่มีสาขาเดียว') : null,
         field('หมายเหตุ', input('note', { placeholder: 'เช่น ร้านขอเปลี่ยน จ่ายส่วนต่างแล้ว' })),
       ], async v => {
         const r = await api(`shops/${encodeURIComponent(code)}`, { action: 'package', to: s.package === 'biz' ? 'prox' : 'biz', note: v.note });
@@ -397,7 +397,7 @@
       el('div', { class: 'grid2' },
         field('รหัสร้าน', input('code', { required: true, autocapitalize: 'none', spellcheck: 'false', pattern: '[a-z0-9][a-z0-9\\-]{2,31}', placeholder: 'เช่น daeng-garage' }),
           'ที่อยู่ของร้าน ตัวพิมพ์เล็ก ตัวเลข และขีด เปลี่ยนทีหลังไม่ได้'),
-        field('แพ็กเกจ', select('pkg', [['biz', 'Biz'], ['prox', 'ProX'], ['franchise', 'Franchise (เครือ)']], p.pkg || 'biz')),
+        field('แพ็กเกจ', select('pkg', [['biz', 'BaziX'], ['prox', 'ProX'], ['franchise', 'Franchise (เครือ)']], p.pkg || 'biz')),
         field('ประเภท', select('kind', [['trial', 'ทดลองใช้ 60 วัน'], ['pilot', 'อู่นำร่อง 1 ปี']], 'trial')),
         field('เริ่มนับจากวันที่', input('from', { type: 'date' }), 'ไม่ใส่ = วันนี้')),
       el('div', { class: 'grid2' },
