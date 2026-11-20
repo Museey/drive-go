@@ -24,6 +24,9 @@
 //   node tools/shop-admin.mjs contact CODE TEXT               who to call or e-mail about renewal and removal
 //   node tools/shop-admin.mjs told CODE [--note TEXT]          the shop was told (by phone) that its data will be removed:
 //                                                             the 30 days to the removal start (the nightly job lists whom to call)
+//   node tools/shop-admin.mjs package CODE --prox|--biz [--note TEXT]
+//                                                             BaziX → ProX, or back (only with one branch); the data and the
+//                                                             licence's dates stay; the shop signs in again (not Franchise)
 //
 // The staff web page's accounts (docs/STAFF-TOOLS.md "หน้าเว็บของทีมงาน"; only here, never on the page itself):
 //   node tools/shop-admin.mjs staff list                      the accounts, whether their app is set up, last sign-in
@@ -39,7 +42,7 @@ import pg from 'pg';
 import { pgConfig } from '../server/lib/pg-config.ts';
 import { close, listShops, openLicence, postpone, recordNotice, renew, setContact, shopOf } from '../server/lib/licence-admin.ts';
 import { today } from '../server/lib/licence.ts';
-import { openRealShop, resetPassword } from '../server/lib/shop-open.ts';
+import { changePackage, openRealShop, resetPassword } from '../server/lib/shop-open.ts';
 import { addStaff, listStaff, resetStaff, setStaffActive } from '../server/lib/staff.ts';
 
 const { values: o, positionals: [cmd, code, ...rest] } = parseArgs({
@@ -126,6 +129,13 @@ try {
     case 'told': {
       const r = await recordNotice(db, need(code, 'CODE'), { actor, note: o.note });
       console.log(`${code}: told; its data will be removed on ${r.removalOn} unless it renews (node tools/shop-admin.mjs renew …)`);
+      break;
+    }
+    case 'package': {
+      const to = ['biz', 'prox'].filter(p => o[p]);
+      if (to.length !== 1 || o.franchise) { console.error('package: one of --biz, --prox'); process.exit(2); }
+      const r = await changePackage(db, need(code, 'CODE'), { to: to[0], actor, note: o.note });
+      console.log(`${code}: ${r.from} → ${r.to} (${r.branches} branch${r.branches === 1 ? '' : 'es'}); the licence's dates stay, the shop signs in again`);
       break;
     }
     case 'staff': {

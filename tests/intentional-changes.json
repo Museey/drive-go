@@ -1112,6 +1112,11 @@
       "scenario": "S474-landing-signup-staff-approves.spec.ts",
       "decision": "Owner 2026-11-20: the landing page's demo form becomes a sign-up for a trial; staff approve it on the staff web page, which opens the shop and e-mails the sign-in details",
       "why": "The legacy file had no website and no staff page. Garages now ask for a trial shop themselves instead of sending a demo request by hand, and staff open it from the request."
+    },
+    {
+      "scenario": "S475-staff-changes-bazix-to-prox.spec.ts",
+      "decision": "The owner's decisions of 2026-11-20: DriveGo's staff change a shop between BaziX and ProX, the data and the licence's dates stay, back to BaziX only with one branch",
+      "why": "The legacy file has no packages per shop on a server; a shop's package was fixed when it was opened."
     }
   ]
 }

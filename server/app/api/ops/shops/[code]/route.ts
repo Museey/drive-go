@@ -13,7 +13,7 @@ export async function GET(req: Request, ctx: Ctx) {
   return staffApi(req, 'signed-in', async ({ db }) => json(await shopDetail(db, code)));
 }
 
-// password | open | renew | postpone | close | contact | told, as the commands of tools/shop-admin.mjs.
+// password | open | renew | postpone | close | contact | told | package, as the commands of tools/shop-admin.mjs.
 export async function POST(req: Request, ctx: Ctx) {
   const { code } = await ctx.params;
   return staffApi(req, 'signed-in', async ({ db, s }) => {

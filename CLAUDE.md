@@ -43,7 +43,7 @@ node tools/build-client.mjs                # สร้าง frontend/js/00-serv
 node tools/accountant-pack.mjs            # ชุดตรวจสำหรับผู้ทำบัญชี: คำถามจาก docs/ACCOUNTANT-REVIEW.md เป็น Excel ให้ตอบ + เอกสารที่ระบบใหม่พิมพ์ (PDF) รวมเป็น accountant-pack.zip
 node tools/manual/build.mjs [--out user-manual] [--skip-run]   # คู่มือการใช้งาน DriveGoBiz (PDF) พร้อมภาพหน้าจอจากระบบใหม่ (บทละไฟล์ tools/manual/NN-*.spec.ts, เนื้อหา content.mjs)
 docker build -t drivego:smoke . && node tools/image-smoke.mjs   # ลอง image ของ server ทดสอบแบบที่ DigitalOcean รัน (ฐานข้อมูล TLS, job migrate, เข้าระบบร้านตัวอย่าง, เปิดร้านจริง)
-node tools/shop-admin.mjs new|password|list|show|renew|close|told|staff …   # เครื่องมือทีมงาน: เปิดร้านจริง ลืมรหัสผ่าน วันหมดอายุ จดว่าโทรแจ้งร้านแล้ว บัญชีของหน้าเว็บทีมงาน (คู่มือ docs/STAFF-TOOLS.md)
+node tools/shop-admin.mjs new|password|list|show|renew|close|told|package|staff …   # เครื่องมือทีมงาน: เปิดร้านจริง ลืมรหัสผ่าน วันหมดอายุ จดว่าโทรแจ้งร้านแล้ว เปลี่ยน BaziX ↔ ProX บัญชีของหน้าเว็บทีมงาน (คู่มือ docs/STAFF-TOOLS.md)
 node tools/nightly.mjs                     # งานทุกคืนของ server (.do/app.yaml job nightly): ลบข้อมูลร้านที่ครบกำหนด ไฟล์ที่ถูกลบเกิน 30 วัน และบอกร้านที่ทีมงานต้องโทรแจ้ง (จบด้วย 3)
 node tools/restore-check.mjs [--marker ข้อความ]   # ซ้อมกู้ข้อมูลคืน: จำนวนข้อมูลต่อร้าน + ลายนิ้วมือ ไว้เทียบฐานข้อมูลที่กู้มา (รันใน Console ของแอป, docs/RESTORE-DRILL.md)
 npm run load                               # ทดสอบรับโหลดด้วย k6: อู่ 3 อู่ × 5 เครื่อง ข้อมูล 36 เดือน (--node ถ้าไม่มี k6, --url กับ server ทดสอบ; docs/LOAD-TEST.md)

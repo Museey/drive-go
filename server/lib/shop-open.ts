@@ -111,3 +111,29 @@ export async function resetPassword(db: pg.Pool, code: string, o: { user?: strin
     return { user, password };
   });
 }
+
+// A Biz shop becomes ProX, or a ProX shop Biz (the owner's decisions of 2026-11-20): DriveGo's staff do it (this
+// function, tools/shop-admin.mjs package, the staff page), never the shop. Both keep their data the same way, so
+// nothing is moved; the licence's dates stay (a price difference is settled outside the system). Back to Biz only
+// with at most one branch: DriveGo BaziX has one (rules.ts ONE_BRANCH). A franchise chain keeps its data another way
+// and does not change. The shop's sessions end, so its open screens sign in again as the new package.
+export async function changePackage(db: pg.Pool, code: string, o: { to: string; actor: string; note?: string })
+  : Promise<{ from: Package; to: Package; branches: number }> {
+  const shop = await shopOf(db, code);
+  const to = String(o.to ?? '').trim() as Package;
+  if (to !== 'biz' && to !== 'prox') throw new Error(`package: biz or prox, not ${o.to}`);
+  if (shop.package === 'franchise') throw new Error(`${code} is a franchise chain: its data is kept another way, its package does not change`);
+  if (shop.status === 'removed') throw new Error(`${code}: its data was removed`);
+  if (shop.package === to) throw new Error(`${code} is ${to} already`);
+  return withShop(db, shop.id, '*', async c => {
+    const { rows } = await c.query<{ n: number }>(
+      "select count(*)::int as n from records where shop_id = app_shop() and branch_id = '' and unit = 'DB.branches'");
+    const branches = rows[0].n;
+    if (to === 'biz' && branches > 1) throw new Error(`${code} has ${branches} branches: DriveGo BaziX has one, so it stays ProX`);
+    await c.query('update shops set package = $1 where id = app_shop()', [to]);
+    await c.query('delete from sessions where shop_id = app_shop()');
+    await c.query('insert into licence_log (shop_id, shop_code, actor, action, detail) values ($1, $2, $3, $4, $5)',
+      [shop.id, shop.code, o.actor, 'package', JSON.stringify({ from: shop.package, to, branches, note: o.note ?? '' })]);
+    return { from: shop.package as Package, to, branches };
+  });
+}

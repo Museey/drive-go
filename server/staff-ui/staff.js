@@ -98,6 +98,9 @@
     [/: no HQ account|: no account /, 'ไม่พบบัญชีนี้'],
     [/the shop has no owner account/, 'ร้านนี้ยังไม่มีบัญชีเจ้าของ'],
     [/^no shop with code/, 'ไม่พบร้านนี้'],
+    [/has (\d+) branches: DriveGo BaziX has one/, m => `ร้านนี้มี ${m[1]} สาขา BaziX มีได้สาขาเดียว จึงเปลี่ยนเป็น BaziX ไม่ได้`],
+    [/is a franchise chain/, 'ร้าน Franchise เปลี่ยนแพ็กเกจไม่ได้'],
+    [/ is (biz|prox) already/, 'ร้านนี้ใช้แพ็กเกจนี้อยู่แล้ว'],
   ];
   function thai(error) {
     for (const [re, out] of THAI) { const m = String(error).match(re); if (m) return typeof out === 'function' ? out(m) : out; }
@@ -272,7 +275,7 @@
     extra || null);
 
   const ACTION = { new: 'เปิดร้าน', open: 'เริ่มนับวันใหม่', renew: 'ต่ออายุ', postpone: 'เลื่อนวันลบข้อมูล', close: 'ปิดร้าน',
-    contact: 'แก้ช่องทางติดต่อ', notice: 'โทรแจ้งแล้ว', password: 'ตั้งรหัสผ่านใหม่', delete: 'ลบข้อมูล', purge: 'ลบประวัติ' };
+    contact: 'แก้ช่องทางติดต่อ', package: 'เปลี่ยนแพ็กเกจ', notice: 'โทรแจ้งแล้ว', password: 'ตั้งรหัสผ่านใหม่', delete: 'ลบข้อมูล', purge: 'ลบประวัติ' };
   function summary(action, d) {
     d = d || {};
     const parts = [];
@@ -282,6 +285,7 @@
     if (action === 'notice') parts.push(`ลบวันที่ ${th(d.removalOn)}`);
     if (action === 'new') parts.push(`${PKG[d.pkg] || d.pkg} ${KIND[d.kind] || d.kind} ${th(d.start)}–${th(d.end)} ผู้ใช้ ${d.user}`);
     if (action === 'password') parts.push(`ผู้ใช้ ${d.user}`);
+    if (action === 'package') parts.push(`${PKG[d.from] || d.from} → ${PKG[d.to] || d.to}`);
     if (d.contact && (action === 'contact' || action === 'open')) parts.push(`ติดต่อ: ${d.contact}`);
     if (d.note) parts.push(`หมายเหตุ: ${d.note}`);
     return parts.join(' · ');
@@ -314,6 +318,15 @@
           field('วันที่จ่ายเงิน', input('paidOn', { type: 'date', value: today, required: true }))),
         field('หมายเหตุ', input('note', { placeholder: 'เช่น เลขที่ใบเสร็จ หรือช่องทางที่จ่าย' })),
       ], async v => { await api(`shops/${encodeURIComponent(code)}`, { action: 'renew', ...v }); await done('ต่ออายุแล้ว')(); }],
+      /* BaziX ↔ ProX (owner 2026-11-20): the data and the licence's dates stay; back to BaziX only with one branch */
+      ...(s.package === 'biz' || s.package === 'prox' ? { package: [`เปลี่ยนเป็น ${s.package === 'biz' ? 'ProX' : 'Biz'}`, () => [
+        el('p', { class: 'help', text: 'ข้อมูลของร้านอยู่ครบ วันเริ่มและวันสุดท้ายเท่าเดิม (ส่วนต่างราคาตกลงกับร้านนอกระบบ) ทุกเครื่องที่เปิดร้านอยู่ต้องเข้าระบบใหม่' }),
+        s.package === 'prox' ? msg('warn', 'เปลี่ยนเป็น Biz ได้เฉพาะร้านที่มีสาขาเดียว') : null,
+        field('หมายเหตุ', input('note', { placeholder: 'เช่น ร้านขอเปลี่ยน จ่ายส่วนต่างแล้ว' })),
+      ], async v => {
+        const r = await api(`shops/${encodeURIComponent(code)}`, { action: 'package', to: s.package === 'biz' ? 'prox' : 'biz', note: v.note });
+        await done(`เปลี่ยนเป็น ${PKG[r.to] || r.to} แล้ว`)();
+      }] } : {}),
       postpone: ['เลื่อนวันลบข้อมูล', () => [
         el('p', { class: 'help', text: `วันลบตอนนี้ ${th(l?.deleteOn)} ใส่วันใหม่ หรือจำนวนวันที่เลื่อนออกไป อย่างใดอย่างหนึ่ง ร้านจะต้องถูกโทรแจ้งใหม่ 30 วันก่อนวันลบใหม่` }),
         el('div', { class: 'grid2' }, field('เลื่อนไปวันที่', input('to', { type: 'date' })), field('หรือเลื่อนออกไป (วัน)', input('days', { type: 'number', min: 1 }))),

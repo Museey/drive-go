@@ -13,7 +13,8 @@ import { signInBiz, signInFranchise, storeSecrets, userIdOf } from '../../server
 import { startSession } from '../../server/lib/session.ts';
 import { readMain } from '../../server/lib/storage.ts';
 import { PILOT_YEARS, TRIAL_DAYS, addDays, addYears, today } from '../../server/lib/licence.ts';
-import { openRealShop, resetPassword, temporaryPassword } from '../../server/lib/shop-open.ts';
+import { changePackage, openRealShop, resetPassword, temporaryPassword } from '../../server/lib/shop-open.ts';
+import { createShop, readFixture } from '../../server/lib/seed.ts';
 import { publicValue } from '../../server/lib/public.ts';
 
 let db, ownerPool, appPool;
@@ -150,3 +151,42 @@ describe('ข้อมูลก่อนเข้าระบบ (/api/public)',
   });
 });
 
+describe('เปลี่ยนแพ็กเกจ BaziX ↔ ProX (เครื่องมือทีมงาน, เจ้าของโปรเจกต์ 2026-11-20)', () => {
+  const rows = async shopId => JSON.stringify((await ownerPool.query(
+    'select branch_id, unit, key, data::text as d, version from records where shop_id = $1 order by 1, 2, 3', [shopId])).rows);
+  const licence = async shopId => (await ownerPool.query('select kind, starts_on, ends_on from licences where shop_id = $1', [shopId])).rows;
+  const pkg = async code => (await ownerPool.query('select package from shops where code = $1', [code])).rows[0].package;
+
+  test('Biz เป็น ProX: ข้อมูลและวันใช้งานเท่าเดิม เครื่องที่เข้าระบบอยู่ต้องเข้าใหม่ ลงประวัติ แล้วกลับเป็น Biz ได้เมื่อมีสาขาเดียว', async () => {
+    const data = readFixture(new URL('../fixtures/biz-trial.json', import.meta.url));
+    const { shopId } = await createShop(ownerPool, { code: 'pkg-1', pkg: 'biz', data, licence: { kind: 'pilot', start: '2026-10-01', end: '2027-09-30' } });
+    await asApp(shopId, async c => startSession(c, await userIdOf(c, { kind: 'owner', ref: '', branch: '' }), ''));
+    const before = await rows(shopId), dates = await licence(shopId);
+    assert.deepEqual(await changePackage(ownerPool, 'pkg-1', { to: 'prox', actor: 'staff-test', note: 'ร้านขออัปเกรด' }), { from: 'biz', to: 'prox', branches: 1 });
+    assert.equal(await pkg('pkg-1'), 'prox');
+    assert.equal(await rows(shopId), before, 'the data is untouched');
+    assert.deepEqual(await licence(shopId), dates, 'the licence keeps its dates');
+    assert.equal((await ownerPool.query('select count(*)::int as n from sessions where shop_id = $1', [shopId])).rows[0].n, 0);
+    // Back: refused with two branches (ProX may have more; BaziX has one), allowed with one.
+    const branch = (key, pos) => ownerPool.query(
+      "insert into records (shop_id, branch_id, unit, key, pos, data) values ($1, '', 'DB.branches', $2, $3, $4)", [shopId, key, pos, JSON.stringify({ id: key })]);
+    await branch('BR2', 99);   /* the trial data has its main branch */
+    await assert.rejects(changePackage(ownerPool, 'pkg-1', { to: 'biz', actor: 'staff-test' }), /has 2 branches: DriveGo BaziX has one/);
+    assert.equal(await pkg('pkg-1'), 'prox');
+    await ownerPool.query("delete from records where shop_id = $1 and unit = 'DB.branches' and key = 'BR2'", [shopId]);
+    assert.deepEqual(await changePackage(ownerPool, 'pkg-1', { to: 'biz', actor: 'staff-test' }), { from: 'prox', to: 'biz', branches: 1 });
+    const log = (await ownerPool.query("select actor, detail from licence_log where shop_id = $1 and action = 'package' order by id", [shopId])).rows;
+    assert.deepEqual(log.map(x => [x.actor, x.detail]), [
+      ['staff-test', { from: 'biz', to: 'prox', branches: 1, note: 'ร้านขออัปเกรด' }],
+      ['staff-test', { from: 'prox', to: 'biz', branches: 1, note: '' }]]);
+  });
+
+  test('ไม่เปลี่ยน: ร้านแฟรนไชส์ เป็นแพ็กเกจนั้นอยู่แล้ว แพ็กเกจที่ไม่ใช่ biz / prox', async () => {
+    await openRealShop(ownerPool, { ...garage, code: 'pkg-2' });
+    await openRealShop(ownerPool, { ...garage, pkg: 'franchise', code: 'pkg-3' });
+    await assert.rejects(changePackage(ownerPool, 'pkg-2', { to: 'biz', actor: 'staff-test' }), /pkg-2 is biz already/);
+    await assert.rejects(changePackage(ownerPool, 'pkg-2', { to: 'franchise', actor: 'staff-test' }), /^Error: package: biz or prox, not franchise/);
+    await assert.rejects(changePackage(ownerPool, 'pkg-3', { to: 'prox', actor: 'staff-test' }), /pkg-3 is a franchise chain/);
+    assert.deepEqual([await pkg('pkg-2'), await pkg('pkg-3')], ['biz', 'franchise']);
+  });
+});

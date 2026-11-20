@@ -4,7 +4,7 @@ import type pg from 'pg';
 import { withShop } from './db.ts';
 import { type ShopLicence, close, listShops, openLicence, postpone, recordNotice, renew, retentionDue, setContact, shopOf } from './licence-admin.ts';
 import { today } from './licence.ts';
-import { type Package, openRealShop, resetPassword } from './shop-open.ts';
+import { type Package, changePackage, openRealShop, resetPassword } from './shop-open.ts';
 
 type Body = Record<string, unknown>;
 const text = (v: unknown) => (v === undefined || v === null ? undefined : String(v).trim() || undefined);
@@ -68,6 +68,7 @@ export async function shopAction(db: pg.Pool, code: string, b: Body, actor: stri
     case 'close': return { licence: await close(db, code, { lastDay: text(b.lastDay), note, actor }) };
     case 'contact': return { licence: await setContact(db, code, { contact: text(b.contact) ?? '', actor }) };
     case 'told': return recordNotice(db, code, { note, actor });
+    case 'package': return changePackage(db, code, { to: text(b.to) ?? '', note, actor });
     default: throw bad(`no action ${String(b.action)}`);
   }
 }
