@@ -33,12 +33,14 @@ export async function POST(req: Request) {
     const userId = await userIdOf(c, s.account);
     if (!userId) return { error: WRONG };
     if (check) return { checked: true as const };
+    // A password DriveGo's team issued: the shop's page asks for one of the person's own first (0010_must_change.sql).
+    const mustChange = (await c.query<{ m: boolean }>('select must_change as m from users where id = $1', [userId])).rows[0]?.m === true;
     const started = await startSession(c, userId, s.scope);
     // Each person's own working branch (task 3.10, 10.7); a franchise branch's data has one branch of its own.
     if (s.account.kind === 'emp' && shop.package !== 'franchise') await startInHomeBranch(c, started.token, 'garage.v22', '', s.account.ref);
-    return { cookie: started.cookie };
+    return { cookie: started.cookie, mustChange };
   });
   if ('error' in r) return refused(r.error as string);
   if ('checked' in r) return json({ ok: true, package: shop.package });
-  return new Response(JSON.stringify({ ok: true }), { headers: { 'content-type': 'application/json', 'set-cookie': r.cookie } });
+  return new Response(JSON.stringify(r.mustChange ? { ok: true, mustChange: true } : { ok: true }), { headers: { 'content-type': 'application/json', 'set-cookie': r.cookie } });
 }

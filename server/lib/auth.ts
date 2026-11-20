@@ -168,8 +168,10 @@ export function accountOfSecret(unit: string, key: string, branch: string): { ac
 
 // Stores new passwords as hashes (the rows keep SECRET_PLACEHOLDER). A field
 // set to '' clears the hash. Returns the users whose password changed, so
-// their other sessions can be ended (decision Q2).
-export async function storeSecrets(c: pg.ClientBase, branch: string, secrets: { unit: string; key: string; field: string; value: string }[]): Promise<string[]> {
+// their other sessions can be ended (decision Q2). temporary: a password DriveGo's
+// team issued, to be replaced at the first sign-in (0010_must_change.sql); any
+// other password set clears that.
+export async function storeSecrets(c: pg.ClientBase, branch: string, secrets: { unit: string; key: string; field: string; value: string }[], temporary = false): Promise<string[]> {
   const changed: string[] = [];
   for (const s of secrets) {
     if (s.value === SECRET_PLACEHOLDER) continue;
@@ -178,9 +180,11 @@ export async function storeSecrets(c: pg.ClientBase, branch: string, secrets: { 
     const column = s.unit === 'DB.emp' && s.field === 'pin' ? 'pin_hash' : 'password_hash';
     const value = s.value === '' ? null : await hash(s.value);
     const { rows } = await c.query<{ id: string }>(
-      `insert into users (shop_id, branch_id, kind, ref, ${column}) values (app_shop(), $1, $2, $3, $4)
-       on conflict (shop_id, kind, ref) do update set ${column} = excluded.${column}, failed_logins = '{}', updated_at = now()
-       returning id`, [target.account.branch, target.account.kind, target.account.ref, value]);
+      `insert into users (shop_id, branch_id, kind, ref, ${column}, must_change) values (app_shop(), $1, $2, $3, $4, $5)
+       on conflict (shop_id, kind, ref) do update set ${column} = excluded.${column}, failed_logins = '{}', updated_at = now(),
+         must_change = case when $6 then excluded.must_change else users.must_change end
+       returning id`, [target.account.branch, target.account.kind, target.account.ref, value, temporary && column === 'password_hash',
+        column === 'password_hash']);
     changed.push(rows[0].id);
   }
   return changed;

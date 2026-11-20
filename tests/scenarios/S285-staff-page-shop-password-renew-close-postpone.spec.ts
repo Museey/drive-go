@@ -1,7 +1,7 @@
 import { test, expect } from '../support/test';
 import { LEGACY_ORIGIN } from '../support/config.mjs';
 import { legacyApp } from '../support/legacy-app.mjs';
-import { addTestStaff, appCode, openRealTestShop } from '../support/new-shop.mjs';
+import { addTestStaff, appCode, openRealTestShop, setOwnPassword } from '../support/new-shop.mjs';
 
 // New behaviour (owner 2026-11-09, docs/NOTES.md "หน้าเว็บของทีมงาน"): on the staff web page, what
 // tools/shop-admin.mjs password / renew / contact / close / postpone / told do, each written to the shop's log with
@@ -43,6 +43,7 @@ test('S285 ระบบใหม่: ทีมงานตั้งรหัส�
   expect(await owner.loginRefused(shop.user, shop.password)).toBe('รหัสผู้ใช้/อีเมล หรือรหัสผ่านไม่ถูกต้อง');
   await owner.login(shop.user, password);
   await expect(page.getByText('ยินดีต้อนรับ ขาว ใจเย็น — เจ้าของร้าน อู่ช่างขาว', { exact: true }).filter({ visible: true })).toBeVisible();
+  await setOwnPassword(page);   // a password DriveGo's team issued: replaced at the first sign-in (owner 2026-11-20)
   await owner.settle();
 
   // Back on the staff page in the same tab: the shop's page removed the staff sign-in, so it is asked again.

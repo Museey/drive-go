@@ -1,7 +1,7 @@
 import { test, expect } from '../support/test';
 import { LEGACY_ORIGIN } from '../support/config.mjs';
 import { legacyApp } from '../support/legacy-app.mjs';
-import { openRealTestShop } from '../support/new-shop.mjs';
+import { openRealTestShop, setOwnPassword } from '../support/new-shop.mjs';
 import { storageApi } from '../support/storage-api';
 
 // New behaviour (the owner's decision of 2026-10-30, NOTES.md "เอาส่วนของสำเนาทดสอบออกจากหน้าจอ"): the real system
@@ -36,6 +36,7 @@ test('S260 ระบบใหม่: ร้านจริงไม่มีแ�
   const real = legacyApp(page, { dataset: 'biz-trial', url: `${LEGACY_ORIGIN}/${shop.code}/`, restore: async () => {} });
   await real.open();
   await real.login(shop.user, shop.password);
+  await setOwnPassword(page);   // a password DriveGo's team issued: replaced at the first sign-in (owner 2026-11-20)
   await notShown(['สำเนาทดสอบแพ็กเกจ · ฐานข้อมูลแยกจากไฟล์ต้นฉบับ']);
   await page.getByRole('button', { name: /^10 ตั้งค่าองค์กร/ }).click();
   for (const b of sampleButtons()) await expect(b).toBeHidden();

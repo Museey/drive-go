@@ -1,7 +1,7 @@
 import { test, expect } from '../support/test';
 import { LEGACY_ORIGIN } from '../support/config.mjs';
 import { legacyApp } from '../support/legacy-app.mjs';
-import { addTestStaff, appCode } from '../support/new-shop.mjs';
+import { addTestStaff, appCode, setOwnPassword } from '../support/new-shop.mjs';
 
 // New behaviour (owner 2026-11-20, docs/NOTES.md "ลงทะเบียนทดลองใช้จากหน้าเว็บ"): the landing page's demo form became a
 // sign-up for a trial. A garage fills it in (what is missing is asked for, the consent must be ticked); the request
@@ -72,6 +72,26 @@ test('S474 ระบบใหม่: อู่กรอกฟอร์มลง�
   const owner = legacyApp(page, { dataset: 'prox-trial', url: `${LEGACY_ORIGIN}/${code}/`, restore: async () => {} });
   await owner.open();
   await owner.login(user, password);
+  // The password DriveGo's team issued is replaced at once (owner 2026-11-20): the window cannot be skipped.
+  const box = page.getByRole('dialog', { name: 'ตั้งรหัสผ่านใหม่ก่อนใช้งาน' });
+  await expect(box).toContainText('คุณเข้าระบบด้วยรหัสผ่านชั่วคราวจากทีมงาน DriveGo');
+  const p1 = box.getByLabel('รหัสผ่านใหม่ (อย่างน้อย 8 ตัวอักษร)'), p2 = box.getByLabel('พิมพ์รหัสผ่านใหม่อีกครั้ง'), save = box.getByRole('button', { name: 'บันทึกรหัสผ่านใหม่' });
+  await p1.fill('short'); await p2.fill('short'); await save.click();
+  await expect(box.getByRole('alert')).toHaveText('รหัสผ่านสั้นเกินไป — อย่างน้อย 8 ตัวอักษร');
+  await p1.fill('Somying#2569'); await p2.fill('Somying#2570'); await save.click();
+  await expect(box.getByRole('alert')).toHaveText('รหัสผ่านทั้งสองช่องไม่ตรงกัน');
+  await p1.fill(password); await p2.fill(password); await save.click();
+  await expect(box.getByRole('alert')).toHaveText('รหัสผ่านใหม่ต้องไม่ซ้ำกับรหัสผ่านชั่วคราว');
+  await page.keyboard.press('Escape');
+  await expect(box).toBeVisible();
+  const own = await setOwnPassword(page, 'Somying#2569');
+  // Signed out, the temporary password is refused and the new one opens the shop with no window.
+  await page.getByText('ออกจากระบบ', { exact: true }).filter({ visible: true }).first().click();   // ProX: at once (S101)
+  await page.getByPlaceholder('กรอกรหัสผ่าน').waitFor();
+  await owner.settle();
+  expect(await owner.loginRefused(user, password)).toBe('รหัสผู้ใช้/อีเมล หรือรหัสผ่านไม่ถูกต้อง');
+  await owner.login(user, own);
+  await expect(box).toHaveCount(0);
   await expect(page.getByText(`ยินดีต้อนรับ สมหญิง ทดลองดี — เจ้าของร้าน ${name}`, { exact: true }).filter({ visible: true })).toBeVisible();
   await owner.settle();
 });

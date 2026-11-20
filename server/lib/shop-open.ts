@@ -70,6 +70,8 @@ export async function openRealShop(db: pg.Pool, s: RealShop): Promise<{ shopId: 
   }
   const { shopId } = await createShop(db, { code, pkg: s.pkg, name, data: { store, localStorage: [] },
     licence: { kind: s.kind, start, end, contact: s.contact } });
+  // The owner's (HQ's) password is DriveGo's: replaced at the first sign-in (0010_must_change.sql).
+  await withShop(db, shopId, '*', c => c.query("update users set must_change = true where shop_id = app_shop() and kind in ('owner', 'fr')"));
   await withShop(db, shopId, '*', c => c.query('insert into licence_log (shop_id, shop_code, actor, action, detail) values ($1, $2, $3, $4, $5)',
     [shopId, code, s.actor, 'new', JSON.stringify({ pkg: s.pkg, kind: s.kind, start, end, name, owner, user, contact: s.contact ?? '' })]));
   return { shopId, user, password, start, end };
@@ -102,7 +104,7 @@ export async function resetPassword(db: pg.Pool, code: string, o: { user?: strin
       user = String(s.data.ownerUser ?? '');
       secret = { unit: 'DGB.shop', key: '', field: 'pass', value: password };
     }
-    const changed = await storeSecrets(c, '', [secret]);
+    const changed = await storeSecrets(c, '', [secret], true);
     await endStaleSessions(c, shop.package, null, changed);
     await c.query('insert into licence_log (shop_id, shop_code, actor, action, detail) values ($1, $2, $3, $4, $5)',
       [shop.id, shop.code, o.actor, 'password', JSON.stringify({ user })]);

@@ -9,7 +9,7 @@ import pg from 'pg';
 import { startTempPostgres } from '../../tools/pg-temp.mjs';
 import { migrate } from '../../server/db/migrate.ts';
 import { withShop } from '../../server/lib/db.ts';
-import { signInBiz, signInFranchise, userIdOf } from '../../server/lib/auth.ts';
+import { signInBiz, signInFranchise, storeSecrets, userIdOf } from '../../server/lib/auth.ts';
 import { startSession } from '../../server/lib/session.ts';
 import { readMain } from '../../server/lib/storage.ts';
 import { PILOT_YEARS, TRIAL_DAYS, addDays, addYears, today } from '../../server/lib/licence.ts';
@@ -120,6 +120,23 @@ describe('ลืมรหัสผ่าน (เครื่องมือท�
     const many = new Set(Array.from({ length: 200 }, () => temporaryPassword()));
     assert.equal(many.size, 200);
     for (const p of many) assert.doesNotMatch(p, /[0O1lI]/);
+  });
+});
+
+describe('รหัสที่ทีมงานออกให้ต้องเปลี่ยนตอนเข้าครั้งแรก (เจ้าของโปรเจกต์ 2026-11-20)', () => {
+  const mustChange = async (shopId, kind) => (await ownerPool.query('select must_change from users where shop_id = $1 and kind = $2', [shopId, kind])).rows.map(r => r.must_change);
+  test('เปิดร้านและตั้งรหัสใหม่ตอนลืม: ต้องเปลี่ยน · เจ้าของตั้งรหัสเองในโปรแกรม: หายไป · รหัสพนักงานที่เจ้าของตั้ง: ไม่ต้องเปลี่ยน', async () => {
+    const r = await openRealShop(ownerPool, { code: 'must-change', pkg: 'biz', kind: 'trial', name: 'อู่ต้องเปลี่ยน', owner: 'แดง', actor: 'test' });
+    assert.deepEqual(await mustChange(r.shopId, 'owner'), [true]);
+    await asApp(r.shopId, c => storeSecrets(c, '', [{ unit: 'DGB.shop', key: '', field: 'pass', value: 'my-own-pass-1' }]));
+    assert.deepEqual(await mustChange(r.shopId, 'owner'), [false]);
+    await resetPassword(ownerPool, 'must-change', { actor: 'test' });
+    assert.deepEqual(await mustChange(r.shopId, 'owner'), [true]);
+    await asApp(r.shopId, c => storeSecrets(c, '', [{ unit: 'DB.emp', key: 'E1', field: 'dgbPass', value: 'emp-pass-12' }]));
+    assert.deepEqual(await mustChange(r.shopId, 'emp'), [false]);
+    assert.deepEqual(await mustChange(r.shopId, 'owner'), [true], 'an employee\'s password leaves the owner\'s mark');
+    const f = await openRealShop(ownerPool, { code: 'must-change-fr', pkg: 'franchise', kind: 'trial', name: 'เครือต้องเปลี่ยน', owner: 'ดำ', actor: 'test' });
+    assert.deepEqual(await mustChange(f.shopId, 'fr'), [true]);
   });
 });
 

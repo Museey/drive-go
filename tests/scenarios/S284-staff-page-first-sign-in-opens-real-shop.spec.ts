@@ -1,7 +1,7 @@
 import { test, expect } from '../support/test';
 import { LEGACY_ORIGIN } from '../support/config.mjs';
 import { legacyApp } from '../support/legacy-app.mjs';
-import { addTestStaff, appCode, readTestShop } from '../support/new-shop.mjs';
+import { addTestStaff, appCode, readTestShop, setOwnPassword } from '../support/new-shop.mjs';
 
 // New behaviour (owner 2026-11-09: "ทำหน้าเว็บเลยครับ", docs/NOTES.md "หน้าเว็บของทีมงาน"): the staff web page at
 // /ops/ of the same app (owner's choice of 2026-11-11). A staff account added with tools/shop-admin.mjs staff add signs in the first
@@ -99,6 +99,7 @@ test('S284 ระบบใหม่: ทีมงานเข้าหน้า�
   await owner.open();
   await owner.login(user!, password);
   await expect(page.getByText('ยินดีต้อนรับ ดำ ขยัน — เจ้าของร้าน อู่ช่างดำ', { exact: true }).filter({ visible: true })).toBeVisible();
+  await setOwnPassword(page);   // a password DriveGo's team issued: replaced at the first sign-in (owner 2026-11-20)
   await owner.settle();
   expect((await readTestShop(code)).shop).toMatchObject({ name: 'อู่ช่างดำ', person: 'ดำ ขยัน', tax: '0105545009876', tel: '089-765-4321' });
 });

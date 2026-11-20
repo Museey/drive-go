@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test';
 import { test, expect } from '../support/test';
 import { LEGACY_ORIGIN } from '../support/config.mjs';
 import { legacyApp } from '../support/legacy-app.mjs';
-import { openRealTestShop, resetTestPassword } from '../support/new-shop.mjs';
+import { openRealTestShop, resetTestPassword, setOwnPassword } from '../support/new-shop.mjs';
 
 // New behaviour (LAUNCH-CHECKLIST stage 2, decision P3): DriveGo's staff open a real franchise chain with
 // tools/shop-admin.mjs new --franchise — no branches and no sample data, only the HQ account (hq) with a temporary
@@ -23,6 +23,7 @@ test('S259 ระบบใหม่: ทีมงานเปิดเครื�
   const real = legacyApp(page, { dataset: 'franchise-trial', url: `${LEGACY_ORIGIN}/${chain.code}/`, restore: async () => {} });
   await real.open();
   await real.login(chain.user, chain.password);
+  await setOwnPassword(page);   // a password DriveGo's team issued: replaced at the first sign-in (owner 2026-11-20)
 
   // No branch yet: HQ adds the first one, with its head's account.
   await page.getByRole('button', { name: '🏬 สาขา · รหัสผู้ใช้ · สิทธิ' }).click();
@@ -51,5 +52,6 @@ test('S259 ระบบใหม่: ทีมงานเปิดเครื�
   expect(reset.user).toBe('hq');
   expect(await real.loginRefused('hq', chain.password)).toBe('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
   await real.login('hq', reset.password);
+  await setOwnPassword(page);   // a password DriveGo's team issued: replaced at the first sign-in (owner 2026-11-20)
   await expect(page.getByRole('button', { name: '🏬 สาขา · รหัสผู้ใช้ · สิทธิ' })).toBeVisible();
 });

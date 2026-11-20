@@ -75,6 +75,7 @@
 - **ลงทะเบียนทดลองใช้จากหน้าเว็บ (2026-11-20, session หน้าเว็บ)**: ทำแล้ว (signups 0009, lib/signup.ts mail.ts, api/signup, api/ops/signups,
   staff.js "คำขอลงทะเบียน", ฟอร์มใน index.html + landing-from-design.py, S474, tests/db/signup.test.mjs) · ข้อความอนุมัติแล้ว 2026-11-20 · รอเจ้าของ:
   ตั้ง Resend + RESEND_API_KEY (DIGITALOCEAN-SETUP ส่วนที่ 6)
+  · บังคับตั้งรหัสผ่านใหม่ตอนเข้าครั้งแรก (users.must_change 0010, 81-first-password.js, setOwnPassword ใน test) ทำแล้ว ข้อความอนุมัติแล้ว 2026-11-20
 
 - **หน้าเข้าระบบตามแบบของทีม (2026-11-19, session หน้าเว็บ)**: /login ใช้หน้าของแบบแล้ว (login.html login.js + login.css จาก
   tools/subpages-from-design.py + login-form.css), หน้าแรก/หน้าย่อยเทียบแล้วตรงแบบ · เจ้าของตอบ: EN อนุมัติ, ปิด Cloudflare

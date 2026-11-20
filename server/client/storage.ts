@@ -399,16 +399,17 @@ const storage = {
 
   // Signs in at this shop. The server decides, with the legacy app's rules and
   // messages; on success everything is read again, now with the shop's data.
-  async signIn(user: string, pass: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  // mustChange: the password is a temporary one from DriveGo's team, to be replaced now (frontend/js/81-first-password.js).
+  async signIn(user: string, pass: string): Promise<{ ok: true; mustChange?: boolean } | { ok: false; error: string }> {
     await queue;
     const r = await send('/api/auth/login', {
       method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ code: SHOP, user, pass }),
     }, false);
-    const body = await r.json().catch(() => ({})) as { error?: string };
+    const body = await r.json().catch(() => ({})) as { error?: string; mustChange?: boolean };
     if (!r.ok) return { ok: false, error: body.error || 'เข้าสู่ระบบไม่สำเร็จ' };
     signedIn = true;
     mains.clear();
-    return { ok: true };
+    return body.mustChange ? { ok: true, mustChange: true } : { ok: true };
   },
 
   // Ends the session once the app's own saves are done.

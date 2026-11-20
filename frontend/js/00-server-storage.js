@@ -1219,6 +1219,7 @@
     },
     // Signs in at this shop. The server decides, with the legacy app's rules and
     // messages; on success everything is read again, now with the shop's data.
+    // mustChange: the password is a temporary one from DriveGo's team, to be replaced now (frontend/js/81-first-password.js).
     async signIn(user, pass) {
       await queue;
       const r = await send("/api/auth/login", {
@@ -1230,7 +1231,7 @@
       if (!r.ok) return { ok: false, error: body.error || "เข้าสู่ระบบไม่สำเร็จ" };
       signedIn = true;
       mains.clear();
-      return { ok: true };
+      return body.mustChange ? { ok: true, mustChange: true } : { ok: true };
     },
     // Ends the session once the app's own saves are done.
     async signOut() {

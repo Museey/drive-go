@@ -1,7 +1,7 @@
 import { test, expect } from '../support/test';
 import { LEGACY_ORIGIN } from '../support/config.mjs';
 import { legacyApp } from '../support/legacy-app.mjs';
-import { openRealTestShop, readTestShop, resetTestPassword } from '../support/new-shop.mjs';
+import { openRealTestShop, readTestShop, resetTestPassword, setOwnPassword } from '../support/new-shop.mjs';
 
 // New behaviour (LAUNCH-CHECKLIST stage 2, decision P3: staff open shops, there is no sign-up page): DriveGo's staff
 // open a real garage with tools/shop-admin.mjs new — an empty shop (no sample data) with its owner's account and a
@@ -19,6 +19,7 @@ test('S258 ระบบใหม่: ทีมงานเปิดร้าน�
   await real.open();
   await real.login(shop.user, shop.password);
   await expect(page.getByText('ยินดีต้อนรับ แดง ใจดี — เจ้าของร้าน อู่ช่างแดง', { exact: true }).filter({ visible: true })).toBeVisible();
+  await setOwnPassword(page);   // a password DriveGo's team issued: replaced at the first sign-in (owner 2026-11-20)
   await real.settle();
   const data = await readTestShop(shop.code);
   for (const list of ['cust', 'stock', 'quotes', 'receipts', 'stockCuts', 'purchases', 'expenses', 'emp']) expect(data[list], list).toEqual([]);
@@ -38,4 +39,5 @@ test('S258 ระบบใหม่: ทีมงานเปิดร้าน�
   expect(await real.loginRefused(shop.user, shop.password)).toBe('รหัสผู้ใช้/อีเมล หรือรหัสผ่านไม่ถูกต้อง');
   await real.login(shop.user, reset.password);
   await expect(page.getByText('ยินดีต้อนรับ แดง ใจดี — เจ้าของร้าน อู่ช่างแดง', { exact: true }).filter({ visible: true })).toBeVisible();
+  await setOwnPassword(page);   // a password DriveGo's team issued: replaced at the first sign-in (owner 2026-11-20)
 });

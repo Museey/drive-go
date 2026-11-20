@@ -94,3 +94,14 @@ export async function openTestShopWith(dataset, change) {
   await createShop(pool, { code, pkg, data });
   return { code };
 }
+
+// A password DriveGo's team issued is replaced at the first sign-in (owner 2026-11-20, frontend/js/81-first-password.js):
+// the window that cannot be closed, filled in as a person would. Returns the new password.
+export async function setOwnPassword(page, pass = 'Own#Pass2569') {
+  const box = page.getByRole('dialog', { name: 'ตั้งรหัสผ่านใหม่ก่อนใช้งาน' });
+  await box.getByLabel('รหัสผ่านใหม่ (อย่างน้อย 8 ตัวอักษร)').fill(pass);
+  await box.getByLabel('พิมพ์รหัสผ่านใหม่อีกครั้ง').fill(pass);
+  await box.getByRole('button', { name: 'บันทึกรหัสผ่านใหม่' }).click();
+  await box.waitFor({ state: 'detached' });
+  return pass;
+}

@@ -1,7 +1,7 @@
 import { test, expect } from '../support/test';
 import { LEGACY_ORIGIN } from '../support/config.mjs';
 import { legacyApp } from '../support/legacy-app.mjs';
-import { openRealTestShop } from '../support/new-shop.mjs';
+import { openRealTestShop, setOwnPassword } from '../support/new-shop.mjs';
 import { storageApi } from '../support/storage-api';
 
 // New behaviour (team's check of 2026-11-18, the owner's decision of 2026-11-19, decision A1): the legacy file's
@@ -40,6 +40,7 @@ test('S468 ระบบใหม่: ลิงก์ของสำเนาท�
   await real.open('freshTrial=1');
   expect(new URL(page.url()).searchParams.has('freshTrial')).toBe(false);
   await real.login(shop.user, shop.password);
+  await setOwnPassword(page);   // a password DriveGo's team issued: replaced at the first sign-in (owner 2026-11-20)
   const read = async () => (await api.read('garage.v22')).data as { shop: { name: string }; stock: unknown[]; cust: unknown[]; emp: unknown[] };
   const was = await read();
   expect(await page.evaluate('[seedDemoNow(), seedDemo36Now(), seedDemo(), seedDemo36()]')).toEqual([false, false, false, false]);
