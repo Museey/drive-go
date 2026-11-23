@@ -17,6 +17,8 @@ const MiB = 1024 * 1024;
 export const limitOf = (mime: string) => (/^video\//i.test(mime) ? 15 : 5) * MiB;
 // Space of a shop, of each franchise branch (HQ counts as one), 11.2–11.3.
 export const QUOTA = 2 * 1024 * MiB;
+// How far accounting evidence may go past QUOTA (files.ts storeFile; SECURITY-AUDIT-2026-11 ก2).
+export const EVIDENCE_EXTRA = 1024 * MiB;
 
 // Units whose data: URLs stay in the data: the shop logo, which the printed
 // documents draw 80 ms after building the page (owner's answers, "พฤติกรรมที่เปลี่ยน").

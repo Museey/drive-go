@@ -3,16 +3,20 @@
 // with a password (as in the control panel), then the pre-deploy job twice (the schema and the demo shops, then nothing
 // left to do) and the web container: health, a shop's page, signing in; then the staff tool opens a real shop and
 // gives its owner a new password (docs/STAFF-TOOLS.md), and the owner signs in; the scheduled jobs (tools/nightly.mjs,
-// tools/watch.mjs) and a page's error reaching the errors table; the staff web page at /ops (with STAFF_DATABASE_URL).
+// tools/watch.mjs, tools/backup-offsite.mjs) and a page's error reaching the errors table; the staff web page at /ops
+// (with STAFF_DATABASE_URL).
 // Used by CI before the deploy branch moves.
 //
 //   docker build -t drivego:smoke . && node tools/image-smoke.mjs [image]
-import { execFileSync, spawnSync } from 'node:child_process';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
+import { createHash, generateKeyPairSync } from 'node:crypto';
+import { createServer } from 'node:http';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import pg from 'pg';
 import { startTempPostgres } from './pg-temp.mjs';
+import { openCopy } from '../server/lib/offsite.ts';
 
 const image = process.argv[2] || 'drivego:smoke';
 const PORT = 18080, STAFF_PORT = 18081;
@@ -143,6 +147,42 @@ try {
   if (check.status !== 0 || !/^ร้าน \d+$/m.test(check.stdout) || !/^ {2}demo-biz /m.test(check.stdout) || !/"อู่ทดสอบ image": /.test(check.stdout)
     || /postgres(ql)?:\/\//.test(check.stdout)) fail(`restore-check:\n${check.stdout}${check.stderr}`);
   say('restore check: counts per shop over TLS as the owner, the drill\'s marker searched, no connection string printed');
+
+  // The off-site copy (.do/app.yaml job offsite, docs/OFFSITE-BACKUP.md) as App Platform runs it: not set up, it ends with
+  // 3 (the team is alerted); set up, it copies every shop over TLS as the owner, sealed with the team's public key, and
+  // uploads it to the bucket (here a local stand-in on the host's network, run while the container works), signed as
+  // S3 expects; the private key opens it.
+  const notSet = docker(['run', '--rm', '--network', 'host', '-e', `MIGRATE_DATABASE_URL=${owner}`, '-e', 'DATABASE_CA_CERT', image, 'node', 'tools/backup-offsite.mjs']);
+  if (notSet.status !== 3 || !/^STAFF ACTION NEEDED: the off-site copy is not set up/m.test(notSet.stdout)) fail(`offsite (not set up):\n${notSet.stdout}${notSet.stderr}`);
+  const pair = generateKeyPairSync('rsa', { modulusLength: 3072, publicKeyEncoding: { type: 'spki', format: 'pem' }, privateKeyEncoding: { type: 'pkcs8', format: 'pem' } });
+  let put = null;
+  const bucket = createServer((req, res) => {
+    const parts = [];
+    req.on('data', d => parts.push(d));
+    req.on('end', () => { put = { url: req.url, headers: req.headers, body: Buffer.concat(parts) }; res.writeHead(200).end(); });
+  });
+  await new Promise(r => bucket.listen(0, '127.0.0.1', r));
+  try {
+    const env = { BACKUP_PUBLIC_KEY: Buffer.from(pair.publicKey).toString('base64'), BACKUP_S3_ENDPOINT: `http://127.0.0.1:${bucket.address().port}`,
+      BACKUP_S3_REGION: 'us-west-004', BACKUP_S3_BUCKET: 'smoke-copies', BACKUP_S3_KEY_ID: 'smoke-key', BACKUP_S3_SECRET: 'smoke-secret' };
+    const copied = await new Promise(resolve => {
+      const p = spawn('docker', ['run', '--rm', '--network', 'host', '-e', `MIGRATE_DATABASE_URL=${owner}`, '-e', 'DATABASE_CA_CERT',
+        ...Object.keys(env).flatMap(k => ['-e', k]), image, 'node', 'tools/backup-offsite.mjs'], { env: { ...process.env, ...env } });
+      let stdout = '', stderr = '';
+      p.stdout.on('data', d => { stdout += d; });
+      p.stderr.on('data', d => { stderr += d; });
+      p.on('close', status => resolve({ status, stdout, stderr }));
+    });
+    if (copied.status !== 0 || !/^uploaded: smoke-copies\/drivego\/\d{4}-\d{2}-\d{2}T\d{4}\.dgbk/m.test(copied.stdout) || !put
+      || !/^\/smoke-copies\/drivego\//.test(put.url) || !/^AWS4-HMAC-SHA256 Credential=smoke-key\//.test(put.headers.authorization ?? '')
+      || put.headers['x-amz-content-sha256'] !== createHash('sha256').update(put.body).digest('hex')) fail(`offsite:\n${copied.stdout}${copied.stderr}`);
+    if (put.body.includes(Buffer.from('demo-biz'))) fail('offsite: the copy is not sealed');
+    writeFileSync(join(dir, 'copy.dgbk'), put.body);
+    const shops = [];
+    for await (const line of openCopy(join(dir, 'copy.dgbk'), pair.privateKey)) if (line.startsWith('shops\t')) shops.push(JSON.parse(line.slice(6)).code);
+    if (!shops.includes('demo-biz') || !shops.includes('smoke-real')) fail(`offsite: shops in the copy: ${shops.join(', ')}`);
+  } finally { bucket.close(); }
+  say('off-site copy: not set up ends with 3; set up, every shop sealed and uploaded signed, opened with the private key');
 
   // Security review (docs/SECURITY-REVIEW.md): the headers on every answer, and nothing personal before signing in.
   const shopPage = await fetchAgain(`${base}/demo-biz/`);

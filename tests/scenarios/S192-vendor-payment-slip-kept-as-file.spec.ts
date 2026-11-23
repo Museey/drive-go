@@ -39,8 +39,9 @@ test('S192 ระบบใหม่: แนบสลิปตอนชำระ�
   await page.getByRole('button', { name: 'แนบสลิป' }).click();
   await (await chooser).setFiles('tests/assets/S192-transfer-slip.png');
   const viewer = page.locator('#pkgStView');
+  // The picture is put in once it is shrunk: wait for it (read at once, it was sometimes not there yet).
+  await expect(viewer.locator('img').first()).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
   const shown = await viewer.locator('img').first().getAttribute('src');
-  expect(shown).toMatch(/^data:image\/jpeg;base64,/);
   await viewer.getByRole('button', { name: 'ปิด' }).click();
 
   await page.getByRole('button', { name: 'บันทึกจ่ายชำระ' }).click();

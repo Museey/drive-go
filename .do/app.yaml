@@ -7,12 +7,17 @@
 #   36-month data, which took up to 711 MB with 15 devices opening the program at once (docs/LOAD-TEST.md).
 #   The staff web page is its /ops/ (docs/STAFF-TOOLS.md): on once the web component has the secret STAFF_DATABASE_URL, the
 #   connection string of the user drivego_staff, typed in the control panel (docs/DIGITALOCEAN-SETUP.md part 4), never here.
-# · migrate: runs before every deploy (PRE_DEPLOY) as the database owner: the schema, and the demo shops while the
-#   database has none (SEED_DEMO_SHOPS: a test server only). If it fails, the deploy stops and the running version stays.
+# · migrate: runs before every deploy (PRE_DEPLOY) as the database owner: the schema. (SEED_DEMO_SHOPS=1 also opened the
+#   demo shops in an empty database; taken out 2026-11-23, SECURITY-AUDIT-2026-11 ก3: real garages share this server and
+#   the demo passwords are public.) If it fails, the deploy stops and the running version stays.
 #   Its MIGRATE_DATABASE_URL (the connection string of doadmin) is a secret typed in the control panel, never here.
 # · nightly: each night at 03:17 Bangkok time, the data removals that are due and the deleted attachments
 #   (tools/nightly.mjs, docs/STAFF-TOOLS.md). As the database owner too (its own MIGRATE_DATABASE_URL secret). It never
 #   tells a shop itself: shops staff must call end the run with status 3, so JOB_INVOCATION_FAILED e-mails the team.
+# · offsite: each night at 02:47 Bangkok time, a copy of the whole database sealed with the team's public key, uploaded
+#   to a bucket outside DigitalOcean (tools/backup-offsite.mjs, docs/OFFSITE-BACKUP.md; SECURITY-AUDIT-2026-11 ก6). Its
+#   MIGRATE_DATABASE_URL, BACKUP_PUBLIC_KEY and BACKUP_S3_* are typed in the control panel (the key id and secret as
+#   secrets), never here; until they are, each run ends with status 3 (JOB_INVOCATION_FAILED e-mails the team).
 # · watch: each hour, the errors of the server and of the browsers recorded since (tools/watch.mjs): a server error
 #   or many browser errors end the run with status 3, so JOB_INVOCATION_FAILED e-mails the team. Owner role (secret).
 # · web alerts: the app restarting again and again (more than once in 5 minutes), or memory or CPU above 85% for
@@ -84,9 +89,6 @@ jobs:
       - key: DATABASE_CA_CERT
         scope: RUN_TIME
         value: ${db.CA_CERT}
-      - key: SEED_DEMO_SHOPS
-        scope: RUN_TIME
-        value: "1"
   - name: nightly
     kind: SCHEDULED
     schedule:
@@ -100,6 +102,25 @@ jobs:
     source_dir: /
     dockerfile_path: Dockerfile
     run_command: node tools/nightly.mjs
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    instance_count: 1
+    envs:
+      - key: DATABASE_CA_CERT
+        scope: RUN_TIME
+        value: ${db.CA_CERT}
+  - name: offsite
+    kind: SCHEDULED
+    schedule:
+      cron: "47 2 * * *"
+      time_zone: Asia/Bangkok
+    timeout: 1800s
+    github:
+      repo: Museey/drive-go
+      branch: deploy/test
+      deploy_on_push: true
+    source_dir: /
+    dockerfile_path: Dockerfile
+    run_command: node tools/backup-offsite.mjs
     instance_size_slug: apps-s-1vcpu-0.5gb
     instance_count: 1
     envs:

@@ -6,7 +6,7 @@
 // shop and branch scope (0004_files.sql), and each query names the shop too.
 import type pg from 'pg';
 import { createHash } from 'node:crypto';
-import { FILE_PATH, INLINE_UNITS, QUOTA, type Use, dataUrlsIn, limitOf, linkOf, linksIn, mightHoldDataUrl, parseDataUrl, replaceStrings, useOf } from './attachments.ts';
+import { EVIDENCE_EXTRA, FILE_PATH, INLINE_UNITS, QUOTA, type Use, dataUrlsIn, limitOf, linkOf, linksIn, mightHoldDataUrl, parseDataUrl, replaceStrings, useOf } from './attachments.ts';
 import type { Changes, Row } from './units.ts';
 
 export const KEEP_DAYS = 30;                 // a deleted file can be restored this long (R19-ค)
@@ -75,6 +75,9 @@ export async function storeFile(c: pg.ClientBase, branch: string,
   const u = await usage(c, branch);
   if (rows.length && !rows[0].deleted) return { ok: true, id, url: linkOf(id), ...u };
   if (f.use !== 'evidence' && u.used + f.bytes.length > QUOTA) return { ok: false, error: 'quota', limit: QUOTA };
+  // Accounting evidence goes past the space (11.2), up to EVIDENCE_EXTRA more: the browser says what an upload is for,
+  // so without a ceiling one account could fill the database every shop shares (SECURITY-AUDIT-2026-11 ก2).
+  if (u.used + f.bytes.length > QUOTA + EVIDENCE_EXTRA) return { ok: false, error: 'quota', limit: QUOTA };
   if (rows.length) {
     // Deleted, waiting out its 30 days (or kept for a backup point): it is in use again.
     await c.query('update files set deleted_at = null, created_at = now() where shop_id = app_shop() and branch_id = $1 and id = $2', [branch, id]);

@@ -39,6 +39,19 @@ RULES['DB.fifo'] = GROUP;
 // DB.curBranch: the branch each person works in (task 3.10, answer 10.7), so one person changing branch moves nobody else.
 for (const u of ['DB.curEmp', 'DB.curBranch', 'FR.session', 'DGB.session']) RULES[u] = SESSION;
 
+// The kinds a field of a layout may have (SECURITY-AUDIT-2026-11 ก4, lib/save-guard.ts): what split() writes for it,
+// or 'D' when its value is not of the expected shape (split's fallback). 'G' = a nested layout.
+export function kindsOf(unit: string): string[] {
+  const rule = RULES[unit];
+  if (rule === SESSION) return ['S'];
+  if (rule === GROUP) return ['G', 'D'];
+  if (rule === LIST) return ['L', 'D'];
+  if (rule === BY_CODE) return ['K', 'D'];
+  if (rule === MAP) return ['M', 'D'];
+  return ['D'];
+}
+export const SESSION_UNITS = (root: Root) => Object.keys(RULES).filter(u => RULES[u] === SESSION && u.startsWith(`${root}.`));
+
 // Value of a session field when nobody is signed in (as the legacy app starts).
 export const SESSION_DEFAULTS: Record<string, string> = {
   'DB.curEmp': '""',

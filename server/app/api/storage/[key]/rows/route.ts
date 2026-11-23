@@ -4,6 +4,7 @@
 //     -> { rows: [{ unit, key, data, version }], gone: [[unit, key]], order: { unit: [key, …] } }
 // With what the person may not see left out (task 3.9), like GET /api/storage/<key>.
 import { inShop, json, readJson } from '@/lib/api';
+import { getSession } from '@/lib/session';
 import { actorOf, rightsOf } from '@/lib/permissions';
 import { branchOfKey, inScope, readRows } from '@/lib/storage';
 import { rootOf } from '@/lib/units';
@@ -18,6 +19,7 @@ type Ctx = { params: Promise<{ key: string }> };
 export async function POST(req: Request, ctx: Ctx) {
   const { key } = await ctx.params;
   if (!rootOf(key)) return json({ error: 'not a main data key' }, 400);
+  if (!await getSession(req)) return json({ error: 'signed-out' }, 401);   // before the body is read (SECURITY-AUDIT ก1)
   const body = await readJson<{ rows?: unknown; ordered?: unknown }>(req, 4 * 1024 * 1024);
   if (body instanceof Response) return body;
   const rows = Array.isArray(body?.rows) ? body!.rows.filter((r): r is [string, string] =>

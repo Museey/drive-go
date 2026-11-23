@@ -6,8 +6,8 @@ import pg from 'pg';
 import { startTempPostgres } from '../../tools/pg-temp.mjs';
 import { migrate } from '../../server/db/migrate.ts';
 import { createShop, readFixture } from '../../server/lib/seed.ts';
-import { allowReport, pathOnly, recordError } from '../../server/lib/errors.ts';
-import { BROWSER_ALERT, watch } from '../../server/lib/watch.ts';
+import { allowReport, allowServerError, pathOnly, recordError } from '../../server/lib/errors.ts';
+import { BROWSER_ALERT, DB_ALERT, watch } from '../../server/lib/watch.ts';
 import { nightly } from '../../server/lib/nightly.ts';
 import { carryOut, retentionDue } from '../../server/lib/licence-admin.ts';
 
@@ -59,6 +59,16 @@ describe('บันทึกข้อผิดพลาด', () => {
     for (let i = 0; i < 400; i++) if (allowReport(`a:${i}`, t + 120_000)) all++;
     assert.equal(all, 300);
   });
+  test('ข้อผิดพลาดของ server: ข้อความเดียวกันจดได้ 3 ครั้งต่อนาที รวมไม่เกิน 60 ครั้งต่อนาที (SECURITY-AUDIT-2026-11 ก2)', () => {
+    const t = Date.UTC(2026, 10, 23, 1, 0, 0);
+    let same = 0;
+    for (let i = 0; i < 1000; i++) if (allowServerError('POST /api/storage/[key]: boom', t)) same++;
+    assert.equal(same, 3);
+    let all = 0;
+    for (let i = 0; i < 200; i++) if (allowServerError(`GET /x: ${i}`, t + 60_000)) all++;
+    assert.equal(all, 60);
+    assert.equal(allowServerError('POST /api/storage/[key]: boom', t + 120_000), true);   // the next minute
+  });
 });
 
 describe('งานรายชั่วโมง (watch)', () => {
@@ -84,6 +94,15 @@ describe('งานรายชั่วโมง (watch)', () => {
     for (let i = 0; i < BROWSER_ALERT; i++) await recordError(appPool, { source: 'browser', shopId: s.shopId, message: `e${i % 2}` });
     w = await watch(ownerPool);
     assert.deepEqual([w.browser, w.alert, w.seen.length], [BROWSER_ALERT, true, 2]);
+  });
+  test('ฐานข้อมูลใช้พื้นที่เกิน 70% ของดิสก์ (DB_DISK_GB) แจ้งเตือน (SECURITY-AUDIT-2026-11 ก2)', async () => {
+    let w = await watch(ownerPool);
+    assert.ok(w.dbBytes > 0);
+    assert.deepEqual([w.dbFull, w.alert], [false, false]);
+    const was = process.env.DB_DISK_GB;
+    process.env.DB_DISK_GB = String((w.dbBytes / 1024 ** 3) / DB_ALERT * 0.9);   // a disk this database fills 90% of 70%
+    try { w = await watch(ownerPool); } finally { if (was === undefined) delete process.env.DB_DISK_GB; else process.env.DB_DISK_GB = was; }
+    assert.deepEqual([w.dbFull, w.alert, w.server], [true, true, 0]);
   });
 });
 

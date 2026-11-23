@@ -10,36 +10,9 @@ import { parseArgs } from 'node:util';
 import pg from 'pg';
 import { pgConfig } from '../server/lib/pg-config.ts';
 import { fingerprint } from '../server/lib/fingerprint.ts';
+import { askHidden } from './ask-hidden.mjs';
 
 const { values } = parseArgs({ options: { marker: { type: 'string' }, json: { type: 'boolean' } } });
-
-// A line typed without showing it (the connection string has the owner's password).
-function askHidden(question) {
-  return new Promise((resolve, reject) => {
-    const input = process.stdin;
-    process.stdout.write(question);
-    if (!input.isTTY) {
-      let text = '';
-      input.setEncoding('utf8');
-      input.on('data', d => { text += d; const i = text.indexOf('\n'); if (i >= 0) { input.pause(); resolve(text.slice(0, i).trim()); } });
-      input.on('end', () => resolve(text.trim()));
-      return;
-    }
-    let text = '';
-    input.setRawMode(true);
-    input.resume();
-    input.setEncoding('utf8');
-    const done = v => { input.setRawMode(false); input.pause(); input.removeListener('data', on); process.stdout.write('\n'); v instanceof Error ? reject(v) : resolve(v.trim()); };
-    const on = ch => {
-      for (const c of ch) {
-        if (c === '\r' || c === '\n') return done(text);
-        if (c === '\u0003') return done(new Error('cancelled'));
-        if (c === '\u007f' || c === '\b') text = text.slice(0, -1); else text += c;
-      }
-    };
-    input.on('data', on);
-  });
-}
 
 const url = process.env.MIGRATE_DATABASE_URL || await askHidden('ข้อความเชื่อมต่อของ doadmin (วางแล้วกด Enter, จะไม่แสดงบนจอ): ');
 if (!/^postgres(ql)?:\/\//.test(url)) { console.error('ไม่ใช่ข้อความเชื่อมต่อ (ต้องขึ้นต้นด้วย postgresql://)'); process.exit(2); }

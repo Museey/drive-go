@@ -21,13 +21,26 @@ const CHECK_MS = 30_000;       // the session is also checked after every save o
 const SLACK = 100;             // saves commit out of id order now and then: look back this far after a gap
 const MAX_CATCH_UP = 500;      // more than this missed: read the data again
 const RIGHTS_UNITS = new Set(['DB.emp', 'FR.accounts']);
+// Open streams per session and per shop on this server (security review 2026-11-23, SECURITY-AUDIT ก1/ก3: 2,000 streams
+// from one signed-in session ran the 512 MB server out of memory). A device has one per tab; a shop a few devices.
+const MAX_PER_SESSION = 10, MAX_PER_SHOP = 100;
+const perSession = new Map<string, number>(), perShop = new Map<string, number>();
+const take = (m: Map<string, number>, k: string) => m.set(k, (m.get(k) ?? 0) + 1);
+const give = (m: Map<string, number>, k: string) => { const n = (m.get(k) ?? 1) - 1; if (n > 0) m.set(k, n); else m.delete(k); };
 
 export async function GET(req: Request) {
   const s = await getSession(req);
   if (!s) return json({ error: 'signed-out' }, 401);
+  const mine = s.tokenHash.toString('hex');
+  if ((perSession.get(mine) ?? 0) >= MAX_PER_SESSION || (perShop.get(s.shopId) ?? 0) >= MAX_PER_SHOP)
+    return json({ error: 'too many' }, 429);
+  take(perSession, mine); take(perShop, s.shopId);
+  let counted = true;
+  const uncount = () => { if (!counted) return; counted = false; give(perSession, mine); give(perShop, s.shopId); };
   const since = Math.max(0, Number(new URL(req.url).searchParams.get('since')) || 0);
   const rights = async () => withShop(pool(), s.shopId, s.scope, async c => JSON.stringify(await rightsOf(c, await actorOf(c, s))));
-  const startRights = await rights();
+  let startRights: string;
+  try { startRights = await rights(); } catch (e) { uncount(); throw e; }
   const enc = new TextEncoder();
   let end = () => {};
   const stream = new ReadableStream<Uint8Array>({
@@ -71,7 +84,7 @@ export async function GET(req: Request) {
       end = () => {
         if (!open) return;
         open = false;
-        clearInterval(ping); clearInterval(slow); unsubscribe();
+        clearInterval(ping); clearInterval(slow); unsubscribe(); uncount();
         try { ctrl.close(); } catch { /* already closed */ }
       };
       req.signal.addEventListener('abort', () => end());

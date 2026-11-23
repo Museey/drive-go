@@ -7,8 +7,10 @@ export const onRequestError: Instrumentation.onRequestError = async (error, requ
   if (process.env.NEXT_RUNTIME !== 'nodejs') return;
   // Recording must never fail the request a second time nor hide the first error.
   try {
-    const [{ pool }, { recordError }, { getSession }, { getStaffSession }] = await Promise.all([
+    const [{ pool }, { recordError, allowServerError }, { getSession }, { getStaffSession }] = await Promise.all([
       import('@/lib/db'), import('@/lib/errors'), import('@/lib/session'), import('@/lib/staff')]);
+    // A ceiling, so that failing requests sent on purpose cannot fill the table (lib/errors.ts).
+    if (!allowServerError(`${request.method} ${context.routePath}: ${(error as { message?: string })?.message ?? String(error)}`)) return;
     const headers = new Headers();
     for (const [k, v] of Object.entries(request.headers)) if (v !== undefined) headers.set(k, Array.isArray(v) ? v.join(', ') : v);
     const req = new Request(new URL(request.path, 'http://app'), { headers });

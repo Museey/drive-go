@@ -14,15 +14,18 @@ import type { Claims } from '@/lib/numbers';
 import { actorOf, refuseRemoveKey, refuseSave, rightsOf, traceWrite } from '@/lib/permissions';
 import { saveSessionFields, sessionFields } from '@/lib/session';
 import { branchOfKey, inScope, isBackupKey, isDataCopyKey, isSafetyBackupKey, makeBackup, readBackup, readBlob, readMain, removeKey, restoreHidden, saveMain, writeBlob } from '@/lib/storage';
-import { type Changes, SECRET_PLACEHOLDER, rootOf } from '@/lib/units';
+import { type Changes, type Row, SECRET_PLACEHOLDER, rootOf } from '@/lib/units';
 import { masksFor } from '@/lib/visibility';
 import { fillCosts } from '@/lib/costing';
 import { refuseRules } from '@/lib/rules';
 import { MAX_SAVE_BYTES, inlineFile, readBody } from '@/lib/files';
 import { licenceOf, pinData, refuseExpiredKey, refuseExpiredSave } from '@/lib/licence';
 import { liveCursor } from '@/lib/live';
-import { heavy } from '@/lib/heavy';
-import { keepBeforeWhole, refuseMassRemoval } from '@/lib/whole-data';
+import { heavyOrBusy } from '@/lib/heavy';
+import { getSession } from '@/lib/session';
+import { MAX_REMOVED, keepBeforeWhole, refuseMassRemoval } from '@/lib/whole-data';
+import { auditProblem, backupAllowed, layoutComplete, layoutProblem, rowsProblem, sessionProblem, wholeProblem } from '@/lib/save-guard';
+import { today } from '@/lib/licence';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,10 +36,34 @@ const missing = () => new Response(null, { status: 404, headers: { 'cache-contro
 // Another branch's data (or HQ's) for a branch account: refused, not empty.
 const forbidden = () => json({ error: 'another branch' }, 403);
 
+// Security review 2026-11-23 (docs/SECURITY-AUDIT-2026-11.md ก1): a request without a session is answered before it
+// takes a turn of the heavy ones or a byte of its body is read. Before, the body (up to MAX_SAVE_BYTES) was read and
+// parsed first: two or three such requests at once, from anyone, ran the 512 MB server out of memory.
+const signedOut = () => json({ error: 'signed-out' }, 401);
+
+// The shape of a save's changes: anything else is a bad request (400), not a server error that is recorded (ก2).
+const isStr = (v: unknown): v is string => typeof v === 'string';
+const rowsOk = (a: unknown, data: boolean) => Array.isArray(a) && a.every(r => !!r && typeof r === 'object'
+  && isStr((r as Row).unit) && isStr((r as Row).key) && (!data || isStr((r as Row).data)));
+function changesOk(c: unknown): c is Changes {
+  if (!c || typeof c !== 'object') return false;
+  const x = c as Changes;
+  return rowsOk(x.upsert, true) && rowsOk(x.remove, false) && !!x.order && typeof x.order === 'object' && !Array.isArray(x.order)
+    && (x.layout === undefined || isStr(x.layout));
+}
+
+// The keys the screens keep beside their data (ก2: any key of up to 29 MB was taken, with no limit on how many):
+// the first-start flags of 05.js and the copy 55.js keeps before it builds trial data (the owner's only).
+const BLOBS: { re: RegExp; max: number; owner: boolean }[] = [
+  { re: /^dgb\.(fresh|guide)\.v22$/, max: 64, owner: false },
+  { re: /^garage\.v22(::[^.]+)?\.trialkeep$/, max: MAX_SAVE_BYTES, owner: true },
+];
+
 export async function GET(req: Request, ctx: Ctx) {
   const { key } = await ctx.params;
+  if (!await getSession(req)) return signedOut();
   // The whole data, or a backup point: one of the few at a time (lib/heavy.ts).
-  const turn = rootOf(key) || isBackupKey(key) ? heavy : <T>(work: () => Promise<T>) => work();
+  const turn = rootOf(key) || isBackupKey(key) ? (work: () => Promise<Response>) => heavyOrBusy(work, req.signal) : (work: () => Promise<Response>) => work();
   return turn(() => inShop(req, async (c, s) => {
     const branch = await branchOfKey(c, key);
     if (!inScope(s.scope, branch)) return forbidden();
@@ -64,10 +91,14 @@ export async function GET(req: Request, ctx: Ctx) {
 // server down. Now they wait their turn, holding nothing; once the first is written, a copy answers 409 and the
 // browser reads the data again.
 const BIG = 2 * 1024 * 1024;
-const big = (req: Request) => Number(req.headers.get('content-length')) > BIG;
+// A body whose size is not said (sent in chunks) takes its turn too: it may be of any size.
+const big = (req: Request) => { const n = req.headers.get('content-length'); return n === null || Number(n) > BIG; };
+const tooLarge = (req: Request) => Number(req.headers.get('content-length')) > MAX_SAVE_BYTES;
 
 export async function POST(req: Request, ctx: Ctx) {
-  return big(req) ? heavy(() => post(req, ctx)) : post(req, ctx);
+  if (!await getSession(req)) return signedOut();
+  if (tooLarge(req)) return json({ error: 'too-large' }, 413);
+  return big(req) ? heavyOrBusy(() => post(req, ctx), req.signal) : post(req, ctx);
 }
 
 async function post(req: Request, ctx: Ctx) {
@@ -76,6 +107,10 @@ async function post(req: Request, ctx: Ctx) {
   const body = await readJson<{ base: Record<string, number>; changes: Changes; session?: Record<string, string>;
     secrets?: { unit: string; key: string; field: string; value: string }[]; numbers?: Claims; whole?: unknown }>(req, MAX_SAVE_BYTES);
   if (body instanceof Response) return body;
+  if (!changesOk(body?.changes)) return json({ error: 'bad request' }, 400);
+  // Only the root's session fields, each a JSON value (SECURITY-AUDIT-2026-11 ก4, lib/save-guard.ts).
+  const badSession = sessionProblem(rootOf(key)!, body.session);
+  if (badSession) return json({ error: 'bad request', what: badSession }, 400);
   // Files are uploaded before a save, the data keeps links (task 3.11).
   const inline = inlineFile(body.changes);
   if (inline) return json({ error: 'file inside the data', what: inline }, 400);
@@ -91,6 +126,13 @@ async function post(req: Request, ctx: Ctx) {
     // Sample data over a shop's data (03.js seedDemo, seedDemo36): a trial shop only (the owner's decision of 2026-10-30).
     if ((body.whole === 'sample' || body.whole === 'demo36') && lic?.kind !== 'trial') return json({ error: 'not allowed', what: 'sample data' }, 403);
     await traceWrite(c, actor, branch, key, body.changes, body.secrets || [], req.headers.get('x-drivego-test') || '');
+    // The shape of the data, and replacing it whole, as the screens do it and by whose right (SECURITY-AUDIT-2026-11 ก4).
+    const root = rootOf(key)!;
+    const wholeKind = typeof body.whole === 'string' ? body.whole : undefined;
+    const shape = rowsProblem(root, body.changes) ?? await layoutProblem(c, actor, root, branch, key, body.changes.layout, wholeKind)
+      ?? await wholeProblem(c, actor, branch, wholeKind)
+      ?? (root === 'DB' ? await auditProblem(c, branch, body.changes, MAX_REMOVED, wholeKind) : null);
+    if (shape) return json({ error: 'not allowed', what: shape }, 403);
     const refused = await refuseSave(c, actor, branch, key, body.changes, body.secrets || []);
     if (refused) return json({ error: 'not allowed', what: refused }, 403);
     // New passwords: at least MIN_PASSWORD characters (the screens refuse them first), after the account's right to set
@@ -116,6 +158,11 @@ async function post(req: Request, ctx: Ctx) {
     if (whole) await keepBeforeWhole(c, branch, key, whole);
     const r = await saveMain(c, branch, key, body.base || {}, changes, body.numbers || {}, s.userId, whole);
     if (!r.ok) return json({ conflicts: r.conflicts }, 409);
+    // A new layout must leave data that can be read back: refused otherwise, nothing of the save kept (ก4).
+    if (changes.layout !== undefined) {
+      const incomplete = await layoutComplete(c, root, branch, key);
+      if (incomplete) throw Object.assign(new Error(`not allowed: ${incomplete}`), { status: 400 });
+    }
     if (body.session) await saveSessionFields(c, s, key, body.session);
     // New passwords become hashes; a save that touches accounts may end other
     // people's sessions (decision Q2).
@@ -133,7 +180,9 @@ async function post(req: Request, ctx: Ctx) {
 export async function PUT(req: Request, ctx: Ctx) {
   // (a backup point takes its turn below, from the server's own data: never two turns at once)
   const { key } = await ctx.params;
-  return big(req) && !isBackupKey(key) ? heavy(() => put(req, key)) : put(req, key);
+  if (!await getSession(req)) return signedOut();
+  if (tooLarge(req)) return json({ error: 'too-large' }, 413);
+  return big(req) && !isBackupKey(key) ? heavyOrBusy(() => put(req, key), req.signal) : put(req, key);
 }
 
 async function put(req: Request, key: string) {
@@ -142,16 +191,24 @@ async function put(req: Request, key: string) {
   if (!raw) return json({ error: 'too-large' }, 413);
   const value = raw.toString('utf8');
   // A backup point is made from the whole data: one of the few at a time (lib/heavy.ts).
-  const turn = isBackupKey(key) ? heavy : <T>(work: () => Promise<T>) => work();
+  const turn = isBackupKey(key) ? (work: () => Promise<Response>) => heavyOrBusy(work, req.signal) : (work: () => Promise<Response>) => work();
   return turn(() => inShop(req, async (c, s) => {
     const branch = await branchOfKey(c, key);
     if (!inScope(s.scope, branch)) return forbidden();
     const late = await refuseExpiredKey(c, key, 'PUT', isBackupKey(key), isSafetyBackupKey(key), await licenceOf(c));
     if (late) return json(late, 403);
     if (isBackupKey(key)) {
-      const main = key.slice(0, key.indexOf('.bak.'));
-      return (await makeBackup(c, branch, key, sessionFields(s, main))) ? json({ ok: true }) : missing();
+      // The screens' names only; the day's point by anyone (once), the others by the backup right; made from the stored
+      // data alone, never from this person's session fields (SECURITY-AUDIT-2026-11 ก4).
+      const may = await backupAllowed(c, await actorOf(c, s), branch, key, today());
+      if (may === 'refuse') return json({ error: 'not a known key', what: key }, 400);
+      if (may === 'skip') return json({ ok: true });
+      return (await makeBackup(c, branch, key)) ? json({ ok: true }) : missing();
     }
+    const known = BLOBS.find(b => b.re.test(key));
+    if (!known) return json({ error: 'not a known key', what: key }, 400);
+    if (raw.length > known.max) return json({ error: 'too-large' }, 413);
+    if (known.owner && !(await rightsOf(c, await actorOf(c, s))).owner) return json({ error: 'not allowed', what: key }, 403);
     await writeBlob(c, branch, key, value);
     return json({ ok: true });
   }));

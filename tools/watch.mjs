@@ -8,7 +8,7 @@
 import pg from 'pg';
 import { parseArgs } from 'node:util';
 import { pgConfig } from '../server/lib/pg-config.ts';
-import { BROWSER_ALERT, watch } from '../server/lib/watch.ts';
+import { BROWSER_ALERT, DB_ALERT, dbDiskBytes, watch } from '../server/lib/watch.ts';
 
 const { values: o } = parseArgs({ options: { db: { type: 'string' } } });
 const url = o.db || process.env.MIGRATE_DATABASE_URL;
@@ -19,10 +19,13 @@ const at = d => d.toISOString().replace('T', ' ').slice(0, 19);
 try {
   const w = await watch(db);
   console.log(`${at(w.since)} → ${at(w.until)} UTC: ${w.server} server error(s), ${w.browser} browser error(s)`);
+  const gb = b => (b / 1024 ** 3).toFixed(2);
+  console.log(`database: ${gb(w.dbBytes)} GB of ${gb(dbDiskBytes())} GB (alert from ${Math.round(DB_ALERT * 100)}%)`);
   for (const s of w.seen)
     console.log(`${s.source.toUpperCase().padEnd(7)} ×${s.count} ${s.shop || '-'} ${s.path} ${at(s.first)}${s.count > 1 ? `…${at(s.last)}` : ''} — ${s.message.split('\n')[0].slice(0, 300)}`);
   if (w.alert) {
-    console.log(`STAFF ACTION NEEDED: ${w.server ? 'the server failed on requests' : `${w.browser} browser errors (alert from ${BROWSER_ALERT})`}` +
+    if (w.dbFull) console.log(`STAFF ACTION NEEDED: the database uses ${gb(w.dbBytes)} GB of ${gb(dbDiskBytes())} GB — give it more disk (docs/STAFF-TOOLS.md)`);
+    if (w.server || w.browser >= BROWSER_ALERT) console.log(`STAFF ACTION NEEDED: ${w.server ? 'the server failed on requests' : `${w.browser} browser errors (alert from ${BROWSER_ALERT})`}` +
       ' — details: node tools/errors.mjs (this run ends with status 3 so that the team is alerted)');
     process.exitCode = 3;
   }

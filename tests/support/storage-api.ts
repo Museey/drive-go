@@ -35,6 +35,19 @@ export function storageApi(page: Page) {
       const a = await call('POST', key, { base: {}, changes: { upsert: [], remove: rows.map(r => ({ ...r, data: '' })), order: {} } });
       return { status: a.status, body: json(a) };
     },
+    // A save as sent (any body): for the checks of the shape of a save (SECURITY-AUDIT-2026-11 ก4, S477).
+    async post(key: string, body: unknown) {
+      const a = await call('POST', key, body);
+      return { status: a.status, body: json(a) };
+    },
+    // A STORE key written whole (a backup point, a flag of the screens).
+    async put(key: string, text: string) {
+      const a = await page.evaluate(async ([key, text]) => {
+        const r = await fetch(`/api/storage/${encodeURIComponent(key)}`, { method: 'PUT', cache: 'no-store', body: text });
+        return { status: r.status, text: await r.text() };
+      }, [key, text] as const);
+      return { status: a.status, body: json(a) };
+    },
     async remove(key: string) {
       const a = await call('DELETE', key);
       return { status: a.status, body: json(a) };

@@ -1117,6 +1117,16 @@
       "scenario": "S475-staff-changes-bazix-to-prox.spec.ts",
       "decision": "The owner's decisions of 2026-11-20: DriveGo's staff change a shop between BaziX and ProX, the data and the licence's dates stay, back to BaziX only with one branch",
       "why": "The legacy file has no packages per shop on a server; a shop's package was fixed when it was opened."
+    },
+    {
+      "scenario": "S476-unauthenticated-requests-refused-first.spec.ts",
+      "decision": "Security review of 2026-11-23 (docs/SECURITY-AUDIT-2026-11.md ก1–ก2), the owner: \"ทำข้อที่คุณทำเองได้ก่อนเลยครับ\"",
+      "why": "The legacy file has no server. The new server read a save's body before checking the session, so anyone could run it out of memory; a malformed save was a server error written to the errors table; any key of any size was kept; a session could open live channels without limit."
+    },
+    {
+      "scenario": "S477-employee-cannot-break-wipe-or-plant-data.spec.ts",
+      "decision": "Security review of 2026-11-23 (docs/SECURITY-AUDIT-2026-11.md ก4), the owner: \"ทำข้อที่คุณทำเองได้ก่อนเลยครับ\"",
+      "why": "The legacy file keeps one shop's data in one browser. On the server an employee with no rights could, with a request made round the screens, change the data's layout so no device of the shop could open it, wipe or replace the whole data, overwrite the day's backup point, or put session text into it that gave them every right when restored."
     }
   ]
 }

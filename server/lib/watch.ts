@@ -7,7 +7,12 @@ import type pg from 'pg';
 export const BROWSER_ALERT = 10;
 
 export interface Seen { source: 'server' | 'browser'; shop: string; path: string; message: string; count: number; first: Date; last: Date }
-export interface Look { since: Date; until: Date; seen: Seen[]; server: number; browser: number; alert: boolean }
+export interface Look { since: Date; until: Date; seen: Seen[]; server: number; browser: number; alert: boolean; dbBytes: number; dbFull: boolean }
+
+// The database's size against its disk (DB_DISK_GB, default 10 GB: the plan of 2026-10-29): at DB_ALERT of it the team
+// is alerted, long before DigitalOcean makes the database read-only for every shop (SECURITY-AUDIT-2026-11 ก2).
+export const DB_ALERT = 0.7;
+export const dbDiskBytes = () => (Number(process.env.DB_DISK_GB) || 10) * 1024 ** 3;
 
 export async function watch(db: pg.Pool): Promise<Look> {
   const c = await db.connect();
@@ -29,7 +34,9 @@ export async function watch(db: pg.Pool): Promise<Look> {
     const seen = rows.map(r => ({ ...r, count: Number(r.count) }));
     const total = (src: string) => seen.filter(r => r.source === src).reduce((a, r) => a + r.count, 0);
     const server = total('server'), browser = total('browser');
-    return { since: m.since, until: m.until, seen, server, browser, alert: server > 0 || browser >= BROWSER_ALERT };
+    const dbBytes = Number((await db.query<{ n: string }>('select pg_database_size(current_database())::text as n')).rows[0].n);
+    const dbFull = dbBytes >= DB_ALERT * dbDiskBytes();
+    return { since: m.since, until: m.until, seen, server, browser, alert: server > 0 || browser >= BROWSER_ALERT || dbFull, dbBytes, dbFull };
   } catch (e) {
     await c.query('rollback').catch(() => {});
     throw e;

@@ -412,6 +412,7 @@
   var MiB = 1024 * 1024;
   var limitOf = (mime) => (/^video\//i.test(mime) ? 15 : 5) * MiB;
   var QUOTA = 2 * 1024 * MiB;
+  var EVIDENCE_EXTRA = 1024 * MiB;
   var INLINE_UNITS = /* @__PURE__ */ new Set(["DB.shop"]);
   function useOf(unit) {
     if (unit === "DB.paySlips" || unit === "DB.whtDocs" || unit === "DB.purchases") return "evidence";
