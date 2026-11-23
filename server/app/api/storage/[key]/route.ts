@@ -26,6 +26,7 @@ import { getSession } from '@/lib/session';
 import { MAX_REMOVED, keepBeforeWhole, refuseMassRemoval } from '@/lib/whole-data';
 import { auditProblem, backupAllowed, layoutComplete, layoutProblem, rowsProblem, sessionProblem, wholeProblem } from '@/lib/save-guard';
 import { today } from '@/lib/licence';
+import { formatProblem } from '@/lib/formats';
 
 export const dynamic = 'force-dynamic';
 
@@ -126,10 +127,12 @@ async function post(req: Request, ctx: Ctx) {
     // Sample data over a shop's data (03.js seedDemo, seedDemo36): a trial shop only (the owner's decision of 2026-10-30).
     if ((body.whole === 'sample' || body.whole === 'demo36') && lic?.kind !== 'trial') return json({ error: 'not allowed', what: 'sample data' }, 403);
     await traceWrite(c, actor, branch, key, body.changes, body.secrets || [], req.headers.get('x-drivego-test') || '');
-    // The shape of the data, and replacing it whole, as the screens do it and by whose right (SECURITY-AUDIT-2026-11 ก4).
+    // The shape of the data, and replacing it whole, as the screens do it and by whose right (SECURITY-AUDIT-2026-11 ก4);
+    // no value that would end the quote or tag the screens put it in (ก5, lib/formats.ts).
     const root = rootOf(key)!;
     const wholeKind = typeof body.whole === 'string' ? body.whole : undefined;
-    const shape = rowsProblem(root, body.changes) ?? await layoutProblem(c, actor, root, branch, key, body.changes.layout, wholeKind)
+    const shape = rowsProblem(root, body.changes) ?? formatProblem(body.changes)
+      ?? await layoutProblem(c, actor, root, branch, key, body.changes.layout, wholeKind)
       ?? await wholeProblem(c, actor, branch, wholeKind)
       ?? (root === 'DB' ? await auditProblem(c, branch, body.changes, MAX_REMOVED, wholeKind) : null);
     if (shape) return json({ error: 'not allowed', what: shape }, 403);

@@ -1127,6 +1127,11 @@
       "scenario": "S477-employee-cannot-break-wipe-or-plant-data.spec.ts",
       "decision": "Security review of 2026-11-23 (docs/SECURITY-AUDIT-2026-11.md ก4), the owner: \"ทำข้อที่คุณทำเองได้ก่อนเลยครับ\"",
       "why": "The legacy file keeps one shop's data in one browser. On the server an employee with no rights could, with a request made round the screens, change the data's layout so no device of the shop could open it, wipe or replace the whole data, overwrite the day's backup point, or put session text into it that gave them every right when restored."
+    },
+    {
+      "scenario": "S478-stored-code-refused-and-shown-as-text.spec.ts",
+      "decision": "Security review of 2026-11-23 (docs/SECURITY-AUDIT-2026-11.md ก5), the owner: \"ทำข้อที่คุณทำเองได้ก่อนเลยครับ\"",
+      "why": "The legacy screens put some values into HTML as they are (ids in onclick, a quotation's status, a capital entry's type, pictures, the ProX knowledge room and Coins table); in one browser only its own user typed them. On the server an employee's text runs in the owner's browser, so the server refuses such values and those screens escape them; the page may only call the app itself."
     }
   ]
 }

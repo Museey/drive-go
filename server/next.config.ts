@@ -8,6 +8,16 @@ const STAFF_CSP = "default-src 'none'; script-src 'self'; style-src 'self'; img-
 const SITE_CSP = "default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; " +
   "font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'";
 
+// A shop's page (the legacy screens): they need inline code, onclick attributes, eval and inline styles. What a script
+// that got in anyway may reach is narrowed (security review 2026-11-23, docs/SECURITY-AUDIT-2026-11.md ก5): requests only
+// to the app itself (and the ProX chain servers named in CHAIN_ORIGINS when the app is built: none yet; the tests' stand-in
+// https://chain.drivego.test, a name that never resolves), pictures only from the app or made in the page, the Google
+// fonts, nothing loaded from another site.
+const CHAIN = ['https://chain.drivego.test', ...(process.env.CHAIN_ORIGINS ?? '').split(/\s+/).filter(o => /^https:\/\/[\w.-]+(:\d+)?$/.test(o))];
+const SHOP_CSP = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+  "font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' data: blob:; frame-src 'self' data: blob:; " +
+  `worker-src 'self' blob:; connect-src 'self' ${CHAIN.join(' ')}; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'`;
+
 const config: NextConfig = {
   // The legacy screens load their files by relative path (js/03.js), so a
   // shop's page must keep its trailing slash (/DG-1688/); app/[shop] adds it.
@@ -37,7 +47,7 @@ const config: NextConfig = {
       // script-src: script files only from the app itself, so a <script src> from another site never loads (SECURITY-REVIEW 4;
       // the names and texts a shop types are escaped where they are shown, S286). The legacy screens need inline code,
       // onclick attributes and eval: ten of their files read a window's open document, a top-level `let`, with (0,eval)('Q').
-      { source: '/((?!api/files/|ops/|site/|(?:login|testdrive|privacy|articles)$)(?!$).*)', headers: [{ key: 'Content-Security-Policy', value: "frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'" }] },
+      { source: '/((?!api/files/|ops/|site/|(?:login|testdrive|privacy|articles)$)(?!$).*)', headers: [{ key: 'Content-Security-Policy', value: SHOP_CSP }] },
       // The staff web page (app/ops, server/staff-ui) has no inline code: only its own script and style, never framed.
       { source: '/ops/:path*', headers: [{ key: 'Content-Security-Policy', value: STAFF_CSP }] },
       { source: '/', headers: [{ key: 'Content-Security-Policy', value: SITE_CSP }] },

@@ -26,7 +26,8 @@
 # · db: the managed cluster drivego-test-db made by hand (part 2); the app connects as drivego_app (made in the control
 #   panel before the first deploy), which Row-Level Security applies to. The cluster only takes TLS: DATABASE_CA_CERT
 #   carries its CA (server/lib/pg-config.ts).
-# · Deploys follow the branch deploy/test, which CI moves only after every check passed (.github/workflows/ci.yml).
+# · Deploys follow the branch deploy/test, which .github/workflows/deploy.yml moves to the newest commit whose CI passed
+#   every check: each night at 23:30 Bangkok time, or when staff run it from GitHub Actions (SECURITY-AUDIT-2026-11 ก7).
 # · domains: app.drivegox.com (the owner's domain, bought at GoDaddy, which keeps its DNS: a CNAME "app" to the app's
 #   ondigitalocean.app alias; no `zone`, as DigitalOcean does not manage the DNS; docs/DIGITALOCEAN-SETUP.md part 5). The
 #   app's own ondigitalocean.app address keeps working.

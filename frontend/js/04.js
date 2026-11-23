@@ -836,7 +836,7 @@ function frRenderMyReqs(){
     const qty=r.items.reduce((a,i)=>a+n(r.status==='pending'?i.qty:i.apQty),0);
     return `<tr><td class="mono">${esc(r.no)}</td><td>${thDate(r.date)}</td>
       <td class="num">${r.items.length}</td><td class="num">${qf(qty)}</td>
-      <td><span style="color:${st[1]};font-weight:700">${st[0]}</span></td>
+      <td><span style="color:${st[1]};font-weight:700">${esc(st[0])}</span></td>
       <td class="ctr"><button class="btn sm gh" onclick="frReqDetail('${r.id}',0)">รายละเอียด</button>
         ${r.status==='shipped'?`<button class="btn sm pri" onclick="frReqReceive('${r.id}')">✔ ยืนยันรับของเข้าสต๊อก</button>`:''}</td></tr>`;
   }).join('');
@@ -851,7 +851,7 @@ function frRenderHqReqs(){
     const qty=r.items.reduce((a,i)=>a+n(i.apQty),0);
     return `<tr><td class="mono">${esc(r.no)}</td><td><b>${b?esc(b.code):'-'}</b> · ${b?esc(b.name):'-'}</td>
       <td>${thDate(r.date)}</td><td class="num">${r.items.length}</td><td class="num">${qf(qty)}</td>
-      <td><span style="color:${st[1]};font-weight:700">${st[0]}</span></td>
+      <td><span style="color:${st[1]};font-weight:700">${esc(st[0])}</span></td>
       <td class="ctr"><button class="btn sm ${r.status==='pending'?'pri':'gh'}" onclick="frReqDetail('${r.id}',1)">${r.status==='pending'?'ตรวจ / อนุมัติ':'รายละเอียด'}</button></td></tr>`;
   }).join('');
   const e=$('#frHqReqEmpty'); if(e) e.style.display=rows.length?'none':'';
@@ -864,14 +864,14 @@ function frReqDetail(id,hqMode){
   const edit=hqMode&&r.status==='pending';
   $('#frDetTitle').textContent='ใบขอเบิก '+r.no+' — '+(b?b.code+' · '+b.name:'');
   $('#frDetBody').innerHTML=`
-   <div class="hint" style="margin-bottom:8px">วันที่ ${thDate(r.date)} · สถานะ <b style="color:${st[1]}">${st[0]}</b>${r.note?' · หมายเหตุ: '+esc(r.note):''}</div>
+   <div class="hint" style="margin-bottom:8px">วันที่ ${thDate(r.date)} · สถานะ <b style="color:${st[1]}">${esc(st[0])}</b>${r.note?' · หมายเหตุ: '+esc(r.note):''}</div>
    <table class="tbl"><thead><tr><th style="width:140px">รหัส</th><th>ชื่อสินค้า</th><th class="ctr" style="width:70px">หน่วย</th><th class="num" style="width:90px">ขอเบิก</th><th class="num" style="width:110px">อนุมัติ${edit?' (แก้ได้)':''}</th>${hqMode?'<th class="num" style="width:130px">คงคลัง HQ</th>':''}</tr></thead>
    <tbody>${r.items.map((i,x)=>{
      const hs=FR.hqStock.find(h=>String(h.code).toLowerCase()===String(i.code).toLowerCase());
      const enough=hs&&n(hs.qty)>=n(i.apQty);
      return `<tr><td class="mono">${esc(i.code)}</td><td>${esc(i.name)}</td><td class="ctr">${esc(i.unit||'')}</td>
       <td class="num">${qf(i.qty)}</td>
-      <td class="num">${edit?`<input type="number" min="0" style="width:85px;text-align:right" value="${i.apQty}" onchange="frHqEditQty('${r.id}',${x},this.value)">`:qf(i.apQty)}</td>
+      <td class="num">${edit?`<input type="number" min="0" style="width:85px;text-align:right" value="${esc(i.apQty)}" onchange="frHqEditQty('${r.id}',${x},this.value)">`:qf(i.apQty)}</td>
       ${hqMode?`<td class="num" style="color:${enough?'inherit':'#b91c1c'};font-weight:${enough?'400':'700'}">${hs?qf(hs.qty):'— ไม่มีในคลัง'}</td>`:''}</tr>`;}).join('')}</tbody></table>
    <div style="margin-top:10px"><b style="font-size:12.5px">ประวัติการดำเนินการ (ตรวจสอบย้อนหลังได้)</b>
      <div class="hint" style="margin-top:3px">${r.log.map(l=>thDate(l.d)+' · '+esc(l.t)+' — '+esc(l.by)).join('<br>')}</div></div>

@@ -1205,7 +1205,7 @@ function renderStock(){
       <td class="num sc-minmax">${qf(it.min)}</td><td class="num sc-minmax">${qf(it.max)}</td>
       <td class="ctr sc-lastmove" style="font-size:12px">${thDate(it.lastMove)}</td>
       <td class="ctr">${it.img
-        ? `<img class="thumb" src="${it.img}" alt="${esc(it.name)}" title="คลิกเพื่อดู / เปลี่ยนรูป" onclick="openImgModal('${it.id}')">`
+        ? `<img class="thumb" src="${esc(it.img)}" alt="${esc(it.name)}" title="คลิกเพื่อดู / เปลี่ยนรูป" onclick="openImgModal('${it.id}')">`
         : `<span class="thumb-none">ไม่มีรูป</span>`}</td></tr>`}).join('');
   $('#stockEmpty').style.display=rows.length?'none':'block';
   if(typeof paintSort==='function') paintSort('stockTbl');
@@ -1359,7 +1359,7 @@ function openStock(id){
   if(it){
     $('#mStockImgBtn').textContent=it.img?'เปลี่ยนรูป':'อัปโหลดรูป';
     $('#mStockImgWrap').innerHTML=it.img
-      ? `<img src="${it.img}" alt="${esc(it.name)}" style="max-width:100%;max-height:230px;border-radius:6px;border:1px solid var(--line)">`
+      ? `<img src="${esc(it.img)}" alt="${esc(it.name)}" style="max-width:100%;max-height:230px;border-radius:6px;border:1px solid var(--line)">`
       : '<div class="hint">ยังไม่มีรูปอะไหล่ — กดปุ่ม “อัปโหลดรูป” ด้านบน</div>';
   }
   syncLists();
@@ -1527,7 +1527,7 @@ function openImgModal(id){ if(!can('stock.img')) return toast('บัญชี�
   const it=DB.stock.find(x=>x.id===id); if(!it) return; imgStockId=id;
   $('#imgInfo').textContent=it.code+' — '+it.name;
   $('#imgFile').value='';
-  $('#imgPreviewWrap').innerHTML=it.img?`<img src="${it.img}" style="max-width:100%;max-height:260px;border-radius:8px">`:'<div class="hint">ยังไม่มีรูปสินค้า</div>';
+  $('#imgPreviewWrap').innerHTML=it.img?`<img src="${esc(it.img)}" style="max-width:100%;max-height:260px;border-radius:8px">`:'<div class="hint">ยังไม่มีรูปสินค้า</div>';
   $('#imgDelBtn').style.display=it.img?'':'none';
   openModal('mImg');
 }
@@ -1557,7 +1557,7 @@ function syncStockDetailImg(){
   const it=DB.stock.find(x=>x.id===editStockId); if(!it) return;
   $('#mStockImgBtn').textContent=it.img?'เปลี่ยนรูป':'อัปโหลดรูป';
   $('#mStockImgWrap').innerHTML=it.img
-    ? `<img src="${it.img}" alt="${esc(it.name)}" style="max-width:100%;max-height:230px;border-radius:6px;border:1px solid var(--line)">`
+    ? `<img src="${esc(it.img)}" alt="${esc(it.name)}" style="max-width:100%;max-height:230px;border-radius:6px;border:1px solid var(--line)">`
     : '<div class="hint">ยังไม่มีรูปอะไหล่ — กดปุ่ม “อัปโหลดรูป” ด้านบน</div>';
 }
 async function delStockImg(){
@@ -1573,7 +1573,7 @@ function openCard(id){
   $('#mCardTitle').textContent='บัตรสินค้า · '+it.code+' — '+it.name;
   const buys=DB.purchases.filter(p=>(p.items||[]).some(i=>i.stockId===id));
   $('#mCardBody').innerHTML=`
-    ${it.img?`<img src="${it.img}" style="max-width:160px;max-height:160px;border-radius:8px;float:right;margin:0 0 8px 12px">`:''}
+    ${it.img?`<img src="${esc(it.img)}" style="max-width:160px;max-height:160px;border-radius:8px;float:right;margin:0 0 8px 12px">`:''}
     <div class="grid g5">
       <div><span class="hint">หมวด</span><div>${esc(it.cat||'-')}</div></div>
       <div><span class="hint">OEM</span><div class="mono">${esc(it.oem||'-')}</div></div>
@@ -2757,7 +2757,7 @@ function refreshQuoteRefs(){
   const co=$('#qOpen').value;
   $('#qOpen').innerHTML='<option value="">— เปิดเอกสารที่บันทึกไว้ —</option>'+DB.quotes.slice().reverse().map(q=>{
     const c=findCust(q.custId);
-    return `<option value="${q.id}">${esc(q.no)} · ${thDate(q.date)} · ${esc(custName(c)||'ไม่ระบุ')} · ${q.status}</option>`}).join('');
+    return `<option value="${q.id}">${esc(q.no)} · ${thDate(q.date)} · ${esc(custName(c)||'ไม่ระบุ')} · ${esc(q.status)}</option>`}).join('');
   $('#qOpen').value=co; refreshStockList();
 }
 function fillVehSelect(){
@@ -3167,7 +3167,7 @@ async function vatPick(sel,doc,apply){
 /* the audit note of a save: the reason, when VAT was left off by this save */
 function noVatNote(doc,was){ return doc.noVatReason&&!n(doc.vat)&&(!was||n(was.vat)||was.noVatReason!==doc.noVatReason)?' · ไม่คิด VAT: '+doc.noVatReason:''; }
 function wmark(){ const s=DB.shop;
-  return s.logo?`<div class="wmark"><img src="${s.logo}" style="opacity:${(n(s.logoOp)||7)/100}"></div>`:''; }
+  return s.logo?`<div class="wmark"><img src="${esc(s.logo)}" style="opacity:${(n(s.logoOp)||7)/100}"></div>`:''; }
 function orgSubName(){ const s=DB.shop;
   if(s.type==='company'&&s.name&&s.name!==s.company) return s.name;
   if(s.type!=='company'&&s.person&&s.person!==s.name) return 'โดย '+s.person;
@@ -3184,7 +3184,7 @@ function docHead(o){
   if(l3.length) info.push(l3.join(' · '));
   const sub=orgSubName();
   return `<div class="dochd">
-    <div class="brand">${s.logo&&s.logoHead!==false?`<img class="dlogo" src="${s.logo}" alt="">`:''}
+    <div class="brand">${s.logo&&s.logoHead!==false?`<img class="dlogo" src="${esc(s.logo)}" alt="">`:''}
       <div style="min-width:0">
         <div class="bname">${esc(orgName())}</div>
         ${sub?`<div class="bsub">${esc(sub)}</div>`:''}
@@ -4520,7 +4520,7 @@ function fillSetting(){ const s=DB.shop;
   bl.forEach(addBankRow); fillBankList();
   $('#sLicStart').value=s.licStart||iso();$('#sLicEnd').value=licEnd();
   $('#sLogoHead').checked=s.logoHead!==false;$('#sLogoOp').value=n(s.logoOp)||7;$('#sLogoOpV').textContent=(n(s.logoOp)||7)+'%';
-  $('#logoBox').innerHTML=s.logo?`<img src="${s.logo}" style="max-width:100%;max-height:100%">`:'<span class="hint">ยังไม่มีโลโก้</span>';
+  $('#logoBox').innerHTML=s.logo?`<img src="${esc(s.logo)}" style="max-width:100%;max-height:100%">`:'<span class="hint">ยังไม่มีโลโก้</span>';
   $('#shopName').textContent=orgName();
 }
 $('#sTypeSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
@@ -7625,7 +7625,7 @@ function renderCap(){
   let rows=DB.capital.slice().sort((a,b)=>b.date.localeCompare(a.date));
   rows=sortRows('capTbl',rows);   /* กดหัวคอลัมน์เพื่อเรียง */
   $('#capTbl tbody').innerHTML=rows.map(c=>`<tr><td class="ctr">${thDate(c.date)}</td>
-    <td><span class="chip ${['invest','loan','other_in'].includes(c.type)?'g':'r'}">${CAP_LABEL[c.type]||c.type}</span></td>
+    <td><span class="chip ${['invest','loan','other_in'].includes(c.type)?'g':'r'}">${CAP_LABEL[c.type]||esc(c.type)}</span></td>
     <td>${esc(c.note||'-')}</td><td class="num">${money(c.amt)}</td>
     ${byCell(c)}
     <td class="ctr"><div style="display:inline-flex;flex-direction:column;align-items:stretch;gap:4px">
@@ -11286,15 +11286,15 @@ function renderPxCoins(){
   const rows=all.slice(0,100);
   $('#pxCoinInfo').textContent=all.length>100?('แสดง 100 รายการล่าสุด จากทั้งหมด '+all.length.toLocaleString('th-TH')+' ใบ'):'';
   $('#pxCoinTbl tbody').innerHTML=rows.map(x=>'<tr>'
-    +'<td class="mono">'+x.rcNo+'</td><td class="mono">'+x.plate+'</td><td>'+x.cust+'</td>'
-    +'<td class="num mono">'+money(x.amt)+'</td><td class="num mono" style="color:#7a5600;font-weight:600">+'+x.earn+'</td>'
-    +'<td class="mono">'+x.date+'</td></tr>').join('');
+    +'<td class="mono">'+esc(x.rcNo)+'</td><td class="mono">'+esc(x.plate)+'</td><td>'+esc(x.cust)+'</td>'
+    +'<td class="num mono">'+money(x.amt)+'</td><td class="num mono" style="color:#7a5600;font-weight:600">+'+esc(x.earn)+'</td>'
+    +'<td class="mono">'+esc(x.date)+'</td></tr>').join('');
   $('#pxCoinEmpty').style.display=all.length?'none':'';
   const bal={};
   all.forEach(x=>{const k=x.plate+'|'+x.cust;bal[k]=(bal[k]||0)+x.earn});
   const bk=Object.entries(bal);
   $('#pxCoinBalTbl tbody').innerHTML=bk.map(([k,v])=>{const [pl,cn]=k.split('|');
-    return '<tr><td class="mono">'+pl+'</td><td>'+cn+'</td><td class="num mono" style="font-weight:600">'+v.toLocaleString('th-TH')+' Coin</td></tr>'}).join('');
+    return '<tr><td class="mono">'+esc(pl)+'</td><td>'+esc(cn)+'</td><td class="num mono" style="font-weight:600">'+v.toLocaleString('th-TH')+' Coin</td></tr>'}).join('');
   $('#pxCoinBalEmpty').style.display=bk.length?'none':'';
 }
 /* ---- หน้าร้านบนแอป BOOK ---- */
@@ -11460,9 +11460,9 @@ function renderPxLearn(){
     <div class="lrnCard">
       <div class="lic2">${lrnIcon(x)}</div>
       <div class="lbody">
-        <b>${x.title}</b>
-        <div class="lmeta">📁 ${x.cat} · โดย ${x.by||'อู่'} · ${x.date}${x.fname?' · '+x.fname+(x.data?'':' (อ้างอิง — ไฟล์ใหญ่)'):''}</div>
-        ${x.desc?`<div class="ldesc">${x.desc}</div>`:''}
+        <b>${esc(x.title)}</b>
+        <div class="lmeta">📁 ${esc(x.cat)} · โดย ${esc(x.by||'อู่')} · ${esc(x.date)}${x.fname?' · '+esc(x.fname)+(x.data?'':' (อ้างอิง — ไฟล์ใหญ่)'):''}</div>
+        ${x.desc?`<div class="ldesc">${esc(x.desc)}</div>`:''}
       </div>
       <div class="lact">
         <span class="visw" onclick="pxToggleVis('${x.id}')" title="คลิกเพื่อสลับการมองเห็น">
@@ -11536,7 +11536,7 @@ function pxDelTopic(i){
 function openPxLearn(){
   ensurePX(); pxPendFile=null;
   $('#lnTitle').value=''; $('#lnDesc').value=''; $('#lnFile').value=''; $('#lnFileInfo').textContent='';
-  $('#lnCat').innerHTML=DB.px.topics.map(t=>`<option ${t===pxTopicSel?'selected':''}>${t}</option>`).join('');
+  $('#lnCat').innerHTML=DB.px.topics.map(t=>`<option ${t===pxTopicSel?'selected':''}>${esc(t)}</option>`).join('');
   $('#lnVis').value=learnVisMode;
   $('#mPxLearn').classList.add('on');
 }
@@ -11579,14 +11579,14 @@ function pxViewLearn(id){
   const x=DB.px.learn.find(r=>r.id===id); if(!x)return;
   $('#pxvTitle').textContent=x.title;
   let b='';
-  if(x.desc)b+='<div style="font-size:13.5px;line-height:1.8;margin-bottom:12px">'+x.desc+'</div>';
+  if(x.desc)b+='<div style="font-size:13.5px;line-height:1.8;margin-bottom:12px">'+esc(x.desc)+'</div>';
   if(x.data){
-    if(x.kind==='clip')b+='<video controls style="width:100%;border-radius:8px;background:#000" src="'+x.data+'"></video>';
-    else if(x.mime.startsWith('image/'))b+='<img src="'+x.data+'" style="max-width:100%;border-radius:8px;border:1px solid var(--line2)">';
-    else if(x.mime==='application/pdf')b+='<iframe src="'+x.data+'" style="width:100%;height:62vh;border:1px solid var(--line2);border-radius:8px"></iframe>';
-    else b+='<a class="btn pri" download="'+x.fname+'" href="'+x.data+'">⬇ ดาวน์โหลด '+x.fname+'</a>';
+    if(x.kind==='clip')b+='<video controls style="width:100%;border-radius:8px;background:#000" src="'+esc(x.data)+'"></video>';
+    else if(x.mime.startsWith('image/'))b+='<img src="'+esc(x.data)+'" style="max-width:100%;border-radius:8px;border:1px solid var(--line2)">';
+    else if(x.mime==='application/pdf')b+='<iframe src="'+esc(x.data)+'" style="width:100%;height:62vh;border:1px solid var(--line2);border-radius:8px"></iframe>';
+    else b+='<a class="btn pri" download="'+esc(x.fname)+'" href="'+esc(x.data)+'">⬇ ดาวน์โหลด '+esc(x.fname)+'</a>';
   }else if(x.fname){
-    b+='<div class="hint">📎 '+x.fname+' — ไฟล์ใหญ่ เก็บเป็นรายการอ้างอิง (ระบบจริงเปิดจากเซิร์ฟเวอร์กลาง)</div>';
+    b+='<div class="hint">📎 '+esc(x.fname)+' — ไฟล์ใหญ่ เก็บเป็นรายการอ้างอิง (ระบบจริงเปิดจากเซิร์ฟเวอร์กลาง)</div>';
   }
   $('#pxvBody').innerHTML=b;
   $('#mPxView').classList.add('on');

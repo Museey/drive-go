@@ -1,0 +1,69 @@
+# When the server garages use gets a new version (security review 2026-11-23, docs/SECURITY-AUDIT-2026-11.md ก7): CI
+# no longer deploys every push that passes. This moves deploy/test (DigitalOcean deploys that branch, .do/app.yaml)
+# to the newest commit of the main branch whose CI passed:
+#   · every night at 23:30 Bangkok time (16:30 UTC), when garages do not work, so the server does not restart and
+#     the schema does not change while they do;
+#   · now, from GitHub: Actions → "Deploy to the test server" → Run workflow (an urgent fix). A commit may be given;
+#     it must be on the main branch and its CI must have passed.
+# Forward only: an older commit never moves the server back.
+name: Deploy to the test server
+
+on:
+  schedule:
+    - cron: '30 16 * * *'
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: 'Commit to deploy (empty: the newest whose CI passed)'
+        required: false
+        default: ''
+
+concurrency:
+  group: deploy-test
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Move deploy/test to the newest commit that passed CI
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      actions: read
+    env:
+      MAIN: claude/brave-goodall-0qn0qg
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/brave-goodall-0qn0qg
+          fetch-depth: 0
+      - name: Choose the commit
+        id: pick
+        env:
+          COMMIT: ${{ inputs.commit }}
+        run: |
+          set -euo pipefail
+          passed=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow ci.yml --branch "$MAIN" --event push --status success \
+            --limit 100 --json headSha --jq '.[].headSha')
+          want="${COMMIT:-}"
+          if [ -n "$want" ]; then
+            want=$(git rev-parse --verify "$want^{commit}")
+            echo "$passed" | grep -qx "$want" || { echo "CI has not passed on $want"; exit 1; }
+          else
+            want=$(echo "$passed" | head -n 1)
+          fi
+          [ -n "$want" ] || { echo "no commit has passed CI"; exit 1; }
+          git merge-base --is-ancestor "$want" "origin/$MAIN" || { echo "$want is not on $MAIN"; exit 1; }
+          echo "sha=$want" >> "$GITHUB_OUTPUT"
+          git log -1 --format='deploying %h %s (%ci)' "$want"
+      - name: Move deploy/test (forward only)
+        env:
+          WANT: ${{ steps.pick.outputs.sha }}
+        run: |
+          set -euo pipefail
+          want="$WANT"
+          if git fetch origin deploy/test 2>/dev/null; then
+            if [ "$(git rev-parse FETCH_HEAD)" = "$want" ]; then echo "deploy/test is at $want already"; exit 0; fi
+            git merge-base --is-ancestor FETCH_HEAD "$want" || { echo "deploy/test is not behind $want"; exit 0; }
+          fi
+          git push origin "$want:refs/heads/deploy/test"
