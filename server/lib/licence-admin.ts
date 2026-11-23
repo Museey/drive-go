@@ -209,4 +209,33 @@ export async function recordNotice(db: pg.Pool, code: string, o: { actor: string
   return { removalOn };
 }
 
+// Removes a shop and everything of it at once, at the shop's own request (the owner's decision of 2026-11-23,
+// docs/NOTES.md "ลบทั้งร้านทันทีตามคำขอของร้าน"): its data, backups, attachments, sessions, licence AND its change
+// history (unlike the retention run, which keeps that HISTORY_YEARS more years), the errors recorded in its sessions
+// and its earlier lines of licence_log (they hold its contact). Only the database owner can do it (tools/shop-admin.mjs
+// erase): drivego_staff and the shops' app have no right to remove a shop. One line stays in licence_log, without
+// personal data, to show when, by whom and that it was asked. `signup`: the website sign-up request it was opened from
+// goes too (kept otherwise, the owner's choice of 2026-11-20). DigitalOcean's own database backups keep it ~7 days more.
+export async function erase(db: pg.Pool, code: string, o: { actor: string; confirm: string; signup?: boolean; note?: string }):
+  Promise<{ code: string; tables: Record<string, number>; signups: number }> {
+  if (o.confirm !== code) throw new Error(`type the shop's code again to confirm: --confirm ${code}`);
+  const shop = await shopOf(db, code);
+  return withShop(db, shop.id, '*', async c => {
+    const { rows: tables } = await c.query<{ t: string }>(
+      `select distinct table_name as t from information_schema.columns
+        where table_schema = 'public' and column_name = 'shop_id' and table_name not in ('shops', 'licence_log') order by 1`);
+    const counts: Record<string, number> = {};
+    for (const { t } of tables) {
+      const n = Number((await c.query<{ n: string }>(`select count(*) as n from ${pgIdent(t)} where shop_id = app_shop()`)).rows[0].n);
+      if (n) counts[t] = n;
+    }
+    await c.query('delete from errors where shop_id = app_shop()');
+    await c.query('delete from licence_log where shop_id = app_shop()');
+    await c.query('delete from shops where id = app_shop()');   // every other table cascades from shops
+    const signups = o.signup ? (await c.query('delete from signups where shop_code = $1', [code])).rowCount ?? 0 : 0;
+    await log(c, shop, o.actor, 'erase', { asked: 'shop', removed: counts, signups, ...o.note ? { note: o.note } : {} });
+    return { code, tables: counts, signups };
+  });
+}
+
 export { HISTORY_YEARS, KEEP_DAYS, NOTICE_DAYS };
