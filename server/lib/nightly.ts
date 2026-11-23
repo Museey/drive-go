@@ -3,7 +3,8 @@
 // or never saved (task 3.11, purgeFiles). Shops that must be told before their data is removed are not told here:
 // during the pilot staff phone them (15.4) and then record it (tools/shop-admin.mjs told) — a notice nobody gave
 // must never start the 30 days to a removal. The job lists them so that staff are alerted. Errors older than
-// ERROR_DAYS go too (errors.ts).
+// ERROR_DAYS go too (errors.ts), and the safety copies made before a wipe, restore, import or sample data once they
+// are SAFETY_DAYS old (storage.ts pruneSafetyBackups).
 import type pg from 'pg';
 import { withShop } from './db.ts';
 import { ERROR_DAYS } from './errors.ts';
@@ -11,18 +12,20 @@ import { purgeFiles } from './files.ts';
 import { type Due, carryOut, listShops, retentionDue } from './licence-admin.ts';
 import { today } from './licence.ts';
 import { DEMO_CODES } from './shop-open.ts';
+import { pruneSafetyBackups } from './storage.ts';
 
 export interface Night {
   on: string;
   done: { code: string; action: 'delete' | 'purge'; why: string }[];   // carried out tonight
   call: Due[];             // shops staff must tell (by phone) before their data can be removed
   demo: Due[];             // DriveGo's own demo shops whose trial ended: nobody to tell, staff open a new trial
+  safety: { code: string; removed: number }[];   // safety copies older than SAFETY_DAYS removed
   files: { code: string; removed: number }[];
   errors: number;          // recorded errors removed (older than ERROR_DAYS)
 }
 
 export async function nightly(db: pg.Pool, { on = today(), actor = 'schedule' }: { on?: string; actor?: string } = {}): Promise<Night> {
-  const night: Night = { on, done: [], call: [], demo: [], files: [], errors: 0 };
+  const night: Night = { on, done: [], call: [], demo: [], safety: [], files: [], errors: 0 };
   for (const d of await retentionDue(db, on)) {
     if (DEMO_CODES.includes(d.shop.code)) night.demo.push(d);
     else if (d.action === 'notice') night.call.push(d);
@@ -30,6 +33,8 @@ export async function nightly(db: pg.Pool, { on = today(), actor = 'schedule' }:
   }
   for (const s of await listShops(db)) {
     if (s.status === 'removed') continue;
+    const copies = await withShop(db, s.id, '*', c => pruneSafetyBackups(c));
+    if (copies) night.safety.push({ code: s.code, removed: copies });
     const gone = await withShop(db, s.id, '*', c => purgeFiles(c));
     if (gone.length) night.files.push({ code: s.code, removed: gone.length });
   }

@@ -21,9 +21,10 @@ const db = new pg.Pool({ ...pgConfig(url), max: 2 });
 
 try {
   const n = await nightly(db, { on: o.day });
-  console.log(`${n.on}: ${n.done.length} removal(s), ${n.files.reduce((a, f) => a + f.removed, 0)} file(s) removed, ${n.call.length} shop(s) to call, ${n.errors} old error(s) removed`);
+  console.log(`${n.on}: ${n.done.length} removal(s), ${n.files.reduce((a, f) => a + f.removed, 0)} file(s) removed, ${n.call.length} shop(s) to call, ${n.errors} old error(s) removed, ${n.safety.reduce((a, f) => a + f.removed, 0)} old safety copy(ies) removed`);
   for (const d of n.done) console.log(`DONE   ${d.action.padEnd(6)} ${d.code} — ${d.why}`);
   for (const f of n.files) console.log(`FILES  ${f.code}: ${f.removed} removed for good`);
+  for (const f of n.safety) console.log(`COPIES ${f.code}: ${f.removed} safety copy(ies) older than 90 days removed`);
   for (const d of n.demo) console.log(`DEMO   ${d.shop.code}: the trial ended ${d.licence.end} (a new trial: node tools/shop-admin.mjs open ${d.shop.code} --trial)`);
   for (const d of n.call) console.log(`CALL   ${d.shop.code} (${d.shop.name || d.shop.package})${d.licence.contact ? ` · ${d.licence.contact}` : ''}:` +
     ` the licence ended ${d.licence.end}; tell the shop that its data will be removed (${d.why}) — export what it must keep or renew —` +

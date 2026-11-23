@@ -26,7 +26,7 @@ export const isSafetyBackupKey = (k: string) => isBackupKey(k) && k.includes('.b
 // A whole copy of a branch's data kept beside it: backup points, and other keys under the main key
 // (garage.v22.trialkeep, 55.js). Only its managers may read one (task 3.9, owner's answer of 2026-10-26).
 export const isDataCopyKey = (k: string) => /^garage\.v22(::[^.]+)?\./.test(k);
-const SAFETY_DAYS = 90;
+export const SAFETY_DAYS = 90;
 const mainOfBackup = (k: string) => k.slice(0, k.indexOf('.bak.'));
 
 // Which branch a STORE key's data belongs to. Biz/ProX: one data set ('').
@@ -394,6 +394,15 @@ export async function makeBackup(c: pg.ClientBase, branch: string, key: string, 
     [branch, key, await gzip(Buffer.from(main.json))]);
   if (made.rowCount) await keepForBackup(c, branch, key, main.json);   // its files stay as long as it does (task 3.11)
   return true;
+}
+
+// The safety copies of a shop (every branch) older than SAFETY_DAYS, removed by the nightly job (tools/nightly.mjs).
+// makeBackup above only trims them when a new one is made, so a shop that wiped its data once and never again kept
+// that copy for good (found 2026-11-23). Their files go with them (backup_files cascades; purgeFiles does the rest).
+export async function pruneSafetyBackups(c: pg.ClientBase): Promise<number> {
+  return (await c.query(
+    `delete from backups where shop_id = app_shop() and key like '%.bak.safety-%' and created_at < now() - make_interval(days => $1)`,
+    [SAFETY_DAYS])).rowCount ?? 0;
 }
 
 export async function readBackup(c: pg.ClientBase, branch: string, key: string): Promise<string | null> {
