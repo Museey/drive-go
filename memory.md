@@ -95,6 +95,8 @@
   ดูรายการไฟล์ก่อนเสมอ (Artifact list scope files) · `python3 -I tools/subpages-from-design.py <โฟลเดอร์แบบ> server/site`
   /testdrive /privacy /articles + /site/tour/ · ฟอร์ม Demo: คัดลอก + อีเมล + LINE · Test Drive ป้ายเร็ว ๆ นี้ BOOK/Admin/ProX ออนไลน์ · S466
   ยังไม่ได้ถาม: ปุ่มเมนูบนมือถือของหน้าย่อย · นโยบายให้นักกฎหมาย PDPA ดู (ไม่บอกว่าข้อมูลอยู่สิงคโปร์)
+- **ตรวจช่องโหว่ (2026-11-23)**: docs/SECURITY-AUDIT-2026-11.md (ก ด่วน 7, ข สำคัญ 14, ค ต่อไป 7) รอเจ้าของเลือกลำดับ ยังไม่ได้แก้ข้อใด
+  ตรวจกับ server ชั่วคราวในเครื่องเท่านั้น ห้ามยิงทดสอบใส่ app.drivegox.com (มีข้อมูลอู่จริงแล้ว)
 - **เปลี่ยนแพ็กเกจ BaziX ↔ ProX (2026-11-20)**: ทีมงานเท่านั้น (shop-admin package / ปุ่ม /ops), กลับเป็น Biz เฉพาะสาขาเดียว, วันหมดอายุเท่าเดิม
   ราคาส่วนต่างนอกระบบ · Franchise ไม่ได้ · shop-open.ts changePackage, S475, STAFF-TOOLS.md
 - **ทีมตรวจระบบ (2026-11-18)**: 7 เรื่อง (NOTES.md "ทีมตรวจระบบ") ปิดงวดภาษีหลังนำส่ง ภ.พ.30 แก้แล้ว (CHANGES 166, S467)
