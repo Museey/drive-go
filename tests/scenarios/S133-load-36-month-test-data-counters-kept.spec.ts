@@ -1,6 +1,6 @@
 import { test, expect } from '../support/test';
 import { legacyGolden } from '../support/legacy-golden';
-import { auditNote, confirmWipe, confirmWithShopName } from '../support/whole-data';
+import { auditNote, confirmWithWord } from '../support/whole-data';
 
 // Replaces S76 in the new system (tests/intentional-changes.json, task 3.2,
 // decisions A7, F1): the shop's 8 document counters stay through the wipe and
@@ -18,16 +18,16 @@ test('S133 ระบบใหม่: ล้างข้อมูลแล้ว�
   const golden = legacyGolden(S76, { app, page, testInfo });
   await app.loginAsOwner();
   await golden.step('หน้าแรก');
-  const start = (await app.state()).DB, counters = start.seq, shopName = start.shop.name;
+  const start = (await app.state()).DB, counters = start.seq;
 
   await page.getByRole('button', { name: '10 ตั้งค่าองค์กร' }).click();
   await page.getByRole('button', { name: 'ล้างข้อมูลทั้งหมด' }).click();
-  await confirmWipe(page, 'ล้างข้อมูล');
+  await confirmWithWord(page, 'ล้างข้อมูล');
   await expect(page.getByText('ล้างข้อมูลทั้งหมดออกจากระบบ?', { exact: true })).toBeHidden();
   await golden.step('เมนู 10 ล้างข้อมูลทั้งหมด');
 
   await page.getByRole('button', { name: 'โหลดข้อมูลทดสอบ 36 เดือน' }).click();
-  await confirmWithShopName(page, shopName, 'โหลดข้อมูล');
+  await confirmWithWord(page, 'โหลดข้อมูล');
   await expect(page.getByRole('button', { name: 'ดูรายงานลูกหนี้' })).toBeVisible();
   await golden.step('กดโหลดข้อมูลทดสอบ 36 เดือน');
   // The sale flow stays on (owner 2026-11-09, S440): the wiped / loaded data gets the switch DB.pkgSaleFlow.

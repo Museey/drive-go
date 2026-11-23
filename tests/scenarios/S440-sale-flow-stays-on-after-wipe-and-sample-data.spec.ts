@@ -1,5 +1,5 @@
 import { test, expect } from '../support/test';
-import { confirmWipe, confirmWithShopName } from '../support/whole-data';
+import { confirmWithWord } from '../support/whole-data';
 import { storageApi } from '../support/storage-api';
 
 // New behaviour (the owner's decision of 2026-11-09, NOTES.md "ระบบขายแบบใหม่ล็อกเปิดไว้เสมอ"): "ระบบขายแบบใหม่" stays
@@ -11,7 +11,6 @@ import { storageApi } from '../support/storage-api';
 test('S440 ระบบใหม่: ล้างข้อมูลและโหลดข้อมูลตัวอย่างแล้ว ระบบขายแบบใหม่ยังเปิดอยู่ ไม่มีปุ่มย้อนกลับ และไม่มีฟอร์มใบเสร็จแบบเดิม', async ({ app, page }) => {
   test.slow();
   await app.loginAsOwner();
-  const shopName = (await app.state()).DB.shop.name;
   const page115 = async () => {
     await page.getByRole('button', { name: /11 ตั้งค่าเพิ่มเติม/ }).click();
     await page.getByRole('button', { name: /11\.5 ระบบขายแบบใหม่/ }).click();
@@ -32,7 +31,7 @@ test('S440 ระบบใหม่: ล้างข้อมูลและโ�
   // Wiping: the switch stays on.
   await page.getByRole('button', { name: '10 ตั้งค่าองค์กร' }).click();
   await page.getByRole('button', { name: 'ล้างข้อมูลทั้งหมด' }).click();
-  await confirmWipe(page, 'ล้างข้อมูล');
+  await confirmWithWord(page, 'ล้างข้อมูล');
   await expect(page.getByText('ล้างข้อมูลทั้งหมดออกจากระบบ?', { exact: true })).toBeHidden();
   await app.settle();
   expect((await app.state()).DB.pkgSaleFlow).toMatchObject({ on: true });
@@ -42,7 +41,7 @@ test('S440 ระบบใหม่: ล้างข้อมูลและโ�
   // The sample data (old receipts without stock cuts in the legacy app): switched on, its documents adjusted.
   await page.getByRole('button', { name: '10 ตั้งค่าองค์กร' }).click();
   await page.getByRole('button', { name: 'โหลดข้อมูลตัวอย่าง' }).click();
-  await confirmWithShopName(page, shopName, 'โหลดข้อมูล');
+  await confirmWithWord(page, 'โหลดข้อมูล');
   await expect(page.getByRole('button', { name: 'ดูรายงานลูกหนี้' })).toBeVisible();
   await app.settle();
   const db = (await app.state()).DB;

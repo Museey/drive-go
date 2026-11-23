@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { test, expect } from '../support/test';
 import { legacyGolden } from '../support/legacy-golden';
-import { auditNote, confirmWithShopName } from '../support/whole-data';
+import { auditNote, confirmWithWord } from '../support/whole-data';
 
 // Replaces S425 in the new system (tests/intentional-changes.json, task 3.2, decisions A7, F1, as S132 replaces S75):
 // importing the backup file ("กู้คืนจากไฟล์สำรอง") asks for the shop's name first, keeps a copy of the data on the
@@ -15,11 +15,11 @@ import { auditNote, confirmWithShopName } from '../support/whole-data';
 // pressed the page buttons (docs/BEHAVIORS.md).
 const S425 = 'S425-sale-pick-list-pages-after-importing-many-cuts.spec.ts';
 
-test('S452 ระบบใหม่: นำเข้าไฟล์สำรองที่มีใบตัดสต็อกเพิ่ม 45 ใบโดยพิมพ์ชื่อร้านยืนยัน แล้วหน้าต่างเลือกใบตัดสต็อกมี 2 หน้า', async ({ app, page }, testInfo) => {
+test('S452 ระบบใหม่: นำเข้าไฟล์สำรองที่มีใบตัดสต็อกเพิ่ม 45 ใบโดยพิมพ์ confirm ยืนยัน แล้วหน้าต่างเลือกใบตัดสต็อกมี 2 หน้า', async ({ app, page }, testInfo) => {
   test.slow();
   const golden = legacyGolden(S425, { app, page, testInfo });
   await app.loginAsOwner();
-  const start = (await app.state()).DB, shopName = start.shop.name;
+  const start = (await app.state()).DB;
   const openDataPage = async () => {
     await page.getByRole('button', { name: /11 ตั้งค่าเพิ่มเติม/ }).click();
     await page.getByRole('button', { name: /11\.3 นำเข้า \/ ส่งออกข้อมูล/ }).click();
@@ -46,7 +46,7 @@ test('S452 ระบบใหม่: นำเข้าไฟล์สำรอ�
   await page.getByRole('button', { name: 'เลือกไฟล์และนำเข้า' }).click();
   await (await choosing).setFiles({ name: 'garage-backup-2026-10-13.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(data)) });
   await expect(page.getByText('นำเข้าข้อมูลจากไฟล์ garage-backup-2026-10-13.json ?', { exact: false })).toBeVisible();
-  await confirmWithShopName(page, shopName, 'นำเข้า');
+  await confirmWithWord(page, 'นำเข้า');
   await expect(page.getByText('นำเข้าข้อมูลเรียบร้อย', { exact: true })).toBeAttached();
   await app.settle();
   await golden.step('นำเข้าไฟล์สำรองที่มีใบตัดสต็อกค้างชำระเพิ่ม 45 ใบ');

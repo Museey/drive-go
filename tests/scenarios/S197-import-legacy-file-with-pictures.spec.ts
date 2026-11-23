@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { test, expect } from '../support/test';
-import { confirmWithShopName } from '../support/whole-data';
+import { confirmWithWord } from '../support/whole-data';
 import { LINK, fetchFile, linkOfFile } from '../support/files';
 
 // New behaviour (task 3.11, decision R19-ค, owner's answer 11.5): a backup file of the legacy app keeps its
@@ -15,7 +15,6 @@ const dataUrl = (path: string) => 'data:image/png;base64,' + readFileSync(path).
 test('S197 ระบบใหม่: นำเข้าไฟล์สำรองของระบบเดิมที่มีรูปอยู่ในข้อมูล รูปถูกแยกเป็นไฟล์ ข้อมูลเก็บลิงก์ ส่งออกอีกครั้งได้ลิงก์ โลโก้อยู่ในข้อมูลเหมือนเดิม', async ({ app, page }) => {
   test.slow();
   await app.loginAsOwner();
-  const shopName = (await app.state() as any).DB.shop.name;
   const openDataPage = async () => {
     await page.getByRole('button', { name: /11 ตั้งค่าเพิ่มเติม/ }).click();
     await page.getByRole('button', { name: /11\.3 นำเข้า \/ ส่งออกข้อมูล/ }).click();
@@ -38,7 +37,7 @@ test('S197 ระบบใหม่: นำเข้าไฟล์สำรอ�
   const choosing = page.waitForEvent('filechooser');
   await page.getByRole('button', { name: 'เลือกไฟล์และนำเข้า' }).click();
   await (await choosing).setFiles({ name: 'garage-backup-legacy.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(legacy, null, 2)) });
-  await confirmWithShopName(page, shopName, 'นำเข้า');
+  await confirmWithWord(page, 'นำเข้า');
   await expect(page.getByText('นำเข้าข้อมูลเรียบร้อย', { exact: true })).toBeAttached();
   await app.settle();
 

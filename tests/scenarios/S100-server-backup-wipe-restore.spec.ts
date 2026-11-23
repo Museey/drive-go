@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { test, expect } from '../support/test';
 import { formatDiff, stateCounts } from '../support/state-diff.mjs';
-import { auditNote, confirmWipe, confirmWithShopName } from '../support/whole-data';
+import { auditNote, confirmWithWord } from '../support/whole-data';
 import { inCountsOrder } from '../support/legacy-golden';
 
 // Replaces S74 in the new system (tests/intentional-changes.json, decision Q6):
@@ -45,7 +45,6 @@ test('S100 ระบบใหม่: สร้างจุดสำรองบ�
   await step('เมนู 10 ส่วนที่เก็บข้อมูลและการสำรองข้อมูล');
 
   const before = await app.state();
-  const shopName = before.DB.shop.name;
   await page.getByRole('button', { name: 'สร้างจุดสำรองเดี๋ยวนี้' }).click();
   await expect(backups.getByRole('option')).toHaveText(['13/10/2569']);
   await step('กดสร้างจุดสำรองเดี๋ยวนี้');
@@ -54,7 +53,7 @@ test('S100 ระบบใหม่: สร้างจุดสำรองบ�
   await page.getByRole('button', { name: 'ล้างข้อมูลทั้งหมด' }).click();
   await expect(page.getByText('ล้างข้อมูลทั้งหมดออกจากระบบ?', { exact: true })).toBeVisible();
   await step('กดล้างข้อมูลทั้งหมด ระบบถามยืนยัน');
-  await confirmWipe(page, 'ล้างข้อมูล');
+  await confirmWithWord(page, 'ล้างข้อมูล');
   await expect(page.getByText('ล้างข้อมูลทั้งหมดออกจากระบบ?', { exact: true })).toBeHidden();
   await step('ล้างข้อมูลแล้ว');
   // Task 3.2: the 8 counters stay as they were (S74 had none left) and the audit log has the wipe.
@@ -76,7 +75,7 @@ test('S100 ระบบใหม่: สร้างจุดสำรองบ�
   await page.getByRole('button', { name: 'กู้คืนข้อมูลจากจุดสำรองที่เลือก' }).click();
   await expect(page.getByText('กู้คืนข้อมูลจากจุดสำรอง 13/10/2569 ?', { exact: false })).toBeVisible();
   await step('เลือกจุดสำรอง 13/10/2569 แล้วกดกู้คืน ระบบถามยืนยัน');
-  await confirmWithShopName(page, shopName, 'กู้คืน');
+  await confirmWithWord(page, 'กู้คืน');
   await expect(backups.getByRole('option')).toHaveCount(4);
   await step('กู้คืนข้อมูลแล้ว');
   expect(await counts()).toBe(legacyCounts('after-restore', { 'DB.audit': before.DB.audit.length + 1 }));

@@ -2,7 +2,7 @@ import { test, expect } from '../support/test';
 import { readFileSync } from 'node:fs';
 import type { Locator, Page } from '@playwright/test';
 import { legacyGolden } from '../support/legacy-golden';
-import { confirmWithShopName } from '../support/whole-data';
+import { confirmWithWord } from '../support/whole-data';
 
 // Replaces S300 in the new system (tests/intentional-changes.json). Two decisions change it:
 // - task 3.2, decision F1 (as S133 replaces S76): loading the 36-month test data asks for the shop's name first;
@@ -26,16 +26,15 @@ const S300 = 'S300-home-charts-periods-compare-pages.spec.ts';
 const panel = (page: Page, title: string) =>
   page.locator('div.panel').filter({ has: page.getByRole('heading', { name: title, exact: true }) });
 
-test('S441 ระบบใหม่: โหลดข้อมูลทดสอบ 36 เดือนโดยพิมพ์ชื่อร้านยืนยัน แล้วดูกราฟยี่ห้อรถและหมวดอะไหล่ เลือกเดือน กำหนดวัน เปรียบเทียบสองช่วง เปลี่ยนหน้า และตารางลูกหนี้คงค้าง', async ({ app, page }, testInfo) => {
+test('S441 ระบบใหม่: โหลดข้อมูลทดสอบ 36 เดือนโดยพิมพ์ confirm ยืนยัน แล้วดูกราฟยี่ห้อรถและหมวดอะไหล่ เลือกเดือน กำหนดวัน เปรียบเทียบสองช่วง เปลี่ยนหน้า และตารางลูกหนี้คงค้าง', async ({ app, page }, testInfo) => {
   test.slow();
   const golden = legacyGolden(S300, { app, page, testInfo });
   await app.loginAsOwner();
-  const shopName = (await app.state()).DB.shop.name;
   await page.getByRole('button', { name: '10 ตั้งค่าองค์กร' }).click();
   await page.getByRole('button', { name: 'โหลดข้อมูลทดสอบ 36 เดือน' }).click();
-  await confirmWithShopName(page, shopName, 'โหลดข้อมูล');
+  await confirmWithWord(page, 'โหลดข้อมูล');
   await expect(page.getByText(/^โหลดข้อมูลทดสอบย้อนหลัง 36 เดือนแล้ว/)).toBeAttached();
-  await expect(page.getByPlaceholder(`พิมพ์ชื่อร้าน ${shopName} เพื่อยืนยัน`)).toBeHidden();
+  await expect(page.getByPlaceholder('พิมพ์ confirm เพื่อยืนยัน')).toBeHidden();
   await app.settle();
   // S300's first step, with the 13 receipt records made again for the trial shop's stock cuts.
   const flow = JSON.parse(readFileSync(new URL(`../golden/${S300}/flow.json`, import.meta.url), 'utf8'));
