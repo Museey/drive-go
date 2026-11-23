@@ -96,6 +96,14 @@ describe('งานรายชั่วโมง (watch)', () => {
     assert.deepEqual([w.browser, w.alert, w.seen.length], [BROWSER_ALERT, true, 2]);
   });
   test('ฐานข้อมูลใช้พื้นที่เกิน 70% ของดิสก์ (DB_DISK_GB) แจ้งเตือน (SECURITY-AUDIT-2026-11 ก2)', async () => {
+    // As the hourly job runs it (tools/watch.mjs): a pool of one connection. (Reading the size from the pool while the
+    // connection was held waited for ever: the image's smoke test hung, 2026-11-23.)
+    const one = new pg.Pool({ connectionString: db.url, max: 1 });
+    let timer;
+    const w1 = await Promise.race([watch(one), new Promise((_, no) => { timer = setTimeout(() => no(new Error('watch() hangs on a pool of one')), 10_000); })])
+      .finally(() => clearTimeout(timer));
+    assert.ok(w1.dbBytes > 0);
+    await one.end();
     let w = await watch(ownerPool);
     assert.ok(w.dbBytes > 0);
     assert.deepEqual([w.dbFull, w.alert], [false, false]);

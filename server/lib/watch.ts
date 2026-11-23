@@ -34,7 +34,8 @@ export async function watch(db: pg.Pool): Promise<Look> {
     const seen = rows.map(r => ({ ...r, count: Number(r.count) }));
     const total = (src: string) => seen.filter(r => r.source === src).reduce((a, r) => a + r.count, 0);
     const server = total('server'), browser = total('browser');
-    const dbBytes = Number((await db.query<{ n: string }>('select pg_database_size(current_database())::text as n')).rows[0].n);
+    // (on the connection held: the job's pool has only one)
+    const dbBytes = Number((await c.query<{ n: string }>('select pg_database_size(current_database())::text as n')).rows[0].n);
     const dbFull = dbBytes >= DB_ALERT * dbDiskBytes();
     return { since: m.since, until: m.until, seen, server, browser, alert: server > 0 || browser >= BROWSER_ALERT || dbFull, dbBytes, dbFull };
   } catch (e) {
