@@ -24,6 +24,10 @@
 //   node tools/shop-admin.mjs contact CODE TEXT               who to call or e-mail about renewal and removal
 //   node tools/shop-admin.mjs told CODE [--note TEXT]          the shop was told (by phone) that its data will be removed:
 //                                                             the 30 days to the removal start (the nightly job lists whom to call)
+//   node tools/shop-admin.mjs erase CODE --confirm CODE [--signup] [--note TEXT]
+//                                                             the shop asked for its data to be removed: everything of it
+//                                                             at once, its change history too (owner 2026-11-23); only with
+//                                                             the database owner's connection. --signup: its website sign-up too
 //   node tools/shop-admin.mjs package CODE --prox|--biz [--note TEXT]
 //                                                             BaziX → ProX, or back (only with one branch); the data and the
 //                                                             licence's dates stay; the shop signs in again (not Franchise)
@@ -40,7 +44,7 @@ import { userInfo } from 'node:os';
 import { parseArgs } from 'node:util';
 import pg from 'pg';
 import { pgConfig } from '../server/lib/pg-config.ts';
-import { close, listShops, openLicence, postpone, recordNotice, renew, setContact, shopOf } from '../server/lib/licence-admin.ts';
+import { close, erase, listShops, openLicence, postpone, recordNotice, renew, setContact, shopOf } from '../server/lib/licence-admin.ts';
 import { today } from '../server/lib/licence.ts';
 import { changePackage, openRealShop, resetPassword } from '../server/lib/shop-open.ts';
 import { addStaff, listStaff, resetStaff, setStaffActive } from '../server/lib/staff.ts';
@@ -54,7 +58,7 @@ const { values: o, positionals: [cmd, code, ...rest] } = parseArgs({
     to: { type: 'string' }, days: { type: 'string' }, 'last-day': { type: 'string' },
     biz: { type: 'boolean' }, prox: { type: 'boolean' }, franchise: { type: 'boolean' }, name: { type: 'string' }, owner: { type: 'string' },
     user: { type: 'string' }, 'tax-id': { type: 'string' }, addr: { type: 'string' }, zip: { type: 'string' }, tel: { type: 'string' },
-    email: { type: 'string' },
+    email: { type: 'string' }, confirm: { type: 'string' }, signup: { type: 'boolean' },
   },
 });
 const url = o.db || process.env.MIGRATE_DATABASE_URL;
@@ -129,6 +133,13 @@ try {
     case 'told': {
       const r = await recordNotice(db, need(code, 'CODE'), { actor, note: o.note });
       console.log(`${code}: told; its data will be removed on ${r.removalOn} unless it renews (node tools/shop-admin.mjs renew …)`);
+      break;
+    }
+    case 'erase': {
+      const r = await erase(db, need(code, 'CODE'), { actor, confirm: o.confirm ?? '', signup: !!o.signup, note: o.note });
+      const n = Object.values(r.tables).reduce((a, x) => a + x, 0);
+      console.log(`${code}: removed for good with its change history (${n} row(s): ${Object.entries(r.tables).map(([t, x]) => `${t} ${x}`).join(', ') || 'none'})` +
+        `${o.signup ? `, ${r.signups} sign-up request(s)` : ''}; DigitalOcean's database backups still hold it about 7 days`);
       break;
     }
     case 'package': {
