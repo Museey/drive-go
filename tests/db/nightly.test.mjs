@@ -11,6 +11,7 @@ import { createShop, readFixture } from '../../server/lib/seed.ts';
 import { storeFile } from '../../server/lib/files.ts';
 import { listShops, recordNotice } from '../../server/lib/licence-admin.ts';
 import { nightly } from '../../server/lib/nightly.ts';
+import { makeBackup } from '../../server/lib/storage.ts';
 
 process.env.DRIVEGO_TODAY = '2026-10-13';
 process.env.DRIVEGO_TEST_SERVER = '1';
@@ -100,5 +101,18 @@ describe('งานกลางคืน (ตารางเวลางาน�
     assert.deepEqual(night.files.filter(f => f.code === s.code), [{ code: s.code, removed: 1 }]);
     const left = await withShop(ownerPool, s.shopId, '*', async c => (await c.query('select id from files where shop_id = app_shop() order by id')).rows.map(r => r.id));
     assert.deepEqual(left, [recent.id, kept.id].sort());
+  });
+  test('สำเนากันพลาดก่อนล้างข้อมูลที่เก่ากว่า 90 วันหายในงานทุกคืน แม้ร้านไม่ได้ล้างข้อมูลอีก สำเนาใหม่และจุดสำรองปกติยังอยู่', async () => {
+    const s = await shop({ kind: 'trial', start: '2026-10-01', end: '2026-11-30' });
+    const keys = ['garage.v22.bak.safety-2026-07-01T09-00-00-wipe', 'garage.v22.bak.safety-2026-10-01T09-00-00-wipe', 'garage.v22.bak.2026-07-01'];
+    await withShop(ownerPool, s.shopId, '*', async c => {
+      for (const k of keys) assert.ok(await makeBackup(c, '', k));
+      await c.query("update backups set created_at = now() - interval '91 days' where shop_id = app_shop() and key in ($1, $2)", [keys[0], keys[2]]);
+      await c.query("update backups set created_at = now() - interval '89 days' where shop_id = app_shop() and key = $1", [keys[1]]);
+    });
+    const night = await nightly(ownerPool, { on: '2026-10-13' });
+    assert.deepEqual(night.safety.filter(f => f.code === s.code), [{ code: s.code, removed: 1 }]);
+    const left = await withShop(ownerPool, s.shopId, '*', async c => (await c.query('select key from backups where shop_id = app_shop() order by key')).rows.map(r => r.key));
+    assert.deepEqual(left, [keys[2], keys[1]].sort());
   });
 });
