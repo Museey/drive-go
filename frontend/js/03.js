@@ -119,13 +119,11 @@ function bakLabel(day){
   const m=/^safety-(\d{4}-\d\d-\d\d)T(\d\d)-(\d\d)-\d\d-(\w+)$/.exec(day);
   return m?(SAFETY_KIND[m[4]]||'สำรองอัตโนมัติ')+' '+thDate(m[1])+' '+m[2]+':'+m[3]:thDate(day);
 }
-/* The steps around replacing the whole data set (F1): the owner of the shop types its name to confirm, the copy is
-   made, then o.run replaces the data (false = nothing changed) and the audit log records it. */
+/* The steps around replacing the whole data set (F1): the owner of the shop types the word confirm (upper or lower case
+   alike; owner 2026-11-23, it was the shop's name), the copy is made, then o.run replaces the data (false = nothing
+   changed) and the audit log records it. */
 async function guardWholeData(o){
-  const name=String((DB.shop&&DB.shop.name)||'').trim();
-  /* o.word (owner 2026-11-23, wipe only): type that word instead of the shop's name, upper or lower case alike */
-  const box=o.word?{placeholder:'พิมพ์ '+o.word+' เพื่อยืนยัน',match:o.word,matchAnyCase:true}:{placeholder:'พิมพ์ชื่อร้าน '+name+' เพื่อยืนยัน',match:name};
-  if(!await askP(Object.assign({input:true},box,o.ask))) return false;
+  if(!await askP(Object.assign({input:true,placeholder:'พิมพ์ confirm เพื่อยืนยัน',match:'confirm',matchAnyCase:true},o.ask))) return false;
   if(['host','idb'].includes(STORAGE_MODE)){
     const d=new Date(),p=x=>String(x).padStart(2,'0');
     try{ await STORE.set(KEY+'.bak.safety-'+iso(d)+'T'+p(d.getHours())+'-'+p(d.getMinutes())+'-'+p(d.getSeconds())+'-'+o.kind,JSON.stringify(DB)); }catch(e){}
@@ -4690,7 +4688,7 @@ function importData(inp){ if(!can('doc.import')){ if(inp) inp.value=''; return t
       run:()=>{try{DB=dbReplace(v);save();boot();toast('นำเข้าข้อมูลเรียบร้อย');}catch(e){toast('ไฟล์ไม่ถูกต้อง อ่านข้อมูลไม่ได้');return false;}}});};
   rd.readAsText(f); inp.value=''; }
 async function wipe(){ if(!can('doc.wipe')) return toast('บัญชีนี้ไม่มีสิทธิล้างข้อมูล');
-  await guardWholeData({kind:'wipe',act:'wipe',note:'ล้างข้อมูลทั้งหมด',word:'confirm',
+  await guardWholeData({kind:'wipe',act:'wipe',note:'ล้างข้อมูลทั้งหมด',
     ask:{title:'ล้างข้อมูลทั้งหมด',text:'ล้างข้อมูลทั้งหมดออกจากระบบ?',yes:'ล้างข้อมูล',no:'ไม่ล้าง'},run:()=>{
   DB={stock:[],cust:[],vendors:[],purchases:[],quotes:[],receipts:[],moves:[],crm:[],emp:[],curEmp:'',
     expenses:[],assets:[],capital:[],claims:[],issues:[],stockCounts:[],billings:[],invoices:[],cats:[],catsOff:[],units:[],coa:DB.coa,map:DB.map,audit:[],hr:[],warns:[],seq:{},shop:DB.shop};

@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { test, expect } from '../support/test';
 import { legacyGolden } from '../support/legacy-golden';
-import { auditNote, confirmWipe, confirmWithShopName } from '../support/whole-data';
+import { auditNote, confirmWithWord } from '../support/whole-data';
 import { FIXTURE_LINE, licenceBar, licenceLine } from '../support/licence';
 
 // Replaces S75 in the new system (tests/intentional-changes.json, task 3.2,
@@ -20,7 +20,7 @@ test('S132 ระบบใหม่: ส่งออกไฟล์สำรอ�
   const golden = legacyGolden(S75, { app, page, testInfo });
   await app.loginAsOwner();
   await golden.step('หน้าแรก');
-  const start = (await app.state()).DB, counters = start.seq, shopName = start.shop.name;
+  const start = (await app.state()).DB, counters = start.seq;
   expect(Object.keys(counters)).toHaveLength(8);
 
   const openDataPage = async () => {
@@ -40,13 +40,13 @@ test('S132 ระบบใหม่: ส่งออกไฟล์สำรอ�
 
   await page.getByRole('button', { name: '10 ตั้งค่าองค์กร' }).click();
   await page.getByRole('button', { name: 'ล้างข้อมูลทั้งหมด' }).click();
-  await confirmWipe(page, 'ล้างข้อมูล');
+  await confirmWithWord(page, 'ล้างข้อมูล');
   await expect(page.getByText('ล้างข้อมูลทั้งหมดออกจากระบบ?', { exact: true })).toBeHidden();
   await golden.step('เมนู 10 ล้างข้อมูลทั้งหมด');
 
   await page.getByRole('button', { name: 'โหลดข้อมูลตัวอย่าง' }).click();
   await expect(page.getByText('โหลดข้อมูลตัวอย่าง?', { exact: false })).toBeVisible();
-  await confirmWithShopName(page, shopName, 'โหลดข้อมูล');
+  await confirmWithWord(page, 'โหลดข้อมูล');
   await expect(page.getByRole('button', { name: 'ดูรายงานลูกหนี้' })).toBeVisible();
   await golden.step('กดโหลดข้อมูลตัวอย่าง (ไม่มีถามยืนยัน)');
   // The sample data keeps the audit log, which now has the wipe and the loading.
@@ -73,7 +73,7 @@ test('S132 ระบบใหม่: ส่งออกไฟล์สำรอ�
   await (await choosing).setFiles(file);
   await expect(page.getByText('นำเข้าข้อมูลจากไฟล์ garage-backup-2026-10-13.json ?', { exact: false })).toBeVisible();
   // The name to type is the one the data on screen has: the sample shop's.
-  await confirmWithShopName(page, sample.shop.name, 'นำเข้า');
+  await confirmWithWord(page, 'นำเข้า');
   await expect(page.getByText('นำเข้าข้อมูลเรียบร้อย', { exact: true })).toBeAttached();
   await golden.step('เลือกไฟล์ที่ส่งออกไว้ นำเข้าแล้ว');
   await golden.counts('after-import', { 'DB.audit': start.audit.length + 1 });

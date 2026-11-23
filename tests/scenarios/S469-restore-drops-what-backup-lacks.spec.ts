@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 import { test, expect } from '../support/test';
-import { confirmWithShopName } from '../support/whole-data';
+import { confirmWithWord } from '../support/whole-data';
 
 // New behaviour (team's check of 2026-11-18, the owner's decision of 2026-11-19): restoring a backup point replaces the
 // whole data. The legacy app merged the point into the data (Object.assign), so kinds the point does not have stayed:
@@ -41,7 +41,7 @@ test('S469 ระบบใหม่: สร้างจุดสำรอง อ
   await page.getByRole('button', { name: /^10 ตั้งค่าองค์กร/ }).click();
   await backups.selectOption({ label: '13/10/2569' });
   await page.getByRole('button', { name: 'กู้คืนข้อมูลจากจุดสำรองที่เลือก' }).click();
-  await confirmWithShopName(page, start.shop.name, 'กู้คืน');
+  await confirmWithWord(page, 'กู้คืน');
   await expect(page.getByText('กู้คืนข้อมูลเรียบร้อยแล้ว')).toBeVisible();
   await app.settle();
   const restored = (await app.state()).DB;

@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 import { test, expect } from '../support/test';
-import { confirmWipe, confirmWithShopName } from '../support/whole-data';
+import { confirmWithWord } from '../support/whole-data';
 
 // New behaviour (team's check of 2026-11-18, the owner's decision of 2026-11-19 "ทำ 1-4 ได้เลย", item 3; frontend/CHANGES.md
 // 170–172): a figure is the same on every page. On the 36-month test data, October 2569 (the test's clock):
@@ -22,13 +22,12 @@ const rows = (t: Locator) => t.evaluate(e => [...e.querySelectorAll('tr')]
 test('S470 ระบบใหม่: ข้อมูลทดสอบ 36 เดือน ยอดลูกหนี้ในหน้าแรก สุขภาพการเงิน และงบการเงินตรงกัน สรุปภาษีในหน้าแรกและรายงานภาษีนับภาษีซื้อของค่าใช้จ่ายและค่าธรรมเนียมบัตรของใบเสร็จแบบเดิม', async ({ app, page }) => {
   test.slow();
   await app.loginAsOwner();
-  const shopName = (await app.state()).DB.shop.name;
   await page.getByRole('button', { name: '10 ตั้งค่าองค์กร' }).click();
   await page.getByRole('button', { name: 'ล้างข้อมูลทั้งหมด' }).click();
-  await confirmWipe(page, 'ล้างข้อมูล');
+  await confirmWithWord(page, 'ล้างข้อมูล');
   await expect(page.getByText('ล้างข้อมูลทั้งหมดออกจากระบบ?', { exact: true })).toBeHidden();
   await page.getByRole('button', { name: 'โหลดข้อมูลทดสอบ 36 เดือน' }).click();
-  await confirmWithShopName(page, shopName, 'โหลดข้อมูล');
+  await confirmWithWord(page, 'โหลดข้อมูล');
   await expect(page.getByRole('button', { name: 'ดูรายงานลูกหนี้' })).toBeVisible({ timeout: 60_000 });
   await app.settle();
 
