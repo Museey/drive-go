@@ -1,6 +1,6 @@
 import { test, expect } from '../support/test';
 import { secondDevice } from '../support/live';
-import { confirmWithShopName } from '../support/whole-data';
+import { confirmWipe } from '../support/whole-data';
 
 // New behaviour (task 3.10, answer 10.5): while one device has the shop open, another wipes the whole data set (3.2d,
 // with its safety copy). The first device is told at once and reloads with what is there now, instead of working on
@@ -14,10 +14,9 @@ test('S245 ระบบใหม่: อีกเครื่องล้าง�
 
   const other = await secondDevice(browser, page);
   await other.app.loginAsOwner();
-  const shopName = ((await other.app.state()) as any).DB.shop.name;
   await other.page.getByRole('button', { name: '10 ตั้งค่าองค์กร' }).click();
   await other.page.getByRole('button', { name: 'ล้างข้อมูลทั้งหมด' }).click();
-  await confirmWithShopName(other.page, shopName, 'ล้างข้อมูล');
+  await confirmWipe(other.page, 'ล้างข้อมูล');
   await expect(other.page.getByText('ล้างข้อมูลทั้งหมดออกจากระบบ?', { exact: true })).toBeHidden();
   await other.app.settle();
 

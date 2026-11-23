@@ -123,7 +123,9 @@ function bakLabel(day){
    made, then o.run replaces the data (false = nothing changed) and the audit log records it. */
 async function guardWholeData(o){
   const name=String((DB.shop&&DB.shop.name)||'').trim();
-  if(!await askP(Object.assign({input:true,placeholder:'พิมพ์ชื่อร้าน '+name+' เพื่อยืนยัน',match:name},o.ask))) return false;
+  /* o.word (owner 2026-11-23, wipe only): type that word instead of the shop's name, upper or lower case alike */
+  const box=o.word?{placeholder:'พิมพ์ '+o.word+' เพื่อยืนยัน',match:o.word,matchAnyCase:true}:{placeholder:'พิมพ์ชื่อร้าน '+name+' เพื่อยืนยัน',match:name};
+  if(!await askP(Object.assign({input:true},box,o.ask))) return false;
   if(['host','idb'].includes(STORAGE_MODE)){
     const d=new Date(),p=x=>String(x).padStart(2,'0');
     try{ await STORE.set(KEY+'.bak.safety-'+iso(d)+'T'+p(d.getHours())+'-'+p(d.getMinutes())+'-'+p(d.getSeconds())+'-'+o.kind,JSON.stringify(DB)); }catch(e){}
@@ -280,10 +282,12 @@ function askConfirm(o){
   const nbEl=$('#askNo'); if(nbEl) nbEl.style.display=o.noHide?'none':'';
   const inp=$('#askInput');
   if(inp){ inp.style.display=o.input?'block':'none'; inp.value=o.value||''; inp.placeholder=o.placeholder||''; }
-  /* DriveGo new system (task 3.2, decision F1): o.match — the yes button works only once the box holds exactly that text;
+  /* DriveGo new system (task 3.2, decision F1): o.match — the yes button works only once the box holds exactly that text
+     (o.matchAnyCase: upper or lower case alike);
      (task 3.3, decision R4-ข) o.required — only once the box holds some text */
   const yb=$('#askYes'), held=o.match||o.required; if(yb) yb.disabled=!!held;
-  if(inp) inp.oninput=held?()=>{ if(yb) yb.disabled=o.match?inp.value.trim()!==o.match:!inp.value.trim(); }:null;
+  const same=v=>o.matchAnyCase?v.toLowerCase()===String(o.match).toLowerCase():v===o.match;
+  if(inp) inp.oninput=held?()=>{ if(yb) yb.disabled=o.match?!same(inp.value.trim()):!inp.value.trim(); }:null;
   askCb=o.onYes||null; askCbNo=o.onNo||null;
   openModal('mAsk');
   if(o.input&&inp) setTimeout(()=>inp.focus(),80);
@@ -4686,7 +4690,7 @@ function importData(inp){ if(!can('doc.import')){ if(inp) inp.value=''; return t
       run:()=>{try{DB=dbReplace(v);save();boot();toast('นำเข้าข้อมูลเรียบร้อย');}catch(e){toast('ไฟล์ไม่ถูกต้อง อ่านข้อมูลไม่ได้');return false;}}});};
   rd.readAsText(f); inp.value=''; }
 async function wipe(){ if(!can('doc.wipe')) return toast('บัญชีนี้ไม่มีสิทธิล้างข้อมูล');
-  await guardWholeData({kind:'wipe',act:'wipe',note:'ล้างข้อมูลทั้งหมด',
+  await guardWholeData({kind:'wipe',act:'wipe',note:'ล้างข้อมูลทั้งหมด',word:'confirm',
     ask:{title:'ล้างข้อมูลทั้งหมด',text:'ล้างข้อมูลทั้งหมดออกจากระบบ?',yes:'ล้างข้อมูล',no:'ไม่ล้าง'},run:()=>{
   DB={stock:[],cust:[],vendors:[],purchases:[],quotes:[],receipts:[],moves:[],crm:[],emp:[],curEmp:'',
     expenses:[],assets:[],capital:[],claims:[],issues:[],stockCounts:[],billings:[],invoices:[],cats:[],catsOff:[],units:[],coa:DB.coa,map:DB.map,audit:[],hr:[],warns:[],seq:{},shop:DB.shop};

@@ -1,5 +1,5 @@
 import { test, expect } from '../support/test';
-import { confirmWithShopName } from '../support/whole-data';
+import { confirmWipe, confirmWithShopName } from '../support/whole-data';
 import { storageApi } from '../support/storage-api';
 
 // New behaviour (the owner's decision of 2026-11-09, NOTES.md "ระบบขายแบบใหม่ล็อกเปิดไว้เสมอ"): "ระบบขายแบบใหม่" stays
@@ -32,7 +32,7 @@ test('S440 ระบบใหม่: ล้างข้อมูลและโ�
   // Wiping: the switch stays on.
   await page.getByRole('button', { name: '10 ตั้งค่าองค์กร' }).click();
   await page.getByRole('button', { name: 'ล้างข้อมูลทั้งหมด' }).click();
-  await confirmWithShopName(page, shopName, 'ล้างข้อมูล');
+  await confirmWipe(page, 'ล้างข้อมูล');
   await expect(page.getByText('ล้างข้อมูลทั้งหมดออกจากระบบ?', { exact: true })).toBeHidden();
   await app.settle();
   expect((await app.state()).DB.pkgSaleFlow).toMatchObject({ on: true });

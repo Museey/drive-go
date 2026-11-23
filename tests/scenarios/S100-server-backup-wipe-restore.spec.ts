@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { test, expect } from '../support/test';
 import { formatDiff, stateCounts } from '../support/state-diff.mjs';
-import { auditNote, confirmWithShopName } from '../support/whole-data';
+import { auditNote, confirmWipe, confirmWithShopName } from '../support/whole-data';
 import { inCountsOrder } from '../support/legacy-golden';
 
 // Replaces S74 in the new system (tests/intentional-changes.json, decision Q6):
@@ -54,7 +54,7 @@ test('S100 ระบบใหม่: สร้างจุดสำรองบ�
   await page.getByRole('button', { name: 'ล้างข้อมูลทั้งหมด' }).click();
   await expect(page.getByText('ล้างข้อมูลทั้งหมดออกจากระบบ?', { exact: true })).toBeVisible();
   await step('กดล้างข้อมูลทั้งหมด ระบบถามยืนยัน');
-  await confirmWithShopName(page, shopName, 'ล้างข้อมูล');
+  await confirmWipe(page, 'ล้างข้อมูล');
   await expect(page.getByText('ล้างข้อมูลทั้งหมดออกจากระบบ?', { exact: true })).toBeHidden();
   await step('ล้างข้อมูลแล้ว');
   // Task 3.2: the 8 counters stay as they were (S74 had none left) and the audit log has the wipe.

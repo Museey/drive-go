@@ -2,14 +2,16 @@ import { test, expect } from '../support/test';
 import { auditNote } from '../support/whole-data';
 
 // New behaviour (task 3.2, decision F1): replacing the whole shop's data is
-// still allowed, but the owner types the shop's name to confirm, the system
+// still allowed, but the owner types a word to confirm (wiping: "confirm", upper
+// or lower case alike, owner 2026-11-23; restoring: the shop's name), the system
 // keeps a copy of the data first (90 days, listed with the backup points and
 // restorable by the shop), and the audit log records it.
-test('S134 ระบบใหม่: ล้างข้อมูลต้องพิมพ์ชื่อร้านให้ตรง ระบบสำรองข้อมูลไว้ก่อน ลงประวัติการใช้งาน และกู้คืนจากข้อมูลที่สำรองไว้ได้', async ({ app, page }) => {
+test('S134 ระบบใหม่: ล้างข้อมูลต้องพิมพ์ confirm (ตัวพิมพ์เล็กหรือใหญ่ก็ได้) ระบบสำรองข้อมูลไว้ก่อน ลงประวัติการใช้งาน และกู้คืนจากข้อมูลที่สำรองไว้ได้', async ({ app, page }) => {
   await app.loginAsOwner();
   const before = (await app.state()).DB;
   const shopName: string = before.shop.name;
   const box = page.getByPlaceholder(`พิมพ์ชื่อร้าน ${shopName} เพื่อยืนยัน`, { exact: true });
+  const wordBox = page.getByPlaceholder('พิมพ์ confirm เพื่อยืนยัน', { exact: true });
   const wipeButton = page.getByRole('button', { name: 'ล้างข้อมูล', exact: true });
 
   await page.getByRole('button', { name: '10 ตั้งค่าองค์กร' }).click();
@@ -18,13 +20,20 @@ test('S134 ระบบใหม่: ล้างข้อมูลต้อง�
   // The day's own backup point, made at the first save of the day.
   await expect(backups.getByRole('option')).toHaveText(['13/10/2569']);
 
-  // A name that is not the shop's: the button stays off, Enter does nothing; then cancel.
+  // Not the word (a word cut short, the shop's name, which wiping asked for before): the button stays off,
+  // Enter does nothing; then cancel.
   await page.getByRole('button', { name: 'ล้างข้อมูลทั้งหมด' }).click();
   await expect(page.getByText('ล้างข้อมูลทั้งหมดออกจากระบบ?', { exact: true })).toBeVisible();
   await expect(wipeButton).toBeDisabled();
-  await box.fill(shopName.slice(0, -1));
-  await box.press('Enter');
+  await wordBox.fill('confir');
+  await wordBox.press('Enter');
   await expect(wipeButton).toBeDisabled();
+  await wordBox.fill(shopName);
+  await expect(wipeButton).toBeDisabled();
+  await wordBox.fill('confirm');
+  await expect(wipeButton).toBeEnabled();
+  await wordBox.fill('CONFIRM');
+  await expect(wipeButton).toBeEnabled();
   await page.getByRole('button', { name: 'ไม่ล้าง', exact: true }).click();
   await expect(page.getByText('ล้างข้อมูลทั้งหมดออกจากระบบ?', { exact: true })).toBeHidden();
   await app.settle();
@@ -32,9 +41,9 @@ test('S134 ระบบใหม่: ล้างข้อมูลต้อง�
   // The day's own backup point, made at the first save of the day.
   await expect(backups.getByRole('option')).toHaveText(['13/10/2569']);
 
-  // The shop's name, exactly: the data is wiped, after a copy was kept.
+  // The word in mixed case, with spaces around it: the data is wiped, after a copy was kept.
   await page.getByRole('button', { name: 'ล้างข้อมูลทั้งหมด' }).click();
-  await box.fill(shopName);
+  await wordBox.fill(' Confirm ');
   await expect(wipeButton).toBeEnabled();
   await wipeButton.click();
   await expect(page.getByText('ล้างข้อมูลทั้งหมดออกจากระบบ?', { exact: true })).toBeHidden();

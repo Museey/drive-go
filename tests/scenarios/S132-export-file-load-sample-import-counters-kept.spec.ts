@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { test, expect } from '../support/test';
 import { legacyGolden } from '../support/legacy-golden';
-import { auditNote, confirmWithShopName } from '../support/whole-data';
+import { auditNote, confirmWipe, confirmWithShopName } from '../support/whole-data';
 import { FIXTURE_LINE, licenceBar, licenceLine } from '../support/licence';
 
 // Replaces S75 in the new system (tests/intentional-changes.json, task 3.2,
@@ -40,7 +40,7 @@ test('S132 ระบบใหม่: ส่งออกไฟล์สำรอ�
 
   await page.getByRole('button', { name: '10 ตั้งค่าองค์กร' }).click();
   await page.getByRole('button', { name: 'ล้างข้อมูลทั้งหมด' }).click();
-  await confirmWithShopName(page, shopName, 'ล้างข้อมูล');
+  await confirmWipe(page, 'ล้างข้อมูล');
   await expect(page.getByText('ล้างข้อมูลทั้งหมดออกจากระบบ?', { exact: true })).toBeHidden();
   await golden.step('เมนู 10 ล้างข้อมูลทั้งหมด');
 

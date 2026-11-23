@@ -11,5 +11,13 @@ export async function confirmWithShopName(page: Page, shopName: string, button: 
   await yes.click();
 }
 
+// Wiping asks for the word "confirm" instead (owner 2026-11-23), upper or lower case alike.
+export async function confirmWipe(page: Page, button: string, typed = 'confirm') {
+  const yes = page.getByRole('button', { name: button, exact: true }).filter({ visible: true });
+  await expect(yes).toBeDisabled();
+  await page.getByPlaceholder('พิมพ์ confirm เพื่อยืนยัน', { exact: true }).fill(typed);
+  await yes.click();
+}
+
 // The entry the audit log gets for it.
 export const auditNote = (note: string) => `${note} (ระบบสำรองข้อมูลไว้ก่อนแล้ว)`;

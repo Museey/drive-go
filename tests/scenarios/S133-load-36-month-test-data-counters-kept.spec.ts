@@ -1,6 +1,6 @@
 import { test, expect } from '../support/test';
 import { legacyGolden } from '../support/legacy-golden';
-import { auditNote, confirmWithShopName } from '../support/whole-data';
+import { auditNote, confirmWipe, confirmWithShopName } from '../support/whole-data';
 
 // Replaces S76 in the new system (tests/intentional-changes.json, task 3.2,
 // decisions A7, F1): the shop's 8 document counters stay through the wipe and
@@ -22,7 +22,7 @@ test('S133 ระบบใหม่: ล้างข้อมูลแล้ว�
 
   await page.getByRole('button', { name: '10 ตั้งค่าองค์กร' }).click();
   await page.getByRole('button', { name: 'ล้างข้อมูลทั้งหมด' }).click();
-  await confirmWithShopName(page, shopName, 'ล้างข้อมูล');
+  await confirmWipe(page, 'ล้างข้อมูล');
   await expect(page.getByText('ล้างข้อมูลทั้งหมดออกจากระบบ?', { exact: true })).toBeHidden();
   await golden.step('เมนู 10 ล้างข้อมูลทั้งหมด');
 
