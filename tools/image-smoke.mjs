@@ -93,10 +93,13 @@ try {
   if (up.status !== 200) fail(`uploading a file: ${up.status}`);
   const zip = await fetch(`${base}/api/files/zip?key=garage.v22`, { headers: { cookie: session } });
   const zipped = Buffer.from(await zip.arrayBuffer());
-  if (zip.status !== 200 || zip.headers.get('content-type') !== 'application/zip' || Number(zip.headers.get('content-length')) !== zipped.length
+  // Next.js 16.4.6 sends a streamed body chunked and drops the content-length the route sets (docs/NOTES.md "Next.js
+  // 16.4.2 → 16.4.6"); when one is sent it must still be the zip's length.
+  const sentLength = zip.headers.get('content-length');
+  if (zip.status !== 200 || zip.headers.get('content-type') !== 'application/zip' || (sentLength !== null && Number(sentLength) !== zipped.length)
     || zipped.readUInt32LE(0) !== 0x04034b50 || zipped.readUInt32LE(zipped.length - 22) !== 0x06054b50
     || !zipped.includes(Buffer.from('รูปสินค้า/รูปทดสอบ.png')) || !zipped.includes(picture)) fail(`/api/files/zip: ${zip.status} ${zipped.length} bytes`);
-  say('web: every attachment as one zip, streamed as long as it says');
+  say('web: every attachment as one zip, streamed whole');
 
   // The staff tool in the image, as staff run it on the server: a real shop, then a forgotten password.
   const admin = (...args) => docker(['run', '--rm', '--network', 'host', '-e', `MIGRATE_DATABASE_URL=${owner}`, '-e', 'DATABASE_CA_CERT',
