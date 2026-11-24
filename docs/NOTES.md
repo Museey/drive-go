@@ -2398,3 +2398,11 @@ drivego_app และ drivego_staff ไม่มีสิทธิ์ลบร�
 Fill in the garage, owner, phone, e-mail and user name, and tick the consent first · The user name may only use small letters,
 digits, dots, hyphens or underscores (2–40) · The team will check it and send your shop code and temporary password to your e-mail. … · e.g. 482913
 
+
+## Next.js 16.4.2 → 16.4.6 (เจ้าของโปรเจกต์ 2026-11-24: "อัปเกรดใน worktree ใหม่เลยครับ")
+
+`next build` เตือนว่ารุ่น 16.4.2 มีช่องโหว่ที่รู้กันแล้ว npm audit พบ 7 รายการ (ทั้งหมด `>=16.x <=16.4.4` ความรุนแรงปานกลาง:
+cache รั่ว/ถูกปลอมระหว่างผู้ใช้ใน `use cache`, SVG ผ่านตัวกันของ image optimization, cookie HttpOnly หลุดบน Edge route,
+response ปนกันระหว่าง client ในแอปที่ส่งต่อ fetch) แก้ใน 16.4.6 ซึ่งเป็นรุ่นแก้ในชุดเดิม เปลี่ยนเฉพาะแพ็กเกจของ Next.js เอง
+(package-lock: 10 แพ็กเกจ 16.4.2 → 16.4.6) · หลังอัปเกรด npm audit 0, typecheck, test:unit 57, test:db 174, next build
+และสถานการณ์ระบบใหม่ 9 ตัว (เข้าระบบ เก็บข้อมูล ไฟล์ ล้าง/กู้คืน หน้าเว็บทีมงาน ลงทะเบียน) ผ่าน · ทำบน branch `claude/next-security-upgrade`
