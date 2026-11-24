@@ -2348,7 +2348,7 @@ function impStockForm(){
     ['BRK-001','04465-0K260','ผ้าเบรกหน้า Toyota Vigo','ระบบเบรก','ชุด','10','850','1300','1200','1100','2','20']]);
   toast('ดาวน์โหลดแบบฟอร์มแล้ว — กรอกใน Excel แล้วบันทึกเป็น CSV UTF-8');
 }
-let IMPMODE='';
+let IMPMODE='', IMPROW0=1;   /* IMPROW0: the file's row number of rows[0] (2 when the header row was cut) */
 function impPick(mode){
   if(!can('doc.import')) return toast('บัญชีนี้ไม่มีสิทธินำเข้าข้อมูล');
   if(mode==='stock'&&!can('stock.edit')) return toast('บัญชีนี้ไม่มีสิทธิเพิ่ม/แก้ไขสินค้า');
@@ -2364,7 +2364,7 @@ async function impFileChanged(){
   catch(e){ return toast('อ่านไฟล์ไม่ได้ — ตรวจว่าเป็นไฟล์ CSV'); }
   if(!rows.length) return toast('ไฟล์ว่าง หรืออ่านไม่ได้ — ตรวจว่าบันทึกเป็น CSV UTF-8');
   const h=String(rows[0][0]||'');
-  if(h.includes('ชื่อลูกค้า')||h.includes('รหัสสินค้า')) rows.shift();   /* ตัดแถวหัวตาราง */
+  IMPROW0=1; if(h.includes('ชื่อลูกค้า')||h.includes('รหัสสินค้า')){ rows.shift(); IMPROW0=2; }   /* ตัดแถวหัวตาราง */
   if(!rows.length) return toast('ไม่มีข้อมูลใต้หัวตาราง');
   if(IMPMODE==='cust') await impCustApply(rows); else await impStockApply(rows);
 }
@@ -2395,7 +2395,12 @@ async function impCustApply(rows){
 async function impStockApply(rows){
   const nn=v=>n(String(v==null?'':v).replace(/,/g,''));
   const add=[]; let skip=0; const bad={num:0,neg:0};
-  rows.forEach(r=>{ const g=i=>String(r[i]==null?'':r[i]).trim();
+  /* DriveGo new system (owner 2026-11-24): the rows skipped for a number say where — the file's row, the column's letter
+     and name, and what is there — so the shop can find them in Excel (the first 5 rows; the rest are counted) */
+  const COLN=['','','','','','จำนวนคงเหลือ','ต้นทุน/หน่วย','ราคาขาย A','ราคาขาย B','ราคาขาย C','จุดสั่งซื้อ Min','สต๊อกสูงสุด Max'];
+  const where=[], cell=(r,i)=>{ const v=String(r[i]==null?'':r[i]).trim(); return 'คอลัมน์ '+String.fromCharCode(65+i)+' '+COLN[i]+': '+(v.length>20?v.slice(0,20)+'…':v); };
+  const note=(r,k,cols)=>where.push('แถว '+(k+IMPROW0)+' '+cols.map(i=>cell(r,i)).join(', '));
+  rows.forEach((r,k)=>{ const g=i=>String(r[i]==null?'':r[i]).trim();
     const code=g(0),oem=g(1),name=g(2),cat=g(3),unit=g(4);
     if(!code||!name){ skip++; return; }
     if(DB.stock.some(x=>String(x.code||'').toLowerCase()===code.toLowerCase())){ skip++; return; }
@@ -2403,16 +2408,24 @@ async function impStockApply(rows){
     /* DriveGo new system (owner 2026-11-20, 80-validate.js): a number cell that is not a number ("abc" became 0, "12abc"
        12) or a price / Min / Max below 0 skips the row; quantity and cost below 0 wait for the accountant (T07) */
     const V=window.PKG_VALID;
-    if(V&&[5,6,7,8,9,10,11].some(i=>V.num(r[i])===null)){ bad.num++; return; }
-    if(V&&[7,8,9,10,11].some(i=>V.num(r[i])<0)){ bad.neg++; return; }
+    const notNum=V?[5,6,7,8,9,10,11].filter(i=>V.num(r[i])===null):[];
+    if(notNum.length){ bad.num++; note(r,k,notNum); return; }
+    const below=V?[7,8,9,10,11].filter(i=>V.num(r[i])<0):[];
+    if(below.length){ bad.neg++; note(r,k,below); return; }
     const rec={id:uid(),code:code,oem:oem,name:name,cat:cat||'อื่น ๆ',unit:unit||'ชิ้น',
       qty:nn(r[5]),cost:nn(r[6]),pa:nn(r[7]),pb:nn(r[8]),pc:nn(r[9]),min:nn(r[10]),max:nn(r[11]),
       lastMove:iso(),loc:'',zone:'',shelf:'',warr:''};
     stampRec(rec,null); add.push(rec); });
   const badTxt=(bad.num?'\nข้าม '+bad.num+' แถว (ตัวเลขไม่ถูกต้อง)':'')+(bad.neg?'\nข้าม '+bad.neg+' แถว (ตัวเลขติดลบ)':'');
-  if(!add.length) return toast('ไม่มีรายการใหม่ให้เพิ่ม — ข้าม '+skip+' แถว (ข้อมูลไม่ครบหรือรหัสซ้ำ)'+badTxt.replace(/\n/g,' · '));
+  const whereTxt=where.length?'\n\nแถวที่ต้องแก้ (เลขแถวตาม Excel):\n'+where.slice(0,5).join('\n')+(where.length>5?'\nและอีก '+(where.length-5)+' แถว':''):'';
+  if(!add.length){
+    if(!where.length) return toast('ไม่มีรายการใหม่ให้เพิ่ม — ข้าม '+skip+' แถว (ข้อมูลไม่ครบหรือรหัสซ้ำ)');
+    await askP({title:'นำเข้าสินค้าจาก CSV',text:'ไม่มีรายการใหม่ให้เพิ่ม'+(skip?'\nข้าม '+skip+' แถว (ข้อมูลไม่ครบหรือรหัสซ้ำ)':'')+badTxt+whereTxt,
+      yes:'ตกลง',noHide:true});
+    return;
+  }
   if(!await askP({title:'นำเข้าสินค้าจาก CSV',
-    text:'พบสินค้าใหม่ '+add.length+' รายการ'+(skip?'\nข้าม '+skip+' แถว (รหัส/ชื่อว่าง หรือรหัสซ้ำ)':'')+badTxt
+    text:'พบสินค้าใหม่ '+add.length+' รายการ'+(skip?'\nข้าม '+skip+' แถว (รหัส/ชื่อว่าง หรือรหัสซ้ำ)':'')+badTxt+whereTxt
       +'\nยอดคงเหลือที่นำเข้าถือเป็นยอดยกมา\n\nยืนยันนำเข้า?',
     yes:'นำเข้า',no:'ยกเลิก'})) return;
   add.forEach(x=>{ DB.stock.push(x);

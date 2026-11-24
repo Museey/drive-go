@@ -1132,6 +1132,11 @@
       "scenario": "S478-stored-code-refused-and-shown-as-text.spec.ts",
       "decision": "Security review of 2026-11-23 (docs/SECURITY-AUDIT-2026-11.md ก5), the owner: \"ทำข้อที่คุณทำเองได้ก่อนเลยครับ\"",
       "why": "The legacy screens put some values into HTML as they are (ids in onclick, a quotation's status, a capital entry's type, pictures, the ProX knowledge room and Coins table); in one browser only its own user typed them. On the server an employee's text runs in the owner's browser, so the server refuses such values and those screens escape them; the page may only call the app itself."
+    },
+    {
+      "scenario": "S479-stock-import-says-which-rows-to-fix.spec.ts",
+      "decision": "Owner 2026-11-24 \"ทำข้อ 1 เลยครับ\": the parts import says which rows were skipped for a number (the file's row, the column and what is there)",
+      "why": "A shop's file of 1,320 parts was skipped whole with only \"ข้าม 1319 แถว ตัวเลขไม่ถูกต้อง\" and no way to find the cells; the legacy import took such cells as 0 without a word."
     }
   ]
 }

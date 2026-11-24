@@ -142,7 +142,7 @@
   const rows=csvParse(text);
   if(!rows.length)return toast('ไฟล์ว่าง หรืออ่านไม่ได้ — ตรวจว่าเป็นไฟล์ CSV');
   const h=String(rows[0][0]||''),m=(window.PKG_IMPORT_MODES||{})[IMPMODE];   /* more kinds of data (vendors…) register there */
-  if(h.includes('ชื่อลูกค้า')||h.includes('รหัสสินค้า')||(m&&h.includes(m.head)))rows.shift();   /* ตัดแถวหัวตาราง */
+  IMPROW0=1;if(h.includes('ชื่อลูกค้า')||h.includes('รหัสสินค้า')||(m&&h.includes(m.head))){rows.shift();IMPROW0=2;}   /* ตัดแถวหัวตาราง (IMPROW0: 03.js) */
   if(!rows.length)return toast('ไม่มีข้อมูลใต้หัวตาราง');
   if(IMPMODE==='cust')await impCustApply(rows);else if(m)await m.apply(rows);else await impStockApply(rows);
  };
