@@ -48,7 +48,7 @@ after(async () => {
 });
 
 const form = (more = {}) => ({ pkg: 'biz', name: 'อู่แดงการช่าง', owner: 'แดง ใจดี', tel: '081-234-5678', email: 'Daeng@Example.com',
-  taxId: '', addr: '', zip: '', note: 'อยากรู้ต้นทุนรายบิล', consent: true, lang: 'th', ...more });
+  taxId: '', addr: '', zip: '', note: 'อยากรู้ต้นทุนรายบิล', user: 'Daeng', consent: true, lang: 'th', ...more });
 const meta = { address: '203.0.113.9', agent: 'test' };
 const refused = async (pool, sql) => assert.rejects(pool.query(sql), e => e.code === '42501', sql);
 
@@ -57,6 +57,7 @@ describe('คำขอลงทะเบียนจากหน้าเว็�
     assert.deepEqual(await addSignup(appPool, form(), meta), { kept: true });
     const row = (await ownerPool.query('select * from signups')).rows[0];
     assert.equal(row.email, 'daeng@example.com');
+    assert.equal(row.login_user, 'daeng');   // the owner's user name from the form, in small letters
     assert.equal(row.consent, CONSENT.th);
     assert.equal(row.status, 'new');
     // The app reads nothing back and cannot add a decided request.
@@ -65,7 +66,7 @@ describe('คำขอลงทะเบียนจากหน้าเว็�
     await assert.rejects(appPool.query(`insert into signups (pkg, name, owner, tel, email, consent, status) values ('biz','a','b','081','a@b.co','x','approved')`),
       e => e.code === '42501');
     // What the form must have.
-    for (const [more, message] of [[{ pkg: 'x' }, 'pkg'], [{ owner: ' ' }, 'name'], [{ tel: '12345' }, 'tel'], [{ email: 'no-at' }, 'email'], [{ consent: false }, 'consent']])
+    for (const [more, message] of [[{ pkg: 'x' }, 'pkg'], [{ owner: ' ' }, 'name'], [{ tel: '12345' }, 'tel'], [{ email: 'no-at' }, 'email'], [{ user: '' }, 'user'], [{ user: 'แดง' }, 'user'], [{ user: 'd' }, 'user'], [{ consent: false }, 'consent']])
       await assert.rejects(addSignup(appPool, form(more), meta), e => e.status === 400 && e.message === message);
     // The field people do not see: a robot's request is not kept.
     assert.deepEqual(await addSignup(appPool, form({ trap: 'http://spam' }), meta), { kept: false });
@@ -85,20 +86,23 @@ describe('คำขอลงทะเบียนจากหน้าเว็�
     const { signups, mail } = await listSignups(staffPool);
     assert.equal(mail, true);
     const s = signups[0];
+    assert.equal(s.user, 'daeng');
+    // A code staff might still send is not used: the shop's code is a new six-digit number (owner 2026-11-24).
     const r = await approveSignup(staffPool, s.id, { code: 'daeng-garage', pkg: s.pkg, kind: 'trial', name: s.name, owner: s.owner, email: s.email, tel: s.tel }, 'web:test');
-    assert.deepEqual([r.code, r.user, r.mailed, r.mailError], ['daeng-garage', 'daenggarage', true, '']);
+    assert.match(r.code, /^[1-9]\d{5}$/);
+    assert.deepEqual([r.user, r.mailed, r.mailError], ['daeng', true, '']);
     const m = sent.at(-1);
     assert.equal(m.auth, 'Bearer re_test');
     assert.deepEqual(m.to, ['daeng@example.com']);
     assert.equal(m.subject, 'อู่แดงการช่าง พร้อมทดลองใช้ DriveGo X แล้ว');
-    assert.match(m.text, /รหัสร้าน: daeng-garage\nชื่อผู้ใช้: daenggarage\nรหัสผ่านชั่วคราว: /);
+    assert.ok(m.text.includes(`รหัสร้าน: ${r.code}\nชื่อผู้ใช้: daeng\nรหัสผ่านชั่วคราว: `));
     assert.ok(m.text.includes(`รหัสผ่านชั่วคราว: ${r.password}`));
     assert.match(m.text, /ที่การ์ด DriveGo BaziX/);
     const after = (await listSignups(staffPool)).signups.find(x => x.id === s.id);
-    assert.deepEqual([after.status, after.shopCode, after.decidedBy, after.mailedAt !== null], ['approved', 'daeng-garage', 'web:test', true]);
+    assert.deepEqual([after.status, after.shopCode, after.decidedBy, after.mailedAt !== null], ['approved', r.code, 'web:test', true]);
     // The owner signs in with what the e-mail says.
-    const shop = (await ownerPool.query("select id from shops where code = 'daeng-garage'")).rows[0];
-    assert.equal((await withShop(appPool, shop.id, '*', c => signInBiz(c, 'daenggarage', r.password))).ok, true);
+    const shop = (await ownerPool.query('select id from shops where code = $1', [r.code])).rows[0];
+    assert.equal((await withShop(appPool, shop.id, '*', c => signInBiz(c, 'daeng', r.password))).ok, true);
     // Decided once.
     await assert.rejects(approveSignup(staffPool, s.id, { code: 'daeng-2', pkg: 'biz', kind: 'trial', name: 'x', owner: 'y' }, 'web:test'), e => e.status === 400);
   });

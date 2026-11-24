@@ -43,10 +43,11 @@ export async function shopDetail(db: pg.Pool, code: string) {
 export async function openShop(db: pg.Pool, b: Body, actor: string) {
   const pkg = text(b.pkg) as Package;
   const kind = text(b.kind) as 'trial' | 'pilot';
-  const r = await openRealShop(db, { code: text(b.code)?.toLowerCase() ?? '', pkg, kind, actor, from: text(b.from), contact: text(b.contact),
+  // The code is the new six-digit number (owner 2026-11-24): staff no longer type one.
+  const r = await openRealShop(db, { pkg, kind, actor, from: text(b.from), contact: text(b.contact),
     name: text(b.name) ?? '', owner: text(b.owner) ?? '', user: text(b.user), taxId: text(b.taxId), addr: text(b.addr), zip: text(b.zip),
     tel: text(b.tel), email: text(b.email) });
-  return { code: text(b.code)?.toLowerCase(), user: r.user, password: r.password, start: r.start, end: r.end };
+  return { code: r.code, user: r.user, password: r.password, start: r.start, end: r.end };
 }
 
 // One action on one shop, as the command of the same name of tools/shop-admin.mjs.
