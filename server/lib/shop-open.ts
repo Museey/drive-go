@@ -17,10 +17,12 @@ import { createShop } from './seed.ts';
 
 export type Package = 'biz' | 'prox' | 'franchise';
 export interface RealShop {
-  code: string; pkg: Package; kind: 'trial' | 'pilot'; from?: string; contact?: string; actor: string;
+  code?: string;           // none: a new six-digit number (the owner's decision of 2026-11-24); given: the tool's old way
+  pkg: Package; kind: 'trial' | 'pilot'; from?: string; contact?: string; actor: string;
   name: string;            // the shop's (or the chain's) name
   owner: string;           // the owner's first and last name
-  user?: string;           // the owner's (HQ's) user name; default: the code without hyphens (Franchise: hq)
+  user?: string;           // the owner's (HQ's) user name, from the sign-up form; with a given code it may be left out:
+                           // the code without hyphens (Franchise: hq)
   taxId?: string; addr?: string; zip?: string; tel?: string; email?: string;
 }
 
@@ -32,6 +34,16 @@ export const DEMO_CODES = ['demo-biz', 'demo-prox', 'demo-franchise'];
 // (api, ops, login, site, testdrive, privacy, articles: the app's own addresses)
 const RESERVED = new Set(['api', 'ops', 'login', 'site', 'testdrive', 'privacy', 'articles', ...DEMO_CODES]);
 
+// A new shop's code: six digits, not starting with 0, drawn at random (not in order, so that the codes in use cannot
+// be guessed one after the other) until one is free. shops.code is unique, so two shops opened at once cannot share
+// one either: the second insert fails and is not retried (staff open it again).
+export async function newShopCode(db: pg.Pool | pg.ClientBase): Promise<string> {
+  for (let i = 0; i < 50; i++) {
+    const code = String(randomInt(100000, 1000000));
+    if (!(await db.query('select 1 from shops where code = $1', [code])).rows.length) return code;
+  }
+  throw new Error('no free shop code');
+}
 // A password to read out over the phone: no letters that look alike (0/O, 1/l/I).
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
 export function temporaryPassword(length = 10): string {
@@ -44,8 +56,10 @@ const need = (v: string | undefined, what: string) => { if (!v || !String(v).tri
 
 // Opens an empty shop with its owner account and its trial (TRIAL_DAYS days) or pilot (PILOT_YEARS year) licence.
 // Returns the owner's user name and temporary password, to be told to the owner (not written down anywhere).
-export async function openRealShop(db: pg.Pool, s: RealShop): Promise<{ shopId: string; user: string; password: string; start: string; end: string }> {
-  const code = need(s.code, 'code');
+export async function openRealShop(db: pg.Pool, s: RealShop): Promise<{ shopId: string; code: string; user: string; password: string; start: string; end: string }> {
+  const given = s.code?.trim();
+  if (!given && !s.user?.trim()) throw new Error('user is required');
+  const code = given || await newShopCode(db);
   if (!CODE.test(code) || RESERVED.has(code)) throw new Error(`code: 3–32 small letters, digits or hyphens, not ${[...RESERVED].join(', ')}: ${code}`);
   if (!['biz', 'prox', 'franchise'].includes(s.pkg)) throw new Error(`package: biz, prox or franchise, not ${s.pkg}`);
   if (s.kind !== 'trial' && s.kind !== 'pilot') throw new Error('kind: trial or pilot');
@@ -74,7 +88,7 @@ export async function openRealShop(db: pg.Pool, s: RealShop): Promise<{ shopId: 
   await withShop(db, shopId, '*', c => c.query("update users set must_change = true where shop_id = app_shop() and kind in ('owner', 'fr')"));
   await withShop(db, shopId, '*', c => c.query('insert into licence_log (shop_id, shop_code, actor, action, detail) values ($1, $2, $3, $4, $5)',
     [shopId, code, s.actor, 'new', JSON.stringify({ pkg: s.pkg, kind: s.kind, start, end, name, owner, user, contact: s.contact ?? '' })]));
-  return { shopId, user, password, start, end };
+  return { shopId, code, user, password, start, end };
 }
 
 // A new temporary password for a shop's owner (Biz, ProX) or a chain's account (Franchise: HQ, or the user name

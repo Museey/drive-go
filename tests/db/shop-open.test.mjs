@@ -63,6 +63,25 @@ describe('เปิดร้านจริง (เครื่องมือ�
     assert.deepEqual(log.map(x => [x.actor, x.action, x.detail.user, x.detail.kind]), [['staff-test', 'new', 'daenggarage', 'trial']]);
   });
 
+  test('ไม่ระบุรหัสร้าน: ระบบสร้างเลข 6 หลักที่ไม่ซ้ำ ชื่อผู้ใช้ของเจ้าของเป็นชื่อที่ให้มาและต้องมี (เจ้าของโปรเจกต์ 2026-11-24)', async () => {
+    const codes = new Set();
+    for (let i = 0; i < 5; i++) {
+      const r = await openRealShop(ownerPool, { ...garage, code: undefined, user: 'Somchai' });
+      assert.match(r.code, /^[1-9]\d{5}$/);
+      assert.equal(r.user, 'somchai');
+      codes.add(r.code);
+      const shop = (await ownerPool.query('select id from shops where code = $1', [r.code])).rows[0];
+      assert.equal((await asApp(shop.id, c => signInBiz(c, 'somchai', r.password))).ok, true);
+    }
+    assert.equal(codes.size, 5);
+    const f = await openRealShop(ownerPool, { ...garage, code: undefined, pkg: 'franchise', user: 'ev.hq', name: 'เครือ EV' });
+    assert.match(f.code, /^[1-9]\d{5}$/);
+    assert.equal(f.user, 'ev.hq');
+    // The owner's user name is required when the code is made (it would otherwise be the number).
+    await assert.rejects(openRealShop(ownerPool, { ...garage, code: undefined, user: undefined }), /user is required/);
+    await assert.rejects(openRealShop(ownerPool, { ...garage, code: undefined, user: 'สมชาย' }), /^Error: user: 2/);
+  });
+
   test('แฟรนไชส์: เครือว่างมีบัญชี HQ แพ็กเกจนำร่อง 1 ปีนับจากวันที่ระบุ', async () => {
     const r = await openRealShop(ownerPool, { ...garage, code: 'ev-chain', pkg: 'franchise', kind: 'pilot', from: '2026-11-01', name: 'เครือ EV ทดลอง' });
     assert.equal(r.user, 'hq');

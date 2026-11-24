@@ -4,10 +4,12 @@
 // Every action is logged (table licence_log) with who ran it (--by, or the operating system user). How to run it on
 // the test server and what to check before giving a password: docs/STAFF-TOOLS.md.
 //
-//   node tools/shop-admin.mjs new CODE --biz|--prox|--franchise --trial|--pilot --name TEXT --owner TEXT
-//        [--user NAME] [--tax-id N] [--addr TEXT] [--zip N] [--tel N] [--email E] [--from DAY] [--contact TEXT]
-//                                                             open an empty shop (no sample data) at /CODE/ with its owner's
-//                                                             (Franchise: HQ's) account; shows the temporary password once
+//   node tools/shop-admin.mjs new --biz|--prox|--franchise --trial|--pilot --name TEXT --owner TEXT --user NAME
+//        [--tax-id N] [--addr TEXT] [--zip N] [--tel N] [--email E] [--from DAY] [--contact TEXT]
+//                                                             open an empty shop (no sample data) with its owner's (Franchise:
+//                                                             HQ's) account NAME; its code is a new six-digit number (owner
+//                                                             2026-11-24), shown with the temporary password once
+//                                                             (new CODE … : a code of your own, as before; --user may be left out)
 //   node tools/shop-admin.mjs password CODE [--user NAME]    a new temporary password for the owner (Franchise: HQ, or
 //                                                             the chain's account NAME); the old one stops working
 //   node tools/shop-admin.mjs list [--expiring DAYS]          shops and their licences (only those ending within DAYS)
@@ -100,10 +102,10 @@ try {
       const pkgs = ['biz', 'prox', 'franchise'].filter(p => o[p]);
       if (pkgs.length !== 1) { console.error('new: one of --biz, --prox, --franchise'); process.exit(2); }
       if (!!o.trial === !!o.pilot) { console.error('new: --trial or --pilot'); process.exit(2); }
-      const r = await openRealShop(db, { code: need(code, 'CODE'), pkg: pkgs[0], kind: o.trial ? 'trial' : 'pilot', from: o.from, contact: o.contact,
+      const r = await openRealShop(db, { code, pkg: pkgs[0], kind: o.trial ? 'trial' : 'pilot', from: o.from, contact: o.contact,
         actor, name: need(o.name, '--name'), owner: need(o.owner, '--owner'), user: o.user, taxId: o['tax-id'], addr: o.addr, zip: o.zip,
         tel: o.tel, email: o.email });
-      console.log(`${code}: opened (${pkgs[0]}, ${o.trial ? 'trial' : 'pilot'} ${r.start} → ${r.end}) at /${code}/`);
+      console.log(`${r.code}: opened (${pkgs[0]}, ${o.trial ? 'trial' : 'pilot'} ${r.start} → ${r.end}) at /${r.code}/ — shop code ${r.code}`);
       tell(r.user, r.password);
       break;
     }

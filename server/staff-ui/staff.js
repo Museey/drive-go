@@ -77,6 +77,8 @@
     [/^stage$/, 'ขั้นตอนนี้ทำไปแล้ว กรุณาโหลดหน้าใหม่'],
     [/^origin$/, 'คำขอนี้ไม่ได้มาจากหน้าเว็บทีมงาน'],
     [/^code is required/, 'ต้องใส่รหัสร้าน'],
+    [/^user is required/, 'ต้องใส่ชื่อผู้ใช้ของเจ้าของ'],
+    [/^no free shop code/, 'สร้างรหัสร้านไม่ได้ กรุณาลองใหม่'],
     [/^code: 3/, 'รหัสร้านต้องเป็นตัวพิมพ์เล็ก ตัวเลข หรือขีด 3–32 ตัว และห้ามใช้ api, ops หรือรหัสร้านตัวอย่าง'],
     [/^a shop with code \S+ exists already|^exists already/, 'มีร้านที่ใช้รหัสนี้แล้ว'],
     [/^package: /, 'ต้องเลือกแพ็กเกจ'],
@@ -395,15 +397,14 @@
   function shopFields(p = {}) {
     return [
       el('div', { class: 'grid2' },
-        field('รหัสร้าน', input('code', { required: true, autocapitalize: 'none', spellcheck: 'false', pattern: '[a-z0-9][a-z0-9\\-]{2,31}', placeholder: 'เช่น daeng-garage' }),
-          'ที่อยู่ของร้าน ตัวพิมพ์เล็ก ตัวเลข และขีด เปลี่ยนทีหลังไม่ได้'),
         field('แพ็กเกจ', select('pkg', [['biz', 'BaziX'], ['prox', 'ProX'], ['franchise', 'Franchise (เครือ)']], p.pkg || 'biz')),
         field('ประเภท', select('kind', [['trial', 'ทดลองใช้ 60 วัน'], ['pilot', 'อู่นำร่อง 1 ปี']], 'trial')),
         field('เริ่มนับจากวันที่', input('from', { type: 'date' }), 'ไม่ใส่ = วันนี้')),
       el('div', { class: 'grid2' },
         field('ชื่อร้าน / ชื่อเครือ', input('name', { required: true, value: p.name })),
         field('ชื่อ-นามสกุลเจ้าของ', input('owner', { required: true, value: p.owner })),
-        field('ชื่อผู้ใช้ของเจ้าของ', input('user', { autocapitalize: 'none', spellcheck: 'false' }), 'ไม่ใส่ = รหัสร้านที่ตัดขีดออก (Franchise: hq)'),
+        field('ชื่อผู้ใช้ของเจ้าของ', input('user', { required: true, autocapitalize: 'none', spellcheck: 'false', pattern: '[a-z0-9._\\-]{2,40}', value: p.user || undefined }),
+          'ตัวพิมพ์เล็ก ตัวเลข จุด ขีด หรือขีดล่าง 2–40 ตัว (Franchise: บัญชี HQ) · รหัสร้านเป็นเลข 6 หลักที่ระบบสร้างให้'),
         field('เลขประจำตัวผู้เสียภาษี', input('taxId', { inputmode: 'numeric', value: p.taxId })),
         field('โทรศัพท์', input('tel', { type: 'tel', value: p.tel })),
         field('อีเมล', input('email', { type: 'email', value: p.email }))),
@@ -424,7 +425,7 @@
       const r = await api('shops', v);
       form.reset();
       out.replaceChildren(msg('ok', `เปิดร้าน ${r.code} แล้ว ใช้ได้ถึง ${th(r.end)}`),
-        passwordCard([['ที่อยู่ร้าน', `/${r.code}/`], ['ชื่อผู้ใช้', r.user], ['รหัสผ่านชั่วคราว', r.password]],
+        passwordCard([['รหัสร้าน', r.code], ['ที่อยู่ร้าน', `/${r.code}/`], ['ชื่อผู้ใช้', r.user], ['รหัสผ่านชั่วคราว', r.password]],
           el('a', { href: `#/shop/${encodeURIComponent(r.code)}`, text: 'ดูร้านนี้ →' })));
       window.scrollTo(0, 0);
     }));
@@ -457,7 +458,7 @@
     const x = signups.find(r => Number(r.id) === id);
     if (!x) { show(msg('bad', 'ไม่พบคำขอนี้'), el('a', { href: '#/signups', text: '← คำขอลงทะเบียน' })); return; }
     const [label, kind] = SIGNUP_STATE[x.status] || [x.status, ''];
-    const rows = [['วันที่ส่ง', when(x.at)], ['แพ็กเกจที่เลือก', PKG[x.pkg] || x.pkg], ['ชื่ออู่', x.name], ['เจ้าของ', x.owner], ['โทรศัพท์', x.tel],
+    const rows = [['วันที่ส่ง', when(x.at)], ['แพ็กเกจที่เลือก', PKG[x.pkg] || x.pkg], ['ชื่ออู่', x.name], ['เจ้าของ', x.owner], ['ชื่อผู้ใช้ที่ขอ', x.user || '–'], ['โทรศัพท์', x.tel],
       ['อีเมล', x.email], ['เลขประจำตัวผู้เสียภาษี', x.taxId || '–'], ['ที่อยู่', [x.addr, x.zip].filter(Boolean).join(' ') || '–'],
       ['สิ่งที่อยากให้ระบบช่วย', x.note || '–'], ['ความยินยอม', x.consent]];
     if (x.status !== 'new') rows.push(['ตัดสินโดย', `${x.decidedBy || '–'} ${x.decidedAt ? when(x.decidedAt) : ''}`]);
@@ -471,7 +472,7 @@
     const out = el('div');
     const approve = el('form', { class: 'card' },
       el('h2', { text: 'อนุมัติและเปิดร้าน' }),
-      el('p', { class: 'help', text: mail ? `ตรวจข้อมูลแล้วตั้งรหัสร้าน ระบบเปิดร้านแล้วส่งชื่อผู้ใช้และรหัสผ่านชั่วคราวไปที่อีเมลด้านล่าง` : NO_MAIL }),
+      el('p', { class: 'help', text: mail ? `ตรวจข้อมูลแล้วกดอนุมัติ ระบบสร้างรหัสร้าน 6 หลัก เปิดร้าน แล้วส่งรหัสร้าน ชื่อผู้ใช้ และรหัสผ่านชั่วคราวไปที่อีเมลด้านล่าง` : NO_MAIL }),
       shopFields(x),
       el('button', { type: 'submit', class: 'primary', text: 'อนุมัติและเปิดร้าน' }));
     const reject = el('form', { class: 'card' },
@@ -486,7 +487,7 @@
         ? msg('ok', `เปิดร้าน ${r.code} แล้ว ใช้ได้ถึง ${th(r.end)} · ส่งชื่อผู้ใช้และรหัสผ่านชั่วคราวไปที่ ${r.email} แล้ว`)
         : msg('warn', `เปิดร้าน ${r.code} แล้ว ใช้ได้ถึง ${th(r.end)} · ${r.mailError === 'not-configured' ? 'ยังไม่ได้ตั้งค่าการส่งอีเมล' : `ส่งอีเมลไม่ได้ (${r.mailError})`} โทรแจ้งเจ้าของร้าน`),
       r.mailed ? el('a', { href: `#/shop/${encodeURIComponent(r.code)}`, text: 'ดูร้านนี้ →' })
-        : passwordCard([['ที่อยู่ร้าน', `/${r.code}/`], ['ชื่อผู้ใช้', r.user], ['รหัสผ่านชั่วคราว', r.password]],
+        : passwordCard([['รหัสร้าน', r.code], ['ที่อยู่ร้าน', `/${r.code}/`], ['ชื่อผู้ใช้', r.user], ['รหัสผ่านชั่วคราว', r.password]],
           el('a', { href: `#/shop/${encodeURIComponent(r.code)}`, text: 'ดูร้านนี้ →' })));
       window.scrollTo(0, 0);
     });

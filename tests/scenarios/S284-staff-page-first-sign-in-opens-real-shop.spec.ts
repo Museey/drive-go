@@ -41,11 +41,11 @@ test('S284 ระบบใหม่: ทีมงานเข้าหน้า�
   await expect(page.getByRole('heading', { name: 'ร้านทั้งหมด' })).toBeVisible();
   await expect(page.getByText(`(${staff.login})`)).toBeVisible();
 
-  // Opening a garage: a code that is taken or wrong is refused in Thai, then the shop opens.
+  // Opening a garage (owner 2026-11-24): staff type no shop code, the system makes a six-digit one; the owner's user
+  // name is needed (and refused in Thai when it is not small letters or digits), then the shop opens.
   await page.getByRole('link', { name: 'เปิดร้านใหม่' }).click();
-  const code = `real-${process.pid.toString(36)}-web`;
   const form = page.locator('form');
-  await form.getByRole('textbox', { name: /^รหัสร้าน/ }).fill('api');
+  await expect(form.getByRole('textbox', { name: /^รหัสร้าน/ })).toHaveCount(0);
   await form.getByLabel('แพ็กเกจ').selectOption('biz');
   await form.getByLabel('ประเภท').selectOption('pilot');
   await form.getByLabel('ชื่อร้าน / ชื่อเครือ').fill('อู่ช่างดำ');
@@ -53,18 +53,18 @@ test('S284 ระบบใหม่: ทีมงานเข้าหน้า�
   await form.getByLabel('เลขประจำตัวผู้เสียภาษี').fill('0105545009876');
   await form.getByLabel('โทรศัพท์').fill('089-765-4321');
   await form.getByLabel('ช่องทางติดต่อ').fill('คุณดำ 089-765-4321');
-  await form.getByRole('button', { name: 'เปิดร้าน' }).click();
-  await expect(page.getByRole('alert')).toHaveText('รหัสร้านต้องเป็นตัวพิมพ์เล็ก ตัวเลข หรือขีด 3–32 ตัว และห้ามใช้ api, ops หรือรหัสร้านตัวอย่าง');
-  await form.getByRole('textbox', { name: /^รหัสร้าน/ }).fill('ops');
-  await form.getByRole('button', { name: 'เปิดร้าน' }).click();
-  await expect(page.getByRole('alert')).toHaveText(/ห้ามใช้ api, ops/);
-  await form.getByRole('textbox', { name: /^รหัสร้าน/ }).fill(code);
+  await form.getByRole('textbox', { name: /^ชื่อผู้ใช้ของเจ้าของ/ }).fill('damkhayan');
   await form.getByRole('button', { name: 'เปิดร้าน' }).click();
   const card = page.getByRole('status').filter({ hasText: 'รหัสผ่านชั่วคราว' });
-  await expect(page.getByText(`เปิดร้าน ${code} แล้ว ใช้ได้ถึง 13/10/2570`)).toBeVisible();
-  const user = await card.locator('dd').nth(1).textContent();
-  const password = (await card.locator('dd').nth(2).textContent())!;
-  expect(user).toBe(code.replace(/-/g, ''));
+  const opened = page.getByText(/^เปิดร้าน \d{6} แล้ว ใช้ได้ถึง 13\/10\/2570$/);
+  await expect(opened).toBeVisible();
+  const code = (await card.locator('dd').nth(0).textContent())!;
+  expect(code).toMatch(/^[1-9]\d{5}$/);
+  await expect(opened).toHaveText(`เปิดร้าน ${code} แล้ว ใช้ได้ถึง 13/10/2570`);
+  await expect(card.locator('dd').nth(1)).toHaveText(`/${code}/`);
+  const user = await card.locator('dd').nth(2).textContent();
+  const password = (await card.locator('dd').nth(3).textContent())!;
+  expect(user).toBe('damkhayan');
   expect(password).toMatch(/^[A-HJ-NP-Za-km-np-z2-9]{10}$/);
 
   // The list: the new pilot garage, found by its name.

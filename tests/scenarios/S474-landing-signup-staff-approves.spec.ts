@@ -11,7 +11,7 @@ import { addTestStaff, appCode, setOwnPassword } from '../support/new-shop.mjs';
 test('S474 ระบบใหม่: อู่กรอกฟอร์มลงทะเบียนทดลองใช้ที่หน้าแรก คำขอขึ้นที่หน้าเว็บทีมงาน ทีมงานอนุมัติแล้วร้านเปิด เจ้าของร้านเข้าระบบได้', async ({ page }) => {
   test.slow();
   const tag = Date.now().toString(36).slice(-5);
-  const name = `อู่ทดลอง ${tag}`, code = `trial-${tag}`;
+  const name = `อู่ทดลอง ${tag}`, login = `somying${tag}`;
 
   await page.goto(`${LEGACY_ORIGIN}/`);
   const contact = page.locator('#contact');
@@ -21,18 +21,24 @@ test('S474 ระบบใหม่: อู่กรอกฟอร์มลง�
   const send = contact.getByRole('button', { name: 'ลงทะเบียน', exact: true });
   await contact.getByLabel('ชื่ออู่หรือศูนย์บริการ').fill(name);
   await send.click();
-  await expect(page.locator('#fErr')).toHaveText('กรอกชื่ออู่ ชื่อเจ้าของ เบอร์โทร และอีเมลให้ครบ แล้วติ๊กยินยอมก่อนส่ง');
+  await expect(page.locator('#fErr')).toHaveText('กรอกชื่ออู่ ชื่อเจ้าของ เบอร์โทร อีเมล และชื่อผู้ใช้ให้ครบ แล้วติ๊กยินยอมก่อนส่ง');
   await contact.getByLabel('ชื่อ-นามสกุลเจ้าของ').fill('สมหญิง ทดลองดี');
   await contact.getByLabel('เบอร์โทร').fill('081-555-0101');
-  await contact.getByLabel('อีเมล (สำหรับรับชื่อผู้ใช้และรหัสผ่าน)').fill(`owner-${tag}@example.com`);
+  await contact.getByLabel('อีเมล (สำหรับรับรหัสร้านและรหัสผ่าน)').fill(`owner-${tag}@example.com`);
+  // The owner's user name is chosen here (owner 2026-11-24): small letters, digits, dot, hyphen or underscore.
+  const userBox = contact.getByLabel('ชื่อผู้ใช้สำหรับเข้าสู่ระบบ (ภาษาอังกฤษตัวเล็ก ตัวเลข 2–40 ตัว)');
+  await userBox.fill('สมหญิง');
   await contact.getByLabel('แพ็กเกจ').selectOption({ label: 'DriveGo ProX' });
   await contact.getByLabel('สิ่งที่อยากให้ระบบช่วย (ไม่บังคับ)').fill('อยากรู้ต้นทุนรายบิล');
   await send.click();
-  await expect(page.locator('#fErr')).toHaveText('กรอกชื่ออู่ ชื่อเจ้าของ เบอร์โทร และอีเมลให้ครบ แล้วติ๊กยินยอมก่อนส่ง');
+  await expect(page.locator('#fErr')).toHaveText('กรอกชื่ออู่ ชื่อเจ้าของ เบอร์โทร อีเมล และชื่อผู้ใช้ให้ครบ แล้วติ๊กยินยอมก่อนส่ง');
   await contact.getByRole('checkbox', { name: /^ยินยอมให้บริษัท ไดร์ฟบิซ เมคคาไลซ์ โซลูชั่น จำกัด เก็บและใช้ข้อมูลนี้/ }).check();
   await send.click();
+  await expect(page.locator('#fErr')).toHaveText('ชื่อผู้ใช้ใช้ได้เฉพาะภาษาอังกฤษตัวเล็ก ตัวเลข จุด ขีด หรือขีดล่าง 2–40 ตัว');
+  await userBox.fill(login.toUpperCase());   // sent in small letters
+  await send.click();
   await expect(contact.getByText('ได้รับคำขอลงทะเบียนแล้ว')).toBeVisible();
-  await expect(contact.getByText('ทีมงานจะตรวจข้อมูลแล้วส่งชื่อผู้ใช้และรหัสผ่านไปที่อีเมลของคุณ', { exact: false })).toBeVisible();
+  await expect(contact.getByText('ทีมงานจะตรวจข้อมูลแล้วส่งรหัสร้านและรหัสผ่านชั่วคราวไปที่อีเมลของคุณ', { exact: false })).toBeVisible();
 
   // Staff: the request is on the staff page.
   const staff = await addTestStaff({ ready: true });
@@ -51,18 +57,23 @@ test('S474 ระบบใหม่: อู่กรอกฟอร์มลง�
   const facts = page.locator('dl.facts');
   await expect(facts).toContainText('อยากรู้ต้นทุนรายบิล');
   await expect(facts).toContainText('ยินยอมให้บริษัท ไดร์ฟบิซ เมคคาไลซ์ โซลูชั่น จำกัด');
-  // The fields of a new shop come from the request; staff choose the shop code.
+  await expect(facts).toContainText(`ชื่อผู้ใช้ที่ขอ${login}`);
+  // The fields of a new shop come from the request, the user name too; the system makes the shop's six-digit code.
   await expect(page.getByLabel('ชื่อร้าน / ชื่อเครือ')).toHaveValue(name);
   await expect(page.getByLabel('ชื่อ-นามสกุลเจ้าของ')).toHaveValue('สมหญิง ทดลองดี');
   await expect(page.getByLabel('แพ็กเกจ')).toHaveValue('prox');
   await expect(page.getByLabel('อีเมล', { exact: true })).toHaveValue(`owner-${tag}@example.com`);
-  await page.getByRole('textbox', { name: /^รหัสร้าน/ }).fill(code);
+  await expect(page.getByRole('textbox', { name: /^ชื่อผู้ใช้ของเจ้าของ/ })).toHaveValue(login);
+  await expect(page.getByRole('textbox', { name: /^รหัสร้าน/ })).toHaveCount(0);
   await page.getByRole('button', { name: 'อนุมัติและเปิดร้าน' }).click();
-  await expect(page.getByText(`เปิดร้าน ${code} แล้ว`, { exact: false })).toContainText('ยังไม่ได้ตั้งค่าการส่งอีเมล');
   const card = page.getByRole('status').filter({ hasText: 'รหัสผ่านชั่วคราว' });
-  const user = (await card.locator('dd').nth(1).textContent())!;
-  const password = (await card.locator('dd').nth(2).textContent())!;
-  expect(user).toBe(code.replace(/-/g, ''));
+  await expect(card).toBeVisible();
+  const code = (await card.locator('dd').nth(0).textContent())!;
+  expect(code).toMatch(/^[1-9]\d{5}$/);
+  await expect(page.getByText(`เปิดร้าน ${code} แล้ว`, { exact: false })).toContainText('ยังไม่ได้ตั้งค่าการส่งอีเมล');
+  const user = (await card.locator('dd').nth(2).textContent())!;
+  const password = (await card.locator('dd').nth(3).textContent())!;
+  expect(user).toBe(login);
 
   // Decided: the list says so.
   await page.getByRole('link', { name: 'คำขอลงทะเบียน', exact: true }).click();

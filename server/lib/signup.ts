@@ -17,6 +17,8 @@ export const CONSENT = {
   en: 'I agree that Drivebiz Mecalyze Solution Co., Ltd. keeps and uses these details to open my trial shop and contact me, under the privacy policy',
 };
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+// The owner's user name, as shop-open.ts accepts it (small letters, digits, dot, hyphen, underscore; 2–40).
+export const USER = /^[a-z0-9._-]{2,40}$/;
 
 // A request from the form. 'trap' is a field people do not see: something in it is a robot, quietly not kept.
 export async function addSignup(db: pg.Pool, b: Body, meta: { address: string; agent: string }): Promise<{ kept: boolean }> {
@@ -24,16 +26,17 @@ export async function addSignup(db: pg.Pool, b: Body, meta: { address: string; a
   const lang = b.lang === 'en' ? 'en' : 'th';
   const s = {
     pkg: str(b.pkg, 20), name: str(b.name, 200), owner: str(b.owner, 200), tel: str(b.tel, 40), email: str(b.email, 200).toLowerCase(),
-    taxId: str(b.taxId, 20), addr: str(b.addr, 500), zip: str(b.zip, 10), note: str(b.note, 2000),
+    taxId: str(b.taxId, 20), addr: str(b.addr, 500), zip: str(b.zip, 10), note: str(b.note, 2000), user: str(b.user, 40).toLowerCase(),
   };
   if (!['biz', 'prox', 'franchise'].includes(s.pkg)) throw bad('pkg');
   if (!s.name || !s.owner) throw bad('name');
   if (s.tel.replace(/\D/g, '').length < 9) throw bad('tel');
   if (!EMAIL.test(s.email)) throw bad('email');
+  if (!USER.test(s.user)) throw bad('user');
   if (b.consent !== true) throw bad('consent');
-  await db.query(`insert into signups (pkg, name, owner, tel, email, tax_id, addr, zip, note, lang, consent, address, agent)
-    values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
-  [s.pkg, s.name, s.owner, s.tel, s.email, s.taxId, s.addr, s.zip, s.note, lang, CONSENT[lang], meta.address, meta.agent.slice(0, 300)]);
+  await db.query(`insert into signups (pkg, name, owner, tel, email, tax_id, addr, zip, note, lang, consent, address, agent, login_user)
+    values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+  [s.pkg, s.name, s.owner, s.tel, s.email, s.taxId, s.addr, s.zip, s.note, lang, CONSENT[lang], meta.address, meta.agent.slice(0, 300), s.user]);
   return { kept: true };
 }
 
@@ -49,7 +52,7 @@ export function allowSignup(address: string, now = Date.now()): boolean {
   return true;
 }
 
-const COLUMNS = `id, at, pkg, name, owner, tel, email, tax_id as "taxId", addr, zip, note, lang, consent, status, decided_at as "decidedAt",
+const COLUMNS = `id, at, pkg, name, owner, tel, email, tax_id as "taxId", addr, zip, note, login_user as "user", lang, consent, status, decided_at as "decidedAt",
   decided_by as "decidedBy", decision_note as "decisionNote", shop_code as "shopCode", mailed_at as "mailedAt", mail_error as "mailError"`;
 
 // The requests, new ones first, then the latest decided.
@@ -89,7 +92,7 @@ export function signInMail(o: { lang: string; to: string; owner: string; name: s
 // the sign-in e-mail. The shop is open even when the e-mail fails: the answer carries the password for staff.
 export async function approveSignup(db: pg.Pool, id: number, b: Body, actor: string) {
   const s = await pending(db, id);
-  const opened = await openShop(db, { ...b, contact: b.contact ?? `${s.owner} ${s.tel} ${s.email}` }, actor);
+  const opened = await openShop(db, { ...b, user: b.user ?? s.user, contact: b.contact ?? `${s.owner} ${s.tel} ${s.email}` }, actor);
   await db.query(`update signups set status = 'approved', decided_at = now(), decided_by = $2, shop_code = $3 where id = $1`, [id, actor, opened.code]);
   const email = String(b.email ?? s.email).trim().toLowerCase();
   let mailed = false, mailError = '';
@@ -97,7 +100,7 @@ export async function approveSignup(db: pg.Pool, id: number, b: Body, actor: str
   else {
     try {
       await sendMail(signInMail({ lang: s.lang, to: email, owner: String(b.owner ?? s.owner), name: String(b.name ?? s.name), pkg: String(b.pkg ?? s.pkg),
-        code: opened.code!, user: opened.user, password: opened.password, end: opened.end }));
+        code: opened.code, user: opened.user, password: opened.password, end: opened.end }));
       mailed = true;
     } catch (e) {
       mailError = (e as Error).message.slice(0, 300);

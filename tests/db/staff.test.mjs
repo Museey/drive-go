@@ -36,20 +36,23 @@ after(async () => {
 });
 
 const refused = async (pool, sql) => assert.rejects(pool.query(sql), e => e.code === '42501', sql);
-const shop = (code, more = {}) => ({ code, pkg: 'biz', kind: 'trial', name: `อู่ ${code}`, owner: 'แดง ใจดี', contact: 'คุณแดง 081-234-5678', ...more });
+// The shop's code is a new six-digit number (owner 2026-11-24); the owner's user name is given.
+const shop = (user, more = {}) => ({ user, pkg: 'biz', kind: 'trial', name: `อู่ ${user}`, owner: 'แดง ใจดี', contact: 'คุณแดง 081-234-5678', ...more });
 
 describe('สิทธิ์ของ drivego_staff', () => {
   test('เปิดร้าน ดูทุกร้าน และทำทุกอย่างของเครื่องมือทีมงานได้ แต่ลบร้าน อ่านข้อผิดพลาด หรือแก้โครงสร้างฐานข้อมูลไม่ได้', async () => {
-    const a = await openShop(staffPool, shop('staff-a'), 'web:test');
-    await openShop(staffPool, shop('staff-b', { pkg: 'franchise' }), 'web:test');
-    assert.deepEqual([a.code, a.user], ['staff-a', 'staffa']);
+    const a = await openShop(staffPool, shop('staffa', { code: 'ignored' }), 'web:test');
+    const b = await openShop(staffPool, shop('hq', { pkg: 'franchise' }), 'web:test');
+    const A = a.code, B = b.code;
+    assert.match(A, /^[1-9]\d{5}$/);
+    assert.equal(a.user, 'staffa');
     const { shops } = await shopsOverview(staffPool);
-    assert.deepEqual(shops.map(s => s.code).sort(), ['staff-a', 'staff-b']);
+    assert.deepEqual(shops.map(s => s.code).sort(), [A, B].sort());
     // The owner signs in with the password the page showed.
-    const id = shops.find(s => s.code === 'staff-a').id;
+    const id = shops.find(s => s.code === A).id;
     assert.equal((await withShop(appPool, id, '*', c => signInBiz(c, 'staffa', a.password))).ok, true);
 
-    const act = b => shopAction(staffPool, 'staff-a', b, 'web:test');
+    const act = b => shopAction(staffPool, A, b, 'web:test');
     assert.equal((await act({ action: 'renew', years: 1, paidOn: today(), note: 'ใบเสร็จ 12' })).licence.kind, 'paid');
     assert.equal((await act({ action: 'contact', contact: 'คุณดำ 089' })).licence.contact, 'คุณดำ 089');
     const pw = await act({ action: 'password' });
@@ -63,32 +66,32 @@ describe('สิทธิ์ของ drivego_staff', () => {
     await assert.rejects(act({ action: 'told' }), /the licence has not ended/);
     // Ended 80 days ago, removal in 10 days: staff call, then note it; the removal moves to 30 days after the call.
     await ownerPool.query('update licences set starts_on = $2, ends_on = $3, delete_on = $4 where shop_id = (select id from shops where code = $1)',
-      ['staff-a', addDays(today(), -200), addDays(today(), -80), addDays(today(), 10)]);
-    assert.equal((await shopsOverview(staffPool)).shops.find(x => x.code === 'staff-a').due, 'notice');
+      [A, addDays(today(), -200), addDays(today(), -80), addDays(today(), 10)]);
+    assert.equal((await shopsOverview(staffPool)).shops.find(x => x.code === A).due, 'notice');
     assert.deepEqual(await act({ action: 'told', note: 'คุยกับคุณดำ' }), { removalOn: addDays(today(), 30) });
     await assert.rejects(act({ action: 'told' }), /told on \S+ already/);
     await assert.rejects(act({ action: 'what' }), /no action what/);
-    const fr = await shopAction(staffPool, 'staff-b', { action: 'password' }, 'web:test');
+    const fr = await shopAction(staffPool, B, { action: 'password' }, 'web:test');
     assert.equal(fr.user, 'hq');
 
-    const detail = await shopDetail(staffPool, 'staff-a');
+    const detail = await shopDetail(staffPool, A);
     assert.deepEqual(detail.log.map(r => r.action), ['notice', 'postpone', 'close', 'password', 'contact', 'renew', 'new']);
     assert.ok(detail.log.every(r => r.actor === 'web:test'));
     assert.deepEqual(detail.accounts, [{ user: 'staffa', role: 'owner', name: 'แดง ใจดี', active: true }]);
     assert.equal(JSON.stringify(detail).includes(pw.password), false, 'no password in what the page shows');
-    assert.deepEqual((await shopDetail(staffPool, 'staff-b')).accounts.map(x => [x.user, x.role]), [['hq', 'HQ']]);
+    assert.deepEqual((await shopDetail(staffPool, B)).accounts.map(x => [x.user, x.role]), [['hq', 'HQ']]);
 
     // Not the nightly job's work, not the errors, not the schema.
-    await refused(staffPool, `delete from shops where code = 'staff-b'`);
+    await refused(staffPool, `delete from shops where code = '${B}'`);
     await refused(staffPool, 'select * from errors');
     await refused(staffPool, 'create table x (a int)');
     await refused(staffPool, 'drop table licences');
     await refused(staffPool, 'select drivego_staff_grants()');
-    const due = { shop: shops.find(s => s.code === 'staff-b'), licence: { removedOn: today() }, action: 'purge' };
+    const due = { shop: shops.find(s => s.code === B), licence: { removedOn: today() }, action: 'purge' };
     await ownerPool.query(`update licences set starts_on = '1999-01-01', ends_on = '2000-01-01', delete_on = '2000-04-01', removed_on = '2000-04-01' where shop_id = $1`, [due.shop.id]);
     await assert.rejects(carryOut(staffPool, due, { actor: 'web:test', tell: async () => {} }), e => e.code === '42501');
     assert.equal((await listShops(ownerPool)).length, 2);
-    assert.ok((await retentionDue(staffPool)).some(d => d.shop.code === 'staff-b' && d.action === 'purge'));
+    assert.ok((await retentionDue(staffPool)).some(d => d.shop.code === B && d.action === 'purge'));
   });
 
   test('แอปของร้านมองไม่เห็นบัญชีทีมงาน การเข้าระบบของทีมงาน และประวัติของทีมงาน', async () => {
