@@ -376,6 +376,7 @@
         <button class="btn" onclick="openPxTopic()">🗂 หมวดหมู่ — เพิ่ม / แก้ชื่อ / ลบ</button>
         <button class="btn pri" onclick="openPxLearn()">+ เพิ่มบทความ / อัปโหลดคลิป</button></header>
       <div class="row" style="padding:9px 12px;border-bottom:1px solid var(--line2);background:#fbfcfc;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <input id="pxLearnQ" type="search" placeholder="ค้นหาหัวข้อ รายละเอียด หรือชื่อไฟล์..." style="width:260px" oninput="renderPxLearn()">
         <span class="hint">หมวดหมู่:</span>
         <div class="seg" id="pxTopicChips" style="flex-wrap:wrap"></div>
         <span class="hint" style="margin-left:auto">🔒 Private = เห็นเฉพาะอู่นี้ · 🌐 Published = แบ่งปันเข้าเครือข่าย DriveGo ProX</span>

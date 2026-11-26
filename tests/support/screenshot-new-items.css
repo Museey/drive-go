@@ -6,3 +6,6 @@
 #acctTabs [data-a="ledger"] { display: none !important; }
 /* - 08's sub-item "ยอดยกมา" (the opening balances, owner 2026-11-11, docs/NOTES.md "ยอดยกมา"): S292 */
 #acctTabs [data-a="opening"] { display: none !important; }
+/* - the knowledge library's search box (P2 ห้องข้อมูลเทคนิค, Publish/Private Data; owner 2026-11-26, docs/NOTES.md
+     "ค้นหาในคลังความรู้"): S480 */
+#pxLearnQ { display: none !important; }

@@ -11467,7 +11467,10 @@ function lrnIcon(x){
 function renderPxLearn(){
   ensurePX(); renderPxTopics();
   const modeRows=DB.px.learn.filter(x=>x.vis===learnVisMode);
-  const rows=modeRows.filter(x=>pxTopicSel==='ทั้งหมด'||x.cat===pxTopicSel);
+  /* ค้นหาในคลังความรู้ (เจ้าของโปรเจกต์ 2026-11-26): ทุกคำที่พิมพ์ต้องอยู่ในหัวข้อ รายละเอียด หมวด ผู้บันทึก หรือชื่อไฟล์ */
+  const lq=$('#pxLearnQ'), words=(lq?lq.value:'').trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const hit=x=>{const t=[x.title,x.desc,x.cat,x.by,x.fname].map(v=>String(v||'')).join('\n').toLowerCase();return words.every(w=>t.includes(w));};
+  const rows=modeRows.filter(x=>(pxTopicSel==='ทั้งหมด'||x.cat===pxTopicSel)&&hit(x));
   $('#pxLearnCount').textContent=(learnVisMode==='published'?'🌐 Publish Data · แบ่งปันเครือข่าย ProX · ':'🔒 Private Data · เฉพาะภายในอู่ · ')+modeRows.length+' รายการ';
   $('#pxLearnList').innerHTML=rows.map(x=>`
     <div class="lrnCard">

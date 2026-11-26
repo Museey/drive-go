@@ -1137,6 +1137,11 @@
       "scenario": "S479-stock-import-says-which-rows-to-fix.spec.ts",
       "decision": "Owner 2026-11-24 \"ทำข้อ 1 เลยครับ\": the parts import says which rows were skipped for a number (the file's row, the column and what is there)",
       "why": "A shop's file of 1,320 parts was skipped whole with only \"ข้าม 1319 แถว ตัวเลขไม่ถูกต้อง\" and no way to find the cells; the legacy import took such cells as 0 without a word."
+    },
+    {
+      "scenario": "S480-knowledge-library-search.spec.ts",
+      "decision": "The owner, 2026-11-26: a search box in the knowledge library (Publish Data, Private Data), with the text Claude proposed (\"ทำเลยครับ ใช้ข้อความตามที่เสนอ\")",
+      "why": "The legacy app's knowledge library can only be filtered by category; the ProX Data tab's search covers the central spec table only."
     }
   ]
 }
