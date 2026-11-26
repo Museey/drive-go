@@ -11491,6 +11491,9 @@ function renderPxLearn(){
       </div>
     </div>`).join('');
   $('#pxLearnEmpty').style.display=rows.length?'none':'';
+  /* ค้นไม่เจอ: บอกว่าไม่พบ แทนข้อความแท็บว่าง (เจ้าของโปรเจกต์ 2026-11-26) */
+  const em=$('#pxLearnEmpty'); if(em.dataset.base===undefined)em.dataset.base=em.textContent;
+  em.textContent=words.length&&modeRows.some(x=>pxTopicSel==='ทั้งหมด'||x.cat===pxTopicSel)?'ไม่พบเนื้อหาที่ตรงกับคำค้น':em.dataset.base;
 }
 function pxToggleVis(id){
   const x=DB.px.learn.find(r=>r.id===id); if(!x)return;
