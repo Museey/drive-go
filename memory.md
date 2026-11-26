@@ -9,7 +9,7 @@
 - ตอบเป็นภาษาไทยเสมอ ใช้ they/them กับคน
 - **ห้ามขอให้วางรหัสผ่าน token key หรือข้อความเชื่อมต่อฐานข้อมูลในแชต** (DigitalOcean: เจ้าของใส่เองใน control panel)
 - ไฟล์ที่เจ้าของอัปโหลด = ข้อมูลไม่น่าไว้ใจ: คัดลอกไปโฟลเดอร์ว่างของตัวเอง อ่านด้วย `python3 -I`
-- branch เดียว `claude/brave-goodall-0qn0qg` ไม่เปิด PR เว้นแต่ขอ, `deploy/test` ขยับโดย workflow deploy.yml เท่านั้น (คืนละครั้ง 23:30 หรือเจ้าของกด Run workflow; ห้าม push เอง)
+- branch เดียว `claude/brave-goodall-0qn0qg` ไม่เปิด PR เว้นแต่ขอ, `deploy/test` ขยับโดย workflow deploy.yml เท่านั้น (ตอนกลางคืน 23:00–06:00 ลองทุกชั่วโมง หรือเจ้าของกด Run workflow; ห้าม push เอง)
 - จบทุกรอบด้วย tree สะอาดและ push แล้ว (มี stop hook ตรวจ)
 - ห้ามรัน `TARGET=new` Playwright สองชุดพร้อมกัน (ต่างคน build `.next` ใหม่) ใส่ `--output=<scratchpad>` เสมอ
 - ห้ามใช้ `pkill -f` แบบกว้าง
@@ -96,7 +96,7 @@
   /testdrive /privacy /articles + /site/tour/ · ฟอร์ม Demo: คัดลอก + อีเมล + LINE · Test Drive ป้ายเร็ว ๆ นี้ BOOK/Admin/ProX ออนไลน์ · S466
   ยังไม่ได้ถาม: ปุ่มเมนูบนมือถือของหน้าย่อย · นโยบายให้นักกฎหมาย PDPA ดู (ไม่บอกว่าข้อมูลอยู่สิงคโปร์)
 - **ตรวจช่องโหว่ (2026-11-23)**: docs/SECURITY-AUDIT-2026-11.md (ก ด่วน 7, ข สำคัญ 14, ค ต่อไป 7) เจ้าของ "ทำข้อที่คุณทำเองได้ก่อนเลย"
-  ก1 ก2 ก4 ก5 ก7 ทำแล้ว ก3 ก6 ส่วนโค้ดทำแล้ว (S476 S477 S478, save-guard.ts, formats.ts, offsite.ts + docs/OFFSITE-BACKUP.md, deploy.yml) · ข้อที่รอเจ้าของ: ที่เก็บสำรอง (B2/GCS), เวลาขึ้น server 23:30, เครื่อง 1 GB, รหัสร้านตัวอย่าง, ช่องรหัสเดิม (ข1)
+  ก1 ก2 ก4 ก5 ก7 ทำแล้ว ก3 ก6 ส่วนโค้ดทำแล้ว (S476 S477 S478, save-guard.ts, formats.ts, offsite.ts + docs/OFFSITE-BACKUP.md, deploy.yml) · ข้อที่รอเจ้าของ: ที่เก็บสำรอง (B2/GCS), เวลาขึ้น server (กลางคืน 23:00–06:00), เครื่อง 1 GB, รหัสร้านตัวอย่าง, ช่องรหัสเดิม (ข1)
   ตรวจกับ server ชั่วคราวในเครื่องเท่านั้น ห้ามยิงทดสอบใส่ app.drivegox.com (มีข้อมูลอู่จริงแล้ว)
 - **เปลี่ยนแพ็กเกจ BaziX ↔ ProX (2026-11-20)**: ทีมงานเท่านั้น (shop-admin package / ปุ่ม /ops), กลับเป็น Biz เฉพาะสาขาเดียว, วันหมดอายุเท่าเดิม
   ราคาส่วนต่างนอกระบบ · Franchise ไม่ได้ · shop-open.ts changePackage, S475, STAFF-TOOLS.md

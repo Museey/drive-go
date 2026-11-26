@@ -4,7 +4,7 @@
 # the same pinned environment (.github/actions/setup). The test server's image
 # is built and tried too (task 3.16). A run where all of it passed on the main
 # branch is what .github/workflows/deploy.yml takes to the server (deploy/test,
-# which DigitalOcean deploys, .do/app.yaml): each night at 23:30 Bangkok time
+# which DigitalOcean deploys, .do/app.yaml): at night (23:00–06:00 Bangkok time)
 # or by hand (security review 2026-11-23 ก7), so a push that fails a check
 # never reaches the server, and one that passes does not restart it while
 # garages work.

@@ -1,8 +1,10 @@
 # When the server garages use gets a new version (security review 2026-11-23, docs/SECURITY-AUDIT-2026-11.md ก7): CI
 # no longer deploys every push that passes. This moves deploy/test (DigitalOcean deploys that branch, .do/app.yaml)
 # to the newest commit of the main branch whose CI passed:
-#   · every night at 23:30 Bangkok time (16:30 UTC), when garages do not work, so the server does not restart and
-#     the schema does not change while they do;
+#   · at night, between 23:00 and 06:00 Bangkok time, when garages do not work, so the server does not restart and
+#     the schema does not change while they do. GitHub starts scheduled runs late, by hours at times (the first nights
+#     of 2026-11 ran at 07:36–09:59 Bangkok time), so it is asked every hour from 23:07 to 04:07 and a run that starts
+#     outside the night does nothing; once deploy/test is at the newest commit the later ones do nothing either;
 #   · now, from GitHub: Actions → "Deploy to the test server" → Run workflow (an urgent fix). A commit may be given;
 #     it must be on the main branch and its CI must have passed.
 # Forward only: an older commit never moves the server back.
@@ -10,7 +12,7 @@ name: Deploy to the test server
 
 on:
   schedule:
-    - cron: '30 16 * * *'
+    - cron: '7 16-21 * * *'
   workflow_dispatch:
     inputs:
       commit:
@@ -33,11 +35,21 @@ jobs:
       MAIN: claude/brave-goodall-0qn0qg
       GH_TOKEN: ${{ github.token }}
     steps:
+      - name: Only at night (a scheduled run)
+        id: night
+        run: |
+          h=$(TZ=Asia/Bangkok date +%H)
+          if [ "$GITHUB_EVENT_NAME" = schedule ] && ! [[ "$h" =~ ^(23|00|01|02|03|04|05)$ ]]; then
+            echo "started at ${h}:xx Bangkok time, outside 23:00–06:00: nothing to do (the next night's runs deploy)"
+            echo "skip=1" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@v4
+        if: steps.night.outputs.skip != '1'
         with:
           ref: claude/brave-goodall-0qn0qg
           fetch-depth: 0
       - name: Choose the commit
+        if: steps.night.outputs.skip != '1'
         id: pick
         env:
           COMMIT: ${{ inputs.commit }}
@@ -57,6 +69,7 @@ jobs:
           echo "sha=$want" >> "$GITHUB_OUTPUT"
           git log -1 --format='deploying %h %s (%ci)' "$want"
       - name: Move deploy/test (forward only)
+        if: steps.night.outputs.skip != '1'
         env:
           WANT: ${{ steps.pick.outputs.sha }}
         run: |
