@@ -46,7 +46,11 @@ export async function heavy<T>(work: () => Promise<T>, o: { signal?: AbortSignal
 
 // A heavy request answered 503 when its turn does not come.
 export async function heavyOrBusy(work: () => Promise<Response>, signal?: AbortSignal): Promise<Response> {
-  try { return await heavy(work, { signal }); } catch (e) { if (e instanceof Busy) return busy(); throw e; }
+  try { return await heavy(work, { signal }); } catch (e) {
+    if (!(e instanceof Busy)) throw e;
+    if (!signal?.aborted) console.warn(`heavy: no turn within ${WAIT_MS / 1000} s (${running} running, ${waiting.length} waiting): answered 503`);
+    return busy();
+  }
 }
 
 // For tests: how many run and wait now.

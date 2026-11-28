@@ -24,7 +24,7 @@ import { type Split, SECRET_PLACEHOLDER, assemble, diff, eachRecord, rootOf, spl
 import { type Mask, maskRows } from '../lib/visibility.ts';
 import { type Refused, linkInPlace, setSpace, space, uploadFiles, withLinks } from './files.ts';
 import { createLive } from './live.ts';
-import { postError, reportErrors } from './errors.ts';
+import { postError, reportErrors, reportProblem } from './errors.ts';
 import { dataToMain } from '../lib/branch-stock.ts';
 
 // The staff web page (/ops, server/lib/staff.ts) keeps its sign-in for its own tab only. A shop's page opened in that
@@ -115,6 +115,7 @@ declare const KEY: string;
 // written on top of a refused save.
 async function mustReload(text: string, why: string): Promise<never> {
   problems.push(why);
+  reportProblem(`reload asked: ${why.replace(/[:(].*$/s, '').trim()}`, why);
   // The legacy spinner covers the screen while a save runs, and this save
   // never ends: keep it off the question.
   const style = document.createElement('style');
@@ -241,7 +242,12 @@ async function flush(key: string): Promise<void> {
   if (r.status === 401) return mustReload(MESSAGES.signedOut, `signed out while saving ${key}`);
   // The server's permission checks refused it (task T10): the screen must not go on as if it were saved.
   if (r.status === 403) return refused(`save ${key}`, await r.text());
-  if (!r.ok) { problems.push(`save ${key}: ${r.status} ${await r.text()}`); return; }
+  if (!r.ok) {
+    const why = `save ${key}: ${r.status} ${await r.text()}`;
+    problems.push(why);
+    reportProblem(`save not taken: ${key} ${r.status}`, why);
+    return;
+  }
   const { versions, renumbered = [], counters = [], live: logId } = await r.json() as
     { versions: Record<string, number>; renumbered?: Renumbered; counters?: Counters; live?: number | null };
   live.own(logId);
@@ -360,7 +366,7 @@ const storage = {
       await enqueue(async () => {
         const r = await send(url(key), { method: 'PUT', body: backup ? '' : value }, true);
         if (r.status === 403) return refused(`put ${key}`, await r.text());
-        if (!r.ok) problems.push(`put ${key}: ${r.status}`);
+        if (!r.ok) { problems.push(`put ${key}: ${r.status}`); reportProblem(`write not taken: ${key.replace(/\.bak\..*/, '.bak')} ${r.status}`); }
       });
     }
     return { key, value };
@@ -371,7 +377,7 @@ const storage = {
     await enqueue(async () => {
       const r = await send(url(key), { method: 'DELETE' }, true);
       if (r.status === 403) return refused(`delete ${key}`, await r.text());
-      if (!r.ok) problems.push(`delete ${key}: ${r.status}`);
+      if (!r.ok) { problems.push(`delete ${key}: ${r.status}`); reportProblem(`delete not taken: ${key} ${r.status}`); }
       if (rootOf(key)) mains.set(key, { value: null, sent: null, last: null, base: {} });
     });
     return { key, deleted: true };

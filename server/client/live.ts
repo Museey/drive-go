@@ -18,6 +18,7 @@ import type { LiveEntry } from '../lib/live.ts';
 import { MAIN, stockToBranch } from '../lib/branch-stock.ts';
 import { type Row, type Split, applyRows, assemble, diff, rootOf, split } from '../lib/units.ts';
 import type { Mask } from '../lib/visibility.ts';
+import { reportProblem } from './errors.ts';
 
 export interface LiveMain {
   value: string | null; sent: string | null; last: Split | null; base: Record<string, number>;
@@ -66,7 +67,7 @@ export function createLive(d: LiveDeps) {
   const own = new Set<number>();             // ids of this browser's own saves (they come back too)
   const pending = new Map<string, Pending>();
   let busy: () => boolean = () => false;
-  let source: EventSource | null = null, heardUpTo = 0, quiet = 0, started = false, cover: HTMLElement | null = null;
+  let source: EventSource | null = null, heardUpTo = 0, quiet = 0, started = false, cover: HTMLElement | null = null, coveredAt = 0;
   let watch: ReturnType<typeof setInterval> | null = null;
 
   const emit = (name: string, detail: unknown) => window.dispatchEvent(new CustomEvent(name, { detail }));
@@ -233,7 +234,13 @@ export function createLive(d: LiveDeps) {
     if (source) return;
     const es = new EventSource(`/api/live?since=${heardUpTo}`);
     source = es;
-    const alive = () => { quiet = 0; if (cover) { cover.remove(); cover = null; } };
+    const alive = () => {
+      quiet = 0;
+      if (!cover) return;
+      cover.remove(); cover = null;
+      // For staff (2026-11-28): how long the screen was covered, sent once the server answers again.
+      reportProblem('live: screen covered, server not reached', `covered ${Math.round((Date.now() - coveredAt) / 1000)} s`);
+    };
     es.addEventListener('ping', alive);
     es.addEventListener('change', ev => {
       alive();
@@ -251,6 +258,7 @@ export function createLive(d: LiveDeps) {
 
   function showCover(): void {
     if (cover || !document.body) return;
+    coveredAt = Date.now();
     cover = document.createElement('div');
     cover.id = 'drivegoOffline';
     cover.setAttribute('role', 'alert');

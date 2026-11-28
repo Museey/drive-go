@@ -92,14 +92,26 @@ export async function GET(req: Request, ctx: Ctx) {
 // server down. Now they wait their turn, holding nothing; once the first is written, a copy answers 409 and the
 // browser reads the data again.
 const BIG = 2 * 1024 * 1024;
-// A body whose size is not said (sent in chunks) takes its turn too: it may be of any size.
-const big = (req: Request) => { const n = req.headers.get('content-length'); return n === null || Number(n) > BIG; };
+// A body whose size is not said is not queued (2026-11-28: a proxy on the way may send a save in chunks, and every save
+// of every shop then waited behind the one turn); it is read at most MAX_SAVE_BYTES like any other (readBody).
+const big = (req: Request) => Number(req.headers.get('content-length')) > BIG;
+
+// A save or write refused, in conflict or not served is written to the server's log (DigitalOcean: Runtime Logs) with
+// its shop, so staff can tell what a shop's screens met (2026-11-28: a garage reported the program slow and "kicked
+// out"; a refused save makes the screen ask to reload, and none of it was seen anywhere).
+async function noted(res: Response, shopId: string, method: string, key: string): Promise<Response> {
+  if ([400, 403, 409, 413, 503].includes(res.status))
+    console.warn(`storage: shop ${shopId} ${method} ${key}: ${res.status} ${(await res.clone().text()).slice(0, 300)}`);
+  return res;
+}
 const tooLarge = (req: Request) => Number(req.headers.get('content-length')) > MAX_SAVE_BYTES;
 
 export async function POST(req: Request, ctx: Ctx) {
-  if (!await getSession(req)) return signedOut();
-  if (tooLarge(req)) return json({ error: 'too-large' }, 413);
-  return big(req) ? heavyOrBusy(() => post(req, ctx), req.signal) : post(req, ctx);
+  const s = await getSession(req);
+  if (!s) return signedOut();
+  const { key } = await ctx.params;
+  if (tooLarge(req)) return noted(json({ error: 'too-large' }, 413), s.shopId, 'POST', key);
+  return noted(await (big(req) ? heavyOrBusy(() => post(req, ctx), req.signal) : post(req, ctx)), s.shopId, 'POST', key);
 }
 
 async function post(req: Request, ctx: Ctx) {
@@ -183,9 +195,10 @@ async function post(req: Request, ctx: Ctx) {
 export async function PUT(req: Request, ctx: Ctx) {
   // (a backup point takes its turn below, from the server's own data: never two turns at once)
   const { key } = await ctx.params;
-  if (!await getSession(req)) return signedOut();
-  if (tooLarge(req)) return json({ error: 'too-large' }, 413);
-  return big(req) && !isBackupKey(key) ? heavyOrBusy(() => put(req, key), req.signal) : put(req, key);
+  const s = await getSession(req);
+  if (!s) return signedOut();
+  if (tooLarge(req)) return noted(json({ error: 'too-large' }, 413), s.shopId, 'PUT', key);
+  return noted(await (big(req) && !isBackupKey(key) ? heavyOrBusy(() => put(req, key), req.signal) : put(req, key)), s.shopId, 'PUT', key);
 }
 
 async function put(req: Request, key: string) {

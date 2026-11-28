@@ -23,25 +23,32 @@ test('S476 ระบบใหม่: คำขอที่ไม่ได้เ�
   }
   await anon.dispose();
 
-  // Signed in: 10 live channels open, the 11th is refused; once one closes, another opens. (Opened from here, not from
-  // the page: a browser keeps at most 6 connections to one server over HTTP/1.1.)
+  // Signed in: at most 10 live channels per session. The 11th is not refused: the OLDEST is closed (2026-11-28: a device
+  // on a weak Wi-Fi reconnects while the server still counts its dropped channels, and being refused left its screen
+  // covered). (Opened from here, not from the page: a browser keeps at most 6 connections to one server over HTTP/1.1.)
   await app.loginAsOwner();
   const cookie = (await page.context().cookies()).map(c => `${c.name}=${c.value}`).join('; ');   // (Secure: not listed for an http address)
-  const streams: AbortController[] = [];
+  const shopUrl = page.url();
+  await page.goto('about:blank');   // the program's own channel closes
+  type Stream = { c: AbortController; ended: Promise<boolean> };
+  const streams: Stream[] = [];
   const open = async () => {
     const c = new AbortController();
     const r = await fetch(`${LEGACY_ORIGIN}/api/live`, { headers: { cookie }, signal: c.signal });
-    if (r.status === 200) streams.push(c); else await r.body?.cancel();
+    const reader = r.body!.getReader();
+    const ended = (async () => { try { for (;;) if ((await reader.read()).done) return true; } catch { return true; } })();
+    streams.push({ c, ended });
     return r.status;
   };
+  const isEnded = (x: Stream) => Promise.race([x.ended, new Promise<boolean>(r => setTimeout(() => r(false), 50))]);
   const statuses: number[] = [];
   for (let i = 0; i < 11; i++) statuses.push(await open());
-  // The program's own channel is one of the 10.
-  expect(statuses.filter(s => s === 200).length).toBe(9);
-  expect(statuses.slice(-2)).toEqual([429, 429]);
-  streams.shift()!.abort();
-  await expect.poll(open).toBe(200);
-  streams.forEach(c => c.abort());
+  expect(statuses).toEqual(Array(11).fill(200));
+  await expect.poll(() => isEnded(streams[0])).toBe(true);
+  await page.waitForTimeout(3500);   // a ping (every 3 s) on each open one
+  expect(await Promise.all(streams.slice(1).map(isEnded))).toEqual(Array(10).fill(false));
+  streams.forEach(x => x.c.abort());
+  await page.goto(shopUrl);
 
   // Signed in (SECURITY-AUDIT ก2): a save that is not shaped as one is a bad request, not a server error written to the
   // errors table; only the keys the screens keep beside their data are taken, each at its size.

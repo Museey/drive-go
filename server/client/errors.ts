@@ -32,4 +32,18 @@ export function reportErrors(win: Win, post: Post): void {
   });
 }
 
+// What the program met that the person cannot tell staff in full — a save refused or not taken, a reload asked for, the
+// screen covered while the server could not be reached (2026-11-28: a garage reported the program slow and "kicked
+// out", and none of it had reached the server): sent like an error, each at most twice and at most MAX a page.
+const problemTimes = new Map<string, number>();
+let problemsSent = 0;
+export function reportProblem(message: string, detail = '', post: Post = postError): void {
+  const n = (problemTimes.get(message) ?? 0) + 1;
+  problemTimes.set(message, n);
+  if (n > SAME || problemsSent >= MAX) return;
+  problemsSent++;
+  const path = typeof location === 'undefined' ? '' : location.pathname;
+  post(JSON.stringify({ message: message.slice(0, 1000), detail: detail.slice(0, 4000), path })).catch(() => {});
+}
+
 export const postError: Post = body => fetch('/api/errors', { method: 'POST', headers: { 'content-type': 'application/json' }, body, keepalive: true, credentials: 'same-origin' });

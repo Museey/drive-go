@@ -23,8 +23,12 @@ const MAX_CATCH_UP = 500;      // more than this missed: read the data again
 const RIGHTS_UNITS = new Set(['DB.emp', 'FR.accounts']);
 // Open streams per session and per shop on this server (security review 2026-11-23, SECURITY-AUDIT ก1/ก3: 2,000 streams
 // from one signed-in session ran the 512 MB server out of memory). A device has one per tab; a shop a few devices.
+// Over the session's limit the OLDEST stream is closed, not the new one refused (2026-11-28): a device on a weak Wi-Fi
+// reconnects while the server still counts its dropped connections for minutes, and a refused stream left its screen
+// covered ("เชื่อมต่อ server ไม่ได้") until they ran out. A tab whose stream is closed reconnects after 2 s.
 const MAX_PER_SESSION = 10, MAX_PER_SHOP = 100;
-const perSession = new Map<string, number>(), perShop = new Map<string, number>();
+type Open = { end: () => void };
+const perSession = new Map<string, Open[]>(), perShop = new Map<string, number>();
 const take = (m: Map<string, number>, k: string) => m.set(k, (m.get(k) ?? 0) + 1);
 const give = (m: Map<string, number>, k: string) => { const n = (m.get(k) ?? 1) - 1; if (n > 0) m.set(k, n); else m.delete(k); };
 
@@ -32,11 +36,26 @@ export async function GET(req: Request) {
   const s = await getSession(req);
   if (!s) return json({ error: 'signed-out' }, 401);
   const mine = s.tokenHash.toString('hex');
-  if ((perSession.get(mine) ?? 0) >= MAX_PER_SESSION || (perShop.get(s.shopId) ?? 0) >= MAX_PER_SHOP)
+  const list = perSession.get(mine) ?? [];
+  while (list.length >= MAX_PER_SESSION) {
+    console.warn(`live: shop ${s.shopId}: a session had ${MAX_PER_SESSION} streams open, the oldest closed`);
+    list.shift()!.end();
+  }
+  if ((perShop.get(s.shopId) ?? 0) >= MAX_PER_SHOP) {
+    console.warn(`live: shop ${s.shopId}: ${MAX_PER_SHOP} streams open, one more refused`);
     return json({ error: 'too many' }, 429);
-  take(perSession, mine); take(perShop, s.shopId);
+  }
+  let evicted = false;
+  const me: Open = { end: () => { evicted = true; } };   // closed before its stream started: it ends at once
+  list.push(me); perSession.set(mine, list); take(perShop, s.shopId);
   let counted = true;
-  const uncount = () => { if (!counted) return; counted = false; give(perSession, mine); give(perShop, s.shopId); };
+  const uncount = () => {
+    if (!counted) return;
+    counted = false;
+    const l = perSession.get(mine);
+    if (l) { const i = l.indexOf(me); if (i >= 0) l.splice(i, 1); if (!l.length) perSession.delete(mine); }
+    give(perShop, s.shopId);
+  };
   const since = Math.max(0, Number(new URL(req.url).searchParams.get('since')) || 0);
   const rights = async () => withShop(pool(), s.shopId, s.scope, async c => JSON.stringify(await rightsOf(c, await actorOf(c, s))));
   let startRights: string;
@@ -88,6 +107,8 @@ export async function GET(req: Request) {
         try { ctrl.close(); } catch { /* already closed */ }
       };
       req.signal.addEventListener('abort', () => end());
+      me.end = end;
+      if (evicted) { end(); return; }
       ctrl.enqueue(enc.encode('retry: 2000\n\n'));
       send('ping', {});
       void catchUp();
