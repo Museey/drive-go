@@ -2,8 +2,9 @@
 # Singapore). How to create the app from this file: docs/DIGITALOCEAN-SETUP.md part 3.
 #
 # · web: the image of ./Dockerfile, `next start` on port 8080. 512 MB while the test server has only the demo shops and
-#   trial data (the owner's choice of 2026-11-01; the app uses 150–250 MB then): reading a shop's whole data runs one at a
-#   a time (HEAVY_AT_ONCE=1, server/lib/heavy.ts). 1 GB (apps-s-1vcpu-1gb) before a pilot shop or a load test with the
+#   trial data (the owner's choice of 2026-11-01; the app uses 150–250 MB then): reading a shop's whole data runs two at a
+#   time (HEAVY_AT_ONCE=2, server/lib/heavy.ts; 1 until 2026-11-28, when garages waited up to a minute for each other's
+#   turn and memory stayed at about 30% of 512 MB). 1 GB (apps-s-1vcpu-1gb) before a pilot shop or a load test with the
 #   36-month data, which took up to 711 MB with 15 devices opening the program at once (docs/LOAD-TEST.md).
 #   The staff web page is its /ops/ (docs/STAFF-TOOLS.md): on once the web component has the secret STAFF_DATABASE_URL, the
 #   connection string of the user drivego_staff, typed in the control panel (docs/DIGITALOCEAN-SETUP.md part 4), never here.
@@ -54,7 +55,7 @@ services:
     envs:
       - key: HEAVY_AT_ONCE
         scope: RUN_TIME
-        value: "1"
+        value: "2"
       - key: DATABASE_URL
         scope: RUN_TIME
         value: ${db.DATABASE_URL}
