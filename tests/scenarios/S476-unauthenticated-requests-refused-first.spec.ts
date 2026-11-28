@@ -25,11 +25,10 @@ test('S476 ระบบใหม่: คำขอที่ไม่ได้เ�
 
   // Signed in: at most 10 live channels per session. The 11th is not refused: the OLDEST is closed (2026-11-28: a device
   // on a weak Wi-Fi reconnects while the server still counts its dropped channels, and being refused left its screen
-  // covered). (Opened from here, not from the page: a browser keeps at most 6 connections to one server over HTTP/1.1.)
+  // covered). The program keeps its own channel: closed as the oldest, it connects again (after 2 s) and closes the
+  // next oldest. (Opened from here, not from the page: a browser keeps at most 6 connections to one server over HTTP/1.1.)
   await app.loginAsOwner();
   const cookie = (await page.context().cookies()).map(c => `${c.name}=${c.value}`).join('; ');   // (Secure: not listed for an http address)
-  const shopUrl = page.url();
-  await page.goto('about:blank');   // the program's own channel closes
   type Stream = { c: AbortController; ended: Promise<boolean> };
   const streams: Stream[] = [];
   const open = async () => {
@@ -45,10 +44,12 @@ test('S476 ระบบใหม่: คำขอที่ไม่ได้เ�
   for (let i = 0; i < 11; i++) statuses.push(await open());
   expect(statuses).toEqual(Array(11).fill(200));
   await expect.poll(() => isEnded(streams[0])).toBe(true);
-  await page.waitForTimeout(3500);   // a ping (every 3 s) on each open one
-  expect(await Promise.all(streams.slice(1).map(isEnded))).toEqual(Array(10).fill(false));
+  await page.waitForTimeout(3500);   // the program's channel back; a ping (every 3 s) on each open one
+  const open10 = (await Promise.all(streams.map(isEnded))).map(e => !e);
+  expect(open10.slice(-2)).toEqual([true, true]);
+  expect(open10.filter(Boolean).length).toBeLessThanOrEqual(9);   // with the program's own: at most 10
+  expect(await page.evaluate(() => (window as unknown as { storage: { live: { offline: boolean } } }).storage.live.offline)).toBe(false);
   streams.forEach(x => x.c.abort());
-  await page.goto(shopUrl);
 
   // Signed in (SECURITY-AUDIT ก2): a save that is not shaped as one is a bad request, not a server error written to the
   // errors table; only the keys the screens keep beside their data are taken, each at its size.
